@@ -1,37 +1,36 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
 
-interface Props {
-  connected: boolean;
+interface User {
+  id: string;
+  name: string;
+  color: string;
 }
 
-const Header = ({ connected }: Props) => {
-  const [retryCount, setRetryCount] = useState(0);
-  const [reconnecting, setReconnecting] = useState(false);
+interface Props {
+  users: User[];
+}
+
+const Header = ({ users }: Props) => {
+  const [activeUsers, setActiveUsers] = useState(users);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (!connected) {
-        setRetryCount(retryCount + 1);
-        if (retryCount >= 3) {
-          setReconnecting(true);
-        }
-      }
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, [connected, retryCount]);
+    setActiveUsers(users);
+  }, [users]);
 
   return (
-    <div>
-      <h1>Collaborative Code Editor</h1>
-      {connected ? (
-        <p>Connected</p>
-      ) : (
-        <p>Disconnected. Retrying...</p>
-      )}
-      {reconnecting ? (
-        <p>Reconnecting...</p>
-      ) : null}
+    <div className="active-users">
+      {activeUsers.map((user, index) => (
+        <span key={index} style={{
+          backgroundColor: user.color,
+          color: "#fff",
+          padding: "5px",
+          borderRadius: "10px",
+          marginRight: "10px",
+        }}>
+          {user.name}
+        </span>
+      ))}
     </div>
   );
 };
