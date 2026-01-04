@@ -1,14 +1,39 @@
-import React from 'react';
-export default function Header() {
-  return (
-    <header className="container" style={{paddingTop: '1.5rem', paddingBottom: '1.5rem'}}>
-      <nav style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-        <span style={{fontWeight: 700, fontSize: '1.25rem'}}>Professional Website</span>
-        <div>
-          <a href="#about" style={{marginRight: '1.5rem'}}>About</a>
-          <a href="#contact">Contact</a>
-        </div>
-      </nav>
-    </header>
-  );
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+
+interface Props {
+  connected: boolean;
 }
+
+const Header = ({ connected }: Props) => {
+  const [retryCount, setRetryCount] = useState(0);
+  const [reconnecting, setReconnecting] = useState(false);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (!connected) {
+        setRetryCount(retryCount + 1);
+        if (retryCount >= 3) {
+          setReconnecting(true);
+        }
+      }
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [connected, retryCount]);
+
+  return (
+    <div>
+      <h1>Collaborative Code Editor</h1>
+      {connected ? (
+        <p>Connected</p>
+      ) : (
+        <p>Disconnected. Retrying...</p>
+      )}
+      {reconnecting ? (
+        <p>Reconnecting...</p>
+      ) : null}
+    </div>
+  );
+};
+
+export default Header;
