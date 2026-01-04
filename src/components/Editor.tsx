@@ -1,26 +1,43 @@
 {"import React from 'react';
-import { EditorState, convertToRaw } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
+import CodeMirror from 'codemirror';
 
 interface Props {
-  editorState: EditorState;
-  onEditorStateChange: (editorState: EditorState) => void;
+  value: string;
+  onChange: (value: string) => void;
+  language: string;
 }
 
-const EditorComponent = ({ editorState, onEditorStateChange }: Props) => {
-  const handleEditorStateChange = (editorState: EditorState) => {
-    onEditorStateChange(editorState);
-  };
+const Editor = ({ value, onChange, language }: Props) => {
+  const [cm, setCodeMirror] = React.useState(CodeMirror.fromTextArea(document.getElementById('editor') as HTMLTextAreaElement, {
+    mode: language,
+    lineNumbers: true,
+    theme: 'monokai',
+  }));
+
+  React.useEffect(() => {
+    cm.setValue(value);
+    cm.on('change', (instance, changes) => {
+      onChange(instance.getValue());
+    });
+  }, [value, onChange]);
 
   return (
-    <Editor
-      editorState={editorState}
-      onEditorStateChange={handleEditorStateChange}
-      toolbarClassName='toolbar-class'
-      wrapperClassName='wrapper-class'
-      editorClassName='editor-class'
-    />
+    <div className="editor">
+      <textarea id="editor" value={value} onChange={(e) => onChange(e.target.value)}></textarea>
+      <div className="toolbar">
+        <select value={language} onChange={(e) => setCodeMirror(CodeMirror.fromTextArea(document.getElementById('editor') as HTMLTextAreaElement, {
+          mode: e.target.value,
+          lineNumbers: true,
+          theme: 'monokai',
+        }))}>
+          <option value="javascript">JavaScript</option>
+          <option value="python">Python</option>
+          <option value="html">HTML</option>
+        </select>
+        <button onClick={() => cm.execCommand('formatCode')}>Format</button>
+      </div>
+    </div>
   );
 };
 
-export default EditorComponent;
+export default Editor;
