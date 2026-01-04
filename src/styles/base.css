@@ -14,3 +14,9 @@ body {
   min-height: 100vh;
   transition: background 0.2s, color 0.2s;
 }
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
