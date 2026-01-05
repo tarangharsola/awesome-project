@@ -1,22 +1,27 @@
 {"import React from 'react';
-import { useUsers } from './useUsers';
+import './UserList.css';
+
+interface User {
+  id: string;
+  name: string;
+  color: string;
+}
 
 interface Props {
-  users: { [key: string]: { color: string } };
+  users: User[];
 }
 
-const UserList: React.FC<Props> = ({ users }) => {
+const UserList = ({ users }: Props) => {
   return (
-    <ul className='user-list'>
-      {Object.keys(users).map((user) => (
-        <li key={user} style={{
-          backgroundColor: users[user].color,
-        }}>
-          {user}
-        </li>
+    <div className="user-list">
+      {users.map((user) => (
+        <div key={user.id} className="user">
+          <span style={{ backgroundColor: user.color }}></span>
+          <span>{user.name}</span>
+        </div>
       ))}
-    </ul>
+    </div>
   );
-}
+};
 
 export default UserList;
