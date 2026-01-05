@@ -1,1 +1,31 @@
-{"import React from 'react';\nimport { useEditor } from './useEditor';\n\ninterface ReconnectionHandlerProps {\n  editor: useEditor;\n}\n\nconst ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ editor }) => {\n  const [reconnecting, setReconnecting] = React.useState(false);\n\n  React.useEffect(() => {\n    const handleConnectionStatus = (status: any) => {\n      if (status === 'reconnecting') {\n        setReconnecting(true);\n      } else {\n        setReconnecting(false);\n      }\n    };\n    editor.subscribe(handleConnectionStatus);\n    return () => editor.unsubscribe(handleConnectionStatus);\n  }, [editor]);\n\n  return (\n    <div>\n      {reconnecting ? (\n        <div>\n          Reconnecting...\n        </div>\n      ) : (\n        <div>\n          Connected\n        </div>\n      )}\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+{"import React, { useState, useEffect } from 'react';
+import { useWebSocket } from 'react-use-websocket';
+
+const ReconnectionHandler = () => {
+  const [connectionStatus, setConnectionStatus] = useState('connected');
+  const [retryCount, setRetryCount] = useState(0);
+  const { sendJsonMessage, lastMessage, readyState } = useWebSocket('ws://localhost:8080');
+
+  useEffect(() => {
+    if (readyState === WebSocket.CLOSED) {
+      setConnectionStatus('disconnected');
+      setRetryCount(retryCount + 1);
+      setTimeout(() => {
+        setRetryCount(0);
+        setConnectionStatus('reconnecting');
+      }, 5000);
+    }
+  }, [readyState, retryCount]);
+
+  const handleReconnect = () => {
+    sendJsonMessage({ type: 'reconnect' });
+  };
+
+  return (
+    <div>
+      <p>Connection Status: {connectionStatus}</p>
+      <button onClick={handleReconnect}>Reconnect</button>
+    </div>
+  );
+};
+export default ReconnectionHandler;
