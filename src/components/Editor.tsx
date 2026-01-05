@@ -1,43 +1,16 @@
 {"import React from 'react';
-import CodeMirror from 'codemirror';
+import { EditorState, Editor } from 'react-editor-js';
+import { useEditor } from './useEditor';
 
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
-
-const Editor = ({ value, onChange, language }: Props) => {
-  const [cm, setCodeMirror] = React.useState(CodeMirror.fromTextArea(document.getElementById('editor') as HTMLTextAreaElement, {
-    mode: language,
-    lineNumbers: true,
-    theme: 'monokai',
-  }));
-
-  React.useEffect(() => {
-    cm.setValue(value);
-    cm.on('change', (instance, changes) => {
-      onChange(instance.getValue());
-    });
-  }, [value, onChange]);
-
+const EditorComponent = () => {
+  const { editorState, setEditorState } = useEditor();
   return (
-    <div className="editor">
-      <textarea id="editor" value={value} onChange={(e) => onChange(e.target.value)}></textarea>
-      <div className="toolbar">
-        <select value={language} onChange={(e) => setCodeMirror(CodeMirror.fromTextArea(document.getElementById('editor') as HTMLTextAreaElement, {
-          mode: e.target.value,
-          lineNumbers: true,
-          theme: 'monokai',
-        }))}>
-          <option value="javascript">JavaScript</option>
-          <option value="python">Python</option>
-          <option value="html">HTML</option>
-        </select>
-        <button onClick={() => cm.execCommand('formatCode')}>Format</button>
-      </div>
-    </div>
+    <Editor
+      editorState={editorState}
+      onEditorStateChange={setEditorState}
+      tools={tools}
+    />
   );
 };
 
-export default Editor;
+export default EditorComponent;

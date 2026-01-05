@@ -1,30 +1,17 @@
-{"import React, { useState, useEffect } from 'react';
-import { EditorState } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
+{"import React from 'react';
+import { useCursor } from './useCursor';
 
-interface Props {
-  editorState: EditorState;
-  onCursorChange: (cursorPosition: number) => void;
-}
-
-const CursorTracker = ({ editorState, onCursorChange }: Props) => {
-  const [cursorPosition, setCursorPosition] = useState(0);
-
-  useEffect(() => {
-    const handleEditorStateChange = (editorState: EditorState) => {
-      const cursorPosition = editorState.getCurrentContent().getSelection().getStartOffset();
-      setCursorPosition(cursorPosition);
-      onCursorChange(cursorPosition);
-    };
-
-    editorState.subscribe(handleEditorStateChange);
-    return () => editorState.unsubscribe(handleEditorStateChange);
-  }, [editorState, onCursorChange]);
-
+const CursorTracker = () => {
+  const { cursorPosition, userColor } = useCursor();
   return (
-    <div className='cursor-tracker'>
-      <span className='cursor-position'>{cursorPosition}</span>
-    </div>
+    <div style={{
+      position: 'absolute',
+      top: cursorPosition.y,
+      left: cursorPosition.x,
+      backgroundColor: userColor,
+      width: 10,
+      height: 10,
+    }} />
   );
 };
 
