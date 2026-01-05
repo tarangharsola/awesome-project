@@ -1,16 +1,1 @@
-{"import React from 'react';
-import { EditorState, Editor } from 'react-editor-js';
-import { useEditor } from './useEditor';
-
-const EditorComponent = () => {
-  const { editorState, setEditorState } = useEditor();
-  return (
-    <Editor
-      editorState={editorState}
-      onEditorStateChange={setEditorState}
-      tools={tools}
-    />
-  );
-};
-
-export default EditorComponent;
+{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport MonacoEditor from '@monaco-editor/react';\nimport { useEditor } from './useEditor';\n\nconst Editor = ({ language, defaultValue, onChange }) => {\n  const [editorState, setEditorState] = useState({ language, defaultValue, onChange });\n  const handleEditorChange = (newValue) => {\n    setEditorState({ ...editorState, defaultValue: newValue });\n    onChange(newValue);\n  };\n\n  return (\n    <MonacoEditor\n      language={editorState.language}\n      value={editorState.defaultValue}\n      onChange={handleEditorChange}\n      options={{\n        selectOnLineNumbers: true,\n        fontSize: 14,\n        minimap: { enabled: false },\n        scrollBeyondLastLine: false,\n        wordWrap: 'on',\n        wrappingStrategy: 'high-density',\n      }}\n    />\n  );\n};\n\nexport default Editor;

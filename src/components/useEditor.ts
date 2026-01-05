@@ -1,12 +1,1 @@
-{"import { useState, useEffect } from 'react';
-import { EditorState } from 'react-editor-js';
-
-const useEditor = () => {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  useEffect(() => {
-    // Handle editor state changes
-  }, [editorState]);
-  return { editorState, setEditorState };
-};
-
-export default useEditor;
+{"import { useState, useEffect } from 'react';\n\nconst useEditor = (language, defaultValue, onChange) => {\n  const [editorState, setEditorState] = useState({ language, defaultValue, onChange });\n  const handleEditorChange = (newValue) => {\n    setEditorState({ ...editorState, defaultValue: newValue });\n    onChange(newValue);\n  };\n\n  return { editorState, handleEditorChange };\n};\n\nexport default useEditor;

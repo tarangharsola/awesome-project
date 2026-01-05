@@ -1,1 +1,1 @@
-.cursor-label { color: #ccc; } .cursor-label::after { content: attr(data-color); } .active-users-list li { background-color: #333; }
+.monaco-editor {\n  font-family: monaco, monospace;\n  font-size: 14px;\n  line-height: 1.5;\n  padding: 10px;\n  border: 1px solid #ccc;\n  border-radius: 5px;\n  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);\n}\n
