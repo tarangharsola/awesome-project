@@ -1,1 +1,32 @@
-{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport MonacoEditor from '@monaco-editor/react';\nimport { useEditor } from './useEditor';\n\nconst Editor = ({ language, defaultValue, onChange }) => {\n  const [editorState, setEditorState] = useState({ language, defaultValue, onChange });\n  const handleEditorChange = (newValue) => {\n    setEditorState({ ...editorState, defaultValue: newValue });\n    onChange(newValue);\n  };\n\n  return (\n    <MonacoEditor\n      language={editorState.language}\n      value={editorState.defaultValue}\n      onChange={handleEditorChange}\n      options={{\n        selectOnLineNumbers: true,\n        fontSize: 14,\n        minimap: { enabled: false },\n        scrollBeyondLastLine: false,\n        wordWrap: 'on',\n        wrappingStrategy: 'high-density',\n      }}\n    />\n  );\n};\n\nexport default Editor;
+{"import React from 'react';
+import { EditorState, EditorProps } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { Editor } from './Editor';
+
+interface Props extends EditorProps {
+  onChange: (state: EditorState) => void;
+}
+
+const EditorComponent: React.FC<Props> = ({ onChange, ...props }) => {
+  const [state, setState] = React.useState(EditorState.createEmpty());
+  const view = new EditorView(state, new Editor(props));
+
+  React.useEffect(() => {
+    const handleStateChange = () => {
+      onChange(state); // eslint-disable-line no-unused-vars
+    };
+    view.dispatch({ type: 'selection', selection: state.selection });
+    view.dispatch({ type: 'update', state: state });
+    return () => {
+      view.destroy();
+    };
+  }, [state, onChange]);
+
+  return (
+    <div className='editor-container'>
+      <EditorView state={state} view={view} />
+    </div>
+  );
+}
+
+export default EditorComponent;

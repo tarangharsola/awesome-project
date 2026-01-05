@@ -1,18 +1,23 @@
 {"import React from 'react';
 import { useCursor } from './useCursor';
+import { EditorView } from 'prosemirror-view';
 
-const CursorTracker = () => {
-  const { cursorPosition, userColor } = useCursor();
+interface Props {
+  view: EditorView;
+}
+
+const CursorTracker: React.FC<Props> = ({ view }) => {
+  const cursor = useCursor(view);
+
   return (
-    <div style={{
-      position: 'absolute',
-      top: cursorPosition.y,
-      left: cursorPosition.x,
-      backgroundColor: userColor,
-      width: 10,
-      height: 10,
-    }} />
+    <div className='cursor-tracker'>
+      <span className='cursor-indicator' style={{
+        left: `${cursor.x}px`,
+        top: `${cursor.y}px`,
+        backgroundColor: cursor.color,
+      }} />
+    </div>
   );
-};
+}
 
 export default CursorTracker;
