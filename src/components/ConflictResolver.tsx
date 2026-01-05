@@ -1,1 +1,19 @@
-{"import React from 'react';\nimport { useEditor } from './EditorContext';\n\nconst ConflictResolver = () => {\n  const { editorState, dispatch } = useEditor();\n  const handleConflict = (conflict) => {\n    // Handle conflict resolution logic here\n    dispatch({ type: 'RESOLVE_CONFLICT', payload: conflict });\n  };\n\n  return (\n    <div>\n      Conflict Resolver\n    </div>\n  );\n};\n\nexport default ConflictResolver;
+{"import React from 'react';
+import { OperationalTransform } from 'ot-js';
+
+interface ConflictResolverProps {
+  operations: any[];
+  onConflict: (conflict: any) => void;
+}
+
+const ConflictResolver: React.FC<ConflictResolverProps> = ({ operations, onConflict }) => {
+  const ot = new OperationalTransform();
+  const transformedOperations = ot.transform(operations);
+  const conflicts = ot.getConflicts(transformedOperations);
+  if (conflicts.length > 0) {
+    onConflict(conflicts);
+  }
+  return null;
+};
+
+export default ConflictResolver;

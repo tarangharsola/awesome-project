@@ -1,1 +1,23 @@
-{"import React from 'react';\nimport { useEditor } from './EditorContext';\n\nconst AwarenessConsistency = () => {\n  const { editorState, dispatch } = useEditor();\n  const handleAwarenessChange = (awareness) => {\n    dispatch({ type: 'UPDATE_AWARENESS', payload: awareness });\n  };\n\n  return (\n    <div>\n      Awareness Consistency\n    </div>\n  );\n};\n\nexport default AwarenessConsistency;
+{"import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+
+interface AwarenessConsistencyProps {
+  onAwareness: (awareness: any) => void;
+}
+
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ onAwareness }) => {
+  const [awareness, setAwareness] = useState({});
+  useEffect(() => {
+    const socket = io('ws://localhost:3001');
+    socket.on('awareness', (awareness) => {
+      setAwareness(awareness);
+      onAwareness(awareness);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+  return null;
+};
+
+export default AwarenessConsistency;

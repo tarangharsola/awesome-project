@@ -1,1 +1,23 @@
-{"import React, { useState, useEffect } from 'react';\nimport { useEditor } from './EditorContext';\n\nconst ReconnectionHandler = () => {\n  const [reconnecting, setReconnecting] = useState(false);\n  const { editorState, dispatch } = useEditor();\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      if (editorState.isConnected) {\n        clearInterval(intervalId);\n      }\n    }, 1000);\n    return () => clearInterval(intervalId);\n  }, [editorState.isConnected]);\n\n  const handleReconnect = () => {\n    dispatch({ type: 'RECONNECT' });\n  };\n\n  return (\n    <div>\n      {reconnecting ? 'Reconnecting...' : 'Connected'}\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+{"import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+
+interface ReconnectionHandlerProps {
+  onReconnect: () => void;
+}
+
+const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ onReconnect }) => {
+  const [socket, setSocket] = useState(null);
+  useEffect(() => {
+    const socket = io('ws://localhost:3001');
+    setSocket(socket);
+    socket.on('reconnect', () => {
+      onReconnect();
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+  return null;
+};
+
+export default ReconnectionHandler;
