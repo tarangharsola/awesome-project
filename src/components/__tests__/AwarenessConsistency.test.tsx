@@ -1,8 +1,10 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
 import AwarenessConsistency from '../AwarenessConsistency';
-import { render } from '@testing-library/react';
 
-it('renders AwarenessConsistency component', () => {
-  const { getByText } = render(<AwarenessConsistency />);
-  expect(getByText('Awareness Consistency')).toBeInTheDocument();
+describe('AwarenessConsistency', () => {
+  it('renders correctly', () => {
+    const wrapper = render(<AwarenessConsistency />);
+    expect(wrapper).toMatchSnapshot();
+  });
 });

@@ -1,8 +1,11 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
 import ReconnectionHandler from '../ReconnectionHandler';
-import { render } from '@testing-library/react';
 
-it('renders ReconnectionHandler component', () => {
-  const { getByText } = render(<ReconnectionHandler />);
-  expect(getByText('Reconnection Handler')).toBeInTheDocument();
+describe('ReconnectionHandler', () => {
+  it('reconnects correctly', () => {
+    const handler = new ReconnectionHandler();
+    handler.reconnect();
+    expect(handler.isConnected()).toBe(true);
+  });
 });
