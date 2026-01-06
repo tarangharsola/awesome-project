@@ -1,28 +1,34 @@
 {"import React from 'react';
-import { useEditor } from './useEditor';
+import { useState, useEffect } from 'react';
+import Editor from './Editor';
 
-interface EditorProps {
-  editor: any;
-  user: any;
-}
+const EditorWithKeyboardShortcuts = () => {
+  const [code, setCode] = useState('');
 
-const Editor = ({ editor, user }: EditorProps) => {
-  const { state, dispatch } = useEditor(editor);
-  const { cursor, selection } = state;
-  const { id, name, color } = user;
+  useEffect(() => {
+    const handleCodeChange = (event) => {
+      setCode(event.target.value);
+    };
 
-  const handleTextChange = (newText: any) => {
-    dispatch({ type: 'UPDATE_TEXT', payload: newText });
+    document.addEventListener('codeChange', handleCodeChange);
+    return () => {
+      document.removeEventListener('codeChange', handleCodeChange);
+    };
+  }, []);
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Ctrl+S') {
+      handleSaveCode();
+    } else if (event.key === 'Ctrl+Shift+F') {
+      handleFormatCode();
+    }
   };
 
   return (
     <div>
-      <h2>Editor</h2>
-      <textarea value={state.text} onChange={(e) => handleTextChange(e.target.value)}></textarea>
-      <p>Cursors: {cursor.join(', ')}</p>
-      <p>Selection: {selection.join(', ')}</p>
+      <textarea value={code} onChange={(event) => setCode(event.target.value)} onKeyDown={handleKeyDown} />
     </div>
   );
-}
+};
 
-export default Editor;
+export default EditorWithKeyboardShortcuts;
