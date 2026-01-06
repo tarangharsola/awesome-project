@@ -1,3 +1,5 @@
 const { execSync } = require('child_process');
 
-execSync('webpack --mode production');
+module.exports = function build() {
+  execSync('webpack');
+};
