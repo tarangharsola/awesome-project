@@ -2,27 +2,23 @@
 import { useEditor } from './useEditor';
 
 interface ConflictResolverProps {
-  editor: any;
-  user: any;
+  editor: useEditor;
 }
 
-const ConflictResolver = ({ editor, user }: ConflictResolverProps) => {
-  const { state, dispatch } = useEditor(editor);
-  const { cursor, selection } = state;
-  const { id, name, color } = user;
-
-  const handleConflict = (newSelection: any) => {
-    dispatch({ type: 'UPDATE_SELECTION', payload: newSelection });
-  };
-
-  return (
-    <div>
-      <h2>Conflict Resolver</h2>
-      <p>Cursor: {cursor.join(', ')}</p>
-      <p>Selection: {selection.join(', ')}</p>
-      <button onClick={() => handleConflict([10, 20])}>Resolve Conflict</button>
-    </div>
-  );
-}
+const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {
+  const { operations } = editor;
+  const resolvedOperations = operations.reduce((acc, operation) => {
+    if (operation.type === 'write') {
+      const existingOperation = acc.find((o) => o.path === operation.path);
+      if (existingOperation) {
+        existingOperation.content = operation.content;
+      } else {
+        acc.push(operation);
+      }
+    }
+    return acc;
+  }, []);
+  return <div>Conflict Resolver</div>;
+};
 
 export default ConflictResolver;

@@ -1,28 +1,22 @@
-{"import React from 'react';
+{"import React, { useState, useEffect } from 'react';
 import { useEditor } from './useEditor';
 
 interface ReconnectionHandlerProps {
-  editor: any;
-  user: any;
+  editor: useEditor;
 }
 
-const ReconnectionHandler = ({ editor, user }: ReconnectionHandlerProps) => {
-  const { state, dispatch } = useEditor(editor);
-  const { cursor, selection } = state;
-  const { id, name, color } = user;
-
-  const handleReconnect = () => {
-    dispatch({ type: 'RECONNECT', payload: {} });
-  };
-
-  return (
-    <div>
-      <h2>Reconnection Handler</h2>
-      <p>Cursors: {cursor.join(', ')}</p>
-      <p>Selection: {selection.join(', ')}</p>
-      <button onClick={handleReconnect}>Reconnect</button>
-    </div>
-  );
-}
+const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ editor }) => {
+  const [reconnecting, setReconnecting] = useState(false);
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (editor.isConnected) {
+        setReconnecting(false);
+        clearInterval(intervalId);
+      }
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [editor.isConnected]);
+  return <div>Reconnection Handler</div>;
+};
 
 export default ReconnectionHandler;

@@ -2,27 +2,23 @@
 import { useEditor } from './useEditor';
 
 interface AwarenessConsistencyProps {
-  editor: any;
-  user: any;
+  editor: useEditor;
 }
 
-const AwarenessConsistency = ({ editor, user }: AwarenessConsistencyProps) => {
-  const { state, dispatch } = useEditor(editor);
-  const { cursor, selection } = state;
-  const { id, name, color } = user;
-
-  const handleCursorChange = (newCursor: any) => {
-    dispatch({ type: 'UPDATE_CURSOR', payload: newCursor });
-  };
-
-  return (
-    <div>
-      <h2>Awareness Consistency</h2>
-      <p>Cursors: {cursor.join(', ')}</p>
-      <p>Selection: {selection.join(', ')}</p>
-      <button onClick={() => handleCursorChange([10, 20])}>Update Cursor</button>
-    </div>
-  );
-}
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {
+  const { operations } = editor;
+  const consistentOperations = operations.reduce((acc, operation) => {
+    if (operation.type === 'write') {
+      const existingOperation = acc.find((o) => o.path === operation.path);
+      if (existingOperation) {
+        existingOperation.content = operation.content;
+      } else {
+        acc.push(operation);
+      }
+    }
+    return acc;
+  }, []);
+  return <div>Awareness Consistency</div>;
+};
 
 export default AwarenessConsistency;
