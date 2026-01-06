@@ -1,49 +1,28 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import CodeMirror from 'codemirror';
+import { useEditor } from './useEditor';
 
-const Editor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState('');
-  const [formattedCode, setFormattedCode] = useState('');
+interface EditorProps {
+  editor: any;
+  user: any;
+}
 
-  useEffect(() => {
-    const cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-      theme: 'monokai'
-    });
+const Editor = ({ editor, user }: EditorProps) => {
+  const { state, dispatch } = useEditor(editor);
+  const { cursor, selection } = state;
+  const { id, name, color } = user;
 
-    cm.on('change', () => {
-      setCode(cm.getValue());
-      setFormattedCode(cm.getValue());
-    });
-
-    return () => {
-      cm.toTextArea();
-    };
-  }, [language]);
-
-  const handleLanguageChange = (e) => {
-    setLanguage(e.target.value);
-  };
-
-  const handleFormat = () => {
-    const formattedCode = beautify(code);
-    setFormattedCode(formattedCode);
+  const handleTextChange = (newText: any) => {
+    dispatch({ type: 'UPDATE_TEXT', payload: newText });
   };
 
   return (
     <div>
-      <select value={language} onChange={handleLanguageChange}>
-        <option value='javascript'>JavaScript</option>
-        <option value='python'>Python</option>
-        <option value='html'>HTML</option>
-      </select>
-      <button onClick={handleFormat}>Format</button>
-      <textarea id='editor' value={formattedCode} readOnly></textarea>
+      <h2>Editor</h2>
+      <textarea value={state.text} onChange={(e) => handleTextChange(e.target.value)}></textarea>
+      <p>Cursors: {cursor.join(', ')}</p>
+      <p>Selection: {selection.join(', ')}</p>
     </div>
   );
-};
+}
 
 export default Editor;

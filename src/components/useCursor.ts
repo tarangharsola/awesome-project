@@ -1,13 +1,30 @@
 {"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
 
-const useCursor = () => {
-  const { editorState } = useEditor();
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+interface useCursorProps {
+  editor: any;
+  user: any;
+}
+
+const useCursor = ({ editor, user }: useCursorProps) => {
+  const [cursor, setCursor] = useState([]);
+  const [selection, setSelection] = useState([]);
+
   useEffect(() => {
-    // Update cursor position based on editor state
-  }, [editorState]);
-  return { cursorPosition, userColor };
-};
+    const handleCursorChange = (newCursor: any) => {
+      setCursor(newCursor);
+    };
+
+    const handleSelectionChange = (newSelection: any) => {
+      setSelection(newSelection);
+    };
+
+    return () => {
+      editor.off('cursorChange', handleCursorChange);
+      editor.off('selectionChange', handleSelectionChange);
+    };
+  }, []);
+
+  return { cursor, selection };
+}
 
 export default useCursor;

@@ -1,27 +1,30 @@
 {"import React from 'react';
-import './UserList.css';
+import { useEditor } from './useEditor';
 
-interface User {
-  id: string;
-  name: string;
-  color: string;
+interface UserListProps {
+  editor: any;
+  users: any;
 }
 
-interface Props {
-  users: User[];
-}
+const UserList = ({ editor, users }: UserListProps) => {
+  const { state, dispatch } = useEditor(editor);
+  const { cursor, selection } = state;
 
-const UserList = ({ users }: Props) => {
+  const handleUserChange = (newUser: any) => {
+    dispatch({ type: 'UPDATE_USER', payload: newUser });
+  };
+
   return (
-    <div className="user-list">
-      {users.map((user) => (
-        <div key={user.id} className="user">
-          <span style={{ backgroundColor: user.color }}></span>
-          <span>{user.name}</span>
-        </div>
-      ))}
+    <div>
+      <h2>User List</h2>
+      <ul>
+        {users.map((user, index) => (
+          <li key={index}>{user.name}</li>
+        ))}
+      </ul>
+      <button onClick={() => handleUserChange({ id: 1, name: 'John Doe', color: 'red' })}>Add User</button>
     </div>
   );
-};
+}
 
 export default UserList;

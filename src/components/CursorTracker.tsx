@@ -1,30 +1,28 @@
 {"import React from 'react';
-import './CursorTracker.css';
+import { useEditor } from './useEditor';
 
-interface Cursor {
-  id: string;
-  name: string;
-  color: string;
-  x: number;
-  y: number;
+interface CursorTrackerProps {
+  editor: any;
+  user: any;
 }
 
-interface Props {
-  cursors: Cursor[];
-}
+const CursorTracker = ({ editor, user }: CursorTrackerProps) => {
+  const { state, dispatch } = useEditor(editor);
+  const { cursor, selection } = state;
+  const { id, name, color } = user;
 
-const CursorTracker = ({ cursors }: Props) => {
+  const handleCursorChange = (newCursor: any) => {
+    dispatch({ type: 'UPDATE_CURSOR', payload: newCursor });
+  };
+
   return (
-    <div className="cursor-tracker">
-      {cursors.map((cursor) => (
-        <div key={cursor.id} className="cursor">
-          <span style={{ backgroundColor: cursor.color }}></span>
-          <span>{cursor.name}</span>
-          <span>x: {cursor.x}, y: {cursor.y}</span>
-        </div>
-      ))}
+    <div>
+      <h2>Cursor Tracker</h2>
+      <p>Cursors: {cursor.join(', ')}</p>
+      <p>Selection: {selection.join(', ')}</p>
+      <button onClick={() => handleCursorChange([10, 20])}>Update Cursor</button>
     </div>
   );
-};
+}
 
 export default CursorTracker;

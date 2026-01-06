@@ -1,1 +1,28 @@
-{"import React from 'react';\nimport { useEditor } from './useEditor';\n\ninterface AwarenessConsistencyProps {\n  editor: useEditor;\n}\n\nconst AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {\n  const [awareness, setAwareness] = React.useState([]);\n\n  React.useEffect(() => {\n    const handleOperation = (operation: any) => {\n      if (operation.type === 'write') {\n        const awarenessEntry = {\n          userId: operation.userId,\n          cursorPosition: operation.cursorPosition,\n        };\n        setAwareness((prevAwareness) => [...prevAwareness, awarenessEntry]);\n      }\n    };\n    editor.subscribe(handleOperation);\n    return () => editor.unsubscribe(handleOperation);\n  }, [editor]);\n\n  return (\n    <div>\n      {awareness.map((entry, index) => (\n        <div key={index}>\n          {entry.userId} at {entry.cursorPosition}\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default AwarenessConsistency;
+{"import React from 'react';
+import { useEditor } from './useEditor';
+
+interface AwarenessConsistencyProps {
+  editor: any;
+  user: any;
+}
+
+const AwarenessConsistency = ({ editor, user }: AwarenessConsistencyProps) => {
+  const { state, dispatch } = useEditor(editor);
+  const { cursor, selection } = state;
+  const { id, name, color } = user;
+
+  const handleCursorChange = (newCursor: any) => {
+    dispatch({ type: 'UPDATE_CURSOR', payload: newCursor });
+  };
+
+  return (
+    <div>
+      <h2>Awareness Consistency</h2>
+      <p>Cursors: {cursor.join(', ')}</p>
+      <p>Selection: {selection.join(', ')}</p>
+      <button onClick={() => handleCursorChange([10, 20])}>Update Cursor</button>
+    </div>
+  );
+}
+
+export default AwarenessConsistency;

@@ -1,1 +1,28 @@
-{"import React from 'react';\nimport { useEditor } from './useEditor';\n\ninterface ConflictResolverProps {\n  editor: useEditor;\n}\n\nconst ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {\n  const { operations } = editor;\n  const [conflicts, setConflicts] = React.useState([]);\n\n  React.useEffect(() => {\n    const handleOperation = (operation: any) => {\n      if (operation.type === 'write') {\n        const conflict = operations.find((op) => op.path === operation.path && op.version !== operation.version);\n        if (conflict) {\n          setConflicts((prevConflicts) => [...prevConflicts, conflict]);\n        }\n      }\n    };\n    editor.subscribe(handleOperation);\n    return () => editor.unsubscribe(handleOperation);\n  }, [editor]);\n\n  return (\n    <div>\n      {conflicts.map((conflict, index) => (\n        <div key={index}>\n          Conflict at {conflict.path}: {conflict.version}\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default ConflictResolver;
+{"import React from 'react';
+import { useEditor } from './useEditor';
+
+interface ConflictResolverProps {
+  editor: any;
+  user: any;
+}
+
+const ConflictResolver = ({ editor, user }: ConflictResolverProps) => {
+  const { state, dispatch } = useEditor(editor);
+  const { cursor, selection } = state;
+  const { id, name, color } = user;
+
+  const handleConflict = (newSelection: any) => {
+    dispatch({ type: 'UPDATE_SELECTION', payload: newSelection });
+  };
+
+  return (
+    <div>
+      <h2>Conflict Resolver</h2>
+      <p>Cursor: {cursor.join(', ')}</p>
+      <p>Selection: {selection.join(', ')}</p>
+      <button onClick={() => handleConflict([10, 20])}>Resolve Conflict</button>
+    </div>
+  );
+}
+
+export default ConflictResolver;
