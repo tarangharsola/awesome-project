@@ -1,34 +1,23 @@
 {"import { useState, useEffect } from 'react';
 
-interface useEditorProps {
-  editor: any;
-  user: any;
-}
+const useEditor = () => {
+  const [code, setCode] = useState("// Your code here");
+  const [language, setLanguage] = useState(Languages.javascript);
 
-const useEditor = ({ editor, user }: useEditorProps) => {
-  const [state, setState] = useState({ cursor: [], selection: [] });
+  const handleCodeChange = (code) => {
+    setCode(code);
+  };
 
-  useEffect(() => {
-    const handleTextChange = (newText: any) => {
-      setState({ ...state, text: newText });
-    };
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
+  };
 
-    const handleCursorChange = (newCursor: any) => {
-      setState({ ...state, cursor: newCursor });
-    };
-
-    const handleSelectionChange = (newSelection: any) => {
-      setState({ ...state, selection: newSelection });
-    };
-
-    return () => {
-      editor.off('textChange', handleTextChange);
-      editor.off('cursorChange', handleCursorChange);
-      editor.off('selectionChange', handleSelectionChange);
-    };
-  }, []);
-
-  return { state, dispatch: setState };
-}
+  return {
+    code,
+    language,
+    handleCodeChange,
+    handleLanguageChange,
+  };
+};
 
 export default useEditor;

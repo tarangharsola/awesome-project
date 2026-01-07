@@ -1,34 +1,32 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import Editor from './Editor';
+import { Editor } from 'react-simple-code-editor';
+import { Highlight, Languages } from 'prismjs';
 
-const EditorWithKeyboardShortcuts = () => {
-  const [code, setCode] = useState('');
+const EditorComponent = () => {
+  const [language, setLanguage] = React.useState(Languages.javascript);
+  const [code, setCode] = React.useState("// Your code here");
 
-  useEffect(() => {
-    const handleCodeChange = (event) => {
-      setCode(event.target.value);
-    };
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
+  };
 
-    document.addEventListener('codeChange', handleCodeChange);
-    return () => {
-      document.removeEventListener('codeChange', handleCodeChange);
-    };
-  }, []);
-
-  const handleKeyDown = (event) => {
-    if (event.key === 'Ctrl+S') {
-      handleSaveCode();
-    } else if (event.key === 'Ctrl+Shift+F') {
-      handleFormatCode();
-    }
+  const handleCodeChange = (code) => {
+    setCode(code);
   };
 
   return (
-    <div>
-      <textarea value={code} onChange={(event) => setCode(event.target.value)} onKeyDown={handleKeyDown} />
-    </div>
+    <Editor
+      value={code}
+      onValueChange={handleCodeChange}
+      highlight={Highlight}
+      language={language}
+      padding={10}
+      style={{
+        fontSize: 12,
+        fontFamily: "monospace",
+      }}
+    />
   );
 };
 
-export default EditorWithKeyboardShortcuts;
+export default EditorComponent;
