@@ -18,7 +18,7 @@ const UserList = ({ users }: Props) => {
         <div key={user.id} className="user">
           <span className="username" style={{
             backgroundColor: user.color,
-            color: "#fff",
+            color: '#fff',
           }}>
             {user.name}
           </span>
@@ -26,6 +26,6 @@ const UserList = ({ users }: Props) => {
       ))}
     </div>
   );
-}
+};
 
 export default UserList;

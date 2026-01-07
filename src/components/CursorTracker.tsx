@@ -20,13 +20,13 @@ const CursorTracker = ({ cursors }: Props) => {
           left: cursor.x + 'px',
           top: cursor.y + 'px',
           backgroundColor: cursor.color,
-          color: "#fff",
+          color: '#fff',
         }}>
           {cursor.id}
         </div>
       ))}
     </div>
   );
-}
+};
 
 export default CursorTracker;
