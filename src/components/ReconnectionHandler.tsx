@@ -1,29 +1,27 @@
 {"import React, { useState, useEffect } from 'react';
-import { useWebSocket } from 'react-use-websocket';
+import { io } from 'socket.io-client';
 
-const ReconnectionHandler = () => {
-  const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  const { sendJsonMessage, lastMessage, readyState } = useWebSocket('ws://localhost:8080');
+interface ReconnectionHandlerProps {
+  onReconnect: () => void;
+}
 
+const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ onReconnect }) => {
+  const [socket, setSocket] = useState<Socket | null>(null);
   useEffect(() => {
-    if (readyState === 1) {
-      setConnectionStatus('connected');
-    } else if (readyState === 3) {
-      setConnectionStatus('reconnecting');
-    } else {
-      setConnectionStatus('disconnected');
+    const socket = io('ws://localhost:3001');
+    setSocket(socket);
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+  useEffect(() => {
+    if (socket) {
+      socket.on('reconnect', () => {
+        onReconnect();
+      });
     }
-  }, [readyState]);
-
-  const retryConnection = () => {
-    sendJsonMessage({ type: 'retry' });
-  };
-
-  return (
-    <div>
-      <p>Connection Status: {connectionStatus}</p>
-      <button onClick={retryConnection}>Retry Connection</button>
-    </div>
-  );
+  }, [socket]);
+  return null;
 };
+
 export default ReconnectionHandler;
