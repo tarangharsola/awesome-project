@@ -1,1 +1,12 @@
-{"import React, { useState, useEffect } from 'react';\nimport { useWebSocket } from 'react-use-websocket';\n\nconst ReconnectionHandler = () => {\n  const [connectionStatus, setConnectionStatus] = useState('connected');\n  const { sendMessage, lastMessage, readyState } = useWebSocket('ws://localhost:8080');\n\n  useEffect(() => {\n    if (readyState === 3) {\n      setConnectionStatus('reconnecting');\n    } else if (readyState === 1) {\n      setConnectionStatus('connected');\n    } else if (readyState === 2) {\n      setConnectionStatus('disconnected');\n    }\n  }, [readyState]);\n\n  const retryConnection = () => {\n    sendMessage({\n      type: 'retry',\n    });\n  };\n\n  return (\n    <div>\n      <p>Connection Status: {connectionStatus}</p>\n      <button onClick={retryConnection}>Retry Connection</button>\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+{"import React from 'react';
+import { useEditor } from './useEditor';
+
+interface ReconnectionHandlerProps {
+  editor: useEditor;
+}
+
+const ReconnectionHandler = ({ editor }: ReconnectionHandlerProps) => {
+  // implementation...
+}
+
+export default ReconnectionHandler;

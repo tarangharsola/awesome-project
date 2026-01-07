@@ -1,31 +1,12 @@
 {"import React from 'react';
-import './UserList.css';
+import { useEditor } from './useEditor';
 
-interface User {
-  id: string;
-  name: string;
-  color: string;
+interface UserListProps {
+  editor: useEditor;
 }
 
-interface Props {
-  users: User[];
+const UserList = ({ editor }: UserListProps) => {
+  // implementation...
 }
-
-const UserList = ({ users }: Props) => {
-  return (
-    <div className="user-list">
-      {users.map((user) => (
-        <div key={user.id} className="user">
-          <span className="username" style={{
-            backgroundColor: user.color,
-            color: '#fff',
-          }}>
-            {user.name}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-};
 
 export default UserList;

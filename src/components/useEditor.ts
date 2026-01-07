@@ -1,23 +1,21 @@
 {"import { useState, useEffect } from 'react';
 
+interface useEditor {
+  editorValue: string;
+  setEditorValue: (value: string) => void;
+}
+
 const useEditor = () => {
-  const [code, setCode] = useState("// Your code here");
-  const [language, setLanguage] = useState(Languages.javascript);
+  const [editorValue, setEditorValue] = useState('');
 
-  const handleCodeChange = (code) => {
-    setCode(code);
-  };
-
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
-  };
+  useEffect(() => {
+    // implementation...
+  }, []);
 
   return {
-    code,
-    language,
-    handleCodeChange,
-    handleLanguageChange,
+    editorValue,
+    setEditorValue,
   };
-};
+}
 
 export default useEditor;
