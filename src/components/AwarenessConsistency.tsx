@@ -1,1 +1,13 @@
-{"import React from 'react';\nimport { useEditor } from './useEditor';\n\ninterface AwarenessConsistencyProps {\n  editor: useEditor;\n}\n\nconst AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {\n  const { awareness } = editor;\n  return (\n    <div>\n      {awareness.map((user, index) => (\n        <div key={index}>\n          {user.name}\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default AwarenessConsistency;
+{"import React from 'react';
+import { useCursor } from './useCursor';
+
+interface AwarenessConsistencyProps {
+  cursors: any[];
+}
+
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ cursors }) => {
+  const cursor = useCursor(cursors);
+  return <div>Cursor position: {cursor.position}</div>;
+};
+
+export default AwarenessConsistency;
