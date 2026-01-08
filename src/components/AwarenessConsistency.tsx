@@ -1,12 +1,1 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
-
-interface AwarenessConsistencyProps {
-  editor: useEditor;
-}
-
-const AwarenessConsistency = ({ editor }: AwarenessConsistencyProps) => {
-  // implementation...
-}
-
-export default AwarenessConsistency;
+{"import React from 'react';\nimport { useEditor } from './useEditor';\n\ninterface AwarenessConsistencyProps {\n  editor: useEditor;\n}\n\nconst AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {\n  const { awareness } = editor;\n  return (\n    <div>\n      {awareness.map((user, index) => (\n        <div key={index}>\n          {user.name}\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default AwarenessConsistency;

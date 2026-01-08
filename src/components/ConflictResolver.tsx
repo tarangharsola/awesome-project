@@ -1,12 +1,1 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
-
-interface ConflictResolverProps {
-  editor: useEditor;
-}
-
-const ConflictResolver = ({ editor }: ConflictResolverProps) => {
-  // implementation...
-}
-
-export default ConflictResolver;
+{"import React from 'react';\nimport { useEditor } from './useEditor';\n\ninterface ConflictResolverProps {\n  editor: useEditor;\n}\n\nconst ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {\n  const { conflict } = editor;\n  return (\n    <div>\n      {conflict.map((user, index) => (\n        <div key={index}>\n          {user.name}\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default ConflictResolver;
