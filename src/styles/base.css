@@ -1,1 +1,12 @@
-.monaco-editor {\n  font-family: monaco, monospace;\n  font-size: 14px;\n  line-height: 1.5;\n  padding: 10px;\n  border: 1px solid #ccc;\n  border-radius: 5px;\n  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);\n}\n
+.editor {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+}
+
+.editor pre {
+  padding: 10px;
+  font-size: 14px;
+  font-family: monospace;
+}
