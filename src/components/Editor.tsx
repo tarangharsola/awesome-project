@@ -1,1 +1,19 @@
-{"import React, { useState, useEffect } from 'react';\nimport { useCursor, useEditor } from './useEditor';\n\ninterface EditorProps {\n  language: string;\n}\n\nconst Editor: React.FC<EditorProps> = ({ language }) => {\n  const [code, setCode] = useState('');\n  const [cursor, setCursor] = useState([]);\n  const [awareness, setAwareness] = useState([]);\n  const [conflict, setConflict] = useState([]);\n  const editor = useEditor();\n  const cursorTracker = useCursor();\n\n  useEffect(() => {\n    editor.subscribe((state) => {\n      setCode(state.code);\n      setCursor(state.cursor);\n      setAwareness(state.awareness);\n      setConflict(state.conflict);\n    });\n  }, [editor]);\n\n  const handleCodeChange = (newCode: string) => {\n    editor.updateCode(newCode);\n  };\n\n  return (\n    <div>\n      <textarea value={code} onChange={(e) => handleCodeChange(e.target.value)} />\n      <CursorTracker cursor={cursor} />\n      <AwarenessConsistency awareness={awareness} />\n      <ConflictResolver conflict={conflict} />\n    </div>\n  );\n};\n\nexport default Editor;
+{"import React from 'react';
+import { useCursor, useEditor } from './useEditor';
+
+interface EditorProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const Editor = ({ value, onChange }: EditorProps) => {
+  const { cursor, editor } = useEditor(value);
+  return (
+    <div>
+      <textarea value={value} onChange={(e) => onChange(e.target.value)} />
+      <div>Cursor: {cursor.position}</div>
+    </div>
+  );
+}
+
+export default Editor;

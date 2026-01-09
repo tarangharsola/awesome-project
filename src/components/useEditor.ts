@@ -1,1 +1,24 @@
-{"import { useState, useEffect } from 'react';\nimport { useCursor } from './useCursor';\n\ninterface useEditorProps {\n  language: string;\n}\n\nconst useEditor = ({ language }) => {\n  const [code, setCode] = useState('');\n  const [cursor, setCursor] = useState([]);\n  const [awareness, setAwareness] = useState([]);\n  const [conflict, setConflict] = useState([]);\n  const [users, setUsers] = useState([]);\n  const [reconnection, setReconnection] = useState(false);\n\n  useEffect(() => {\n    const editor = {\n      subscribe: (callback) => {\n        // implement subscription logic\n      },\n      updateCode: (newCode) => {\n        // implement code update logic\n      },\n      getCursor: () => {\n        // implement cursor logic\n      },\n      getAwareness: () => {\n        // implement awareness logic\n      },\n      getConflict: () => {\n        // implement conflict logic\n      },\n      getUsers: () => {\n        // implement users logic\n      },\n      getReconnection: () => {\n        // implement reconnection logic\n      },\n    };\n    return () => {\n      // implement cleanup logic\n    };\n  }, []);\n\n  return {\n    code,\n    cursor,\n    awareness,\n    conflict,\n    users,\n    reconnection,\n  };\n};\n\nexport default useEditor;
+{"import { useState, useEffect } from 'react';
+import { useCursor } from './useCursor';
+
+interface UseEditorProps {
+  value: string;
+}
+
+const useEditor = ({ value }: UseEditorProps) => {
+  const [editor, setEditor] = useState({ value, cursors: [], conflict: false, reconnection: false, users: [] });
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newEditor = editor;
+      newEditor.cursors = editor.getCursors();
+      newEditor.conflict = editor.getConflict();
+      newEditor.reconnection = editor.getReconnection();
+      newEditor.users = editor.getUsers();
+      setEditor(newEditor);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [editor]);
+  return editor;
+};
+
+export default useEditor;

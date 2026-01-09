@@ -1,1 +1,19 @@
-{"import React, { useState, useEffect } from 'react';\nimport { useWebSocket } from 'react-use-websocket';\n\nconst ReconnectionHandler = () => {\n  const [connectionStatus, setConnectionStatus] = useState('connected');\n  const [retryCount, setRetryCount] = useState(0);\n  const { sendJsonMessage, lastMessageDate, readyState } = useWebSocket('ws://localhost:8080');\n\n  useEffect(() => {\n    if (readyState === 3) {\n      setConnectionStatus('disconnected');\n    } else if (readyState === 1) {\n      setConnectionStatus('connecting');\n    } else if (readyState === 2) {\n      setConnectionStatus('connected');\n    }\n  }, [readyState]);\n\n  useEffect(() => {\n    if (readyState === 3) {\n      const retryTimeout = setTimeout(() => {\n        setRetryCount(retryCount + 1);\n        sendJsonMessage({ type: 'retry' });\n      }, 500);\n      return () => clearTimeout(retryTimeout);\n    }\n  }, [readyState, sendJsonMessage]);\n\n  return (\n    <div>\n      <p>Connection Status: {connectionStatus}</p>\n      <p>Retry Count: {retryCount}</p>\n    </div>\n  );\n};\nexport default ReconnectionHandler;
+{"import React from 'react';
+import { useEditor } from './useEditor';
+
+interface ReconnectionHandlerProps {
+  editor: any;
+  children: React.ReactNode;
+}
+
+const ReconnectionHandler = ({ editor, children }: ReconnectionHandlerProps) => {
+  const { reconnection } = useEditor(editor);
+  return (
+    <div>
+      {children}
+      <div>Reconnection: {reconnection}</div>
+    </div>
+  );
+}
+
+export default ReconnectionHandler;

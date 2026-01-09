@@ -1,12 +1,46 @@
-.editor {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f0f0f0;
+.cursor {
+  position: absolute;
+  width: 2px;
+  height: 20px;
+  background-color: blue;
 }
 
-.editor pre {
-  padding: 10px;
-  font-size: 14px;
-  font-family: monospace;
+.cursor::before {
+  content: '\A';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: blue;
+  border-radius: 50%;
+}
+
+.cursor::after {
+  content: '\A';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: blue;
+  border-radius: 50%;
+}
+
+.cursor::before {
+  top: -5px;
+  left: -5px;
+}
+
+.cursor::after {
+  top: -5px;
+  right: -5px;
+}
+
+.cursor {
+  transition: top 0.2s ease-in-out;
+}
+
+.cursor::before {
+  transition: left 0.2s ease-in-out;
+}
+
+.cursor::after {
+  transition: right 0.2s ease-in-out;
 }

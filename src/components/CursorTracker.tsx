@@ -1,30 +1,21 @@
 {"import React from 'react';
-import './CursorTracker.css';
+import { useEditor } from './useEditor';
 
-interface Cursor {
-  id: string;
-  x: number;
-  y: number;
-  color: string;
+interface CursorTrackerProps {
+  editor: any;
+  children: React.ReactNode;
 }
 
-interface Props {
-  cursors: Cursor[];
-}
-
-const CursorTracker = ({ cursors }: Props) => {
+const CursorTracker = ({ editor, children }: CursorTrackerProps) => {
+  const { cursors } = useEditor(editor);
   return (
-    <div className="cursor-tracker">
-      {cursors.map((cursor) => (
-        <div key={cursor.id} className="cursor-item">
-          <span className="cursor-label" style={{
-            color: cursor.color
-          }}>{cursor.id}</span>
-          <span className="cursor-position">({cursor.x}, {cursor.y})</span>
-        </div>
+    <div>
+      {children}
+      {cursors.map((cursor, index) => (
+        <div key={index}>{cursor.name} - {cursor.position}</div>
       ))}
     </div>
   );
-};
+}
 
 export default CursorTracker;
