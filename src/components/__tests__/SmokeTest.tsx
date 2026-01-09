@@ -1,7 +1,8 @@
-{"import React from 'react';
+import React from 'react';
 import { render } from '@testing-library/react';
+import Editor from '../Editor';
 
-it('renders smoke test', () => {
-  const { getByText } = render(<div>Smoke Test</div>);
-  expect(getByText('Smoke Test')).toBeInTheDocument();
-});"
+it('renders Editor component', () => {
+  const { getByText } = render(<Editor />);
+  expect(getByText('Editor')).toBeInTheDocument();
+});

@@ -1,6 +1,4 @@
-{"const { execSync } = require('child_process');
-
-module.exports = function ci() {
-  execSync('npm run build');
-  execSync('jest');
-};"
+const { execSync } = require('child_process');
+const buildScript = 'npm run build';
+execSync(buildScript, { stdio: 'inherit' });
+execSync('jest', { stdio: 'inherit' });
