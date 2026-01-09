@@ -3,17 +3,20 @@ import { useEditor } from './useEditor';
 
 interface AwarenessConsistencyProps {
   editor: any;
-  children: React.ReactNode;
 }
 
-const AwarenessConsistency = ({ editor, children }: AwarenessConsistencyProps) => {
-  const { awareness } = useEditor(editor);
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {
+  const { operations } = useEditor(editor);
+
+  const handleAwareness = (operation: any) => {
+    // Handle awareness logic here
+  };
+
   return (
     <div>
-      {children}
-      <div>Consistency: {awareness}</div>
+      Awareness Consistency
     </div>
   );
-}
+};
 
 export default AwarenessConsistency;

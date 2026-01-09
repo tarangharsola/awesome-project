@@ -3,17 +3,20 @@ import { useEditor } from './useEditor';
 
 interface ConflictResolverProps {
   editor: any;
-  children: React.ReactNode;
 }
 
-const ConflictResolver = ({ editor, children }: ConflictResolverProps) => {
-  const { conflict } = useEditor(editor);
+const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {
+  const { operations } = useEditor(editor);
+
+  const handleConflict = (operation: any) => {
+    // Handle conflict logic here
+  };
+
   return (
     <div>
-      {children}
-      <div>Conflict: {conflict}</div>
+      Conflict Resolver
     </div>
   );
-}
+};
 
 export default ConflictResolver;
