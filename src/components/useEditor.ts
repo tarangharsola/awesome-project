@@ -1,24 +1,26 @@
 {"import { useState, useEffect } from 'react';
-import { useCursor } from './useCursor';
 
-interface UseEditorProps {
-  value: string;
-}
+const useEditor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [value, setValue] = useState('');
+  const [theme, setTheme] = useState('vs-dark');
 
-const useEditor = ({ value }: UseEditorProps) => {
-  const [editor, setEditor] = useState({ value, cursors: [], conflict: false, reconnection: false, users: [] });
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newEditor = editor;
-      newEditor.cursors = editor.getCursors();
-      newEditor.conflict = editor.getConflict();
-      newEditor.reconnection = editor.getReconnection();
-      newEditor.users = editor.getUsers();
-      setEditor(newEditor);
-    }, 100);
-    return () => clearInterval(interval);
-  }, [editor]);
-  return editor;
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value);
+  };
+
+  const handleThemeChange = (e) => {
+    setTheme(e.target.value);
+  };
+
+  return {
+    language,
+    theme,
+    value,
+    setValue,
+    handleLanguageChange,
+    handleThemeChange
+  };
 };
 
 export default useEditor;

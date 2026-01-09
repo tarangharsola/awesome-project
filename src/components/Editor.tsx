@@ -1,19 +1,39 @@
 {"import React from 'react';
-import { useCursor, useEditor } from './useEditor';
+import { useState, useEffect } from 'react';
+import MonacoEditor from '@monaco-editor/react';
 
-interface EditorProps {
-  value: string;
-  onChange: (value: string) => void;
-}
+const Editor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [value, setValue] = useState('');
+  const [theme, setTheme] = useState('vs-dark');
 
-const Editor = ({ value, onChange }: EditorProps) => {
-  const { cursor, editor } = useEditor(value);
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value);
+  };
+
+  const handleThemeChange = (e) => {
+    setTheme(e.target.value);
+  };
+
   return (
     <div>
-      <textarea value={value} onChange={(e) => onChange(e.target.value)} />
-      <div>Cursor: {cursor.position}</div>
+      <select value={language} onChange={handleLanguageChange}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <select value={theme} onChange={handleThemeChange}>
+        <option value="vs-dark">Dark</option>
+        <option value="vs-light">Light</option>
+      </select>
+      <MonacoEditor
+        language={language}
+        theme={theme}
+        value={value}
+        onChange={(e) => setValue(e)}
+      />
     </div>
   );
-}
+};
 
 export default Editor;
