@@ -1,1 +1,28 @@
-{"import React from 'react';\nimport { useEditor } from './useEditor';\n\ninterface UserListProps {\n  editor: useEditor;\n}\n\nconst UserList: React.FC<UserListProps> = ({ editor }) => {\n  const { users } = editor;\n  return (\n    <div>\n      {users.map((user, index) => (\n        <div key={index}>\n          {user.name}\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default UserList;
+{"import React from 'react';
+import './UserList.css';
+
+interface User {
+  id: string;
+  name: string;
+  color: string;
+}
+
+interface Props {
+  users: User[];
+}
+
+const UserList = ({ users }: Props) => {
+  return (
+    <div className="user-list">
+      {users.map((user) => (
+        <div key={user.id} className="user-item">
+          <span className="username" style={{
+            color: user.color
+          }}>{user.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default UserList;
