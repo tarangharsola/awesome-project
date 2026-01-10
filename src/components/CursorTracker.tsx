@@ -1,1 +1,13 @@
-{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport './CursorTracker.css';\n\ninterface Cursor {\n  id: string;\n  name: string;\n  color: string;\n  position: number;\n}\n\nfunction CursorTracker({ cursors }: { cursors: Cursor[] }) {\n  const [activeCursors, setActiveCursors] = useState(cursors);\n\n  useEffect(() => {\n    setActiveCursors(cursors);\n  }, [cursors]);\n\n  return (\n    <div className='cursor-tracker'>\n      {activeCursors.map((cursor, index) => (\n        <div key={index} style={{\n          backgroundColor: cursor.color,\n          color: 'white',\n          padding: '5px',\n          borderRadius: '5px',\n          margin: '5px',\n        }}>\n          {cursor.name}\n        </div>\n      ))}\n    </div>\n  );\n}\n\nexport default CursorTracker;
+{"import React from 'react';
+import { useEditor } from './useEditor';
+
+interface CursorTrackerProps {
+  editor: useEditor;
+}
+
+const CursorTracker = ({ editor }: CursorTrackerProps) => {
+  const { cursor } = editor;
+  return <div>Cursors: {editor.users.map(user => user.name).join(', ')}</div>;
+};
+
+export default CursorTracker;

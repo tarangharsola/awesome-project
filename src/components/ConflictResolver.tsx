@@ -2,21 +2,13 @@
 import { useEditor } from './useEditor';
 
 interface ConflictResolverProps {
-  editor: any;
+  editor: useEditor;
 }
 
-const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {
-  const { operations } = useEditor(editor);
-
-  const handleConflict = (operation: any) => {
-    // Handle conflict logic here
-  };
-
-  return (
-    <div>
-      Conflict Resolver
-    </div>
-  );
+const ConflictResolver = ({ editor }: ConflictResolverProps) => {
+  const { operations } = editor;
+  const conflicts = operations.filter(op => op.type === 'insert' && op.position !== editor.cursor.position);
+  return <div>Conflicts: {conflicts.length}</div>;
 };
 
 export default ConflictResolver;

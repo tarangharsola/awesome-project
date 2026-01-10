@@ -1,1 +1,13 @@
-{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport './UserList.css';\n\ninterface User {\n  id: string;\n  name: string;\n  color: string;\n}\n\nfunction UserList({ users }: { users: User[] }) {\n  const [activeUsers, setActiveUsers] = useState(users);\n\n  useEffect(() => {\n    setActiveUsers(users);\n  }, [users]);\n\n  return (\n    <div className='user-list'>\n      {activeUsers.map((user, index) => (\n        <div key={index} style={{\n          backgroundColor: user.color,\n          color: 'white',\n          padding: '5px',\n          borderRadius: '5px',\n          margin: '5px',\n        }}>\n          {user.name}\n        </div>\n      ))}\n    </div>\n  );\n}\n\nexport default UserList;
+{"import React from 'react';
+import { useEditor } from './useEditor';
+
+interface UserListProps {
+  editor: useEditor;
+}
+
+const UserList = ({ editor }: UserListProps) => {
+  const { users } = editor;
+  return <div>Users: {users.map(user => user.name).join(', ')}</div>;
+};
+
+export default UserList;

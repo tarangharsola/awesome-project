@@ -2,21 +2,13 @@
 import { useEditor } from './useEditor';
 
 interface AwarenessConsistencyProps {
-  editor: any;
+  editor: useEditor;
 }
 
-const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {
-  const { operations } = useEditor(editor);
-
-  const handleAwareness = (operation: any) => {
-    // Handle awareness logic here
-  };
-
-  return (
-    <div>
-      Awareness Consistency
-    </div>
-  );
+const AwarenessConsistency = ({ editor }: AwarenessConsistencyProps) => {
+  const { operations } = editor;
+  const consistency = operations.reduce((acc, op) => acc && op.type === 'insert', true);
+  return <div>Consistency: {consistency ? 'true' : 'false'}</div>;
 };
 
 export default AwarenessConsistency;
