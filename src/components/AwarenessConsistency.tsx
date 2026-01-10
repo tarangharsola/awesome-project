@@ -1,14 +1,14 @@
 {"import React from 'react';
-import { useEditor } from './useEditor';
+import { useCursor } from './useCursor';
 
 interface AwarenessConsistencyProps {
-  editor: useEditor;
+  cursors: any[];
 }
 
-const AwarenessConsistency = ({ editor }: AwarenessConsistencyProps) => {
-  const { operations } = editor;
-  const consistency = operations.reduce((acc, op) => acc && op.type === 'insert', true);
-  return <div>Consistency: {consistency ? 'true' : 'false'}</div>;
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ cursors }) => {
+  const cursor = useCursor();
+
+  return <div>{cursor}</div>;
 };
 
 export default AwarenessConsistency;
