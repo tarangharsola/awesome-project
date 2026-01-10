@@ -1,20 +1,30 @@
-{"import React, { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
+{"import React from 'react';
+import { Editor } from 'slate-react';
+import { Value } from 'slate';
 
-interface EditorProps {
-  editor: useEditor;
+interface Props {
+  value: Value;
+  onChange: (value: Value) => void;
+  language: string;
 }
 
-const Editor = ({ editor }: EditorProps) => {
-  const [text, setText] = useState('');
-  useEffect(() => {
-    const handleChanges = (changes: any[]) => {
-      setText(changes.reduce((acc, change) => acc + change.text, ''));
-    };
-    editor.subscribe(handleChanges);
-    return () => editor.unsubscribe(handleChanges);
-  }, []);
-  return <div>{text}</div>;
+const EditorComponent = ({ value, onChange, language }: Props) => {
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      onChange(insertText(value, event.target.selectionStart, '\t'));
+    }
+  };
+
+  return (
+    <Editor
+      value={value}
+      onChange={onChange}
+      placeholder='Type something...
+      language={language}
+      onKeyDown={handleKeyDown}
+    />
+  );
 };
 
-export default Editor;
+export default EditorComponent;
