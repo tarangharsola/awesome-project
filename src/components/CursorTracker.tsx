@@ -1,13 +1,12 @@
 {"import React from 'react';
-import { useEditor } from './useEditor';
+import { useCursor } from './useCursor';
 
 interface CursorTrackerProps {
-  editor: useEditor;
+  cursor: useCursor;
 }
 
-const CursorTracker = ({ editor }: CursorTrackerProps) => {
-  const { cursor } = editor;
-  return <div>Cursors: {editor.users.map(user => user.name).join(', ')}</div>;
+const CursorTracker = ({ cursor }: CursorTrackerProps) => {
+  // implementation...
 };
 
 export default CursorTracker;

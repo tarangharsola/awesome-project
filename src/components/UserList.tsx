@@ -6,8 +6,7 @@ interface UserListProps {
 }
 
 const UserList = ({ editor }: UserListProps) => {
-  const { users } = editor;
-  return <div>Users: {users.map(user => user.name).join(', ')}</div>;
+  // implementation...
 };
 
 export default UserList;
