@@ -1,5 +1,6 @@
 // Import required modules
-const { execSync } = require('child_process');
+const childProcess = require('child_process');
+const fs = require('fs');
 
 // Build the application
-execSync('webpack');
+childProcess.execSync('webpack');

@@ -1,10 +1,7 @@
-const { execSync } = require('child_process');
-const { join } = require('path');
-const { readFileSync } = require('fs');
+// Import required modules
+const childProcess = require('child_process');
+const fs = require('fs');
 
-module.exports = function ci() {
-  const buildScript = readFileSync(join(__dirname, 'build.js'), 'utf8');
-  const testScript = readFileSync(join(__dirname, 'test.js'), 'utf8');
-  const ciScript = `node ${buildScript} && node ${testScript}`;
-  execSync(ciScript);
-};
+// Run tests and build script
+childProcess.execSync('jest');
+childProcess.execSync('npm run build');
