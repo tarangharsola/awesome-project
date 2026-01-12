@@ -1,29 +1,35 @@
 {"import React from 'react';
-import { User } from './User';
+import { useEditor } from './useEditor';
 
 interface UserListProps {
-  users: User[];
+  editor: useEditor;
 }
 
-const UserList = ({ users }: UserListProps) => {
+const UserList = ({ editor }: UserListProps) => {
+  const { state, dispatch } = editor;
+  const { users } = state;
+
+  const handleUserUpdate = (user: any) => {
+    dispatch({ type: 'UPDATE_USER', payload: user });
+  };
+
   return (
-    <div className="user-list">
+    <div>
       {users.map((user, index) => (
-        <div key={index} className="user-item">
-          <span className="username">{user.name}</span>
-          <span className="cursor-label" style={{
-            backgroundColor: user.color,
-            color: "#fff",
-            padding: "2px 4px",
-            borderRadius: "4px",
-            fontSize: "12px",
-          }}>
-            {user.cursorPosition}
-          </span>
+        <div key={index} style={{
+          position: 'absolute',
+          left: user.x,
+          top: user.y,
+          width: 2,
+          height: 2,
+          backgroundColor: user.color
+        }}>
         </div>
       ))}
     </div>
   );
+
+  return handleUserUpdate;
 };
 
 export default UserList;

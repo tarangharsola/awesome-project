@@ -1,72 +1,25 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import AceEditor from 'react-ace';
+import { useEditor } from './useEditor';
 
-const Editor = () => {
-  const [value, setValue] = useState('');
-  const [language, setLanguage] = useState('javascript');
-  const [fontSize, setFontSize] = useState(14);
+interface EditorProps {
+  editor: useEditor;
+}
 
-  useEffect(() => {
-    const storedValue = localStorage.getItem('editorValue');
-    if (storedValue) {
-      setValue(storedValue);
-    }
-  }, []);
+const Editor = ({ editor }: EditorProps) => {
+  const { state, dispatch } = editor;
+  const { text } = state;
 
-  const handleLanguageChange = (lang) => {
-    setLanguage(lang);
-    localStorage.setItem('editorLanguage', lang);
-  };
-
-  const handleFontSizeChange = (size) => {
-    setFontSize(size);
-    localStorage.setItem('editorFontSize', size);
-  };
-
-  const handleCodeChange = (newValue) => {
-    setValue(newValue);
-    localStorage.setItem('editorValue', newValue);
+  const handleTextChange = (text: string) => {
+    dispatch({ type: 'UPDATE_TEXT', payload: text });
   };
 
   return (
-    <div style={{
-      height: '100vh',
-      width: '100vw',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: 20
-    }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10
-      }}>
-        <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
-          <option value="javascript">JavaScript</option>
-          <option value="python">Python</option>
-          <option value="html">HTML</option>
-        </select>
-        <select value={fontSize} onChange={(e) => handleFontSizeChange(e.target.value)}>
-          <option value="10">10</option>
-          <option value="12">12</option>
-          <option value="14">14</option>
-          <option value="16">16</option>
-          <option value="18">18</option>
-        </select>
-      </div>
-      <AceEditor
-        value={value}
-        onChange={handleCodeChange}
-        mode={language}
-        theme="monokai"
-        fontSize={fontSize}
-        width="100%"
-        height="calc(100vh - 100px)"
-      />
+    <div>
+      <textarea value={text} onChange={(e) => handleTextChange(e.target.value)} />
     </div>
   );
+
+  return handleTextChange;
 };
 
 export default Editor;

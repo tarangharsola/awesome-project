@@ -1,32 +1,29 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
 
-const ReconnectionHandler = () => {
-  const [connected, setConnected] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+interface ReconnectionHandlerProps {
+  editor: useEditor;
+}
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      // Simulate connection status
-      const isConnected = Math.random() > 0.5;
-      setConnected(isConnected);
-      if (!isConnected) {
-        setRetryCount(retryCount + 1);
-      }
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, []);
+const ReconnectionHandler = ({ editor }: ReconnectionHandlerProps) => {
+  const { state, dispatch } = editor;
+  const { reconnecting } = state;
 
-  const handleRetry = () => {
-    setRetryCount(0);
+  const handleReconnect = () => {
+    dispatch({ type: 'RECONNECT' });
   };
 
   return (
     <div>
-      <p>Connection Status: {connected ? 'Connected' : 'Disconnected'}</p>
-      <p>Retry Count: {retryCount}</p>
-      <button onClick={handleRetry}>Retry</button>
+      {reconnecting ? (
+        <button onClick={handleReconnect}>Reconnect</button>
+      ) : (
+        <div>Connected</div>
+      )}
     </div>
   );
+
+  return handleReconnect;
 };
+
 export default ReconnectionHandler;

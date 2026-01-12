@@ -1,16 +1,35 @@
 {"import React from 'react';
-import { OperationalTransform } from 'ot-js';
+import { useEditor } from './useEditor';
 
 interface ConflictResolverProps {
-  operations: any[];
-  onResolve: (operations: any[]) => void;
+  editor: useEditor;
 }
 
-const ConflictResolver: React.FC<ConflictResolverProps> = ({ operations, onResolve }) => {
-  const ot = new OperationalTransform();
-  const resolvedOperations = ot.resolve(operations);
-  onResolve(resolvedOperations);
-  return null;
+const ConflictResolver = ({ editor }: ConflictResolverProps) => {
+  const { state, dispatch } = editor;
+  const { operations } = state;
+
+  const handleOperation = (operation: any) => {
+    dispatch({ type: 'APPLY_OPERATION', payload: operation });
+  };
+
+  return (
+    <div>
+      {operations.map((operation, index) => (
+        <div key={index} style={{
+          position: 'absolute',
+          left: operation.x,
+          top: operation.y,
+          width: 2,
+          height: 2,
+          backgroundColor: operation.color
+        }}>
+        </div>
+      ))}
+    </div>
+  );
+
+  return handleOperation;
 };
 
 export default ConflictResolver;
