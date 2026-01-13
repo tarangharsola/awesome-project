@@ -1,7 +1,6 @@
-// Import required modules
-const childProcess = require('child_process');
-const fs = require('fs');
+const { execSync } = require('child_process');
 
-// Run tests and build script
-childProcess.execSync('jest');
-childProcess.execSync('npm run build');
+module.exports = function ci() {
+  execSync('npm run build');
+  execSync('jest');
+};

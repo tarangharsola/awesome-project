@@ -1,7 +1,6 @@
-// Add script for build and test
-{
-  "scripts": {
-    "build": "node scripts/build.js",
-    "test": "jest"
-  }
-}
+...
+"scripts": {
+  "ci": "node scripts/ci.js",
+  "build": "webpack --mode production"
+},
+...
