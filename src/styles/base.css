@@ -1,7 +1,10 @@
-.editor {
-  /* styles... */
+.monaco-editor {
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 10px;
+  border: 1px solid #ccc;
 }
 
-.editor-dark {
-  /* dark mode styles... */
+.monaco-editor .cursor {
+  color: #f00;
 }

@@ -1,25 +1,39 @@
 {"import { useState, useEffect } from 'react';
 
-interface useEditorProps {
-  editor: any;
+interface EditorState {
+  value: string;
+  onChange: (value: string) => void;
+  language: string;
 }
 
-const useEditor = ({ editor }: useEditorProps) => {
-  const [state, setState] = useState({ text: '', cursors: [], users: [] });
+const useEditor = (): EditorState => {
+  const [value, setValue] = useState('');
+  const [language, setLanguage] = useState('javascript');
+
+  const handleEditorChange = (newValue: string) => {
+    setValue(newValue);
+  };
 
   useEffect(() => {
-    const handleStateUpdate = (state: any) => {
-      setState(state);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setValue('');
+      }
     };
 
-    editor.subscribe('UPDATE_STATE', handleStateUpdate);
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      editor.unsubscribe('UPDATE_STATE', handleStateUpdate);
+      document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [editor]);
+  }, []);
 
-  return { state, dispatch: setState };
-};
+  return {
+    value,
+    onChange: handleEditorChange,
+    language,
+    setLanguage,
+  };
+}
 
 export default useEditor;
