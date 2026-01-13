@@ -1,38 +1,34 @@
 {"import React from 'react';
-import { Editor } from 'react-simple-editor';
-import { MonacoEditor } from 'react-monaco-editor';
+import { EditorState, Editor } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { Extension } from 'prosemirror-extensions';
 
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
+const EditorComponent = () => {
+  const [editorState, setEditorState] = React.useState(EditorState.create());
+  const [view, setView] = React.useState(null);
 
-const EditorComponent: React.FC<Props> = ({ value, onChange, language }) => {
-  const handleEditorChange = (newValue: string) => {
-    onChange(newValue);
+  const handleEditorChange = (state) => {
+    setEditorState(state);
   };
 
+  React.useEffect(() => {
+    const view = new EditorView(document.getElementById('editor'), {
+      state: editorState,
+      dispatchTransaction: (transaction) => {
+        handleEditorChange(transaction.apply(editorState));
+      },
+    });
+    setView(view);
+    return () => {
+      view.destroy();
+    };
+  }, [editorState]);
+
   return (
-    <MonacoEditor
-      value={value}
-      onChange={handleEditorChange}
-      language={language}
-      theme="vs-dark"
-      options={{
-        selectOnLineNumbers: true,
-        fontSize: 14,
-        lineNumbers: "on",
-        minimap: {
-          enabled: false,
-        },
-        scrollbar: {
-          vertical: "visible",
-          horizontal: "visible",
-        },
-      }}
-    />
+    <div id="editor" style={{ height: 500 }}>
+      <Editor state={editorState} extensions={[]} />
+    </div>
   );
-}
+};
 
 export default EditorComponent;
