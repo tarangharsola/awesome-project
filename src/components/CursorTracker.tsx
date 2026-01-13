@@ -1,1 +1,36 @@
-{"import React from 'react';\nimport './CursorTracker.css';\n\ninterface Cursor {\n  id: string;\n  name: string;\n  color: string;\n  x: number;\n  y: number;\n}\n\ninterface Props {\n  cursors: Cursor[];\n}\n\nconst CursorTracker = ({ cursors }: Props) => {\n  return (\n    <div className='cursor-tracker'>\n      {cursors.map((cursor, index) => (\n        <div key={cursor.id} style={{\n          backgroundColor: cursor.color,\n          color: 'white',\n          position: 'absolute',\n          left: cursor.x,\n          top: cursor.y,\n          width: '10px',\n          height: '10px',\n          borderRadius: '50%',\n        }}\n        >\n          {cursor.name}\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default CursorTracker;
+{"import React from 'react';
+import './CursorTracker.css';
+
+interface Cursor {
+  id: string;
+  x: number;
+  y: number;
+  color: string;
+}
+
+interface Props {
+  cursors: Cursor[];
+}
+
+const CursorTracker = ({ cursors }: Props) => {
+  return (
+    <div className="cursor-tracker">
+      {cursors.map((cursor) => (
+        <div key={cursor.id} className="cursor">
+          <span style={{
+            backgroundColor: cursor.color,
+            position: 'absolute',
+            left: cursor.x + 'px',
+            top: cursor.y + 'px',
+            width: '4px',
+            height: '4px',
+            borderRadius: '50%',
+            zIndex: 1
+          }}></span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default CursorTracker;
