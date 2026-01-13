@@ -1,1 +1,24 @@
-{"import React, { useState, useEffect } from 'react';\nimport { io } from 'socket.io-client';\n\ninterface ReconnectionHandlerProps {\n  children: React.ReactNode;\n}\n\nconst ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ children }) => {\n  const [socket, setSocket] = useState(null);\n  const [reconnecting, setReconnecting] = useState(false);\n\n  useEffect(() => {\n    const socket = io();\n    setSocket(socket);\n    return () => {\n      socket.disconnect();\n    };\n  }, []);\n\n  const handleReconnect = () => {\n    setReconnecting(true);\n    socket.connect();\n    setReconnecting(false);\n  };\n\n  return (\n    <div>\n      {children}\n      {reconnecting && (\n        <div>\n          Reconnecting...\n        </div>\n      )}\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+
+const ReconnectionHandler = () => {
+  const [connected, setConnected] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (!connected) {
+        setRetryCount(retryCount + 1);
+      }
+    }, 5000);
+    return () => clearInterval(intervalId);
+  }, [connected, retryCount]);
+
+  return (
+    <div>
+      <p>Connection Status: {connected ? 'Connected' : 'Disconnected'}</p>
+      <p>Retry Count: {retryCount}</p>
+    </div>
+  );
+};
+export default ReconnectionHandler;
