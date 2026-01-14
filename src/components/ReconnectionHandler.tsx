@@ -1,13 +1,1 @@
-{"import React from 'react';
-import { useReconnection } from './useReconnection';
-
-const ReconnectionHandler = () => {
-  const reconnect = useReconnection();
-  return (
-    <div>
-      <button onClick={reconnect}>Reconnect</button>
-    </div>
-  );
-};
-
-export default ReconnectionHandler;
+{"import React, { useState, useEffect } from 'react';\n\ninterface Props {\n  children: React.ReactNode;\n}\n\ninterface State {\n  isConnected: boolean;\n  retryCount: number;\n}\n\nconst ReconnectionHandler = ({ children }: Props) => {\n  const [state, setState] = useState<State>({ isConnected: false, retryCount: 0 });\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      // Simulate connection check\n      const isConnected = Math.random() > 0.5;\n      setState({ isConnected, retryCount: state.retryCount + 1 });\n    }, 1000);\n    return () => clearInterval(intervalId);\n  }, []);\n\n  const handleRetry = () => {\n    setState({ isConnected: false, retryCount: 0 });\n  };\n\n  return (\n    <div>\n      {state.isConnected ? (\n        <div>\n          Connected\n        </div>\n      ) : (\n        <div>\n          Disconnected\n          <button onClick={handleRetry}>Retry</button>\n        </div>\n      )}\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
