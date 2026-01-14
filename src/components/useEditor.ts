@@ -1,30 +1,20 @@
 {"import { useState, useEffect } from 'react';
 
-const useEditor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState('');
-  const [theme, setTheme] = useState('vs-dark');
+interface EditorState {
+  content: string;
+  cursor: { position: number; }
+}
 
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
-  };
-
-  const handleCodeChange = (event) => {
-    setCode(event.target.value);
-  };
-
-  const handleThemeChange = (event) => {
-    setTheme(event.target.value);
-  };
-
-  return {
-    language,
-    code,
-    theme,
-    handleLanguageChange,
-    handleCodeChange,
-    handleThemeChange,
-  };
+const useEditor = (initialContent: string, initialCursor: { position: number }) => {
+  const [content, setContent] = useState(initialContent);
+  const [cursor, setCursor] = useState(initialCursor);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setContent(content + 'Hello World');
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+  return { content, cursor, operations: [] };
 };
 
 export default useEditor;

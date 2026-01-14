@@ -1,41 +1,30 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
-import MonacoEditor from '@monaco-editor/react';
+{"import React, { useState, useEffect } from 'react';
+import { useCursor } from './useCursor';
+import { useEditor } from './useEditor';
+import AwarenessConsistency from './AwarenessConsistency';
+import ConflictResolver from './ConflictResolver';
+import CursorTracker from './CursorTracker';
 
-const Editor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState('');
-  const [theme, setTheme] = useState('vs-dark');
+interface EditorProps {
+  initialContent: string;
+}
 
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
-  };
-
-  const handleCodeChange = (event) => {
-    setCode(event.target.value);
-  };
-
-  const handleThemeChange = (event) => {
-    setTheme(event.target.value);
-  };
-
+const Editor = ({ initialContent }: EditorProps) => {
+  const [content, setContent] = useState(initialContent);
+  const [cursor, setCursor] = useState({ position: 0 });
+  const editor = useEditor(content, cursor);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setContent(content + 'Hello World');
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
   return (
     <div>
-      <select value={language} onChange={handleLanguageChange}>
-        <option value='javascript'>JavaScript</option>
-        <option value='python'>Python</option>
-        <option value='html'>HTML</option>
-      </select>
-      <MonacoEditor
-        language={language}
-        value={code}
-        theme={theme}
-        onChange={handleCodeChange}
-      />
-      <select value={theme} onChange={handleThemeChange}>
-        <option value='vs-dark'>Dark</option>
-        <option value='vs-light'>Light</option>
-      </select>
+      <AwarenessConsistency editor={editor} />
+      <ConflictResolver editor={editor} />
+      <CursorTracker editor={editor} />
+      <textarea value={content} onChange={(e) => setContent(e.target.value)} />
     </div>
   );
 };

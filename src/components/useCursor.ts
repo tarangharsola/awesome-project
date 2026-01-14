@@ -1,24 +1,17 @@
 {"import { useState, useEffect } from 'react';
 
-interface useCursorProps {
-  editor: any;
+interface CursorState {
+  position: number;
 }
 
-const useCursor = ({ editor }: useCursorProps) => {
-  const [cursor, setCursor] = useState({ x: 0, y: 0, color: '' });
-
+const useCursor = () => {
+  const [cursor, setCursor] = useState<CursorState>({ position: 0 });
   useEffect(() => {
-    const handleCursorUpdate = (cursor: any) => {
-      setCursor(cursor);
-    };
-
-    editor.subscribe('UPDATE_CURSOR', handleCursorUpdate);
-
-    return () => {
-      editor.unsubscribe('UPDATE_CURSOR', handleCursorUpdate);
-    };
-  }, [editor]);
-
+    const interval = setInterval(() => {
+      setCursor({ position: cursor.position + 1 });
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
   return cursor;
 };
 
