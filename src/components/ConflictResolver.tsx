@@ -1,14 +1,18 @@
 {"import React from 'react';
-import { useEditor } from './useEditor';
+import { OperationalTransformation } from 'ot-js';
 
 interface ConflictResolverProps {
-  editor: useEditor;
+  operations: any[];
+  onConflict: (conflict: any) => void;
 }
 
-const ConflictResolver = ({ editor }: ConflictResolverProps) => {
-  const { operations } = editor;
-  const conflicts = operations.filter((op) => op.type === 'insert' && op.position !== editor.cursor.position);
-  return <div>Conflicts: {conflicts.length}</div);
+const ConflictResolver: React.FC<ConflictResolverProps> = ({ operations, onConflict }) => {
+  const ot = new OperationalTransformation(operations);
+  const conflict = ot.resolve();
+  if (conflict) {
+    onConflict(conflict);
+  }
+  return null;
 };
 
 export default ConflictResolver;

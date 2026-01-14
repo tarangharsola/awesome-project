@@ -1,14 +1,16 @@
 {"import React from 'react';
-import { useEditor } from './useEditor';
+import { AwarenessConsistency } from 'ot-js';
 
 interface AwarenessConsistencyProps {
-  editor: useEditor;
+  operations: any[];
+  onAwareness: (awareness: any) => void;
 }
 
-const AwarenessConsistency = ({ editor }: AwarenessConsistencyProps) => {
-  const { operations } = editor;
-  const consistency = operations.reduce((acc, op) => acc && op.type === 'insert', true);
-  return <div>Consistency: {consistency ? 'true' : 'false'}</div);
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ operations, onAwareness }) => {
+  const ac = new AwarenessConsistency(operations);
+  const awareness = ac.getAwareness();
+  onAwareness(awareness);
+  return null;
 };
 
 export default AwarenessConsistency;
