@@ -1,34 +1,43 @@
 {"import React from 'react';
-import { EditorState, Editor } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { Extension } from 'prosemirror-extensions';
+import { useState, useEffect } from 'react';
+import MonacoEditor from '@monaco-editor/react';
 
-const EditorComponent = () => {
-  const [editorState, setEditorState] = React.useState(EditorState.create());
-  const [view, setView] = React.useState(null);
+const Editor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
+  const [theme, setTheme] = useState('vs-dark');
 
-  const handleEditorChange = (state) => {
-    setEditorState(state);
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
   };
 
-  React.useEffect(() => {
-    const view = new EditorView(document.getElementById('editor'), {
-      state: editorState,
-      dispatchTransaction: (transaction) => {
-        handleEditorChange(transaction.apply(editorState));
-      },
-    });
-    setView(view);
-    return () => {
-      view.destroy();
-    };
-  }, [editorState]);
+  const handleCodeChange = (event) => {
+    setCode(event.target.value);
+  };
+
+  const handleThemeChange = (event) => {
+    setTheme(event.target.value);
+  };
 
   return (
-    <div id="editor" style={{ height: 500 }}>
-      <Editor state={editorState} extensions={[]} />
+    <div>
+      <select value={language} onChange={handleLanguageChange}>
+        <option value='javascript'>JavaScript</option>
+        <option value='python'>Python</option>
+        <option value='html'>HTML</option>
+      </select>
+      <MonacoEditor
+        language={language}
+        value={code}
+        theme={theme}
+        onChange={handleCodeChange}
+      />
+      <select value={theme} onChange={handleThemeChange}>
+        <option value='vs-dark'>Dark</option>
+        <option value='vs-light'>Light</option>
+      </select>
     </div>
   );
 };
 
-export default EditorComponent;
+export default Editor;

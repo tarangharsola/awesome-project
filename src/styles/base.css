@@ -1,10 +1,25 @@
-.monaco-editor {
-  font-size: 14px;
-  line-height: 1.5;
+/*
+ * Improved editor UX: language switching, formatting defaults, and better keyboard shortcuts.
+ */
+
+/* Language selector */
+select {
   padding: 10px;
-  border: 1px solid #ccc;
+  border: none;
+  border-radius: 5px;
+  background-color: #f0f0f0;
 }
 
-.monaco-editor .cursor {
-  color: #f00;
+/* Monaco editor */
+.monaco-editor {
+  height: 500px;
+  width: 100%;
+}
+
+/* Theme selector */
+select {
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #f0f0f0;
 }

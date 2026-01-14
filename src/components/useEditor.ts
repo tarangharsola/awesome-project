@@ -1,39 +1,30 @@
 {"import { useState, useEffect } from 'react';
 
-interface EditorState {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
-
-const useEditor = (): EditorState => {
-  const [value, setValue] = useState('');
+const useEditor = () => {
   const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
+  const [theme, setTheme] = useState('vs-dark');
 
-  const handleEditorChange = (newValue: string) => {
-    setValue(newValue);
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
   };
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setValue('');
-      }
-    };
+  const handleCodeChange = (event) => {
+    setCode(event.target.value);
+  };
 
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
+  const handleThemeChange = (event) => {
+    setTheme(event.target.value);
+  };
 
   return {
-    value,
-    onChange: handleEditorChange,
     language,
-    setLanguage,
+    code,
+    theme,
+    handleLanguageChange,
+    handleCodeChange,
+    handleThemeChange,
   };
-}
+};
 
 export default useEditor;
