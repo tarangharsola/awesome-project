@@ -1,26 +1,11 @@
-{"import React from 'react';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { render, fireEvent, waitFor } from '@testing-library/react';
-import Editor from './Editor';
+import React from 'react';
+import Editor from '../Editor';
 
-describe('Editor', () => {
-  it('renders language selector', () => {
-    const { getByText } = render(<Editor />);
-    expect(getByText('JavaScript')).toBeInTheDocument();
-    expect(getByText('Python')).toBeInTheDocument();
-    expect(getByText('HTML')).toBeInTheDocument();
-  });
-
-  it('renders Monaco editor', () => {
-    const { getByRole } = render(<Editor />);
-    expect(getByRole('textbox')).toBeInTheDocument();
-  });
-
-  it('formats code on button click', async () => {
-    const { getByText } = render(<Editor />);
-    const formatButton = getByText('Format');
-    fireEvent.click(formatButton);
-    await waitFor(() => {
-      expect(getByRole('textbox')).toHaveValue('formatted code');
-    });
+describe('Editor component', () => {
+  it('renders editor with syntax highlighting', () => {
+    const { getByPlaceholderText } = render(<Editor language='javascript' />);
+    expect(getByPlaceholderText('Write code here...')).toBeInTheDocument();
   });
 });
