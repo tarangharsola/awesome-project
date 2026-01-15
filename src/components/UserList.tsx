@@ -1,36 +1,16 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
 
-interface User {
-  id: string;
-  name: string;
-  color: string;
+interface UserListProps {
+  editor: useEditor;
 }
 
-interface Props {
-  users: User[];
-}
-
-const UserList = ({ users }: Props) => {
-  const [activeUsers, setActiveUsers] = useState([]);
-
-  useEffect(() => {
-    setActiveUsers(users.filter((user) => user.id !== "self"));
-  }, [users]);
-
+const UserList: React.FC<UserListProps> = ({ editor }) => {
+  const { users } = editor;
   return (
-    <div className="active-users">
-      {activeUsers.map((user) => (
-        <div key={user.id} style={{
-          backgroundColor: user.color,
-          color: "#fff",
-          padding: "5px",
-          borderRadius: "5px",
-          display: "inline-block",
-          marginRight: "10px",
-        }}>
-          {user.name}
-        </div>
+    <div>
+      {users.map((user, index) => (
+        <div key={index}>{user.name}</div>
       ))}
     </div>
   );
