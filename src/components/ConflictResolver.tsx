@@ -1,19 +1,27 @@
 {"import React from 'react';
-import { useEditor } from './useEditor';
+import { OperationalTransform } from 'ot';
 
 interface ConflictResolverProps {
-  editor: useEditor;
+  operations: OperationalTransform[];
+  onResolve: (operations: OperationalTransform[]) => void;
 }
 
-const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {
-  const { conflict } = editor;
-  return (
-    <div>
-      {conflict.map((user, index) => (
-        <div key={index}>{user.name}</div>
-      ))}
-    </div>
-  );
+const ConflictResolver: React.FC<ConflictResolverProps> = ({ operations, onResolve }) => {
+  const [resolvedOperations, setResolvedOperations] = React.useState<OperationalTransform[]>([]);
+
+  React.useEffect(() => {
+    const resolveOperations = () => {
+      const resolvedOperations = operations.reduce((acc, operation) => {
+        return acc.concat(operation.transform(acc));
+      }, []);
+      setResolvedOperations(resolvedOperations);
+      onResolve(resolvedOperations);
+    };
+
+    resolveOperations();
+  }, [operations, onResolve]);
+
+  return <div>Conflict Resolver</div>;
 };
 
 export default ConflictResolver;
