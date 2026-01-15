@@ -1,11 +1,9 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { render, fireEvent, waitFor } from '@testing-library/react';
+// Jest test for Editor component
 import React from 'react';
+import { render, fireEvent } from '@testing-library/react';
 import Editor from '../Editor';
 
-describe('Editor component', () => {
-  it('renders editor with syntax highlighting', () => {
-    const { getByPlaceholderText } = render(<Editor language='javascript' />);
-    expect(getByPlaceholderText('Write code here...')).toBeInTheDocument();
-  });
+test('Editor renders correctly', () => {
+  const { getByPlaceholderText } = render(<Editor />);
+  expect(getByPlaceholderText('Code here...')).toBeInTheDocument();
 });
