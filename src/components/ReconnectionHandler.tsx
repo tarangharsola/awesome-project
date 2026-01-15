@@ -1,23 +1,33 @@
-{"import React, { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
 
-interface ReconnectionHandlerProps {
-  onReconnect: () => void;
+interface Props {
+  children: React.ReactNode;
 }
 
-const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ onReconnect }) => {
-  const [socket, setSocket] = useState(null);
+const ReconnectionHandler = ({ children }: Props) => {
+  const [connected, setConnected] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-    setSocket(socket);
-    socket.on('reconnect', () => {
-      onReconnect();
-    });
-    return () => {
-      socket.disconnect();
-    };
+    const intervalId = setInterval(() => {
+      // Simulate connection status updates
+      setConnected(Math.random() < 0.5);
+    }, 1000);
+    return () => clearInterval(intervalId);
   }, []);
-  return null;
+
+  const handleRetry = () => {
+    setRetryCount(retryCount + 1);
+  }
+
+  return (
+    <div>
+      {children}
+      <p>Connected: {connected ? 'Yes' : 'No'}</p>
+      <button onClick={handleRetry}>Retry ({retryCount})</button>
+    </div>
+  );
 };
 
 export default ReconnectionHandler;
