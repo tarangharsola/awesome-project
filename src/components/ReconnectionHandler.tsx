@@ -6,18 +6,32 @@ interface ReconnectionHandlerProps {
 }
 
 const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ onReconnect }) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [reconnecting, setReconnecting] = useState(false);
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
     const socket = io('ws://localhost:3001');
     setSocket(socket);
-
-    socket.on('disconnect', () => {
+    socket.on('reconnect', () => {
       onReconnect();
     });
-  }, [onReconnect]);
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
-  return <div>Reconnection Handler</div>;
+  useEffect(() => {
+    if (socket && socket.connected) {
+      setReconnecting(false);
+    } else {
+      setReconnecting(true);
+    }
+  }, [socket]);
+
+  if (reconnecting) {
+    return <div>Reconnecting...</div);
+  }
+  return null;
 };
 
 export default ReconnectionHandler;
