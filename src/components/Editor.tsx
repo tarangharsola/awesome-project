@@ -1,1 +1,31 @@
-{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport { EditorState, ContentState } from 'draft-js';\nimport 'draft-js/dist/draft.min.css';\n\ninterface Props {\n  initialContent?: string;\n  onChange?: (content: string) => void;\n}\n\nconst Editor = ({ initialContent, onChange }: Props) => {\n  const [editorState, setEditorState] = useState(() => EditorState.createEmpty());\n  const [content, setContent] = useState(initialContent || '');\n\n  useEffect(() => {\n    const contentState = editorState.getCurrentContent();\n    const text = contentState.getPlainText();\n    setContent(text);\n  }, [editorState]);\n\n  useEffect(() => {\n    if (onChange) {\n      onChange(content);\n    }\n  }, [content, onChange]);\n\n  const handleLanguageChange = (language: string) => {\n    // Update language and formatting defaults\n    // ...\n  };\n\n  const handleFormat = (format: string) => {\n    // Apply formatting\n    // ...\n  };\n\n  const handleKeyDown = (event: React.KeyboardEvent) => {\n    // Handle keyboard shortcuts\n    // ...\n  };\n\n  return (\n    <div>\n      <select onChange={(event) => handleLanguageChange(event.target.value)}>\n        <option value="javascript">JavaScript</option>\n        <option value="python">Python</option>\n        <option value="html">HTML</option>\n      </select>\n      <button onClick={() => handleFormat('bold')}>Bold</button>\n      <button onClick={() => handleFormat('italic')}>Italic</button>\n      <button onClick={() => handleKeyDown(event)}>Ctrl+K</button>\n      <EditorState editorState={editorState} onChange={setEditorState} />\n    </div>\n  );\n};\n\nexport default Editor;
+{"import React from 'react';
+import { EditorState, Editor } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { DOMParser } from 'prosemirror-model';
+
+const EditorComponent = () => {
+  const [editorState, setEditorState] = React.useState(EditorState.create());
+  const [view, setView] = React.useState(null);
+
+  React.useEffect(() => {
+    const domParser = new DOMParser();
+    const doc = domParser.parseFromString('<p>Hello World!</p>', 'text/html');
+    const state = EditorState.create({ doc });
+    setEditorState(state);
+  }, []);
+
+  const handleUpdate = (state) => {
+    setEditorState(state);
+  };
+
+  return (
+    <div>
+      <Editor
+        value={editorState}
+        onChange={handleUpdate}
+      />
+    </div>
+  );
+};
+
+export default EditorComponent;
