@@ -1,6 +1,4 @@
-// Import required modules
-const childProcess = require('child_process');
-const fs = require('fs');
+// Build script for CI validation
+const { execSync } = require('child_process');
 
-// Build the application
-childProcess.execSync('webpack');
+execSync('jest --coverage');
