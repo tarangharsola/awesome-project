@@ -1,31 +1,30 @@
 {"import React from 'react';
-import { EditorState, Editor } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { DOMParser } from 'prosemirror-model';
+import { Editor } from 'react-simple-code-editor';
 
-const EditorComponent = () => {
-  const [editorState, setEditorState] = React.useState(EditorState.create());
-  const [view, setView] = React.useState(null);
+interface Props {
+  value: string;
+  onChange: (value: string) => void;
+  language: string;
+}
 
-  React.useEffect(() => {
-    const domParser = new DOMParser();
-    const doc = domParser.parseFromString('<p>Hello World!</p>', 'text/html');
-    const state = EditorState.create({ doc });
-    setEditorState(state);
-  }, []);
-
-  const handleUpdate = (state) => {
-    setEditorState(state);
+const EditorComponent: React.FC<Props> = ({ value, onChange, language }) => {
+  const handleCodeChange = (newCode: string) => {
+    onChange(newCode);
   };
 
   return (
-    <div>
-      <Editor
-        value={editorState}
-        onChange={handleUpdate}
-      />
-    </div>
+    <Editor
+      value={value}
+      onValueChange={handleCodeChange}
+      highlight={language}
+      padding={10}
+      style={{
+        fontFamily: 'monospace,
+        monospace',
+        fontSize: 12,
+      }}
+    />
   );
-};
+}
 
 export default EditorComponent;
