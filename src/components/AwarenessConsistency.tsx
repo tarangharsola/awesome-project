@@ -1,19 +1,13 @@
 {"import React from 'react';
-import { useEditor } from './useEditor';
+import { useCursor } from './useCursor';
 
 interface AwarenessConsistencyProps {
-  editor: useEditor;
+  cursors: any[];
 }
 
-const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {
-  const { awareness } = editor;
-  return (
-    <div>
-      {awareness.map((user, index) => (
-        <div key={index}>{user.name}</div>
-      ))}
-    </div>
-  );
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ cursors }) => {
+  const cursor = useCursor(cursors);
+  return <div style={{ position: 'absolute', top: cursor.y, left: cursor.x, width: 10, height: 10, backgroundColor: 'red' }} />
 };
 
 export default AwarenessConsistency;

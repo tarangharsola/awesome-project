@@ -1,30 +1,25 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
+import { io } from 'socket.io-client';
 
 interface ReconnectionHandlerProps {
-  editor: useEditor;
+  onReconnect: () => void;
 }
 
-const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ editor }) => {
-  const [reconnecting, setReconnecting] = useState(false);
-
+const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ onReconnect }) => {
+  const [socket, setSocket] = useState<Socket | null>(null);
   useEffect(() => {
-    const handleReconnect = () => {
-      setReconnecting(true);
-    };
-
-    editor.on('reconnect', handleReconnect);
-
+    const newSocket = io();
+    setSocket(newSocket);
     return () => {
-      editor.off('reconnect', handleReconnect);
+      newSocket.disconnect();
     };
   }, []);
-
-  return (
-    <div>
-      {reconnecting ? 'Reconnecting...' : ''}
-    </div>
-  );
+  useEffect(() => {
+    if (socket) {
+      socket.on('reconnect', onReconnect);
+    }
+  }, [socket]);
+  return null;
 };
 
 export default ReconnectionHandler;
