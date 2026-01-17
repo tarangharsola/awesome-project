@@ -1,16 +1,21 @@
 {"import React from 'react';
-import { useEditor } from './useEditor';
+import { User } from './User';
 
 interface UserListProps {
-  editor: useEditor;
+  users: User[];
 }
 
-const UserList: React.FC<UserListProps> = ({ editor }) => {
-  const { users } = editor;
+const UserList = ({ users }: UserListProps) => {
   return (
-    <div>
+    <div className='user-list'>
       {users.map((user, index) => (
-        <div key={index}>{user.name}</div>
+        <div key={index} className='user-item'>
+          <span className='username'>{user.name}</span>
+          <span className='cursor-label' style={{
+            backgroundColor: user.color,
+            color: 'white'
+          }}>■</span>
+        </div>
       ))}
     </div>
   );
