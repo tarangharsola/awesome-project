@@ -1,30 +1,28 @@
-{"import React from 'react';
-import { Editor } from 'react-simple-code-editor';
+{"import React, { useState, useEffect } from 'react';
+import { useCursor } from './useCursor';
+import { useEditor } from './useEditor';
 
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
+interface EditorProps {
+  initialContent: string;
 }
 
-const EditorComponent: React.FC<Props> = ({ value, onChange, language }) => {
-  const handleCodeChange = (newCode: string) => {
-    onChange(newCode);
-  };
+const Editor: React.FC<EditorProps> = ({ initialContent }) => {
+  const [content, setContent] = useState(initialContent);
+  const cursor = useCursor();
+  const editor = useEditor();
+
+  useEffect(() => {
+    editor.setContent(content);
+  }, [content]);
 
   return (
-    <Editor
-      value={value}
-      onValueChange={handleCodeChange}
-      highlight={language}
-      padding={10}
-      style={{
-        fontFamily: 'monospace,
-        monospace',
-        fontSize: 12,
-      }}
-    />
+    <div>
+      <textarea value={content} onChange={(e) => setContent(e.target.value)} />
+      <CursorTracker editor={editor} />
+      <AwarenessConsistency editor={editor} />
+      <ConflictResolver editor={editor} />
+    </div>
   );
-}
+};
 
-export default EditorComponent;
+export default Editor;

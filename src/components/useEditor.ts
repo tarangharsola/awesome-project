@@ -1,26 +1,48 @@
 {"import { useState, useEffect } from 'react';
 
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
+interface useEditor {
+  content: string;
+  setContent: (content: string) => void;
+  awareness: { name: string; color: string }[];
+  conflicts: { message: string }[];
+  users: { name: string; color: string }[];
 }
 
-const useEditor = ({ value, onChange, language }: Props) => {
-  const [editorValue, setEditorValue] = useState(value);
+const useEditor = () => {
+  const [content, setContent] = useState('');
+  const [awareness, setAwareness] = useState([]);
+  const [conflicts, setConflicts] = useState([]);
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    onChange(editorValue);
-  }, [editorValue]);
+    const handleContentUpdate = (content) => {
+      setContent(content);
+    };
 
-  const handleCodeChange = (newCode: string) => {
-    setEditorValue(newCode);
-  };
+    const handleAwarenessUpdate = (awareness) => {
+      setAwareness(awareness);
+    };
+
+    const handleConflictUpdate = (conflicts) => {
+      setConflicts(conflicts);
+    };
+
+    const handleUserUpdate = (users) => {
+      setUsers(users);
+    };
+
+    return () => {
+      // Clean up
+    };
+  }, []);
 
   return {
-    value: editorValue,
-    onChange: handleCodeChange,
+    content,
+    setContent,
+    awareness,
+    conflicts,
+    users,
   };
-}
+};
 
 export default useEditor;

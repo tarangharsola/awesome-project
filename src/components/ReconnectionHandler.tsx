@@ -1,1 +1,30 @@
-{"import React, { useState, useEffect } from 'react';\n\ninterface Props {\n  children: React.ReactNode;\n}\n\ninterface State {\n  isConnected: boolean;\n  retryCount: number;\n}\n\nconst ReconnectionHandler: React.FC<Props> = ({ children }) => {\n  const [state, setState] = useState<State>({ isConnected: false, retryCount: 0 });\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      // Simulate connection status\n      setState({ isConnected: Math.random() < 0.5, retryCount: state.retryCount + 1 });\n    }, 1000);\n    return () => clearInterval(intervalId);\n  }, []);\n\n  return (\n    <div>\n      {state.isConnected ? 'Connected' : 'Disconnected'}\n      {state.retryCount > 0 ? ` (Retry ${state.retryCount})` : ''}\n    </div>\n  );\n}\n\nexport default ReconnectionHandler;
+{"import React, { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
+
+interface ReconnectionHandlerProps {
+  editor: useEditor;
+}
+
+const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ editor }) => {
+  const [reconnecting, setReconnecting] = useState(false);
+
+  useEffect(() => {
+    const handleReconnect = () => {
+      setReconnecting(true);
+    };
+
+    editor.on('reconnect', handleReconnect);
+
+    return () => {
+      editor.off('reconnect', handleReconnect);
+    };
+  }, []);
+
+  return (
+    <div>
+      {reconnecting ? 'Reconnecting...' : ''}
+    </div>
+  );
+};
+
+export default ReconnectionHandler;

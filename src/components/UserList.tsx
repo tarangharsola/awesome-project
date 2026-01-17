@@ -1,13 +1,16 @@
 {"import React from 'react';
-import { useUsers } from './useUsers';
+import { useEditor } from './useEditor';
 
-const UserList = () => {
-  const users = useUsers();
+interface UserListProps {
+  editor: useEditor;
+}
 
+const UserList: React.FC<UserListProps> = ({ editor }) => {
+  const { users } = editor;
   return (
     <div>
-      {users.map((user) => (
-        <span key={user.id}>{user.name}</span>
+      {users.map((user, index) => (
+        <div key={index}>{user.name}</div>
       ))}
     </div>
   );

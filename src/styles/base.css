@@ -1,3 +1,35 @@
-/*
- * Add language switching styles here
- */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+}
+
+#editor {
+  width: 800px;
+  height: 600px;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+#cursor-tracker {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+#awareness-consistency {
+  position: absolute;
+  top: 30px;
+  left: 10px;
+}
+
+#conflict-resolver {
+  position: absolute;
+  top: 50px;
+  left: 10px;
+}
+
+#user-list {
+  position: absolute;
+  top: 70px;
+  left: 10px;
+}

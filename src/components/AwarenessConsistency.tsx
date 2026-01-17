@@ -1,17 +1,19 @@
 {"import React from 'react';
-import { io } from 'socket.io-client';
+import { useEditor } from './useEditor';
 
 interface AwarenessConsistencyProps {
-  cursors: { [key: string]: { x: number; y: number } };
-  onCursorUpdate: (cursor: { x: number; y: number }) => void;
+  editor: useEditor;
 }
 
-const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ cursors, onCursorUpdate }) => {
-  const socket = io('ws://localhost:3001');
-  socket.on('cursorUpdate', (cursor) => {
-    onCursorUpdate(cursor);
-  });
-  return null;
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {
+  const { awareness } = editor;
+  return (
+    <div>
+      {awareness.map((user, index) => (
+        <div key={index}>{user.name}</div>
+      ))}
+    </div>
+  );
 };
 
 export default AwarenessConsistency;
