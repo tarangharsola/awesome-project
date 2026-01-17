@@ -1,48 +1,23 @@
 {"import { useState, useEffect } from 'react';
-
-interface useEditor {
-  content: string;
-  setContent: (content: string) => void;
-  awareness: { name: string; color: string }[];
-  conflicts: { message: string }[];
-  users: { name: string; color: string }[];
-}
+import { Editor } from 'slate-react';
 
 const useEditor = () => {
-  const [content, setContent] = useState('');
-  const [awareness, setAwareness] = useState([]);
-  const [conflicts, setConflicts] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [editor, setEditor] = useState<Editor>();
+  const [language, setLanguage] = useState<string>('javascript');
 
   useEffect(() => {
-    const handleContentUpdate = (content) => {
-      setContent(content);
+    const handleLanguageChange = () => {
+      setLanguage('javascript');
     };
 
-    const handleAwarenessUpdate = (awareness) => {
-      setAwareness(awareness);
-    };
-
-    const handleConflictUpdate = (conflicts) => {
-      setConflicts(conflicts);
-    };
-
-    const handleUserUpdate = (users) => {
-      setUsers(users);
-    };
-
-    return () => {
-      // Clean up
-    };
+    return handleLanguageChange;
   }, []);
 
   return {
-    content,
-    setContent,
-    awareness,
-    conflicts,
-    users,
+    editor,
+    language,
+    setLanguage,
   };
-};
+}
 
 export default useEditor;

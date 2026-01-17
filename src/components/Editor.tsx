@@ -1,28 +1,18 @@
-{"import React, { useState, useEffect } from 'react';
-import { useCursor } from './useCursor';
-import { useEditor } from './useEditor';
+{"import React from 'react';
+import { Editor } from 'slate-react';
+import { EditorProps } from 'slate-react/types';
 
-interface EditorProps {
-  initialContent: string;
+interface EditorPropsWithLanguage extends EditorProps {
+  language: string;
 }
 
-const Editor: React.FC<EditorProps> = ({ initialContent }) => {
-  const [content, setContent] = useState(initialContent);
-  const cursor = useCursor();
-  const editor = useEditor();
-
-  useEffect(() => {
-    editor.setContent(content);
-  }, [content]);
-
+const EditorWithLanguage = ({ language, ...props }: EditorPropsWithLanguage) => {
   return (
-    <div>
-      <textarea value={content} onChange={(e) => setContent(e.target.value)} />
-      <CursorTracker editor={editor} />
-      <AwarenessConsistency editor={editor} />
-      <ConflictResolver editor={editor} />
-    </div>
+    <Editor
+      {...props}
+      language={language}
+    />
   );
-};
+}
 
-export default Editor;
+export default EditorWithLanguage;

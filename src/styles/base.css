@@ -1,35 +1,9 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
-}
+/*
+ * Add keyboard shortcuts for language switching and formatting defaults
+ */
 
-#editor {
-  width: 800px;
-  height: 600px;
-  border: 1px solid #ccc;
-  padding: 10px;
-}
+/* Language switching */
 
-#cursor-tracker {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-}
+/* Formatting defaults */
 
-#awareness-consistency {
-  position: absolute;
-  top: 30px;
-  left: 10px;
-}
-
-#conflict-resolver {
-  position: absolute;
-  top: 50px;
-  left: 10px;
-}
-
-#user-list {
-  position: absolute;
-  top: 70px;
-  left: 10px;
-}
+/* Better keyboard shortcuts */
