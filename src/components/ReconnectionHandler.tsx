@@ -1,1 +1,13 @@
-{"import React, { useState, useEffect } from 'react';\nimport { useSocket } from '../useSocket';\n\nconst ReconnectionHandler = () => {\n  const [socket, setSocket] = useState(null);\n  const [retryCount, setRetryCount] = useState(0);\n  const [retryTimeout, setRetryTimeout] = useState(null);\n\n  useEffect(() => {\n    const socket = useSocket();\n    setSocket(socket);\n\n    if (!socket) {\n      const retry = () => {\n        setRetryCount(retryCount + 1);\n        setRetryTimeout(setTimeout(retry, 5000));\n      };\n      retry();\n    }\n  }, []);\n\n  useEffect(() => {\n    if (socket) {\n      setRetryTimeout(null);\n    }\n  }, [socket]);\n\n  useEffect(() => {\n    if (retryTimeout) {\n      clearTimeout(retryTimeout);\n    }\n  }, [retryTimeout]);\n\n  return (\n    <div>\n      {socket ? 'Connected' : 'Disconnected'}\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+{"import React from 'react';
+import { useReconnection } from './useReconnection';
+
+interface ReconnectionHandlerProps {
+  reconnection: any;
+}
+
+const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ reconnection }) => {
+  const { reconnect } = useReconnection(reconnection);
+  return <button onClick={reconnect}>Reconnect</button>;
+}
+
+export default ReconnectionHandler;

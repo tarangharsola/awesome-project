@@ -1,18 +1,13 @@
 {"import React from 'react';
-import { Editor } from 'slate-react';
-import { EditorProps } from 'slate-react/types';
+import { useEditor } from './useEditor';
 
-interface EditorPropsWithLanguage extends EditorProps {
-  language: string;
+interface EditorProps {
+  editor: any;
 }
 
-const EditorWithLanguage = ({ language, ...props }: EditorPropsWithLanguage) => {
-  return (
-    <Editor
-      {...props}
-      language={language}
-    />
-  );
+const Editor: React.FC<EditorProps> = ({ editor }) => {
+  const { value, onChange } = useEditor(editor);
+  return <textarea value={value} onChange={onChange} />;
 }
 
-export default EditorWithLanguage;
+export default Editor;
