@@ -1,22 +1,27 @@
 {"import React, { useState, useEffect } from 'react';
+import { useReconnection } from './useReconnection';
 
-interface ReconnectionHandlerProps {
-  onReconnect: () => void;
-}
-
-const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ onReconnect }) => {
-  const [reconnecting, setReconnecting] = useState(false);
+const ReconnectionHandler = () => {
+  const [connectionStatus, setConnectionStatus] = useState('connected');
+  const { reconnect, retryCount } = useReconnection();
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      if (reconnecting) {
-        onReconnect();
+      if (retryCount > 0) {
+        setConnectionStatus('reconnecting');
+      } else {
+        setConnectionStatus('connected');
       }
     }, 1000);
     return () => clearInterval(intervalId);
-  }, [reconnecting, onReconnect]);
+  }, [retryCount]);
 
-  return <div>Reconnection Handler</div>;
+  return (
+    <div>
+      <p>Connection Status: {connectionStatus}</p>
+      <button onClick={reconnect}>Retry</button>
+    </div>
+  );
 };
 
 export default ReconnectionHandler;
