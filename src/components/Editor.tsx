@@ -1,79 +1,39 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import MonacoEditor from '@monaco-editor/react';
+import { Editor } from 'react-simple-editor';
+import { useEditor } from './useEditor';
 
-const Editor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [value, setValue] = useState('');
-  const [formattedValue, setFormattedValue] = useState('');
-
-  useEffect(() => {
-    const handleLanguageChange = (event) => {
-      setLanguage(event.target.value);
-    };
-
-    const handleValueChange = (event) => {
-      setValue(event.target.value);
-    };
-
-    const handleFormatValue = () => {
-      const formattedValue = formatCode(value, language);
-      setFormattedValue(formattedValue);
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('languagechange', handleLanguageChange);
-    document.addEventListener('valuechange', handleValueChange);
-    document.addEventListener('formatvalue', handleFormatValue);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('languagechange', handleLanguageChange);
-      document.removeEventListener('valuechange', handleValueChange);
-      document.removeEventListener('formatvalue', handleFormatValue);
-    };
-  }, []);
-
-  const handleKeyDown = (event) => {
-    if (event.key === 'F5') {
-      handleFormatValue();
-    }
-  };
+const EditorComponent = () => {
+  const { language, onChange, value } = useEditor();
 
   const handleLanguageChange = (event) => {
     setLanguage(event.target.value);
   };
 
-  const handleValueChange = (event) => {
-    setValue(event.target.value);
+  const handleFormat = () => {
+    const formattedText = formatText(value);
+    onChange(formattedText);
   };
 
-  const handleFormatValue = () => {
-    const formattedValue = formatCode(value, language);
-    setFormattedValue(formattedValue);
-  };
-
-  const formatCode = (code, language) => {
-    // Implement code formatting logic here
-    return code;
+  const handleShortcut = (event) => {
+    if (event.key === 'f') {
+      handleFormat();
+    }
   };
 
   return (
     <div>
       <select value={language} onChange={handleLanguageChange}>
-        <option value='javascript'>JavaScript</option>
-        <option value='python'>Python</option>
-        <option value='html'>HTML</option>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
       </select>
-      <MonacoEditor
-        language={language}
+      <Editor
         value={value}
-        onChange={handleValueChange}
+        onChange={onChange}
+        onShortcut={handleShortcut}
       />
-      <button onClick={handleFormatValue}>Format</button>
-      <pre>{formattedValue}</pre>
     </div>
   );
 };
 
-export default Editor;
+export default EditorComponent;

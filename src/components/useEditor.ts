@@ -1,31 +1,27 @@
 {"import { useState, useEffect } from 'react';
 
-interface EditorProps {
-  editor: any;
-}
-
-const useEditor = (editor: EditorProps) => {
+const useEditor = () => {
+  const [language, setLanguage] = useState('javascript');
   const [value, setValue] = useState('');
   const [onChange, setOnChange] = useState(() => () => {});
+
   useEffect(() => {
-    const handleEditorChange = () => {
-      setValue(editor.value);
+    const handleFormat = () => {
+      const formattedText = formatText(value);
+      setOnChange(() => (newText) => setValue(formattedText));
     };
-    editor.addEventListener('change', handleEditorChange);
-    return () => {
-      editor.removeEventListener('change', handleEditorChange);
+
+    const handleShortcut = (event) => {
+      if (event.key === 'f') {
+        handleFormat();
+      }
     };
-  }, [editor]);
-  useEffect(() => {
-    const handleEditorChange = () => {
-      setOnChange(() => editor.onChange);
-    };
-    editor.addEventListener('change', handleEditorChange);
-    return () => {
-      editor.removeEventListener('change', handleEditorChange);
-    };
-  }, [editor]);
-  return { value, onChange };
+
+    document.addEventListener('keydown', handleShortcut);
+    return () => document.removeEventListener('keydown', handleShortcut);
+  }, []);
+
+  return { language, onChange, value };
 };
 
 export default useEditor;
