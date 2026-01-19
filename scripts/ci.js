@@ -1,11 +1,8 @@
-const { execSync } = require('child_process');
-const { test } = require('tap');
+import { execSync } from 'child_process';
+import { resolve } from 'path';
+import { readFileSync } from 'fs';
 
-module.exports = function (tap) {
-  tap.test('build script', function (t) {
-    const buildScript = require('./build.js');
-    const result = buildScript();
-    t.ok(result, 'build script executed successfully');
-    t.end();
-  });
-};
+const buildScript = resolve(__dirname, '../scripts/build.js');
+const testScript = resolve(__dirname, '../src/components/__tests__/test.js');
+
+execSync(`node ${buildScript} --test ${testScript}`);
