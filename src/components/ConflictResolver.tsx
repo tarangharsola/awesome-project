@@ -1,26 +1,18 @@
 {"import React from 'react';
-import { OperationalTransform } from 'ot';
+import { OperationalTransform } from 'ot-js';
 
 interface ConflictResolverProps {
-  operations: OperationalTransform[];
-  onResolve: (operations: OperationalTransform[]) => void;
+  operations: any[];
+  onConflict: (conflict: any) => void;
 }
 
-const ConflictResolver: React.FC<ConflictResolverProps> = ({ operations, onResolve }) => {
-  const [resolvedOperations, setResolvedOperations] = React.useState<OperationalTransform[]>([]);
-
-  React.useEffect(() => {
-    const resolveOperations = () => {
-      const resolvedOperations = operations.reduce((acc, operation) => {
-        return acc.concat(operation.transform(acc));
-      }, []);
-      setResolvedOperations(resolvedOperations);
-      onResolve(resolvedOperations);
-    };
-    resolveOperations();
-  }, [operations, onResolve]);
-
-  return <div>Conflict Resolver</div>;
+const ConflictResolver: React.FC<ConflictResolverProps> = ({ operations, onConflict }) => {
+  const ot = new OperationalTransform();
+  const conflicts = ot.getConflicts(operations);
+  if (conflicts.length > 0) {
+    onConflict(conflicts);
+  }
+  return null;
 };
 
 export default ConflictResolver;

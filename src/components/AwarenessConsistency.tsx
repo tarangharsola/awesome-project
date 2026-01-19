@@ -1,21 +1,16 @@
 {"import React from 'react';
+import { io } from 'socket.io-client';
 
 interface AwarenessConsistencyProps {
-  users: { id: string; name: string; color: string }[];
-  onUserUpdate: (user: { id: string; name: string; color: string }) => void;
+  onAwareness: (awareness: any) => void;
 }
 
-const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ users, onUserUpdate }) => {
-  const [localUsers, setLocalUsers] = React.useState(users);
-
-  React.useEffect(() => {
-    const updateLocalUsers = () => {
-      setLocalUsers(users);
-    };
-    updateLocalUsers();
-  }, [users, onUserUpdate]);
-
-  return <div>Awareness Consistency</div>;
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ onAwareness }) => {
+  const socket = io('ws://localhost:3001');
+  socket.on('awareness', (awareness) => {
+    onAwareness(awareness);
+  });
+  return null;
 };
 
 export default AwarenessConsistency;
