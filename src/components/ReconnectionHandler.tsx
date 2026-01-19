@@ -1,30 +1,13 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
 
-const ReconnectionHandler = () => {
-  const [connected, setConnected] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+interface ReconnectionHandlerProps {
+  editor: any;
+}
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (!connected) {
-        setRetryCount(retryCount + 1);
-      }
-    }, 5000);
-    return () => clearInterval(intervalId);
-  }, [connected, retryCount]);
-
-  const retryConnection = () => {
-    // Implement retry logic here
-  };
-
-  return (
-    <div>
-      {connected ? 'Connected' : 'Disconnected'}
-      {retryCount > 0 ? ` (retry count: ${retryCount})` : ''}
-      <button onClick={retryConnection}>Retry</button>
-    </div>
-  );
-};
+const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ editor }) => {
+  const { state, dispatch } = useEditor(editor);
+  // ... implementation ...
+}
 
 export default ReconnectionHandler;

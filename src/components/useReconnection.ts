@@ -1,21 +1,13 @@
 {"import { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
 
-interface ReconnectionProps {
-  reconnection: any;
+interface useReconnectionProps {
+  editor: any;
 }
 
-const useReconnection = (reconnection: ReconnectionProps) => {
-  const [reconnect, setReconnect] = useState(() => () => {});
-  useEffect(() => {
-    const handleReconnection = () => {
-      setReconnect(() => reconnection.reconnect);
-    };
-    reconnection.addEventListener('reconnect', handleReconnection);
-    return () => {
-      reconnection.removeEventListener('reconnect', handleReconnection);
-    };
-  }, [reconnection]);
-  return { reconnect };
-};
+const useReconnection = ({ editor }: useReconnectionProps) => {
+  const { state, dispatch } = useEditor(editor);
+  // ... implementation ...
+}
 
 export default useReconnection;

@@ -1,21 +1,15 @@
 {"import { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
 
-interface CursorProps {
-  cursor: any;
+interface useCursorProps {
+  editor: any;
 }
 
-const useCursor = (cursor: CursorProps) => {
-  const [position, setPosition] = useState(0);
-  useEffect(() => {
-    const handleCursorMove = () => {
-      setPosition(cursor.position);
-    };
-    cursor.addEventListener('move', handleCursorMove);
-    return () => {
-      cursor.removeEventListener('move', handleCursorMove);
-    };
-  }, [cursor]);
-  return { position };
-};
+const useCursor = ({ editor }: useCursorProps) => {
+  const [cursor, setCursor] = useState({} as any);
+  const [reconnection, setReconnection] = useState({} as any);
+  const [users, setUsers] = useState({} as any);
+  // ... implementation ...
+}
 
 export default useCursor;

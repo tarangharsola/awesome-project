@@ -1,39 +1,13 @@
 {"import React from 'react';
-import { Editor } from 'react-simple-editor';
-import { useEditor } from './useEditor';
+import { useCursor, useReconnection, useUsers } from './useCursor';
 
-const EditorComponent = () => {
-  const { language, onChange, value } = useEditor();
+interface EditorProps {
+  editor: any;
+}
 
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
-  };
+const Editor: React.FC<EditorProps> = ({ editor }) => {
+  const { cursor, reconnection, users } = useCursor(editor);
+  // ... implementation ...
+}
 
-  const handleFormat = () => {
-    const formattedText = formatText(value);
-    onChange(formattedText);
-  };
-
-  const handleShortcut = (event) => {
-    if (event.key === 'f') {
-      handleFormat();
-    }
-  };
-
-  return (
-    <div>
-      <select value={language} onChange={handleLanguageChange}>
-        <option value="javascript">JavaScript</option>
-        <option value="python">Python</option>
-        <option value="html">HTML</option>
-      </select>
-      <Editor
-        value={value}
-        onChange={onChange}
-        onShortcut={handleShortcut}
-      />
-    </div>
-  );
-};
-
-export default EditorComponent;
+export default Editor;

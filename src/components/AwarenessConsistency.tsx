@@ -1,16 +1,13 @@
 {"import React from 'react';
-import { io } from 'socket.io-client';
+import { useEditor } from './useEditor';
 
 interface AwarenessConsistencyProps {
-  onAwareness: (awareness: any) => void;
+  editor: any;
 }
 
-const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ onAwareness }) => {
-  const socket = io('ws://localhost:3001');
-  socket.on('awareness', (awareness) => {
-    onAwareness(awareness);
-  });
-  return null;
-};
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {
+  const { state, dispatch } = useEditor(editor);
+  // ... implementation ...
+}
 
 export default AwarenessConsistency;
