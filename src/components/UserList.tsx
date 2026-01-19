@@ -14,19 +14,15 @@ interface Props {
 const UserList = ({ users }: Props) => {
   return (
     <div className="user-list">
-      {users.map((user, index) => (
-        <div key={index} style={{
-          backgroundColor: user.color,
-          padding: '5px',
-          borderRadius: '5px',
-          marginRight: '10px',
-          color: '#fff',
-        }}>
-          {user.name}
+      {users.map((user) => (
+        <div key={user.id} className="user-item">
+          <span className="username" style={{
+            color: user.color
+          }}>{user.name}</span>
         </div>
       ))}
     </div>
   );
-}
+};
 
 export default UserList;

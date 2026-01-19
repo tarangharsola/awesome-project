@@ -15,18 +15,16 @@ interface Props {
 const CursorTracker = ({ cursors }: Props) => {
   return (
     <div className="cursor-tracker">
-      {cursors.map((cursor, index) => (
-        <div key={index} style={{
-          position: 'absolute',
-          left: cursor.x,
-          top: cursor.y,
-          width: '2px',
-          height: '10px',
-          backgroundColor: cursor.color,
-        }} />
+      {cursors.map((cursor) => (
+        <div key={cursor.id} className="cursor-item">
+          <span className="cursor-label" style={{
+            color: cursor.color
+          }}>{cursor.id}</span>
+          <span className="cursor-position">({cursor.x}, {cursor.y})</span>
+        </div>
       ))}
     </div>
   );
-}
+};
 
 export default CursorTracker;
