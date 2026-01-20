@@ -1,15 +1,1 @@
-{"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-
-interface useCursorProps {
-  editor: any;
-}
-
-const useCursor = ({ editor }: useCursorProps) => {
-  const [cursor, setCursor] = useState({} as any);
-  const [reconnection, setReconnection] = useState({} as any);
-  const [users, setUsers] = useState({} as any);
-  // ... implementation ...
-}
-
-export default useCursor;
+{"import { useState, useEffect } from 'react';\nimport { EditorView } from 'prosemirror-view';\n\ninterface Props {\n  view: EditorView;\n}\n\nconst useCursor = ({ view }) => {\n  const [cursor, setCursor] = useState(null);\n  useEffect(() => {\n    const handleCursorChange = () => {\n      setCursor(view.state.selection.from);\n    };\n    view.dispatch({\n      type: 'setSelection',\n      selection: view.state.selection,\n    });\n    view.on('selection-change', handleCursorChange);\n    return () => {\n      view.off('selection-change', handleCursorChange);\n    };\n  }, [view]);\n  return cursor;\n};\n\nexport default useCursor;

@@ -1,13 +1,1 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
-
-interface CursorTrackerProps {
-  editor: any;
-}
-
-const CursorTracker: React.FC<CursorTrackerProps> = ({ editor }) => {
-  const { state, dispatch } = useEditor(editor);
-  // ... implementation ...
-}
-
-export default CursorTracker;
+{"import React from 'react';\nimport { EditorView } from 'prosemirror-view';\n\ninterface Props {\n  view: EditorView;\n  cursorTracker: CursorTracker;\n}\n\nconst CursorTracker: React.FC<Props> = ({ view, cursorTracker }) => {\n  const cursors = cursorTracker.getCursors();\n  return (\n    <div>\n      {cursors.map((cursor) => (\n        <div key={cursor.id}>\n          <span>\n            {cursor.name}\n          </span>\n          <span>\n            {cursor.position}\n          </span>\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default CursorTracker;

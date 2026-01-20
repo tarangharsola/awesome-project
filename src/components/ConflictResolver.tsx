@@ -1,13 +1,1 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
-
-interface ConflictResolverProps {
-  editor: any;
-}
-
-const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {
-  const { state, dispatch } = useEditor(editor);
-  // ... implementation ...
-}
-
-export default ConflictResolver;
+{"import React from 'react';\nimport { EditorView } from 'prosemirror-view';\nimport { \"/src/components/CursorTracker.tsx\" } from '\"/src/components/CursorTracker.tsx\"';\n\ninterface Props {\n  view: EditorView;\n}\n\nconst ConflictResolver: React.FC<Props> = ({ view }) => {\n  const cursorTracker = new CursorTracker(view);\n  return (\n    <div>\n      <CursorTracker \n        view={view} \n        cursorTracker={cursorTracker} \n      />\n    </div>\n  );\n};\n\nexport default ConflictResolver;

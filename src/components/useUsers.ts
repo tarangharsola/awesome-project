@@ -1,13 +1,1 @@
-{"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-
-interface useUsersProps {
-  editor: any;
-}
-
-const useUsers = ({ editor }: useUsersProps) => {
-  const { state, dispatch } = useEditor(editor);
-  // ... implementation ...
-}
-
-export default useUsers;
+{"import { useState, useEffect } from 'react';\nimport { WebSocket } from '\"/src/components/WebSocket.tsx\"';\n\ninterface Props {\n  ws: WebSocket;\n}\n\nconst useUsers = ({ ws }) => {\n  const [users, setUsers] = useState([]);\n  useEffect(() => {\n    const handleUserJoin = (user) => {\n      setUsers((prevUsers) => [...prevUsers, user]);\n    };\n    const handleUserLeave = (user) => {\n      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));\n    };\n    ws.on('user-join', handleUserJoin);\n    ws.on('user-leave', handleUserLeave);\n    return () => {\n      ws.off('user-join', handleUserJoin);\n      ws.off('user-leave', handleUserLeave);\n    };\n  }, [ws]);\n  return users;\n};\n\nexport default useUsers;

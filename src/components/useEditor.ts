@@ -1,13 +1,1 @@
-{"import { useState, useEffect } from 'react';
-
-interface useEditorProps {
-  editor: any;
-}
-
-const useEditor = ({ editor }: useEditorProps) => {
-  const [state, setState] = useState({} as any);
-  const [dispatch, setDispatch] = useState({} as any);
-  // ... implementation ...
-}
-
-export default useEditor;
+{"import { useState, useEffect } from 'react';\nimport { EditorState, Editor } from 'prosemirror-state';\nimport { EditorView } from 'prosemirror-view';\n\ninterface Props {\n  onChange: (state: EditorState) => void;\n  value: string;\n}\n\nconst useEditor = ({ onChange, value }) => {\n  const [state, setState] = useState(EditorState.create({\n    doc: value,\n  }));\n  const view = new EditorView({\n    state,\n    dispatchTransaction: (transaction) => {\n      const newState = state.apply(transaction);\n      setState(newState);\n      onChange(newState);\n    },\n  });\n  useEffect(() => {\n    view.updateState(state);\n  }, [state]);\n  return view;\n};\n\nexport default useEditor;

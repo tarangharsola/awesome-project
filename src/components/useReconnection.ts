@@ -1,13 +1,1 @@
-{"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-
-interface useReconnectionProps {
-  editor: any;
-}
-
-const useReconnection = ({ editor }: useReconnectionProps) => {
-  const { state, dispatch } = useEditor(editor);
-  // ... implementation ...
-}
-
-export default useReconnection;
+{"import { useState, useEffect } from 'react';\nimport { WebSocket } from '\"/src/components/WebSocket.tsx\"';\n\ninterface Props {\n  ws: WebSocket;\n}\n\nconst useReconnection = ({ ws }) => {\n  const [reconnected, setReconnected] = useState(false);\n  useEffect(() => {\n    const handleReconnect = () => {\n      setReconnected(true);\n    };\n    ws.on('reconnect', handleReconnect);\n    return () => {\n      ws.off('reconnect', handleReconnect);\n    };\n  }, [ws]);\n  return reconnected;\n};\n\nexport default useReconnection;
