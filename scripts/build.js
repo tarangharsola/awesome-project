@@ -1,10 +1,6 @@
-const { spawnSync } = require('child_process');
-const { build } = require('webpack');
+const { execSync } = require('child_process');
 
-module.exports = function () {
-  const result = spawnSync('webpack', ['--mode', 'production']);
-  if (result.status !== 0) {
-    throw new Error('Webpack build failed');
-  }
-  return true;
+module.exports = function build() {
+  console.log('Building application');
+  execSync('webpack');
 };

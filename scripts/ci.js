@@ -1,8 +1,7 @@
-import { execSync } from 'child_process';
-import { resolve } from 'path';
-import { readFileSync } from 'fs';
+const { execSync } = require('child_process');
 
-const buildScript = resolve(__dirname, '../scripts/build.js');
-const testScript = resolve(__dirname, '../src/components/__tests__/test.js');
-
-execSync(`node ${buildScript} --test ${testScript}`);
+module.exports = function runCi() {
+  console.log('Running CI script');
+  execSync('npm run build');
+  execSync('jest');
+};
