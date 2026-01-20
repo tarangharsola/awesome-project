@@ -1,1 +1,16 @@
-{"import React from 'react';\nimport { EditorView } from 'prosemirror-view';\nimport { \"/src/components/CursorTracker.tsx\" } from '\"/src/components/CursorTracker.tsx\"';\n\ninterface Props {\n  view: EditorView;\n}\n\nconst ConflictResolver: React.FC<Props> = ({ view }) => {\n  const cursorTracker = new CursorTracker(view);\n  return (\n    <div>\n      <CursorTracker \n        view={view} \n        cursorTracker={cursorTracker} \n      />\n    </div>\n  );\n};\n\nexport default ConflictResolver;
+{"import React from 'react';
+import { OperationalTransform } from 'ot-js';
+
+interface ConflictResolverProps {
+  operations: any[];
+  onConflict: (conflict: any) => void;
+}
+
+const ConflictResolver: React.FC<ConflictResolverProps> = ({ operations, onConflict }) => {
+  const ot = new OperationalTransform();
+  const conflicts = ot.resolve(operations);
+  onConflict(conflicts);
+  return null;
+};
+
+export default ConflictResolver;

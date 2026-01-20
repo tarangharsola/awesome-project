@@ -1,13 +1,30 @@
 {"import React from 'react';
-import { useEditor } from './useEditor';
+import { AwarenessConsistency } from 'react-awareness-consistency';
 
 interface AwarenessConsistencyProps {
-  editor: any;
+  users: any[];
+  onPresenceChange: (presence: any) => void;
 }
 
-const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {
-  const { state, dispatch } = useEditor(editor);
-  // ... implementation ...
-}
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ users, onPresenceChange }) => {
+  const [presence, setPresence] = useState({});
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newPresence = {
+        ...presence,
+        ...users.reduce((acc, user) => ({
+          ...acc,
+          [user.id]: user.presence,
+        }), {})
+      };
+      setPresence(newPresence);
+      onPresenceChange(newPresence);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [users, onPresenceChange]);
+
+  return null;
+};
 
 export default AwarenessConsistency;
