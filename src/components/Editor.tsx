@@ -1,13 +1,1 @@
-{"import React from 'react';
-import { useCursor, useReconnection, useUsers } from './useCursor';
-
-interface EditorProps {
-  editor: any;
-}
-
-const Editor: React.FC<EditorProps> = ({ editor }) => {
-  const { cursor, reconnection, users } = useCursor(editor);
-  // ... implementation ...
-}
-
-export default Editor;
+{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport { EditorState, ContentState, convertFromRaw } from 'draft-js';\nimport 'draft-js/dist/draft.min.css';\n\ninterface Props {\n  onChange: (state: EditorState) => void;\n  value: string;\n}\n\nconst Editor = ({ onChange, value }: Props) => {\n  const [editorState, setEditorState] = useState(\n    EditorState.createWithContent(\n      ContentState.createFromText(value)\n    )\n  );\n\n  useEffect(() => {\n    setEditorState(\n      EditorState.push(editorState, \n        ContentState.createFromText(value)\n      )\n    );\n  }, [value]);\n\n  const onEditorStateChange = (editorState: EditorState) => {\n    onChange(editorState);\n    setEditorState(editorState);\n  };\n\n  const handleLanguageChange = (language: string) => {\n    // Update language and formatting defaults\n  };\n\n  const handleFormatChange = (format: string) => {\n    // Update formatting defaults\n  };\n\n  const handleKeydown = (event: React.KeyboardEvent) => {\n    // Handle keyboard shortcuts\n  };\n\n  return (\n    <div>\n      <select onChange={handleLanguageChange}>\n        <option value='javascript'>JavaScript</option>\n        <option value='python'>Python</option>\n        <option value='html'>HTML</option>\n      </select>\n      <select onChange={handleFormatChange}>\n        <option value='json'>JSON</option>\n        <option value='xml'>XML</option>\n      </select>\n      <textarea\n        value={editorState.getCurrentContent().getPlainText()}\n        onChange={(event) => {\n          onChange(\n            EditorState.push(editorState, \n              ContentState.createFromText(event.target.value)\n            )\n          );\n        }}\n        onKeyDown={handleKeydown}\n      />\n    </div>\n  );\n};\n\nexport default Editor;
