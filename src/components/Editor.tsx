@@ -1,1 +1,25 @@
-{"import React from 'react';\nimport { EditorState, Editor } from 'prosemirror-state';\nimport { EditorView } from 'prosemirror-view';\nimport { \"/src/components/ConflictResolver.tsx\" } from '\"/src/components/ConflictResolver.tsx\"';\n\ninterface Props {\n  onChange: (state: EditorState) => void;\n  value: string;\n}\n\nconst EditorComponent: React.FC<Props> = ({ onChange, value }) => {\n  const [state, setState] = React.useState(EditorState.create({\n    doc: value,\n  }));\n  const view = new EditorView({\n    state,\n    dispatchTransaction: (transaction) => {\n      const newState = state.apply(transaction);\n      setState(newState);\n      onChange(newState);\n    },\n  });\n  return (\n    <div>\n      <Editor \n        value={value} \n        onChange={(value) => setState(EditorState.create({\n          doc: value,\n        }))]})}\n      </Editor>\n      <ConflictResolver view={view} />\n    </div>\n  );\n};\n\nexport default EditorComponent;
+{"import React from 'react';
+import { EditorState, Editor } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { DOMParser } from 'prosemirror-model';
+
+const EditorComponent = () => {
+  const [editorState, setEditorState] = React.useState(EditorState.create());
+  const [editorView, setEditorView] = React.useState(null);
+
+  const handleEditorChange = (state) => {
+    setEditorState(state);
+    setEditorView(new EditorView(editor, state));
+  };
+
+  return (
+    <div className="editor">
+      <Editor
+        value={editorState}
+        onChange={handleEditorChange}
+      />
+    </div>
+  );
+};
+
+export default EditorComponent;
