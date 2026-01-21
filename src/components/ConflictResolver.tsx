@@ -2,14 +2,14 @@
 import { OperationalTransform } from 'ot-js';
 
 interface ConflictResolverProps {
-  operations: any[];
-  onConflict: (conflict: any) => void;
+  operations: OperationalTransform[];
+  onResolve: (operations: OperationalTransform[]) => void;
 }
 
-const ConflictResolver: React.FC<ConflictResolverProps> = ({ operations, onConflict }) => {
-  const ot = new OperationalTransform();
-  const conflicts = ot.resolve(operations);
-  onConflict(conflicts);
+const ConflictResolver: React.FC<ConflictResolverProps> = ({ operations, onResolve }) => {
+  const ot = new OperationalTransform(operations);
+  const resolvedOperations = ot.resolve();
+  onResolve(resolvedOperations);
   return null;
 };
 
