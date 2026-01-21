@@ -1,1 +1,31 @@
-{"import { useState, useEffect } from 'react';\nimport { EditorState, Editor } from 'prosemirror-state';\nimport { EditorView } from 'prosemirror-view';\n\ninterface Props {\n  onChange: (state: EditorState) => void;\n  value: string;\n}\n\nconst useEditor = ({ onChange, value }) => {\n  const [state, setState] = useState(EditorState.create({\n    doc: value,\n  }));\n  const view = new EditorView({\n    state,\n    dispatchTransaction: (transaction) => {\n      const newState = state.apply(transaction);\n      setState(newState);\n      onChange(newState);\n    },\n  });\n  useEffect(() => {\n    view.updateState(state);\n  }, [state]);\n  return view;\n};\n\nexport default useEditor;
+{"import { useState, useEffect } from 'react';
+
+const useEditor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [value, setValue] = useState('');
+  const [fontSize, setFontSize] = useState(14);
+
+  const handleLanguageChange = (language) => {
+    setLanguage(language);
+    setValue('');
+  };
+
+  const handleValueChange = (value) => {
+    setValue(value);
+  };
+
+  const handleFontSizeChange = (fontSize) => {
+    setFontSize(fontSize);
+  };
+
+  return {
+    language,
+    value,
+    fontSize,
+    handleLanguageChange,
+    handleValueChange,
+    handleFontSizeChange,
+  };
+};
+
+export default useEditor;
