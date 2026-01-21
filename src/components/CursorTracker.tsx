@@ -1,1 +1,54 @@
-{"import React from 'react';\nimport { EditorView } from 'prosemirror-view';\n\ninterface Props {\n  view: EditorView;\n  cursorTracker: CursorTracker;\n}\n\nconst CursorTracker: React.FC<Props> = ({ view, cursorTracker }) => {\n  const cursors = cursorTracker.getCursors();\n  return (\n    <div>\n      {cursors.map((cursor) => (\n        <div key={cursor.id}>\n          <span>\n            {cursor.name}\n          </span>\n          <span>\n            {cursor.position}\n          </span>\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default CursorTracker;
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+
+interface Cursor {
+  id: string;
+  x: number;
+  y: number;
+}
+
+interface Props {
+  cursors: Cursor[];
+}
+
+const CursorTracker = ({ cursors }: Props) => {
+  const [cursorPositions, setCursorPositions] = useState({} as { [id: string]: { x: number; y: number } });
+
+  useEffect(() => {
+    const cursorPositions: { [id: string]: { x: number; y: number } } = {};
+    cursors.forEach((cursor) => {
+      cursorPositions[cursor.id] = cursor;
+    });
+    setCursorPositions(cursorPositions);
+  }, [cursors]);
+
+  const handleCursorUpdate = (updatedCursor: Cursor) => {
+    setCursorPositions((prevPositions) => {
+      const updatedPositions = {
+        ...prevPositions,
+        [updatedCursor.id]: updatedCursor,
+      };
+      return updatedPositions;
+    });
+  }
+
+  return (
+    <div>
+      {Object.keys(cursorPositions).map((id) => (
+        <div key={id} style={{
+          position: 'absolute',
+          left: cursorPositions[id].x,
+          top: cursorPositions[id].y,
+          width: '2px',
+          height: '2px',
+          backgroundColor: 'black',
+          borderRadius: '50%',
+        }}>
+        {id}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default CursorTracker;
