@@ -1,1 +1,36 @@
-body {\n  font-family: Arial, sans-serif;\n  background-color: #f0f0f0;\n}\n\n.editor {\n  width: 800px;\n  height: 600px;\n  border: 1px solid #ccc;\n  padding: 10px;\n}\n\n.cursor {\n  position: absolute;\n  width: 2px;\n  height: 2px;\n  background-color: #000;\n  border-radius: 50%;\n}\n\n.user-list {\n  position: fixed;\n  top: 10px;\n  right: 10px;\n  background-color: #fff;\n  padding: 10px;\n  border: 1px solid #ccc;\n}
+/* Import required styles
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #333;
+}
+
+p {
+  color: #666;
+}
+
+a {
+  text-decoration: none;
+  color: #337ab7;
+}
+
+a:hover {
+  color: #23527c;
+}
+
+button {
+  background-color: #337ab7;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #23527c;
+}
+*/

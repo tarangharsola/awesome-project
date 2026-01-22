@@ -1,1 +1,22 @@
-{"import { useState, useEffect } from 'react';\nimport { WebSocket } from '\"/src/components/WebSocket.tsx\"';\n\ninterface Props {\n  ws: WebSocket;\n}\n\nconst useUsers = ({ ws }) => {\n  const [users, setUsers] = useState([]);\n  useEffect(() => {\n    const handleUserJoin = (user) => {\n      setUsers((prevUsers) => [...prevUsers, user]);\n    };\n    const handleUserLeave = (user) => {\n      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));\n    };\n    ws.on('user-join', handleUserJoin);\n    ws.on('user-leave', handleUserLeave);\n    return () => {\n      ws.off('user-join', handleUserJoin);\n      ws.off('user-leave', handleUserLeave);\n    };\n  }, [ws]);\n  return users;\n};\n\nexport default useUsers;
+// Import required modules
+import { useState, useEffect } from 'react';
+
+// Define the useUsers hook
+const useUsers = () => {
+  const [usersList, setUsersList] = useState([]);
+
+  useEffect(() => {
+    // Update users list on changes
+    const handleChanges = () => {
+      setUsersList(['User 1', 'User 2']);
+    };
+    return () => {
+      // Clean up on unmount
+      handleChanges();
+    };
+  }, []);
+
+  return { usersList, setUsersList };
+};
+
+export default useUsers;

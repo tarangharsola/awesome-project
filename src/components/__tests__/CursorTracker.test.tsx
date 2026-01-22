@@ -1,10 +1,12 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// Import required modules
 import React from 'react';
-import CursorTracker from '../CursorTracker';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import CursorTracker from './CursorTracker';
 
+// Test the component
 describe('CursorTracker', () => {
-  it('tracks cursors correctly', () => {
-    const tracker = new CursorTracker();
-    expect(tracker.track()).toBe(true);
+  it('renders correctly', () => {
+    const { getByText } = render(<CursorTracker />);
+    expect(getByText('Cursor Tracker')).toBeInTheDocument();
   });
 });

@@ -1,34 +1,23 @@
-{"import React, { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+import React from 'react';
+import { useEditor } from './useEditor';
+import { useUsers } from './useUsers';
 
 interface AwarenessConsistencyProps {
-  ws: WebSocket;
-  onAwareness: (awareness: { user: string; cursor: number }) => void;
+  editor: useEditor;
+  users: useUsers;
 }
 
-const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ ws, onAwareness }) => {
-  const [awareness, setAwareness] = useState({ user: '', cursor: 0 });
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor, users }) => {
+  const { document } = editor;
+  const { usersList } = users;
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (ws.readyState && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'awareness', awareness }));
-      }
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, [ws, awareness]);
-
-  useEffect(() => {
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'awareness') {
-        setAwareness(message.awareness);
-        onAwareness(message.awareness);
-      }
-    };
-  }, [ws, onAwareness]);
-
-  return null;
+  return (
+    <div>
+      <h2>Awareness Consistency</h2>
+      <p>Document: {document}</p>
+      <p>Users: {usersList}</p>
+    </div>
+  );
 };
 
 export default AwarenessConsistency;

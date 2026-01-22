@@ -1,31 +1,22 @@
-{"import { useState, useEffect } from 'react';
+// Import required modules
+import { useState, useEffect } from 'react';
 
+// Define the useEditor hook
 const useEditor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [value, setValue] = useState('');
-  const [fontSize, setFontSize] = useState(14);
+  const [document, setDocument] = useState('');
 
-  const handleLanguageChange = (language) => {
-    setLanguage(language);
-    setValue('');
-  };
+  useEffect(() => {
+    // Update document on changes
+    const handleChanges = () => {
+      setDocument('New document content');
+    };
+    return () => {
+      // Clean up on unmount
+      handleChanges();
+    };
+  }, []);
 
-  const handleValueChange = (value) => {
-    setValue(value);
-  };
-
-  const handleFontSizeChange = (fontSize) => {
-    setFontSize(fontSize);
-  };
-
-  return {
-    language,
-    value,
-    fontSize,
-    handleLanguageChange,
-    handleValueChange,
-    handleFontSizeChange,
-  };
+  return { document, setDocument };
 };
 
 export default useEditor;

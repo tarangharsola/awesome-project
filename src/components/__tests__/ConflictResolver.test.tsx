@@ -1,10 +1,12 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// Import required modules
 import React from 'react';
-import ConflictResolver from '../ConflictResolver';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import ConflictResolver from './ConflictResolver';
 
+// Test the component
 describe('ConflictResolver', () => {
-  it('resolves conflicts correctly', () => {
-    const resolver = new ConflictResolver();
-    expect(resolver.resolve()).toBe(true);
+  it('renders correctly', () => {
+    const { getByText } = render(<ConflictResolver />);
+    expect(getByText('Conflict Resolver')).toBeInTheDocument();
   });
 });

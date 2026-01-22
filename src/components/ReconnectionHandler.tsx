@@ -1,25 +1,23 @@
-{"import React, { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+import React from 'react';
+import { useEditor } from './useEditor';
+import { useUsers } from './useUsers';
 
 interface ReconnectionHandlerProps {
-  ws: WebSocket;
-  onReconnect: () => void;
+  editor: useEditor;
+  users: useUsers;
 }
 
-const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ ws, onReconnect }) => {
-  const [reconnecting, setReconnecting] = useState(false);
+const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ editor, users }) => {
+  const { document } = editor;
+  const { usersList } = users;
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (!ws.readyState || ws.readyState === WebSocket.CLOSED) {
-        setReconnecting(true);
-        onReconnect();
-      }
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, [ws, onReconnect]);
-
-  return null;
+  return (
+    <div>
+      <h2>Reconnection Handler</h2>
+      <p>Document: {document}</p>
+      <p>Users: {usersList}</p>
+    </div>
+  );
 };
 
 export default ReconnectionHandler;

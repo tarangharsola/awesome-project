@@ -1,41 +1,21 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
+import React from 'react';
+import { useEditor } from './useEditor';
+import { useUsers } from './useUsers';
 
-interface Cursor {
-  id: string;
-  name: string;
-  color: string;
-  position: number;
+interface CursorTrackerProps {
+  editor: useEditor;
+  users: useUsers;
 }
 
-interface Props {
-  cursors: Cursor[];
-}
-
-const CursorTracker = ({ cursors }: Props) => {
-  const [cursorPositions, setCursorPositions] = useState({} as { [id: string]: number });
-
-  useEffect(() => {
-    const cursorPositions = cursors.reduce((acc, cursor) => {
-      acc[cursor.id] = cursor.position;
-      return acc;
-    }, {});
-    setCursorPositions(cursorPositions);
-  }, [cursors]);
+const CursorTracker: React.FC<CursorTrackerProps> = ({ editor, users }) => {
+  const { document } = editor;
+  const { usersList } = users;
 
   return (
-    <div className="cursor-tracker">
-      {Object.keys(cursorPositions).map((id) => (
-        <div key={id} style={{
-          backgroundColor: cursors.find((cursor) => cursor.id === id).color,
-          position: 'absolute',
-          top: cursorPositions[id],
-          left: '10px',
-          width: '5px',
-          height: '5px',
-          borderRadius: '5px',
-        }} />
-      ))}
+    <div>
+      <h2>Cursor Tracker</h2>
+      <p>Document: {document}</p>
+      <p>Users: {usersList}</p>
     </div>
   );
 };

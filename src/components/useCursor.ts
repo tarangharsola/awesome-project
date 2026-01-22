@@ -1,1 +1,22 @@
-{"import { useState, useEffect } from 'react';\nimport { EditorView } from 'prosemirror-view';\n\ninterface Props {\n  view: EditorView;\n}\n\nconst useCursor = ({ view }) => {\n  const [cursor, setCursor] = useState(null);\n  useEffect(() => {\n    const handleCursorChange = () => {\n      setCursor(view.state.selection.from);\n    };\n    view.dispatch({\n      type: 'setSelection',\n      selection: view.state.selection,\n    });\n    view.on('selection-change', handleCursorChange);\n    return () => {\n      view.off('selection-change', handleCursorChange);\n    };\n  }, [view]);\n  return cursor;\n};\n\nexport default useCursor;
+// Import required modules
+import { useState, useEffect } from 'react';
+
+// Define the useCursor hook
+const useCursor = () => {
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    // Update cursor position on window resize
+    const handleResize = () => {
+      setCursorPosition({ x: window.innerWidth, y: window.innerHeight });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  return cursorPosition;
+};
+
+export default useCursor;
