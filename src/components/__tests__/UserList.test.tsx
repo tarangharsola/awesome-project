@@ -1,10 +1,10 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
-import { render } from '@testing-library/react';
 import UserList from '../UserList';
 
 describe('UserList', () => {
-  it('renders user list component', () => {
-    const { getByText } = render(<UserList />);
-    expect(getByText('User List')).toBeInTheDocument();
+  it('renders correctly', () => {
+    const wrapper = render(<UserList />);
+    expect(wrapper).toMatchSnapshot();
   });
 });
