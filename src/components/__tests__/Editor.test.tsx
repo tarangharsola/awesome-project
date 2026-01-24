@@ -1,12 +1,9 @@
-// Import required modules
+// Jest test for Editor component
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
-import Editor from './Editor';
+import { render } from '@testing-library/react';
+import Editor from '../Editor';
 
-// Test the component
-describe('Editor', () => {
-  it('renders correctly', () => {
-    const { getByText } = render(<Editor />);
-    expect(getByText('Editor')).toBeInTheDocument();
-  });
+test('renders editor', () => {
+  const { getByText } = render(<Editor />);
+  expect(getByText('Editor')).toBeInTheDocument();
 });
