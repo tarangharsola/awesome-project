@@ -1,22 +1,24 @@
-import React from 'react';
-import { useEditor } from './useEditor';
-import { useUsers } from './useUsers';
+{"import React from 'react';
+import { useCursor } from './useCursor';
 
 interface CursorTrackerProps {
-  editor: useEditor;
-  users: useUsers;
+  cursorPosition: number;
+  userName: string;
+  userColor: string;
 }
 
-const CursorTracker: React.FC<CursorTrackerProps> = ({ editor, users }) => {
-  const { document } = editor;
-  const { usersList } = users;
-
+const CursorTracker = ({ cursorPosition, userName, userColor }: CursorTrackerProps) => {
+  const { cursorRef } = useCursor(cursorPosition);
   return (
-    <div>
-      <h2>Cursor Tracker</h2>
-      <p>Document: {document}</p>
-      <p>Users: {usersList}</p>
-    </div>
+    <div ref={cursorRef} style={{
+      position: 'absolute',
+      left: cursorPosition,
+      top: 0,
+      width: 2,
+      height: 20,
+      backgroundColor: userColor,
+      zIndex: 1
+    }} />
   );
 };
 
