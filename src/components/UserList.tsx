@@ -1,27 +1,33 @@
 {"import React from 'react';
-import { useUsers } from './useUsers';
+import { useState, useEffect } from 'react';
 
-interface UserListProps {
-  users: { userName: string; userColor: string }[];
+interface User {
+  id: string;
+  name: string;
+  color: string;
 }
 
-const UserList = ({ users }: UserListProps) => {
+interface Props {
+  users: User[];
+}
+
+const UserList = ({ users }: Props) => {
+  const [activeUsers, setActiveUsers] = useState([]);
+
+  useEffect(() => {
+    setActiveUsers(users.filter((user) => user.id !== 'self'));
+  }, [users]);
+
   return (
-    <div>
-      {users.map((user, index) => (
-        <div key={index} style={{
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: 10
+    <div className="active-users">
+      {activeUsers.map((user) => (
+        <div key={user.id} style={{
+          backgroundColor: user.color,
+          padding: '5px',
+          borderRadius: '5px',
+          marginRight: '10px',
         }}>
-          <div style={{
-            backgroundColor: user.userColor,
-            width: 10,
-            height: 10,
-            borderRadius: 5,
-            marginRight: 10
-          }} />
-          <span>{user.userName}</span>
+          {user.name}
         </div>
       ))}
     </div>
