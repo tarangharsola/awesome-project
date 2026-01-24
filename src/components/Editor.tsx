@@ -1,16 +1,64 @@
 {"import React from 'react';
-import { useEditor } from './useEditor';
+import { useState, useEffect } from 'react';
+import MonacoEditor from 'react-monaco-editor';
 
-interface EditorProps {
-  value: string;
-  onChange: (value: string) => void;
-}
+const Editor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
+  const [editor, setEditor] = useState(null);
 
-const Editor = ({ value, onChange }: EditorProps) => {
-  const { editorRef, handleEditorChange } = useEditor(value, onChange);
+  useEffect(() => {
+    const handleLanguageChange = (event) => {
+      setLanguage(event.target.value);
+    };
+
+    const handleCodeChange = (event) => {
+      setCode(event.target.value);
+    };
+
+    const handleEditorChange = (value) => {
+      setCode(value);
+    };
+
+    document.addEventListener('languagechange', handleLanguageChange);
+    document.addEventListener('codechange', handleCodeChange);
+    editor.on('change', handleEditorChange);
+
+    return () => {
+      document.removeEventListener('languagechange', handleLanguageChange);
+      document.removeEventListener('codechange', handleCodeChange);
+      editor.off('change', handleEditorChange);
+    };
+  }, [editor]);
+
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
+  };
+
+  const handleCodeChange = (event) => {
+    setCode(event.target.value);
+  };
+
+  const handleEditorChange = (value) => {
+    setCode(value);
+  };
+
   return (
-    <div ref={editorRef} contentEditable='true' suppressContentEditableWarning={true}>
-      {value}
+    <div>
+      <select value={language} onChange={handleLanguageChange}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <br />
+      <textarea value={code} onChange={handleCodeChange} />
+      <br />
+      <MonacoEditor
+        language={language}
+        value={code}
+        onChange={handleEditorChange}
+        onMount={(editor) => setEditor(editor)}
+      />
     </div>
   );
 };

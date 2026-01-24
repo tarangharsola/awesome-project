@@ -1,32 +1,42 @@
 {"import { useState, useEffect } from 'react';
 
-interface UseEditorReturn {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
-
-const useEditor = (initialValue: string, language: string) => {
-  const [value, setValue] = useState(initialValue);
-  const [languageSelected, setLanguageSelected] = useState(language);
+const useEditor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
+  const [editor, setEditor] = useState(null);
 
   useEffect(() => {
-    // implement formatting logic here
-  }, []);
+    const handleLanguageChange = (event) => {
+      setLanguage(event.target.value);
+    };
 
-  const handleFormat = () => {
-    // implement formatting logic here
-  };
+    const handleCodeChange = (event) => {
+      setCode(event.target.value);
+    };
 
-  const handleKeyDown = (event) => {
-    // implement keyboard shortcuts here
-  };
+    const handleEditorChange = (value) => {
+      setCode(value);
+    };
+
+    document.addEventListener('languagechange', handleLanguageChange);
+    document.addEventListener('codechange', handleCodeChange);
+    editor.on('change', handleEditorChange);
+
+    return () => {
+      document.removeEventListener('languagechange', handleLanguageChange);
+      document.removeEventListener('codechange', handleCodeChange);
+      editor.off('change', handleEditorChange);
+    };
+  }, [editor]);
 
   return {
-    value,
-    onChange: (newValue) => setValue(newValue),
-    language: languageSelected,
+    language,
+    code,
+    setLanguage,
+    setCode,
+    editor,
+    setEditor
   };
-}
+};
 
 export default useEditor;
