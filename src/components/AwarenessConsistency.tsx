@@ -1,1 +1,20 @@
-{"import React from 'react';\nimport { useCursor } from './useCursor';\n\ninterface AwarenessConsistencyProps {\n  cursors: { [key: string]: { x: number; y: number } };\n}\n\nconst AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ cursors }) => {\n  const cursor = useCursor();\n  return <div>Cursor position: {cursor.x}, {cursor.y}</div>;\n};\n\nexport default AwarenessConsistency;
+{"import React from 'react';
+import { WebSocket } from 'ws';
+
+interface AwarenessConsistencyProps {
+  ws: WebSocket;
+  onAwareness: (awareness: any) => void;
+}
+
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ ws, onAwareness }) => {
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      ws.send(JSON.stringify({ type: 'awareness' }));
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  return null;
+};
+
+export default AwarenessConsistency;

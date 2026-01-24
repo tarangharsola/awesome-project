@@ -1,1 +1,18 @@
-{"import React from 'react';\nimport { OperationalTransform } from 'ot';\n\ninterface ConflictResolverProps {\n  operations: OperationalTransform[];\n}\n\nconst ConflictResolver: React.FC<ConflictResolverProps> = ({ operations }) => {\n  const ot = new OperationalTransform();\n  ot.apply(operations);\n  return <div>Conflict resolved</div>;\n};\n\nexport default ConflictResolver;
+{"import React from 'react';
+import { OperationalTransform } from 'ot-js';
+
+interface ConflictResolverProps {
+  operations: any[];
+  onConflict: (conflict: any) => void;
+}
+
+const ConflictResolver: React.FC<ConflictResolverProps> = ({ operations, onConflict }) => {
+  const ot = new OperationalTransform();
+  const resolvedOperations = ot.resolve(operations);
+  if (resolvedOperations.length > 0) {
+    onConflict(resolvedOperations);
+  }
+  return null;
+};
+
+export default ConflictResolver;
