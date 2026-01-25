@@ -1,19 +1,16 @@
 {"import React from 'react';
-import { WebSocket } from 'ws';
+import { OperationalTransform } from 'operational-transform';
 
 interface AwarenessConsistencyProps {
-  ws: WebSocket;
-  onAwareness: (awareness: any) => void;
+  operations: OperationalTransform[];
+  onAwareness: (awareness: OperationalTransform) => void;
 }
 
-const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ ws, onAwareness }) => {
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      ws.send(JSON.stringify({ type: 'awareness' }));
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, []);
-
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ operations, onAwareness }) => {
+  const awareness = new OperationalTransform().apply(operations);
+  if (awareness) {
+    onAwareness(awareness);
+  }
   return null;
 };
 
