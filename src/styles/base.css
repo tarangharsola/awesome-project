@@ -1,36 +1,5 @@
-/* Import required styles
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
-}
+/* Add keyboard shortcuts styles */
 
-h1, h2, h3, h4, h5, h6 {
-  color: #333;
-}
+/* Add language switching styles */
 
-p {
-  color: #666;
-}
-
-a {
-  text-decoration: none;
-  color: #337ab7;
-}
-
-a:hover {
-  color: #23527c;
-}
-
-button {
-  background-color: #337ab7;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #23527c;
-}
-*/
+/* Add formatting defaults styles */

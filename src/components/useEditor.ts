@@ -1,41 +1,34 @@
 {"import { useState, useEffect } from 'react';
+import { EditorState, Editor } from 'react-simple-editor';
+import MonacoEditor from 'react-monaco-editor';
 
 const useEditor = () => {
   const [language, setLanguage] = useState('javascript');
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
   const [code, setCode] = useState('');
-  const [editor, setEditor] = useState(null);
 
   useEffect(() => {
-    const handleLanguageChange = (event) => {
-      setLanguage(event.target.value);
-    };
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage) {
+      setLanguage(storedLanguage);
+    }
+  }, []);
 
-    const handleCodeChange = (event) => {
-      setCode(event.target.value);
-    };
+  const handleLanguageChange = (language: string) => {
+    setLanguage(language);
+    localStorage.setItem('language', language);
+  };
 
-    const handleEditorChange = (value) => {
-      setCode(value);
-    };
-
-    document.addEventListener('languagechange', handleLanguageChange);
-    document.addEventListener('codechange', handleCodeChange);
-    editor.on('change', handleEditorChange);
-
-    return () => {
-      document.removeEventListener('languagechange', handleLanguageChange);
-      document.removeEventListener('codechange', handleCodeChange);
-      editor.off('change', handleEditorChange);
-    };
-  }, [editor]);
+  const handleCodeChange = (code: string) => {
+    setCode(code);
+  };
 
   return {
     language,
+    editorState,
     code,
-    setLanguage,
-    setCode,
-    editor,
-    setEditor
+    handleLanguageChange,
+    handleCodeChange
   };
 };
 
