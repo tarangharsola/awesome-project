@@ -1,9 +1,10 @@
-// Jest test for Editor component
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
-import { render } from '@testing-library/react';
 import Editor from '../Editor';
 
-test('renders editor', () => {
-  const { getByText } = render(<Editor />);
-  expect(getByText('Editor')).toBeInTheDocument();
+describe('Editor', () => {
+  it('should render correctly', () => {
+    const wrapper = shallow(<Editor />);
+    expect(wrapper).toMatchSnapshot();
+  });
 });

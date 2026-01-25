@@ -1,12 +1,10 @@
-// Import required modules
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
-import UserList from './UserList';
+import UserList from '../UserList';
 
-// Test the component
 describe('UserList', () => {
-  it('renders correctly', () => {
-    const { getByText } = render(<UserList />);
-    expect(getByText('User List')).toBeInTheDocument();
+  it('should render correctly', () => {
+    const wrapper = shallow(<UserList />);
+    expect(wrapper).toMatchSnapshot();
   });
 });

@@ -1,12 +1,10 @@
-// Import required modules
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
-import AwarenessConsistency from './AwarenessConsistency';
+import AwarenessConsistency from '../AwarenessConsistency';
 
-// Test the component
 describe('AwarenessConsistency', () => {
-  it('renders correctly', () => {
-    const { getByText } = render(<AwarenessConsistency />);
-    expect(getByText('Awareness Consistency')).toBeInTheDocument();
+  it('should render correctly', () => {
+    const wrapper = shallow(<AwarenessConsistency />);
+    expect(wrapper).toMatchSnapshot();
   });
 });

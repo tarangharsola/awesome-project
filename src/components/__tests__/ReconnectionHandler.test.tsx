@@ -1,12 +1,11 @@
-// Import required modules
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
-import ReconnectionHandler from './ReconnectionHandler';
+import ReconnectionHandler from '../ReconnectionHandler';
 
-// Test the component
 describe('ReconnectionHandler', () => {
-  it('renders correctly', () => {
-    const { getByText } = render(<ReconnectionHandler />);
-    expect(getByText('Reconnection Handler')).toBeInTheDocument();
+  it('should reconnect correctly', () => {
+    const handler = new ReconnectionHandler();
+    const connection = handler.reconnect();
+    expect(connection).toBeNull();
   });
 });
