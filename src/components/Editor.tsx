@@ -1,66 +1,35 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import MonacoEditor from 'react-monaco-editor';
+import { EditorState, Editor } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { DOMParser } from 'prosemirror-model';
 
-const Editor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState('');
-  const [editor, setEditor] = useState(null);
+const EditorComponent = () => {
+  const [editorState, setEditorState] = React.useState(EditorState.create());
+  const [view, setView] = React.useState(null);
 
-  useEffect(() => {
-    const handleLanguageChange = (event) => {
-      setLanguage(event.target.value);
-    };
+  React.useEffect(() => {
+    const parser = new DOMParser();
+    const doc = parser.parse(document.getElementById('editor').innerHTML);
+    const state = EditorState.createWithJSON(doc);
+    setEditorState(state);
+  }, []);
 
-    const handleCodeChange = (event) => {
-      setCode(event.target.value);
-    };
-
-    const handleEditorChange = (value) => {
-      setCode(value);
-    };
-
-    document.addEventListener('languagechange', handleLanguageChange);
-    document.addEventListener('codechange', handleCodeChange);
-    editor.on('change', handleEditorChange);
-
-    return () => {
-      document.removeEventListener('languagechange', handleLanguageChange);
-      document.removeEventListener('codechange', handleCodeChange);
-      editor.off('change', handleEditorChange);
-    };
-  }, [editor]);
-
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
+  const updateEditorState = (state) => {
+    setEditorState(state);
   };
 
-  const handleCodeChange = (event) => {
-    setCode(event.target.value);
-  };
-
-  const handleEditorChange = (value) => {
-    setCode(value);
+  const handleEditorChange = (state) => {
+    updateEditorState(state);
   };
 
   return (
-    <div>
-      <select value={language} onChange={handleLanguageChange}>
-        <option value="javascript">JavaScript</option>
-        <option value="python">Python</option>
-        <option value="html">HTML</option>
-      </select>
-      <br />
-      <textarea value={code} onChange={handleCodeChange} />
-      <br />
-      <MonacoEditor
-        language={language}
-        value={code}
+    <div id="editor">
+      <Editor
+        state={editorState}
         onChange={handleEditorChange}
-        onMount={(editor) => setEditor(editor)}
       />
     </div>
   );
 };
 
-export default Editor;
+export default EditorComponent;

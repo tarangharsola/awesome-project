@@ -1,20 +1,15 @@
-import React from 'react';
-import { useWebSocket } from 'react-use-websocket';
+{"import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 
-interface WebSocketProps {
-  url: string;
-}
+const WebSocket = () => {
+  const [socket, setSocket] = useState(null);
 
-const WebSocket: React.FC<WebSocketProps> = ({ url }) => {
-  const { sendJsonMessage, lastMessage } = useWebSocket(url);
+  useEffect(() => {
+    const socket = io('ws://localhost:3001');
+    setSocket(socket);
+  }, []);
 
-  return (
-    <div>
-      <h2>WebSocket</h2>
-      <p>Last Message: {lastMessage}</p>
-      <button onClick={() => sendJsonMessage({ type: 'ping' })}>Send Ping</button>
-    </div>
-  );
+  return socket;
 };
 
 export default WebSocket;
