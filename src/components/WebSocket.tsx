@@ -1,15 +1,20 @@
-{"import React, { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
 
-const WebSocket = () => {
-  const [socket, setSocket] = useState(null);
+interface WebSocketProps {
+  url: string;
+}
 
+const WebSocket = ({ url }: WebSocketProps) => {
+  const [ws, setWs] = useState(null);
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-    setSocket(socket);
-  }, []);
-
-  return socket;
+    const ws = new WebSocket(url);
+    setWs(ws);
+    return () => {
+      ws.close();
+    };
+  }, [url]);
+  return <div>WebSocket: {ws ? 'connected' : 'disconnected'}</div);
 };
 
 export default WebSocket;

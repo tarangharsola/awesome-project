@@ -1,22 +1,15 @@
-// Import required modules
-import { useState, useEffect } from 'react';
+{"import { useState, useEffect } from 'react';
 
-// Define the useUsers hook
-const useUsers = () => {
-  const [usersList, setUsersList] = useState([]);
+interface useUsersProps {
+  users: any[];
+}
 
+const useUsers = ({ users }: useUsersProps) => {
+  const [usersList, setUsersList] = useState(users);
   useEffect(() => {
-    // Update users list on changes
-    const handleChanges = () => {
-      setUsersList(['User 1', 'User 2']);
-    };
-    return () => {
-      // Clean up on unmount
-      handleChanges();
-    };
-  }, []);
-
-  return { usersList, setUsersList };
+    setUsersList(users);
+  }, [users]);
+  return usersList;
 };
 
 export default useUsers;

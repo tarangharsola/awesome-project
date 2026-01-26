@@ -1,26 +1,14 @@
 {"import React from 'react';
-import { WebSocket } from 'ws';
+import { useEditor } from './useEditor';
 
 interface AwarenessConsistencyProps {
-  ws: WebSocket;
-  onAwareness: (awareness: any) => void;
+  editor: useEditor;
 }
 
-const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ ws, onAwareness }) => {
-  useEffect(() => {
-    const interval = setInterval(() => {
-      ws.send(JSON.stringify({ type: 'awareness' }));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  ws.onmessage = (event) => {
-    if (event.data.type === 'awareness') {
-      onAwareness(event.data.awareness);
-    }
-  };
-
-  return null;
+const AwarenessConsistency = ({ editor }: AwarenessConsistencyProps) => {
+  const { operations } = editor;
+  const consistency = operations.reduce((acc, op) => acc && op.type === 'insert', true);
+  return <div>Consistency: {consistency ? 'true' : 'false'}</div);
 };
 
 export default AwarenessConsistency;

@@ -1,22 +1,17 @@
-// Import required modules
-import { useState, useEffect } from 'react';
+{"import { useState, useEffect } from 'react';
 
-// Define the useReconnection hook
-const useReconnection = () => {
-  const [reconnected, setReconnected] = useState(false);
+interface useReconnectionProps {
+  reconnect: () => void;
+}
 
+const useReconnection = ({ reconnect }: useReconnectionProps) => {
+  const [reconnecting, setReconnecting] = useState(false);
   useEffect(() => {
-    // Check for reconnection on mount
-    const checkReconnection = () => {
-      setReconnected(true);
-    };
-    return () => {
-      // Clean up on unmount
-      checkReconnection();
-    };
+    setReconnecting(true);
+    reconnect();
+    setReconnecting(false);
   }, []);
-
-  return reconnected;
+  return reconnecting;
 };
 
 export default useReconnection;
