@@ -1,11 +1,22 @@
 {"import { useState, useEffect } from 'react';
-import { EditorState, Editor } from 'react-simple-editor';
-import MonacoEditor from 'react-monaco-editor';
 
 const useEditor = () => {
   const [language, setLanguage] = useState('javascript');
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  const [code, setCode] = useState('');
+  const [value, setValue] = useState('');
+  const [options, setOptions] = useState({
+    mode: 'javascript',
+    theme: 'monokai',
+    fontSize: 14,
+    showLineNumbers: true,
+    showPrintMargin: false,
+    showGutter: true,
+    highlightActiveLine: false,
+    enableBasicAutocompletion: false,
+    enableLiveAutocompletion: false,
+    enableSnippets: false,
+    showInvisibles: false,
+    tabSize: 2
+  });
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem('language');
@@ -14,21 +25,21 @@ const useEditor = () => {
     }
   }, []);
 
-  const handleLanguageChange = (language: string) => {
-    setLanguage(language);
-    localStorage.setItem('language', language);
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value);
+    localStorage.setItem('language', e.target.value);
   };
 
-  const handleCodeChange = (code: string) => {
-    setCode(code);
+  const handleValueChange = (newValue) => {
+    setValue(newValue);
   };
 
   return {
     language,
-    editorState,
-    code,
+    value,
+    options,
     handleLanguageChange,
-    handleCodeChange
+    handleValueChange
   };
 };
 
