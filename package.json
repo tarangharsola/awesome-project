@@ -1,4 +1,6 @@
-// Updated package.json for CI script
-"scripts": {
-  "ci": "node scripts/ci.js"
-}
+...
+  "scripts": {
+    "build": "webpack --mode production",
+    "ci": "node scripts/ci.js"
+  },
+  ...

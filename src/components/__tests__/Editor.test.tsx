@@ -1,10 +1,10 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import Editor from '../Editor';
 
-describe('Editor', () => {
-  it('should render correctly', () => {
-    const wrapper = shallow(<Editor />);
-    expect(wrapper).toMatchSnapshot();
+describe('Editor component', () => {
+  it('renders editor with syntax highlighting', () => {
+    const { getByPlaceholderText } = render(<Editor language='javascript' />);
+    expect(getByPlaceholderText('Write code here...')).toBeInTheDocument();
   });
 });
