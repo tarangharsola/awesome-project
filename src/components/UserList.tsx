@@ -15,9 +15,9 @@ const UserList = ({ users }: Props) => {
   return (
     <div className="user-list">
       {users.map((user) => (
-        <div key={user.id} className="user">
-          <span className="name" style={{
-            color: user.color,
+        <div key={user.id} className="user-item">
+          <span className="username" style={{
+            color: user.color
           }}>{user.name}</span>
         </div>
       ))}
