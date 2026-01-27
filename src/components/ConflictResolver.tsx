@@ -1,17 +1,23 @@
 {"import React from 'react';
-import { useEditor } from './useEditor';
+import { OperationalTransform } from 'ot-js';
 
-interface ConflictResolverProps {
-  editor: useEditor;
-}
+const ConflictResolver = () => {
+  const [ot, setOt] = React.useState(new OperationalTransform());
+  const [operations, setOperations] = React.useState([]);
 
-const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {
-  const { operations } = editor;
-  const conflicts = operations.reduce((acc, operation) => {
-    // implement conflict resolution logic here
-    return acc;
-  }, {});
-  return <div>Conflicts: {JSON.stringify(conflicts)}</div);
+  const handleOperation = (operation) => {
+    setOperations((prevOperations) => [...prevOperations, operation]);
+    setOt((prevOt) => prevOt.apply(operation));
+  };
+
+  return (
+    <div>
+      <h1>Conflict Resolver</h1>
+      <button onClick={() => handleOperation({ insert: { at: 0, text: 'Hello' } })}>Insert 'Hello'</button>
+      <button onClick={() => handleOperation({ insert: { at: 1, text: ' World' } })}>Insert ' World'</button>
+      <button onClick={() => handleOperation({ delete: { at: 0, length: 5 } })}>Delete 'Hello '</button>
+    </div>
+  );
 };
 
 export default ConflictResolver;
