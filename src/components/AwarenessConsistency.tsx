@@ -5,10 +5,13 @@ interface AwarenessConsistencyProps {
   editor: useEditor;
 }
 
-const AwarenessConsistency = ({ editor }: AwarenessConsistencyProps) => {
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {
   const { operations } = editor;
-  const consistency = operations.reduce((acc, op) => acc && op.type === 'insert', true);
-  return <div>Consistency: {consistency ? 'true' : 'false'}</div);
+  const consistency = operations.reduce((acc, operation) => {
+    // implement consistency logic here
+    return acc;
+  }, {});
+  return <div>Consistency: {JSON.stringify(consistency)}</div);
 };
 
 export default AwarenessConsistency;

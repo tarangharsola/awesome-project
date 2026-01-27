@@ -1,15 +1,16 @@
 {"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
 interface useUsersProps {
-  users: any[];
+  roomId: string;
 }
 
-const useUsers = ({ users }: useUsersProps) => {
-  const [usersList, setUsersList] = useState(users);
+const useUsers = ({ roomId }) => {
+  const [users, setUsers] = useState([]);
   useEffect(() => {
-    setUsersList(users);
-  }, [users]);
-  return usersList;
+    // implement users logic here
+  }, []);
+  return users;
 };
 
 export default useUsers;

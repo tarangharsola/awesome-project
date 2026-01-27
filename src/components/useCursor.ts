@@ -1,16 +1,15 @@
 {"import { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
 
 interface useCursorProps {
-  editor: useEditor;
+  roomId: string;
 }
 
-const useCursor = ({ editor }: useCursorProps) => {
-  const { operations } = editor;
-  const [cursor, setCursor] = useState(null);
+const useCursor = ({ roomId }) => {
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
   useEffect(() => {
-    const cursor = operations.find((op) => op.type === 'insert' && op.position === operations[0].position);
-    setCursor(cursor);
-  }, [operations]);
+    // implement cursor logic here
+  }, []);
   return cursor;
 };
 

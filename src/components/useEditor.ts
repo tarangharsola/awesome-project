@@ -1,30 +1,17 @@
 {"import { useState, useEffect } from 'react';
-import { EditorState, Editor } from 'react-simple-editor';
+import { useWebSocket } from './useWebSocket';
 
-const useEditor = () => {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  const [editorValue, setEditorValue] = useState('');
+interface useEditorProps {
+  roomId: string;
+}
 
+const useEditor = ({ roomId }) => {
+  const [operations, setOperations] = useState([]);
+  const [cursors, setCursors] = useState({});
   useEffect(() => {
-    const handleLanguageChange = (event) => {
-      // handle language change event
-    };
-    document.addEventListener('languageChange', handleLanguageChange);
-    return () => {
-      document.removeEventListener('languageChange', handleLanguageChange);
-    };
+    // implement editor logic here
   }, []);
-
-  const handleEditorChange = (editorState) => {
-    setEditorState(editorState);
-    setEditorValue(editorState.getValue());
-  };
-
-  return {
-    editorState,
-    editorValue,
-    handleEditorChange,
-  };
+  return { operations, cursors);
 };
 
 export default useEditor;

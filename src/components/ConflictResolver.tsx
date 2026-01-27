@@ -5,10 +5,13 @@ interface ConflictResolverProps {
   editor: useEditor;
 }
 
-const ConflictResolver = ({ editor }: ConflictResolverProps) => {
+const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {
   const { operations } = editor;
-  const conflicts = operations.filter((op) => op.type === 'insert' && op.position !== operations[0].position);
-  return <div>Conflicts: {conflicts.length}</div);
+  const conflicts = operations.reduce((acc, operation) => {
+    // implement conflict resolution logic here
+    return acc;
+  }, {});
+  return <div>Conflicts: {JSON.stringify(conflicts)}</div);
 };
 
 export default ConflictResolver;
