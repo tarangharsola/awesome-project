@@ -1,15 +1,30 @@
 {"import { useState, useEffect } from 'react';
+import { EditorState, Editor } from 'react-simple-editor';
 
-interface useEditorProps {
-  operations: any[];
-}
+const useEditor = () => {
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const [editorValue, setEditorValue] = useState('');
 
-const useEditor = ({ operations }: useEditorProps) => {
-  const [editor, setEditor] = useState({ operations });
   useEffect(() => {
-    setEditor({ operations });
-  }, [operations]);
-  return editor;
+    const handleLanguageChange = (event) => {
+      // handle language change event
+    };
+    document.addEventListener('languageChange', handleLanguageChange);
+    return () => {
+      document.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
+
+  const handleEditorChange = (editorState) => {
+    setEditorState(editorState);
+    setEditorValue(editorState.getValue());
+  };
+
+  return {
+    editorState,
+    editorValue,
+    handleEditorChange,
+  };
 };
 
 export default useEditor;

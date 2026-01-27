@@ -1,13 +1,47 @@
 {"import React from 'react';
-import { useEditor } from './useEditor';
+import { useState, useEffect } from 'react';
+import { EditorState, Editor } from 'react-simple-editor';
+import { MonacoEditor } from 'react-monaco-editor';
 
-interface EditorProps {
-  editor: useEditor;
-}
+const EditorComponent = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const [editorValue, setEditorValue] = useState('');
 
-const Editor = ({ editor }: EditorProps) => {
-  const { operations } = editor;
-  return <div>{operations.map((op, index) => <div key={index}>{op.type} {op.position}</div>)}</div);
+  useEffect(() => {
+    const handleLanguageChange = (event) => {
+      setLanguage(event.target.value);
+    };
+    document.addEventListener('languageChange', handleLanguageChange);
+    return () => {
+      document.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
+
+  const handleEditorChange = (editorState) => {
+    setEditorState(editorState);
+    setEditorValue(editorState.getValue());
+  };
+
+  const handleFormat = () => {
+    const formattedValue = editorValue.replace(/\n/g, '\n\t');
+    setEditorValue(formattedValue);
+  };
+
+  return (
+    <div>
+      <select value={language} onChange={(event) => setLanguage(event.target.value)}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <button onClick={handleFormat}>Format</button>
+      <EditorState
+        editorState={editorState}
+        onChange={handleEditorChange}
+      />
+    </div>
+  );
 };
 
-export default Editor;
+export default EditorComponent;
