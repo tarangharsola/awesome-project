@@ -1,4 +1,6 @@
 const { execSync } = require('child_process');
 
-execSync('npm run build');
-execSync('jest');
+module.exports = function ci() {
+  execSync('npm run build');
+  execSync('jest');
+};
