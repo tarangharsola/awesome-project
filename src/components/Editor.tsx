@@ -1,44 +1,45 @@
 {"import React from 'react';
-import { EditorState, Editor } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { \"/src/components/ConflictResolver.tsx\" \} from '\/src/components';
+import { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-code-editor';
+import { Highlight, Languages } from 'prismjs';
 
 const EditorComponent = () => {
-  const [editorState, setEditorState] = React.useState(EditorState.createEmpty());
-  const [view, setView] = React.useState(null);
+  const [language, setLanguage] = useState(Languages.javascript);
+  const [code, setCode] = useState("// Your code here");
+  const [formattedCode, setFormattedCode] = useState("// Your code here");
 
-  React.useEffect(() => {
-    const handleChanges = (delta) => {
-      setEditorState((prev) => EditorState.applyDelta(prev, delta));
-    };
-    const handleCursorChange = (cursor) => {
-      setView((prev) => EditorView.update(prev, { cursor }));
-    };
-
-    const handleUserListChange = (users) => {
-      setUsers(users);
-    };
-
-    const handleWebSocketMessage = (message) => {
-      if (message.type === 'UPDATE') {
-        handleChanges(message.delta);
-      } else if (message.type === 'CURSOR') {
-        handleCursorChange(message.cursor);
-      } else if (message.type === 'USER_LIST') {
-        handleUserListChange(message.users);
-      }
-    };
-
-    const socket = new WebSocket('ws://localhost:8080');
-    socket.onmessage = (event) => handleWebSocketMessage(JSON.parse(event.data));
-    return () => socket.close();
+  useEffect(() => {
+    Highlight.allLanguages.forEach((language) => {
+      Highlight.addLanguage(language);
+    });
   }, []);
+
+  const handleLanguageChange = (language: string) => {
+    setLanguage(language);
+  };
+
+  const handleCodeChange = (code: string) => {
+    setCode(code);
+    setFormattedCode(prism.highlight(code, Highlight.getLanguage(language), Highlight.highlightElement(code)));
+  };
 
   return (
     <div>
-      <EditorView editorState={editorState} view={view} />
-      <ConflictResolver editorState={editorState} />
-      <UserList users={users} />
+      <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
+        {Languages.all.map((language) => (
+          <option key={language} value={language}>{language}</option>
+        ))}
+      </select>
+      <Editor
+        value={code}
+        onValueChange={handleCodeChange}
+        highlight={formattedCode}
+        padding={10}
+        style={{
+          fontSize: 12,
+          fontFamily: 'monospace',
+        }}
+      />
     </div>
   );
 };
