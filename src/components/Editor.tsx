@@ -1,18 +1,11 @@
-import React from 'react';
-import { useWebSocket } from './useWebSocket';
+{"import { Editor } from './Editor';
 
-const Editor = () => {
-  const { users, cursors } = useWebSocket();
+const App = () => {
   return (
     <div>
-      {users.map((user, index) => (
-        <div key={index}>{user.name}</div>
-      ))}
-      {cursors.map((cursor, index) => (
-        <div key={index}>{cursor.name}</div>
-      ))}
+      <Editor />
     </div>
   );
 };
 
-export default Editor;
+export default App;
