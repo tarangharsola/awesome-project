@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react';
 
 interface Cursor {
   id: string;
-  name: string;
+  x: number;
+  y: number;
   color: string;
-  position: number;
 }
 
 interface Props {
@@ -13,35 +13,46 @@ interface Props {
 }
 
 const CursorTracker = ({ cursors }: Props) => {
-  const [cursorPositions, setCursorPositions] = useState({} as { [id: string]: number });
+  const [cursorPositions, setCursorPositions] = useState({});
 
   useEffect(() => {
-    const positions: { [id: string]: number } = {};
+    const cursorPositions: { [key: string]: { x: number; y: number } } = {};
     cursors.forEach((cursor) => {
-      positions[cursor.id] = cursor.position;
+      cursorPositions[cursor.id] = { x: cursor.x, y: cursor.y);
     });
-    setCursorPositions(positions);
+    setCursorPositions(cursorPositions);
   }, [cursors]);
+
+  const handleCursorUpdate = (cursor: Cursor) => {
+    setCursorPositions((prevPositions) => {
+      const updatedPositions = { ...prevPositions);
+      updatedPositions[cursor.id] = { x: cursor.x, y: cursor.y);
+      return updatedPositions;
+    });
+  };
 
   return (
     <div className="cursor-tracker">
-      {Object.keys(cursorPositions).map((id, index) => (
-        <div key={index} style={{
-          backgroundColor: cursors.find((cursor) => cursor.id === id).color,
-          color: "#fff",
-          position: "absolute",
-          top: cursorPositions[id] + "px",
-          left: "10px",
-          padding: "5px",
-          borderRadius: "5px",
-          display: "inline-block",
-          margin: "5px",
+      {Object.keys(cursorPositions).map((cursorId) => (
+        <div key={cursorId} style={{
+          position: 'absolute',
+          left: cursorPositions[cursorId].x,
+          top: cursorPositions[cursorId].y,
+          width: '5px',
+          height: '5px',
+          backgroundColor: cursors.find((c) => c.id === cursorId).color,
+          borderRadius: '50%',
         }}>
-          {cursors.find((cursor) => cursor.id === id).name}
-        </div>
+        <span style={{
+          position: 'absolute',
+          left: cursorPositions[cursorId].x + 10,
+          top: cursorPositions[cursorId].y - 10,
+          fontSize: '12px',
+          color: 'white',
+        }}>{cursors.find((c) => c.id === cursorId).name}</span>
       ))}
     </div>
   );
-}
+};
 
 export default CursorTracker;
