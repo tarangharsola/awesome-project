@@ -1,1 +1,18 @@
-{"import React from 'react';\nimport { useEditor } from './useEditor';\n\ninterface ConflictResolverProps {\n  editor: useEditor;\n}\n\nconst ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {\n  const { operations } = editor;\n  const conflicts = operations.filter((op) => op.type === 'conflict');\n  const resolvedOperations = operations.filter((op) => op.type !== 'conflict');\n  return (\n    <div>\n      {conflicts.map((conflict, index) => (\n        <div key={index}>\n          Conflict at position {conflict.position}\n        </div>\n      ))}\n      <div>\n        {resolvedOperations.map((op, index) => (\n          <div key={index}>\n            Operation {op.type} at position {op.position}\n          </div>\n        ))}\n      </div>\n    </div>\n  );\n};\n\nexport default ConflictResolver;
+import React from 'react';
+import { useWebSocket } from './useWebSocket';
+
+const ConflictResolver = () => {
+  const { users, cursors } = useWebSocket();
+  return (
+    <div>
+      {users.map((user, index) => (
+        <div key={index}>{user.name}</div>
+      ))}
+      {cursors.map((cursor, index) => (
+        <div key={index}>{cursor.name}</div>
+      ))}
+    </div>
+  );
+};
+
+export default ConflictResolver;

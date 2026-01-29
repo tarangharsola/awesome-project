@@ -1,1 +1,18 @@
-{"import React from 'react';\nimport { useEditor } from './useEditor';\n\ninterface AwarenessConsistencyProps {\n  editor: useEditor;\n}\n\nconst AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {\n  const { operations } = editor;\n  const awareness = operations.filter((op) => op.type === 'awareness');\n  return (\n    <div>\n      {awareness.map((aware, index) => (\n        <div key={index}>\n          User {aware.user} is aware of position {aware.position}\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default AwarenessConsistency;
+import React from 'react';
+import { useWebSocket } from './useWebSocket';
+
+const AwarenessConsistency = () => {
+  const { users, cursors } = useWebSocket();
+  return (
+    <div>
+      {users.map((user, index) => (
+        <div key={index}>{user.name}</div>
+      ))}
+      {cursors.map((cursor, index) => (
+        <div key={index}>{cursor.name}</div>
+      ))}
+    </div>
+  );
+};
+
+export default AwarenessConsistency;

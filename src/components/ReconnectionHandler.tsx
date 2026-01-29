@@ -1,1 +1,18 @@
-{"import React, { useState, useEffect } from 'react';\nimport { useWebSocket } from './useWebSocket';\n\ninterface ReconnectionHandlerProps {\n  children: React.ReactNode;\n}\n\nconst ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ children }) => {\n  const [reconnecting, setReconnecting] = useState(false);\n  const { reconnect } = useWebSocket();\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      if (reconnecting) {\n        reconnect();\n      }\n    }, 1000);\n    return () => clearInterval(intervalId);\n  }, [reconnecting, reconnect]);\n\n  return (\n    <div>\n      {children}\n      {reconnecting ? (\n        <div>\n          Reconnecting...\n        </div>\n      ) : null}\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+import React from 'react';
+import { useWebSocket } from './useWebSocket';
+
+const ReconnectionHandler = () => {
+  const { users, cursors } = useWebSocket();
+  return (
+    <div>
+      {users.map((user, index) => (
+        <div key={index}>{user.name}</div>
+      ))}
+      {cursors.map((cursor, index) => (
+        <div key={index}>{cursor.name}</div>
+      ))}
+    </div>
+  );
+};
+
+export default ReconnectionHandler;
