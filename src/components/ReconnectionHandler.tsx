@@ -1,16 +1,24 @@
-import React from 'react';
+{"import React, { useState, useEffect } from 'react';
 import { useWebSocket } from './useWebSocket';
 
-const ReconnectionHandler = () => {
-  const { users, cursors } = useWebSocket();
+interface ReconnectionHandlerProps {
+  webSocket: useWebSocket;
+}
+
+const ReconnectionHandler = ({ webSocket }: ReconnectionHandlerProps) => {
+  const [reconnecting, setReconnecting] = useState(false);
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (webSocket.isConnected) {
+        clearInterval(intervalId);
+        setReconnecting(false);
+      }
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [webSocket.isConnected]);
   return (
     <div>
-      {users.map((user, index) => (
-        <div key={index}>{user.name}</div>
-      ))}
-      {cursors.map((cursor, index) => (
-        <div key={index}>{cursor.name}</div>
-      ))}
+      {reconnecting ? 'Reconnecting...' : ''}
     </div>
   );
 };

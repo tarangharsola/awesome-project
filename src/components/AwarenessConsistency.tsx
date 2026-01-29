@@ -1,15 +1,17 @@
-import React from 'react';
-import { useWebSocket } from './useWebSocket';
+{"import React from 'react';
+import { useEditor } from './useEditor';
 
-const AwarenessConsistency = () => {
-  const { users, cursors } = useWebSocket();
+interface AwarenessConsistencyProps {
+  editor: useEditor;
+}
+
+const AwarenessConsistency = ({ editor }: AwarenessConsistencyProps) => {
+  const { operations } = editor;
+  const awareness = operations.filter((operation) => operation.type === 'awareness');
   return (
     <div>
-      {users.map((user, index) => (
-        <div key={index}>{user.name}</div>
-      ))}
-      {cursors.map((cursor, index) => (
-        <div key={index}>{cursor.name}</div>
+      {awareness.map((awareness, index) => (
+        <div key={index}>{awareness.message}</div>
       ))}
     </div>
   );

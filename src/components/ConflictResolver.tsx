@@ -1,15 +1,17 @@
-import React from 'react';
-import { useWebSocket } from './useWebSocket';
+{"import React from 'react';
+import { useEditor } from './useEditor';
 
-const ConflictResolver = () => {
-  const { users, cursors } = useWebSocket();
+interface ConflictResolverProps {
+  editor: useEditor;
+}
+
+const ConflictResolver = ({ editor }: ConflictResolverProps) => {
+  const { operations } = editor;
+  const conflicts = operations.filter((operation) => operation.type === 'conflict');
   return (
     <div>
-      {users.map((user, index) => (
-        <div key={index}>{user.name}</div>
-      ))}
-      {cursors.map((cursor, index) => (
-        <div key={index}>{cursor.name}</div>
+      {conflicts.map((conflict, index) => (
+        <div key={index}>{conflict.message}</div>
       ))}
     </div>
   );
