@@ -1,24 +1,37 @@
-{"import React, { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import { useUsers } from './useUsers';
 
-interface Props {
-  users: string[];
-}
+function UserList() {
+  const { users, addUser, removeUser } = useUsers();
+  const [activeUsers, setActiveUsers] = useState([]);
 
-const UserList = ({ users }: Props) => {
-  const [userList, setUserList] = useState(users);
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onmessage = (event) => {
-      setUserList(JSON.parse(event.data));
-    };
-    return () => {
-      ws.close();
-    };
-  }, []);
-  return <ul>
-    {userList.map((user, index) => <li key={index}>{user}</li>)}
-  </ul>;
-};
+    setActiveUsers(users.filter(user => user.isConnected));
+  }, [users]);
+
+  const handleUserUpdate = (user) => {
+    if (user.isConnected) {
+      setActiveUsers((prevUsers) => prevUsers.concat(user));
+    } else {
+      setActiveUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
+    }
+  };
+
+  return (
+    <div className="active-users-panel">
+      <h2>Active Users:</h2>
+      <ul>
+        {activeUsers.map((user) => (
+          <li key={user.id} style={{
+            backgroundColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`
+          }}>
+            {user.name}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export default UserList;
