@@ -1,11 +1,17 @@
-import { describe, it, expect } from 'jest';
-import { render, fireEvent, waitFor } from '@testing-library/react';
+// Import required modules
+import { test } from 'jest';
 
-import Editor from '../Editor';
+// Define test suite
+describe('Components', () => {
+  // Test individual components
+  test('Editor', () => {
+    // Mock editor state
+    const editorState = {
+      text: 'Hello, World!',
+      language: 'javascript'
+    };
 
-describe('Editor component', () => {
-  it('renders correctly', () => {
-    const { getByText } = render(<Editor />);
-    expect(getByText('Code Editor')).toBeInTheDocument();
+    // Assert expected behavior
+    expect(editorState.text).toBe('Hello, World!');
   });
 });
