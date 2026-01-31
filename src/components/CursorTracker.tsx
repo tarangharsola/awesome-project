@@ -1,20 +1,35 @@
-{"import React, { useState, useEffect } from 'react';
-import { EditorView } from 'prosemirror-view';
+{"import React from 'react';
+import './CursorTracker.css';
 
-interface Props {
-  view: EditorView;
+interface Cursor {
+  id: string;
+  x: number;
+  y: number;
+  color: string;
 }
 
-const CursorTracker = ({ view }: Props) => {
-  const [cursorPosition, setCursorPosition] = useState(view.state.selection.from);
-  useEffect(() => {
-    const handleCursorChange = () => setCursorPosition(view.state.selection.from);
-    view.dispatchStateChange = handleCursorChange;
-    return () => {
-      view.dispatchStateChange = null;
-    };
-  }, [view]);
-  return <div className="cursor" style={{ left: cursorPosition }} />
-};
+interface Props {
+  cursors: Cursor[];
+}
+
+const CursorTracker = ({ cursors }: Props) => {
+  return (
+    <div className="cursor-tracker">
+      {cursors.map((cursor) => (
+        <div key={cursor.id} className="cursor" style={{
+          left: cursor.x + 'px',
+          top: cursor.y + 'px',
+          backgroundColor: cursor.color,
+          color: '#fff',
+        }}>
+          <span className="cursor-label" style={{
+            backgroundColor: cursor.color,
+            color: '#fff',
+          }}>{cursor.id}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default CursorTracker;
