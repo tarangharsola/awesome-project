@@ -1,16 +1,20 @@
-{"import React from 'react';
-import { useCursor } from './useCursor';
+{"import React, { useState, useEffect } from 'react';
+import { EditorView } from 'prosemirror-view';
 
-function CursorTracker() {
-  const { cursorPosition, user } = useCursor();
-
-  return (
-    <div className="cursor-label" style={{
-      backgroundColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`
-    }}>
-      {user.name}
-    </div>
-  );
+interface Props {
+  view: EditorView;
 }
+
+const CursorTracker = ({ view }: Props) => {
+  const [cursorPosition, setCursorPosition] = useState(view.state.selection.from);
+  useEffect(() => {
+    const handleCursorChange = () => setCursorPosition(view.state.selection.from);
+    view.dispatchStateChange = handleCursorChange;
+    return () => {
+      view.dispatchStateChange = null;
+    };
+  }, [view]);
+  return <div className="cursor" style={{ left: cursorPosition }} />
+};
 
 export default CursorTracker;

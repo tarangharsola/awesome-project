@@ -1,16 +1,21 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import WebSocket from 'ws';
 
-interface useReconnectionProps {
-  roomId: string;
+interface Props {
+  onMessage: (message: string) => void;
 }
 
-const useReconnection = ({ roomId }) => {
-  const [reconnection, setReconnection] = useState(false);
+const useReconnection = ({ onMessage }: Props) => {
+  const [ws, setWs] = useState<WebSocket | null>(null);
   useEffect(() => {
-    // implement reconnection logic here
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
+    ws.onmessage = (event) => onMessage(event.data);
+    return () => {
+      ws.close();
+    };
   }, []);
-  return reconnection;
+  return ws;
 };
 
 export default useReconnection;

@@ -1,17 +1,19 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { EditorState, Editor } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { syntaxHighlighting } from 'prosemirror-highlight';
 
-interface useEditorProps {
-  roomId: string;
+interface Props {
+  onChange: (state: EditorState) => void;
+  value: string;
 }
 
-const useEditor = ({ roomId }) => {
-  const [operations, setOperations] = useState([]);
-  const [cursors, setCursors] = useState({});
-  useEffect(() => {
-    // implement editor logic here
-  }, []);
-  return { operations, cursors);
+const useEditor = ({ onChange, value }: Props) => {
+  const state = useState(() => EditorState.create({ doc: value, plugins: [syntaxHighlighting()] }));
+  const view = useState(() => new EditorView({ state, dispatchTransaction: (transaction) => {
+    onChange(transaction.state.doc.toString());
+  }}));
+  return { view, state };
 };
 
 export default useEditor;

@@ -1,52 +1,19 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import CodeMirror from 'codemirror';
+import { EditorState, Editor } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { syntaxHighlighting } from 'prosemirror-highlight';
 
-const Editor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState('');
-  const [formattedCode, setFormattedCode] = useState('');
+interface Props {
+  onChange: (state: EditorState) => void;
+  value: string;
+}
 
-  useEffect(() => {
-    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-      theme: 'monokai'
-    });
-
-    editor.on('change', () => {
-      setCode(editor.getValue());
-      setFormattedCode(beautifyCode(code));
-    });
-
-    return () => {
-      editor.toTextArea();
-    };
-  }, [language, code]);
-
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
-  };
-
-  const handleCodeChange = (event) => {
-    setCode(event.target.value);
-  };
-
-  const beautifyCode = (code) => {
-    // Implement code formatting logic here
-  };
-
-  return (
-    <div>
-      <select value={language} onChange={handleLanguageChange}>
-        <option value='javascript'>JavaScript</option>
-        <option value='python'>Python</option>
-        <option value='html'>HTML</option>
-      </select>
-      <textarea id='editor' value={code} onChange={handleCodeChange} />
-      <pre>{formattedCode}</pre>
-    </div>
-  );
+const EditorComponent = ({ onChange, value }: Props) => {
+  const state = EditorState.create({ doc: value, plugins: [syntaxHighlighting()] });
+  const view = new EditorView({ state, dispatchTransaction: (transaction) => {
+    onChange(transaction.state.doc.toString());
+  }});
+  return <div className="editor" ref={view.contentDOM} />
 };
 
-export default Editor;
+export default EditorComponent;
