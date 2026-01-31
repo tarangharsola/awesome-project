@@ -1,6 +1,8 @@
 // Build script for CI validation
 const { execSync } = require('child_process');
 
-// Run tests and build
-execSync('jest');
-execSync('webpack');
+// Run tests
+execSync('npm test');
+
+// Build application
+execSync('npm run build');
