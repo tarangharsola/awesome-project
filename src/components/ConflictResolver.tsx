@@ -1,18 +1,1 @@
-{"import React from 'react';
-import { OperationalTransformation } from 'operational-transformation';
-
-interface ConflictResolverProps {
-  children: React.ReactNode;
-}
-
-const ConflictResolver: React.FC<ConflictResolverProps> = ({ children }) => {
-  const [state, dispatch] = OperationalTransformation.useOperationalTransformation();
-  return (
-    <div>
-      {children}
-      <button onClick={() => dispatch({ type: 'insert', text: 'Hello, World!' })}>Insert text</button>
-    </div>
-  );
-};
-
-export default ConflictResolver;
+{"import React from 'react';\nimport { useEditor } from './useEditor';\n\ninterface ConflictResolverProps {\n  editor: useEditor;\n}\n\nconst ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {\n  const { operations } = editor;\n  const conflicts = operations.filter((operation) => operation.type === 'conflict');\n  \n  return (\n    <div>\n      {conflicts.map((conflict, index) => (\n        <div key={index}>\n          Conflict at {conflict.path}: {conflict.content}\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default ConflictResolver;
