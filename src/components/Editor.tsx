@@ -1,19 +1,53 @@
 {"import React from 'react';
-import { EditorState, Editor } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { syntaxHighlighting } from 'prosemirror-highlight';
+import { useState, useEffect } from 'react';
+import CodeMirror from 'codemirror';
 
-interface Props {
-  onChange: (state: EditorState) => void;
-  value: string;
-}
+const Editor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
+  const [formatting, setFormatting] = useState('');
 
-const EditorComponent = ({ onChange, value }: Props) => {
-  const state = EditorState.create({ doc: value, plugins: [syntaxHighlighting()] });
-  const view = new EditorView({ state, dispatchTransaction: (transaction) => {
-    onChange(transaction.state.doc.toString());
-  }});
-  return <div className="editor" ref={view.contentDOM} />
+  useEffect(() => {
+    const cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      theme: 'monokai'
+    });
+
+    cm.on('change', () => {
+      setCode(cm.getValue());
+    });
+
+    return () => {
+      cm.toTextArea();
+    };
+  }, [language]);
+
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value);
+  };
+
+  const handleFormat = () => {
+    setFormatting('json');
+  };
+
+  const handleKeydown = (e) => {
+    if (e.key === 'Ctrl+S') {
+      console.log('Saved!');
+    }
+  };
+
+  return (
+    <div>
+      <select value={language} onChange={handleLanguageChange}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <button onClick={handleFormat}>Format</button>
+      <textarea id="editor" onkeydown={handleKeydown} />
+    </div>
+  );
 };
 
-export default EditorComponent;
+export default Editor;
