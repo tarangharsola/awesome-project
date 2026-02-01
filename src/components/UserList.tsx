@@ -14,12 +14,14 @@ interface Props {
 const UserList = ({ users }: Props) => {
   return (
     <div className="user-list">
-      {users.map((user) => (
-        <div key={user.id} className="user">
+      {users.map((user, index) => (
+        <div key={index} className="user-item">
           <span className="username" style={{
             backgroundColor: user.color,
-            color: '#fff',
-          }}>{user.name}</span>
+            color: "#fff",
+          }}>
+            {user.name}
+          </span>
         </div>
       ))}
     </div>
