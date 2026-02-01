@@ -1,35 +1,51 @@
-{"import React from 'react';
-import './CursorTracker.css';
+import React, { useState, useEffect } from 'react';
+import { useCursor } from './useCursor';
+import { useUsers } from './useUsers';
 
-interface Cursor {
-  id: string;
-  x: number;
-  y: number;
-  color: string;
+interface CursorTrackerProps {
+  userId: string;
+  cursorPosition: number;
+  userName: string;
+  userColor: string;
 }
 
-interface Props {
-  cursors: Cursor[];
-}
+const CursorTracker: React.FC<CursorTrackerProps> = ({
+  userId,
+  cursorPosition,
+  userName,
+  userColor,
+}) => {
+  const { cursors, setCursor } = useCursor();
+  const { users, setUsers } = useUsers();
 
-const CursorTracker = ({ cursors }: Props) => {
+  useEffect(() => {
+    setCursor(userId, cursorPosition);
+  }, [userId, cursorPosition]);
+
   return (
-    <div className="cursor-tracker">
-      {cursors.map((cursor) => (
-        <div key={cursor.id} className="cursor" style={{
-          left: cursor.x + 'px',
-          top: cursor.y + 'px',
-          backgroundColor: cursor.color,
-          color: '#fff',
-        }}>
-          <span className="cursor-label" style={{
-            backgroundColor: cursor.color,
-            color: '#fff',
-          }}>{cursor.id}</span>
-        </div>
-      ))}
+    <div
+      style={{
+        position: 'absolute',
+        top: cursorPosition,
+        left: 0,
+        width: '100%',
+        height: 2,
+        backgroundColor: userColor,
+      }}
+    >
+      <span
+        style={{
+          position: 'absolute',
+          top: cursorPosition - 10,
+          left: 0,
+          fontSize: 12,
+          color: 'white',
+        }}
+      >
+        {userName}
+      </span>
     </div>
   );
-}
+};
 
 export default CursorTracker;

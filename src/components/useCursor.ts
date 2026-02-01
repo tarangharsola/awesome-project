@@ -1,20 +1,26 @@
-{"import { useState, useEffect } from 'react';
-import { EditorView } from 'prosemirror-view';
+import { useState, useEffect } from 'react';
 
-interface Props {
-  view: EditorView;
+interface useCursor {
+  cursors: { [key: string]: number };
+  setCursor: (userId: string, cursorPosition: number) => void;
 }
 
-const useCursor = ({ view }: Props) => {
-  const [cursorPosition, setCursorPosition] = useState(view.state.selection.from);
+const useCursor = () => {
+  const [cursors, setCursors] = useState<{ [key: string]: number }>({});
+
   useEffect(() => {
-    const handleCursorChange = () => setCursorPosition(view.state.selection.from);
-    view.dispatchStateChange = handleCursorChange;
-    return () => {
-      view.dispatchStateChange = null;
+    const handleCursorChange = (userId: string, cursorPosition: number) => {
+      setCursors((prevCursors) => ({ ...prevCursors, [userId]: cursorPosition }));
     };
-  }, [view]);
-  return cursorPosition;
+
+    return handleCursorChange;
+  }, []);
+
+  const setCursor = (userId: string, cursorPosition: number) => {
+    setCursors((prevCursors) => ({ ...prevCursors, [userId]: cursorPosition }));
+  };
+
+  return { cursors, setCursor };
 };
 
 export default useCursor;
