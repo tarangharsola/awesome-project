@@ -1,40 +1,45 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
-import CodeMirror from 'codemirror';
+import { EditorState, Editor } from 'react-simple-editor';
+import 'prismjs/themes/prism.css';
+import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
 
-const Editor = () => {
+const EditorComponent = () => {
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
   const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState('');
-  const [formatting, setFormatting] = useState('');
+  const [fontSize, setFontSize] = useState(14);
 
   useEffect(() => {
-    const cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-      theme: 'monokai'
-    });
-
-    cm.on('change', () => {
-      setCode(cm.getValue());
-    });
-
-    return () => {
-      cm.toTextArea();
+    const handleKeyDown = (event) => {
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const selection = editorState.getSelection();
+        const start = selection.getStartKey();
+        const end = selection.getEndKey();
+        const text = editorState.getCurrentContent().getPlainText();
+        const lines = text.split('\n');
+        const startLine = lines[start].split(' ').length;
+        const endLine = lines[end].split(' ').length;
+        const indent = lines[start].match(/^\s*/)[0].length;
+        const newLines = lines.slice(0, start).concat([' '.repeat(indent) + ' '.repeat(endLine - startLine)].concat(lines.slice(start + 1)));
+        const newContent = editorState.getCurrentContent().merge({
+          text: newLines.join('\n'),
+        });
+        setEditorState(EditorState.push(editorState, newContent, 'insert-text'));
+      }
     };
-  }, [language]);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
-  const handleLanguageChange = (e) => {
-    setLanguage(e.target.value);
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
   };
 
-  const handleFormat = () => {
-    setFormatting('json');
-  };
-
-  const handleKeydown = (e) => {
-    if (e.key === 'Ctrl+S') {
-      console.log('Saved!');
-    }
+  const handleFontSizeChange = (event) => {
+    setFontSize(event.target.value);
   };
 
   return (
@@ -44,10 +49,19 @@ const Editor = () => {
         <option value="python">Python</option>
         <option value="html">HTML</option>
       </select>
-      <button onClick={handleFormat}>Format</button>
-      <textarea id="editor" onkeydown={handleKeydown} />
+      <select value={fontSize} onChange={handleFontSizeChange}>
+        <option value="12">12</option>
+        <option value="14">14</option>
+        <option value="16">16</option>
+      </select>
+      <EditorState
+        editorState={editorState}
+        onEditorStateChange={setEditorState}
+        language={language}
+        fontSize={fontSize}
+      />
     </div>
   );
 };
 
-export default Editor;
+export default EditorComponent;
