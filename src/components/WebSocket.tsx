@@ -1,21 +1,42 @@
 {"import React, { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import { io } from 'socket.io-client';
 
-interface Props {
-  onMessage: (message: string) => void;
-}
+const WebSocket = () => {
+  const [socket, setSocket] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-const WebSocketComponent = ({ onMessage }: Props) => {
-  const [ws, setWs] = useState<WebSocket | null>(null);
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-    ws.onmessage = (event) => onMessage(event.data);
+    const socketUrl = 'ws://localhost:3001';
+    const socketOptions = {
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+    };
+
+    const newSocket = io(socketUrl, socketOptions);
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      console.log('Connected to WebSocket server');
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('Disconnected from WebSocket server');
+    });
+
     return () => {
-      ws.close();
+      newSocket.disconnect();
     };
   }, []);
-  return null;
-};
 
-export default WebSocketComponent;
+  const handleConnectionStatus = (status) => {
+    console.log('Connection Status:', status);
+  };
+
+  return (
+    <div>
+      <p>Connection Status: {socket ? 'Connected' : 'Disconnected'}</p>
+      <p>Retry Count: {retryCount}</p>
+    </div>
+  );
+};
+export default WebSocket;
