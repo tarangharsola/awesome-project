@@ -3,16 +3,16 @@ const assert = require('assert');
 
 // Test Editor component
 describe('Editor', () => {
-  it('should render editor', () => {
+  it('renders editor', () => {
     const editor = new Editor();
-    assert.ok(editor);
+    assert(editor instanceof Editor);
   });
 });
 
 // Test WebSocket component
 describe('WebSocket', () => {
-  it('should establish connection', () => {
+  it('connects to server', () => {
     const webSocket = new WebSocket('ws://localhost:8080');
-    assert.ok(webSocket);
+    assert(webSocket instanceof WebSocket);
   });
 });
