@@ -1,18 +1,22 @@
-import React from 'react';
-import { useUsers } from './useUsers';
+{"import React from 'react';
+import './UserList.css';
 
-interface UserListProps {
-  users: { [key: string]: { name: string; color: string } };
+interface User {
+  id: string;
+  name: string;
+  color: string;
 }
 
-const UserList: React.FC<UserListProps> = ({ users }) => {
+interface Props {
+  users: User[];
+}
+
+const UserList = ({ users }: Props) => {
   return (
-    <div>
-      {Object.keys(users).map((userId) => (
-        <div key={userId}>
-          <span style={{ color: users[userId].color }}>
-            {users[userId].name}
-          </span>
+    <div className="user-list">
+      {users.map((user, index) => (
+        <div key={index} style={{ backgroundColor: user.color }}>
+          <span>{user.name}</span>
         </div>
       ))}
     </div>
