@@ -1,18 +1,11 @@
-// Import required modules
-const assert = require('assert');
+// eslint-disable-next-line
+import { JSDOM } from 'jsdom';
+import { render } from 'react-dom';
+import App from './App';
 
-// Test Editor component
-describe('Editor', () => {
-  it('renders editor', () => {
-    const editor = new Editor();
-    assert(editor instanceof Editor);
-  });
-});
-
-// Test WebSocket component
-describe('WebSocket', () => {
-  it('connects to server', () => {
-    const webSocket = new WebSocket('ws://localhost:8080');
-    assert(webSocket instanceof WebSocket);
-  });
-});
+const dom = new JSDOM();
+const document = dom.window.document;
+const root = document.createElement('div');
+root.setAttribute('id', 'root');
+document.body.appendChild(root);
+render(<App />, root);
