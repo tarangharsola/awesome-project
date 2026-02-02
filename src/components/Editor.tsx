@@ -1,45 +1,26 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
-import { EditorState, Editor } from 'react-simple-editor';
-import 'prismjs/themes/prism.css';
-import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
+import AceEditor from 'react-ace';
 
-const EditorComponent = () => {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+const Editor = () => {
   const [language, setLanguage] = useState('javascript');
+  const [value, setValue] = useState('');
   const [fontSize, setFontSize] = useState(14);
 
   useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === 'Tab') {
-        event.preventDefault();
-        const selection = editorState.getSelection();
-        const start = selection.getStartKey();
-        const end = selection.getEndKey();
-        const text = editorState.getCurrentContent().getPlainText();
-        const lines = text.split('\n');
-        const startLine = lines[start].split(' ').length;
-        const endLine = lines[end].split(' ').length;
-        const indent = lines[start].match(/^\s*/)[0].length;
-        const newLines = lines.slice(0, start).concat([' '.repeat(indent) + ' '.repeat(endLine - startLine)].concat(lines.slice(start + 1)));
-        const newContent = editorState.getCurrentContent().merge({
-          text: newLines.join('\n'),
-        });
-        setEditorState(EditorState.push(editorState, newContent, 'insert-text'));
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage) {
+      setLanguage(storedLanguage);
+    }
   }, []);
 
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value);
+    localStorage.setItem('language', e.target.value);
   };
 
-  const handleFontSizeChange = (event) => {
-    setFontSize(event.target.value);
+  const handleFontSizeChange = (e) => {
+    setFontSize(e.target.value);
   };
 
   return (
@@ -49,19 +30,31 @@ const EditorComponent = () => {
         <option value="python">Python</option>
         <option value="html">HTML</option>
       </select>
-      <select value={fontSize} onChange={handleFontSizeChange}>
-        <option value="12">12</option>
-        <option value="14">14</option>
-        <option value="16">16</option>
-      </select>
-      <EditorState
-        editorState={editorState}
-        onEditorStateChange={setEditorState}
-        language={language}
+      <br />
+      <label>Font Size:</label>
+      <input type="number" value={fontSize} onChange={handleFontSizeChange} />
+      <br />
+      <AceEditor
+        mode={language}
+        theme="monokai"
+        value={value}
+        onChange={setValue}
         fontSize={fontSize}
+        showPrintMargin={false}
+        showGutter={false}
+        highlightActiveLine={false}
+        enableBasicAutocompletion={false}
+        enableLiveAutocompletion={false}
+        enableSnippets={false}
+        showLineNumbers={false}
+        setOptions={{
+          enableBasicAutocompletion: false,
+          enableLiveAutocompletion: false,
+          enableSnippets: false,
+          showLineNumbers: false,
+        }}
       />
     </div>
   );
 };
-
-export default EditorComponent;
+export default Editor;
