@@ -1,60 +1,53 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
-import AceEditor from 'react-ace';
+import React, { useState, useEffect } from 'react';
+import CodeMirror from 'codemirror';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/hint/javascript';
+import 'codemirror/addon/hint/html';
+import 'codemirror/addon/hint/css';
+import 'codemirror/mode/javascript/javascript';
+import 'codemirror/mode/python/python';
+import 'codemirror/mode/htmlmixed/htmlmixed';
+import 'codemirror/theme/dracula.css';
 
 const Editor = () => {
+  const [code, setCode] = useState('');
   const [language, setLanguage] = useState('javascript');
-  const [value, setValue] = useState('');
-  const [fontSize, setFontSize] = useState(14);
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem('language');
-    if (storedLanguage) {
-      setLanguage(storedLanguage);
-    }
-  }, []);
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      theme: 'dracula',
+      lineNumbers: true,
+      matchBrackets: true,
+      autoCloseBrackets: true,
+    });
 
-  const handleLanguageChange = (e) => {
-    setLanguage(e.target.value);
-    localStorage.setItem('language', e.target.value);
-  };
+    editor.on('change', (instance, change) => {
+      setCode(instance.getValue());
+    });
 
-  const handleFontSizeChange = (e) => {
-    setFontSize(e.target.value);
+    return () => {
+      editor.toTextArea();
+    };
+  }, [language]);
+
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
   };
 
   return (
     <div>
+      <textarea id='editor' />
       <select value={language} onChange={handleLanguageChange}>
-        <option value="javascript">JavaScript</option>
-        <option value="python">Python</option>
-        <option value="html">HTML</option>
+        <option value='javascript'>JavaScript</option>
+        <option value='python'>Python</option>
+        <option value='html'>HTML</option>
       </select>
-      <br />
-      <label>Font Size:</label>
-      <input type="number" value={fontSize} onChange={handleFontSizeChange} />
-      <br />
-      <AceEditor
-        mode={language}
-        theme="monokai"
-        value={value}
-        onChange={setValue}
-        fontSize={fontSize}
-        showPrintMargin={false}
-        showGutter={false}
-        highlightActiveLine={false}
-        enableBasicAutocompletion={false}
-        enableLiveAutocompletion={false}
-        enableSnippets={false}
-        showLineNumbers={false}
-        setOptions={{
-          enableBasicAutocompletion: false,
-          enableLiveAutocompletion: false,
-          enableSnippets: false,
-          showLineNumbers: false,
-        }}
-      />
+      <pre>{code}</pre>
     </div>
   );
 };
+
 export default Editor;

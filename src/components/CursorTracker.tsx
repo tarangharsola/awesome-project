@@ -1,31 +1,28 @@
-{"import React from 'react';
-import './CursorTracker.css';
+import React, { useState, useEffect } from 'react';
+import CodeMirror from 'codemirror';
 
-interface Cursor {
-  id: string;
-  name: string;
-  color: string;
-  x: number;
-  y: number;
-}
+const CursorTracker = () => {
+  const [cursors, setCursors] = useState({});
 
-interface Props {
-  cursors: Cursor[];
-}
+  useEffect(() => {
+    const socket = new WebSocket('ws://localhost:8080');
 
-const CursorTracker = ({ cursors }: Props) => {
+    socket.onmessage = (event) => {
+      const cursor = JSON.parse(event.data);
+      setCursors((prevCursors) => ({ ...prevCursors, [cursor.id]: cursor }));
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, []);
+
   return (
-    <div className="cursor-tracker">
-      {cursors.map((cursor, index) => (
-        <div key={index} style={{
-          position: 'absolute',
-          left: cursor.x,
-          top: cursor.y,
-          backgroundColor: cursor.color,
-          width: 2,
-          height: 10,
-        }}>
-          <span>{cursor.name}</span>
+    <div>
+      {Object.keys(cursors).map((id) => (
+        <div key={id}>
+          <span style={{ color: cursors[id].color }}>{cursors[id].username}</span>
+          <span> at line {cursors[id].line}, column {cursors[id].ch}</span>
         </div>
       ))}
     </div>
