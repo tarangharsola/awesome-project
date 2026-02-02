@@ -1,25 +1,31 @@
-import { OperationalTransformation } from 'ot-js';
+{"import React from 'react';
+import { useEditor } from './useEditor';
 
 interface ConflictResolverProps {
-  userId: string;
-  cursorPosition: number;
-  userName: string;
-  userColor: string;
+  editor: useEditor;
 }
 
-const ConflictResolver: React.FC<ConflictResolverProps> = ({
-  userId,
-  cursorPosition,
-  userName,
-  userColor,
-}) => {
-  const ot = new OperationalTransformation();
+const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {
+  const { operations } = editor;
+  const conflicts = operations.filter((op) => op.type === 'conflict');
 
-  useEffect(() => {
-    ot.applyOperation(userId, cursorPosition);
-  }, [userId, cursorPosition]);
+  if (conflicts.length === 0) return null;
 
-  return null;
+  return (
+    <div style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(255, 0, 0, 0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}>
+      <p>Conflict detected!</p>
+    </div>
+  );
 };
 
 export default ConflictResolver;

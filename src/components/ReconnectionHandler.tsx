@@ -1,1 +1,43 @@
-{"import React, { useState, useEffect } from 'react';\nimport { useWebSocket } from './useWebSocket';\n\nconst ReconnectionHandler = () => {\n  const [connectionStatus, setConnectionStatus] = useState('connected');\n  const [retryCount, setRetryCount] = useState(0);\n  const { reconnect, isReconnecting } = useWebSocket();\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      if (isReconnecting) {\n        setRetryCount(retryCount + 1);\n      }\n    }, 1000);\n    return () => clearInterval(intervalId);\n  }, [isReconnecting, retryCount]);\n\n  useEffect(() => {\n    if (isReconnecting) {\n      setConnectionStatus('reconnecting');\n    } else if (connectionStatus === 'reconnecting' && retryCount >= 3) {\n      setConnectionStatus('disconnected');\n    }\n  }, [isReconnecting, connectionStatus, retryCount]);\n\n  return (\n    <div>\n      <p>Connection Status: {connectionStatus}</p>\n      <button onClick={reconnect}>Retry</button>\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+{"import React, { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+
+interface ReconnectionHandlerProps {
+  children: React.ReactNode;
+}
+
+const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ children }) => {
+  const [reconnecting, setReconnecting] = useState(false);
+  const { reconnect } = useWebSocket();
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (reconnecting) {
+        reconnect();
+      }
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [reconnecting, reconnect]);
+
+  return (
+    <div style={{
+      position: 'relative',
+    }}>
+      {children}
+      {reconnecting && <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 255, 0, 0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <p>Reconnecting...</p>
+      </div>}
+    </div>
+  );
+};
+
+export default ReconnectionHandler;
