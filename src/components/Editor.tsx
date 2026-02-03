@@ -1,1 +1,39 @@
-{"import React, { useState, useEffect } from 'react';\nimport { useEditor } from './useEditor';\n\ninterface EditorProps {\n  language: string;\n}\n\nconst Editor: React.FC<EditorProps> = ({ language }) => {\n  const [code, setCode] = useState('');\n  const { handleCodeChange } = useEditor();\n\n  useEffect(() => {\n    handleCodeChange(code);\n  }, [code]);\n\n  return (\n    <div\n      contentEditable={true}\n      suppressContentEditableWarning={true}\n      onInput={(e) => setCode(e.target.innerHTML)}\n    />\n  );\n};\n\nexport default Editor;
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import MonacoEditor from '@monaco-editor/react';
+
+const Editor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [value, setValue] = useState('');
+  const [theme, setTheme] = useState('vs-dark');
+
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
+  };
+
+  const handleThemeChange = (event) => {
+    setTheme(event.target.value);
+  };
+
+  return (
+    <div>
+      <select value={language} onChange={handleLanguageChange}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <select value={theme} onChange={handleThemeChange}>
+        <option value="vs-dark">Dark</option>
+        <option value="vs-light">Light</option>
+      </select>
+      <MonacoEditor
+        language={language}
+        theme={theme}
+        value={value}
+        onChange={(newValue) => setValue(newValue)}
+      />
+    </div>
+  );
+};
+
+export default Editor;
