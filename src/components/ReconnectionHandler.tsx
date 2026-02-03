@@ -1,1 +1,31 @@
-{"import React, { useState, useEffect } from 'react';\nimport { useWebSocket } from './useWebSocket';\n\ninterface ReconnectionHandlerProps {\n  children: React.ReactNode;\n}\n\nconst ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ children }) => {\n  const [reconnecting, setReconnecting] = useState(false);\n  const { reconnect } = useWebSocket();\n\n  useEffect(() => {\n    reconnect();\n  }, []);\n\n  return (\n    <div>\n      {reconnecting ? (\n        <p>Reconnecting...</p>\n      ) : (\n        children\n      )}\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+{"import React, { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+
+interface ReconnectionHandlerProps {
+  children: React.ReactNode;
+}
+
+const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ children }) => {
+  const [reconnecting, setReconnecting] = useState(false);
+  const { reconnect, isReconnecting } = useWebSocket();
+
+  useEffect(() => {
+    if (isReconnecting) {
+      setReconnecting(true);
+    } else {
+      setReconnecting(false);
+    }
+  }, [isReconnecting]);
+
+  return (
+    <div>
+      {reconnecting ? (
+        <div>Reconnecting...</div>
+      ) : (
+        children
+      )}
+    </div>
+  );
+};
+
+export default ReconnectionHandler;

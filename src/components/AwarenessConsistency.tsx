@@ -7,11 +7,15 @@ interface AwarenessConsistencyProps {
 
 const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {
   const { operations } = editor;
-  const awareness = operations.filter((op) => op.type === 'awareness');
+  const awareness = operations.filter((operation) => operation.type === 'awareness');
 
-  if (awareness.length === 0) return null;
-
-  return <div>Awareness consistency: {awareness.length}</div>;
+  return (
+    <div>
+      {awareness.map((awareness, index) => (
+        <div key={index}>{awareness.message}</div>
+      ))}
+    </div>
+  );
 };
 
 export default AwarenessConsistency;

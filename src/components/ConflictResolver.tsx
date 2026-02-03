@@ -7,11 +7,15 @@ interface ConflictResolverProps {
 
 const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {
   const { operations } = editor;
-  const conflicts = operations.filter((op) => op.type === 'conflict');
+  const conflicts = operations.filter((operation) => operation.type === 'conflict');
 
-  if (conflicts.length === 0) return null;
-
-  return <div>Conflicts detected: {conflicts.length}</div>;
+  return (
+    <div>
+      {conflicts.map((conflict, index) => (
+        <div key={index}>{conflict.message}</div>
+      ))}
+    </div>
+  );
 };
 
 export default ConflictResolver;
