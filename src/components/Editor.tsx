@@ -1,53 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import CodeMirror from 'codemirror';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/hint/javascript';
-import 'codemirror/addon/hint/html';
-import 'codemirror/addon/hint/css';
-import 'codemirror/mode/javascript/javascript';
-import 'codemirror/mode/python/python';
-import 'codemirror/mode/htmlmixed/htmlmixed';
-import 'codemirror/theme/dracula.css';
+{"import React from 'react';
+import { EditorState, Editor } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { keymap } from 'prosemirror-keymap';
+import { history } from 'prosemirror-history';
 
-const Editor = () => {
-  const [code, setCode] = useState('');
-  const [language, setLanguage] = useState('javascript');
+const EditorComponent = () => {
+  const [editorState, setEditorState] = React.useState(EditorState.create());
+  const [view, setView] = React.useState(null);
 
-  useEffect(() => {
-    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      theme: 'dracula',
-      lineNumbers: true,
-      matchBrackets: true,
-      autoCloseBrackets: true,
-    });
+  React.useEffect(() => {
+    const view = new EditorView(document.getElementById('editor'), editorState, plugins);
+    setView(view);
+    return () => view.destroy();
+  }, [editorState, plugins]);
 
-    editor.on('change', (instance, change) => {
-      setCode(instance.getValue());
-    });
-
-    return () => {
-      editor.toTextArea();
-    };
-  }, [language]);
-
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
-  };
+  const handleUpdate = (state) => setEditorState(state);
 
   return (
-    <div>
-      <textarea id='editor' />
-      <select value={language} onChange={handleLanguageChange}>
-        <option value='javascript'>JavaScript</option>
-        <option value='python'>Python</option>
-        <option value='html'>HTML</option>
-      </select>
-      <pre>{code}</pre>
+    <div id='editor' style={{ height: '100vh' }}>
+      <Editor
+        state={editorState}
+        onChange={handleUpdate}
+        plugins={plugins}
+      />
     </div>
   );
 };
 
-export default Editor;
+export default EditorComponent;
