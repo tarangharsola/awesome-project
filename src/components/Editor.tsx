@@ -1,27 +1,31 @@
 {"import React from 'react';
-import { EditorState, Editor } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { keymap } from 'prosemirror-keymap';
-import { history } from 'prosemirror-history';
+import { useState, useEffect } from 'react';
+import { Editor } from '@monaco-editor/react';
 
 const EditorComponent = () => {
-  const [editorState, setEditorState] = React.useState(EditorState.create());
-  const [view, setView] = React.useState(null);
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
 
-  React.useEffect(() => {
-    const view = new EditorView(document.getElementById('editor'), editorState, plugins);
-    setView(view);
-    return () => view.destroy();
-  }, [editorState, plugins]);
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
+  };
 
-  const handleUpdate = (state) => setEditorState(state);
+  const handleCodeChange = (event) => {
+    setCode(event.target.value);
+  };
 
   return (
-    <div id='editor' style={{ height: '100vh' }}>
+    <div>
+      <select value={language} onChange={handleLanguageChange}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
       <Editor
-        state={editorState}
-        onChange={handleUpdate}
-        plugins={plugins}
+        height="500"
+        language={language}
+        value={code}
+        onChange={handleCodeChange}
       />
     </div>
   );
