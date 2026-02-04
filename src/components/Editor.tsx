@@ -1,37 +1,64 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
-import EditorComponent from './EditorComponent';
+import CodeMirror from 'codemirror';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/hint/show-hint';
 
-interface EditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
-
-const Editor = ({ value, onChange, language }: EditorProps) => {
-  const [editorValue, setEditorValue] = useState(value);
-  const [cursorPosition, setCursorPosition] = useState(0);
+const Editor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
 
   useEffect(() => {
-    onChange(editorValue);
-  }, [editorValue, onChange]);
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      theme: 'monokai',
+      lineNumbers: true,
+      foldGutter: true,
+      indentUnit: 4,
+      indentWithTabs: false,
+      extraKeys: {
+        'Ctrl-Space': 'autocomplete',
+        'Ctrl-Shift-Space': 'show-hint',
+        'Ctrl-Shift-F': 'foldCode',
+        'Ctrl-Shift-Shift-F': 'unfoldCode',
+      },
+    });
 
-  const handleEditorChange = (newValue: string) => {
-    setEditorValue(newValue);
-  };
+    editor.on('change', () => {
+      setCode(editor.getValue());
+    });
 
-  const handleCursorPositionChange = (newCursorPosition: number) => {
-    setCursorPosition(newCursorPosition);
+    return () => {
+      editor.toTextArea();
+    };
+  }, [language]);
+
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
   };
 
   return (
-    <EditorComponent
-      value={editorValue}
-      onChange={handleEditorChange}
-      language={language}
-      cursorPosition={cursorPosition}
-      onCursorPositionChange={handleCursorPositionChange}
-    />
+    <div>
+      <select value={language} onChange={handleLanguageChange}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <textarea id="editor" />
+      <pre>{code}</pre>
+    </div>
   );
 };
 
