@@ -1,1 +1,29 @@
-{"import React from 'react';\nimport { useUsers } from './useUsers';\n\ninterface UserListProps {\n  users: { id: string; name: string; color: string; }[];\n}\n\nconst UserList: React.FC<UserListProps> = ({ users }) => {\n  return (\n    <ul>\n      {users.map((user) => (\n        <li key={user.id}>\n          <span style={{\n            backgroundColor: user.color,\n            padding: '2px 4px',\n            borderRadius: '4px',\n          }}>{user.name}</span>\n        </li>\n      ))}\n    </ul>\n  );\n};\n\nexport default UserList;
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+
+interface UserListProps {
+  users: { id: string; name: string; color: string }[];
+}
+
+const UserList = ({ users }: UserListProps) => {
+  const [usersState, setUsersState] = useState(users);
+
+  useEffect(() => {
+    setUsersState(users);
+  }, [users]);
+
+  return (
+    <ul>
+      {usersState.map((user) => (
+        <li key={user.id} style={{
+          backgroundColor: user.color,
+          padding: 10,
+          borderRadius: 5,
+        }}>{user.name}</li>
+      ))}
+    </ul>
+  );
+};
+
+export default UserList;
