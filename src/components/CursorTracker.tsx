@@ -1,29 +1,32 @@
-{"import React, { useState, useEffect } from 'react';
-import { EditorState } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
+{"import React from 'react';
+import './CursorTracker.css';
 
-interface Props {
-  editorState: EditorState;
-  onChange: (state: EditorState) => void;
+interface Cursor {
+  id: string;
+  x: number;
+  y: number;
+  color: string;
 }
 
-const CursorTracker: React.FC<Props> = ({ editorState, onChange }) => {
-  const [cursorPosition, setCursorPosition] = useState(editorState.getCurrentContent().getSelection().getFocusOffset());
+interface Props {
+  cursors: Cursor[];
+}
 
-  useEffect(() => {
-    const handleSelectionChange = () => {
-      setCursorPosition(editorState.getCurrentContent().getSelection().getFocusOffset());
-    };
-
-    editorState.addChangeListener(handleSelectionChange);
-    return () => editorState.removeChangeListener(handleSelectionChange);
-  }, [editorState]);
-
+const CursorTracker = ({ cursors }: Props) => {
   return (
-    <div style={{ position: 'absolute', top: 0, left: cursorPosition + 'px' }}>
-      <span style={{ color: 'red' }}>{editorState.getCurrentContent().getSelection().getFocusOffset()}</span>
+    <div className="cursor-tracker">
+      {cursors.map((cursor, index) => (
+        <div key={index} style={{
+          position: 'absolute',
+          left: cursor.x,
+          top: cursor.y,
+          width: '2px',
+          height: '10px',
+          backgroundColor: cursor.color,
+        }} />
+      ))}
     </div>
   );
-};
+}
 
 export default CursorTracker;
