@@ -1,1 +1,31 @@
-{"import React from 'react';\nimport { useEditor } from './useEditor';\n\ninterface AwarenessConsistencyProps {\n  editor: useEditor;\n}\n\nconst AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {\n  const { operations } = editor;\n  const consistentOperations = operations.reduce((acc, operation) => {\n    if (acc.length === 0) {\n      return [operation];\n    }\n    const lastOperation = acc[acc.length - 1];\n    if (operation.type === 'insert' && lastOperation.type === 'insert') {\n      return acc.concat([\n        {\n          type: 'insert',\n          position: lastOperation.position + lastOperation.content.length,\n          content: operation.content,\n        },\n      ]);\n    }\n    return acc.concat([operation]);\n  }, []);\n  return <div>Consistent operations: {consistentOperations.map((operation, index) => `Operation ${index + 1}: ${operation.type} at position ${operation.position}`).join(', ')}</div>;\n};\n\nexport default AwarenessConsistency;
+{"import React from 'react';
+import { useEditor } from './useEditor';
+
+interface AwarenessConsistencyProps {
+  editor: useEditor;
+}
+
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {
+  const { operations } = editor;
+  const awareness = operations.filter((op) => op.type === 'awareness');
+
+  if (awareness.length === 0) return null;
+
+  return (
+    <div style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(0, 0, 255, 0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}>
+      <p>Awareness consistency achieved!</p>
+    </div>
+  );
+};
+
+export default AwarenessConsistency;

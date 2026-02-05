@@ -1,1 +1,59 @@
-{"import React, { useState, useEffect } from 'react';\nimport { useWebSocket } from './useWebSocket';\n\nconst ReconnectionHandler = () => {\n  const [connectionStatus, setConnectionStatus] = useState('connected');\n  const [retryCount, setRetryCount] = useState(0);\n  const { reconnect, isReconnecting } = useWebSocket();\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      if (isReconnecting) {\n        setRetryCount(retryCount + 1);\n      }\n    }, 1000);\n    return () => clearInterval(intervalId);\n  }, [isReconnecting]);\n\n  useEffect(() => {\n    if (retryCount > 3) {\n      setConnectionStatus('disconnected');\n    }\n  }, [retryCount]);\n\n  const handleReconnect = () => {\n    reconnect();\n    setRetryCount(0);\n  };\n\n  return (\n    <div>\n      <p>Connection Status: {connectionStatus}</p>\n      <button onClick={handleReconnect}>Reconnect</button>\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+{"import React, { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+
+interface ReconnectionHandlerProps {
+  children: React.ReactNode;
+}
+
+const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ children }) => {
+  const [reconnecting, setReconnecting] = useState(false);
+  const [error, setError] = useState(null);
+  const { reconnect, error: webSocketError } = useWebSocket();
+
+  useEffect(() => {
+    if (webSocketError) {
+      setError(webSocketError);
+      setReconnecting(false);
+    }
+  }, [webSocketError]);
+
+  if (reconnecting) {
+    return (
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 255, 0, 0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <p>Reconnecting...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(255, 0, 0, 0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <p>Error: {error.message}</p>
+      </div>
+    );
+  }
+
+  return children;
+};
+
+export default ReconnectionHandler;
