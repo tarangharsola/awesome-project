@@ -1,15 +1,1 @@
-/*
-  Add keyboard shortcuts for language switching and formatting defaults
-*/
-
-/* Language switching */
-select {
-  padding: 10px;
-  margin: 10px;
-}
-
-/* Formatting defaults */
-pre {
-  padding: 10px;
-  margin: 10px;
-}
+/* Add CSS styles for the editor here */

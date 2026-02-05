@@ -1,25 +1,50 @@
 {"import React from 'react';
-import { EditorState, convertToRaw } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
+import { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-editor';
+import { MonacoEditor } from 'react-monaco-editor';
 
-interface Props {
-  onChange: (state: EditorState) => void;
-  value: EditorState;
-}
+const EditorComponent = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
+  const [editor, setEditor] = useState(null);
 
-const EditorComponent: React.FC<Props> = ({ onChange, value }) => {
-  const onEditorStateChange = (state: EditorState) => {
-    onChange(state);
+  useEffect(() => {
+    const handleLanguageChange = (event) => {
+      setLanguage(event.target.value);
+    };
+    document.addEventListener('languageChange', handleLanguageChange);
+    return () => {
+      document.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
+
+  const handleCodeChange = (code) => {
+    setCode(code);
+  };
+
+  const handleEditorMount = (editor) => {
+    setEditor(editor);
+  };
+
+  const handleFormat = () => {
+    // Add formatting logic here
   };
 
   return (
-    <Editor
-      editorState={value}
-      onEditorStateChange={onEditorStateChange}
-      toolbarClassName='toolbar-class'
-      wrapperClassName='wrapper-class'
-      editorClassName='editor-class'
-    />
+    <div>
+      <select value={language} onChange={(event) => setLanguage(event.target.value)}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <button onClick={handleFormat}>Format</button>
+      <Editor
+        value={code}
+        onChange={handleCodeChange}
+        onMount={handleEditorMount}
+        language={language}
+      />
+    </div>
   );
 };
 
