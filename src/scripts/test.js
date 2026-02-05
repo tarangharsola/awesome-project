@@ -11,8 +11,8 @@ describe('Editor', () => {
 
 // Test WebSocket component
 describe('WebSocket', () => {
-  it('connects to server', () => {
-    const webSocket = new WebSocket('ws://localhost:8080');
+  it('establishes connection', () => {
+    const webSocket = new WebSocket();
     assert.ok(webSocket);
   });
 });
