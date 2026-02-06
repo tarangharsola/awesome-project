@@ -1,1 +1,17 @@
-{"import { useState, useEffect } from 'react';\nimport { useWebSocket } from './useWebSocket';\n\nconst useReconnection = () => {\n  const [reconnect, setReconnect] = useState(() => () => {});\n  const [connectionError, setConnectionError] = useState(null);\n  const { reconnect: wsReconnect, connectionError: wsConnectionError } = useWebSocket();\n\n  useEffect(() => {\n    setReconnect(wsReconnect);\n    setConnectionError(wsConnectionError);\n  }, [wsReconnect, wsConnectionError]);\n\n  return { reconnect, connectionError };\n};\n\nexport default useReconnection;
+{"import { useState, useEffect } from 'react';
+
+interface useReconnectionProps {
+  roomId: string;
+}
+
+const useReconnection = ({ roomId }: useReconnectionProps) => {
+  const [reconnectionStatus, setReconnectionStatus] = useState('disconnected');
+
+  useEffect(() => {
+    // Handle reconnection logic
+  }, []);
+
+  return reconnectionStatus;
+};
+
+export default useReconnection;

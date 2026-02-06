@@ -1,1 +1,26 @@
-{"import { useState, useEffect } from 'react';\nimport { io } from 'socket.io-client';\n\nconst useWebSocket = () => {\n  const [socket, setSocket] = useState(null);\n  const [connectionStatus, setConnectionStatus] = useState('connecting');\n\n  useEffect(() => {\n    const socket = io();\n    setSocket(socket);\n    socket.on('connect', () => {\n      setConnectionStatus('connected');\n    });\n    socket.on('disconnect', () => {\n      setConnectionStatus('disconnected');\n    });\n    return () => {\n      socket.disconnect();\n    };\n  }, []);\n\n  const reconnect = () => {\n    setConnectionStatus('reconnecting');\n    socket.connect();\n  };\n\n  return { reconnect, connectionStatus };\n};\n\nexport default useWebSocket;
+{"import { useState, useEffect } from 'react';
+
+interface useWebSocketProps {
+  roomId: string;
+}
+
+const useWebSocket = ({ roomId }: useWebSocketProps) => {
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    // Establish WebSocket connection
+  }, []);
+
+  useEffect(() => {
+    // Handle WebSocket events
+  }, [connectionStatus]);
+
+  return {
+    connect: () => {}
+    disconnect: () => {}
+    send: (message) => {}
+  };
+};
+
+export default useWebSocket;

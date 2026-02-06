@@ -1,22 +1,19 @@
-{"import React, { useState, useEffect } from 'react';
+{"import React from 'react';
 import { useEditor } from './useEditor';
 
 interface AwarenessConsistencyProps {
-  children: React.ReactNode;
+  editor: useEditor;
 }
 
-const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ children }) => {
-  const { operations } = useEditor();
-  const [awareness, setAwareness] = useState({}
-  useEffect(() => {
-    const awareness = {};
-    operations.forEach((operation) => {
-      awareness[operation.path] = operation.type;
-    });
-    setAwareness(awareness);
-  }, [operations]);
-
-  return children;
+const AwarenessConsistency = ({ editor }: AwarenessConsistencyProps) => {
+  const { cursorPositions, users } = editor.state;
+  return (
+    <div>
+      {cursorPositions.map((position, index) => (
+        <div key={index}>{users[index].name} at {position}</div>
+      ))}
+    </div>
+  );
 };
 
 export default AwarenessConsistency;

@@ -1,25 +1,45 @@
-{"import React, { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+{"import { useState, useEffect } from 'react';
 
-interface Props {
-  onMessage: (message: string) => void;
+interface WebSocketProps {
+  roomId: string;
 }
 
-const WebSocketComponent: React.FC<Props> = ({ onMessage }) => {
-  const [ws, setWs] = useState<WebSocket | null>(null);
+const WebSocket = ({ roomId }: WebSocketProps) => {
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-
-    ws.onmessage = (event) => {
-      onMessage(event.data);
+    const socket = new WebSocket('ws://localhost:8080');
+    socket.onmessage = (event) => {
+      setMessages((prevMessages) => [...prevMessages, event.data]);
     };
-
-    return () => ws.close();
+    socket.onopen = () => {
+      setConnectionStatus('connected');
+    };
+    socket.onclose = () => {
+      setConnectionStatus('disconnected');
+    };
+    socket.onerror = (error) => {
+      console.error(error);
+    };
+    return () => socket.close();
   }, []);
 
-  return null;
+  useEffect(() => {
+    if (connectionStatus === 'connected') {
+      // Send message to server
+    }
+  }, [connectionStatus]);
+
+  return (
+    <div>
+      Connection status: {connectionStatus}
+      Messages:
+      {messages.map((message, index) => (
+        <div key={index}>{message}</div>
+      ))}
+    </div>
+  );
 };
 
-export default WebSocketComponent;
+export default WebSocket;

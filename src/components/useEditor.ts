@@ -1,25 +1,21 @@
 {"import { useState, useEffect } from 'react';
 
-const useEditor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [value, setValue] = useState('');
-  const [theme, setTheme] = useState('vs-dark');
+interface useEditorProps {
+  roomId: string;
+}
 
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
-  };
+const useEditor = ({ roomId }: useEditorProps) => {
+  const [editorState, setEditorState] = useState({
+    cursorPositions: [],
+    users: [],
+    conflicts: [],
+  });
 
-  const handleThemeChange = (event) => {
-    setTheme(event.target.value);
-  };
+  useEffect(() => {
+    // Initialize editor state
+  }, []);
 
-  return {
-    language,
-    value,
-    theme,
-    handleLanguageChange,
-    handleThemeChange,
-  };
+  return editorState;
 };
 
 export default useEditor;

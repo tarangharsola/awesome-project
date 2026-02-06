@@ -1,26 +1,15 @@
 {"import React from 'react';
-import { User } from './User';
+import { useUsers } from './useUsers';
 
 interface UserListProps {
-  users: User[];
+  users: any[];
 }
 
 const UserList = ({ users }: UserListProps) => {
   return (
-    <div className="user-list">
+    <div>
       {users.map((user, index) => (
-        <div key={index} className="user-item">
-          <span className="username">{user.name}</span>
-          <span className="cursor-label" style={{
-            backgroundColor: user.color,
-            color: "#fff",
-            padding: "2px 4px",
-            borderRadius: "4px",
-            fontSize: "12px",
-          }}>
-            {user.cursorPosition}
-          </span>
-        </div>
+        <div key={index}>{user.name} ({user.color})</div>
       ))}
     </div>
   );

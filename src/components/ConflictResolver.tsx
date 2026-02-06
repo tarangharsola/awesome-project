@@ -5,19 +5,12 @@ interface ConflictResolverProps {
   editor: useEditor;
 }
 
-const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {
-  const { operations } = editor;
-  const conflicts = operations.filter((operation, index) => {
-    const previousOperation = operations[index - 1];
-    return previousOperation && previousOperation.type === operation.type && previousOperation.path === operation.path;
-  });
-
-  if (conflicts.length === 0) return null;
-
+const ConflictResolver = ({ editor }: ConflictResolverProps) => {
+  const { conflicts } = editor.state;
   return (
     <div>
       {conflicts.map((conflict, index) => (
-        <div key={index}>{`Conflict at ${conflict.path}`}</div>
+        <div key={index}>{conflict.user.name} at {conflict.position}</div>
       ))}
     </div>
   );

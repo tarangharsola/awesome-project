@@ -1,26 +1,21 @@
-import { useState, useEffect } from 'react';
+{"import { useState } from 'react';
 
-interface useCursor {
-  cursors: { [key: string]: number };
-  setCursor: (userId: string, cursorPosition: number) => void;
+interface useCursorProps {
+  editor: any;
 }
 
-const useCursor = () => {
-  const [cursors, setCursors] = useState<{ [key: string]: number }>({});
+const useCursor = ({ editor }: useCursorProps) => {
+  const [cursorPosition, setCursorPosition] = useState(null);
 
   useEffect(() => {
-    const handleCursorChange = (userId: string, cursorPosition: number) => {
-      setCursors((prevCursors) => ({ ...prevCursors, [userId]: cursorPosition }));
+    const handleCursorChange = (position) => {
+      setCursorPosition(position);
     };
+    editor.on('cursorChange', handleCursorChange);
+    return () => editor.off('cursorChange', handleCursorChange);
+  }, [editor]);
 
-    return handleCursorChange;
-  }, []);
-
-  const setCursor = (userId: string, cursorPosition: number) => {
-    setCursors((prevCursors) => ({ ...prevCursors, [userId]: cursorPosition }));
-  };
-
-  return { cursors, setCursor };
+  return cursorPosition;
 };
 
 export default useCursor;
