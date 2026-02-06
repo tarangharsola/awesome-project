@@ -1,46 +1,25 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-code-editor';
-import { Highlight, Languages } from 'prismjs';
+{"import React, { useState, useEffect } from 'react';
+import ReconnectionHandler from './ReconnectionHandler';
 
-const EditorComponent = () => {
-  const [language, setLanguage] = useState(Languages.javascript);
+const Editor = () => {
   const [code, setCode] = useState('');
-  const [formattedCode, setFormattedCode] = useState('');
+  const [connectionStatus, setConnectionStatus] = useState('');
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem('language');
-    if (storedLanguage) {
-      setLanguage(storedLanguage);
-    }
+    // Simulate connection status
+    const isConnected = Math.random() > 0.5;
+    setConnectionStatus(isConnected ? 'Connected' : 'Disconnected');
   }, []);
 
-  const handleLanguageChange = (language: string) => {
-    setLanguage(language);
-    localStorage.setItem('language', language);
-  };
-
-  const handleCodeChange = (code: string) => {
-    setCode(code);
-    setFormattedCode(prism.highlight(code, Highlight.javascript, Languages.javascript));
+  const handleCodeChange = (newCode) => {
+    setCode(newCode);
   };
 
   return (
     <div>
-      <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
-        <option value="javascript">JavaScript</option>
-        <option value="python">Python</option>
-        <option value="html">HTML</option>
-      </select>
-      <Editor
-        value={code}
-        onValueChange={handleCodeChange}
-        highlight={formattedCode}
-        padding={10}
-        style={{ fontFamily: 'monospace', fontSize: 12 }}
-      />
+      <ReconnectionHandler connectionStatus={connectionStatus} />
+      <textarea value={code} onChange={(e) => handleCodeChange(e.target.value)} />
     </div>
   );
 };
-
-export default EditorComponent;
+export default Editor;

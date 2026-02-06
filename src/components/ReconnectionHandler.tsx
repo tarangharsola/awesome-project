@@ -1,24 +1,32 @@
-{"import React, { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
 
-interface ReconnectionHandlerProps {
-  children: React.ReactNode;
-}
-
-const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ children }) => {
-  const [reconnecting, setReconnecting] = useState(false);
-  const { reconnect, connected } = useWebSocket();
+const ReconnectionHandler = () => {
+  const [connected, setConnected] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    if (!connected) {
-      setReconnecting(true);
-      reconnect();
-    }
-  }, [connected, reconnect]);
+    const intervalId = setInterval(() => {
+      // Simulate connection status
+      const isConnected = Math.random() > 0.5;
+      setConnected(isConnected);
+      if (!isConnected) {
+        setRetryCount(retryCount + 1);
+      }
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
 
-  if (reconnecting) return <div>Reconnecting...</div);
+  const handleRetry = () => {
+    setRetryCount(0);
+  };
 
-  return children;
+  return (
+    <div>
+      <p>Connection Status: {connected ? 'Connected' : 'Disconnected'}</p>
+      <p>Retry Count: {retryCount}</p>
+      <button onClick={handleRetry}>Retry</button>
+    </div>
+  );
 };
-
 export default ReconnectionHandler;
