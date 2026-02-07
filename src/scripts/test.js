@@ -1,31 +1,26 @@
-// Import required modules
-const assert = require('assert');
+{"import { test } from 'jest';
 
-// Test editor functionality
-describe('Editor', () => {
-  it('should render editor', () => {
-    // Arrange
-    const editor = document.createElement('div');
-    editor.innerHTML = '<editor></editor>';
-
-    // Act
-    const editorInstance = new Editor(editor);
-
-    // Assert
-    assert.ok(editorInstance);
-  });
+test('editor works', () => {
+  const editor = new Editor();
+  expect(editor.value).toBe('');
 });
 
-// Test WebSocket functionality
-describe('WebSocket', () => {
-  it('should establish connection', () => {
-    // Arrange
-    const socket = new WebSocket('ws://localhost:8080');
+test('cursor tracker works', () => {
+  const cursorTracker = new CursorTracker();
+  expect(cursorTracker.x).toBe(0);
+});
 
-    // Act
-    socket.onopen = () => {
-      // Assert
-      assert.ok(socket.readyState === WebSocket.OPEN);
-    };
-  });
+test('user list works', () => {
+  const userList = new UserList();
+  expect(userList.users).toEqual([]);
+});
+
+test('conflict resolver works', () => {
+  const conflictResolver = new ConflictResolver();
+  expect(conflictResolver.ot).toBeInstanceOf(OperationalTransformation);
+});
+
+test('reconnection handler works', () => {
+  const reconnectionHandler = new ReconnectionHandler();
+  expect(reconnectionHandler.ws).toBeInstanceOf(WebSocket);
 });

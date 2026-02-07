@@ -1,19 +1,10 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
+{"import { OperationalTransformation } from 'ot-js';
 
-interface ConflictResolverProps {
-  editor: useEditor;
+interface Props {}
+
+const ConflictResolver = () => {
+  const ot = new OperationalTransformation();
+  return ot;
 }
-
-const ConflictResolver = ({ editor }: ConflictResolverProps) => {
-  const { conflicts } = editor.state;
-  return (
-    <div>
-      {conflicts.map((conflict, index) => (
-        <div key={index}>{conflict.user.name} at {conflict.position}</div>
-      ))}
-    </div>
-  );
-};
 
 export default ConflictResolver;

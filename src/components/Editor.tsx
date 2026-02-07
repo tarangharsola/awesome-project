@@ -1,31 +1,13 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
 import { useEditor } from './useEditor';
 
+interface Props {}
+
 const Editor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const { editor, updateLanguage } = useEditor();
-
-  useEffect(() => {
-    updateLanguage(language);
-  }, [language]);
-
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
-  };
-
+  const { value, onChange } = useEditor();
   return (
-    <div>
-      <select value={language} onChange={handleLanguageChange}>
-        <option value="javascript">JavaScript</option>
-        <option value="python">Python</option>
-        <option value="html">HTML</option>
-      </select>
-      <div className="editor">
-        {editor}
-      </div>
-    </div>
+    <textarea value={value} onChange={onChange} />
   );
-};
+}
 
 export default Editor;
