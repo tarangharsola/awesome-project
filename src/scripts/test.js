@@ -1,18 +1,31 @@
 // Import required modules
 const assert = require('assert');
 
-// Test Editor component
+// Test editor functionality
 describe('Editor', () => {
-  it('renders editor', () => {
-    const editor = new Editor();
-    assert.ok(editor);
+  it('should render editor', () => {
+    // Arrange
+    const editor = document.createElement('div');
+    editor.innerHTML = '<editor></editor>';
+
+    // Act
+    const editorInstance = new Editor(editor);
+
+    // Assert
+    assert.ok(editorInstance);
   });
 });
 
-// Test WebSocket component
+// Test WebSocket functionality
 describe('WebSocket', () => {
-  it('establishes connection', () => {
-    const webSocket = new WebSocket();
-    assert.ok(webSocket);
+  it('should establish connection', () => {
+    // Arrange
+    const socket = new WebSocket('ws://localhost:8080');
+
+    // Act
+    socket.onopen = () => {
+      // Assert
+      assert.ok(socket.readyState === WebSocket.OPEN);
+    };
   });
 });
