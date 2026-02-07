@@ -1,26 +1,33 @@
 {"import { useState, useEffect } from 'react';
+import WebSocket from 'ws';
 
-interface useWebSocketProps {
-  roomId: string;
-}
-
-const useWebSocket = ({ roomId }: useWebSocketProps) => {
-  const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  const [messages, setMessages] = useState([]);
+const useWebSocket = () => {
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    // Establish WebSocket connection
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
+
+    return () => {
+      ws.close();
+    };
   }, []);
 
-  useEffect(() => {
-    // Handle WebSocket events
-  }, [connectionStatus]);
-
-  return {
-    connect: () => {}
-    disconnect: () => {}
-    send: (message) => {}
+  const send = (data) => {
+    if (ws) {
+      ws.send(JSON.stringify(data));
+    }
   };
+
+  const receive = (callback) => {
+    if (ws) {
+      ws.onmessage = (event) => {
+        callback(JSON.parse(event.data));
+      };
+    }
+  };
+
+  return { send, receive };
 };
 
 export default useWebSocket;

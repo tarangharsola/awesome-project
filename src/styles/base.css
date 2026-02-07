@@ -1,1 +1,9 @@
-/* Add CSS styles for the editor here */
+.editor {
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.select {
+  padding: 10px;
+  border: 1px solid #ccc;
+}

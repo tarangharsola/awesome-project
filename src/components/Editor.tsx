@@ -1,59 +1,29 @@
-{"import React, { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
-import { useUsers } from './useUsers';
-import { useReconnection } from './useReconnection';
-import { useCursor } from './useCursor';
-import AwarenessConsistency from './AwarenessConsistency';
-import ConflictResolver from './ConflictResolver';
-import CursorTracker from './CursorTracker';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
 
-interface EditorProps {
-  roomId: string;
-  language: string;
-}
-
-const Editor = ({ roomId, language }: EditorProps) => {
-  const [editorState, setEditorState] = useState({
-    cursorPositions: [],
-    users: [],
-    conflicts: [],
-  });
-  const { connect, disconnect, send } = useWebSocket(roomId);
-  const { users } = useUsers();
-  const { reconnectionStatus } = useReconnection();
-  const { cursorPosition } = useCursor();
+const Editor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const { editor, updateLanguage } = useEditor();
 
   useEffect(() => {
-    connect();
-    return () => disconnect();
-  }, []);
+    updateLanguage(language);
+  }, [language]);
 
-  useEffect(() => {
-    if (reconnectionStatus === 'connected') {
-      send({
-        type: 'join',
-        user: {
-          name: 'John Doe',
-          color: '#ff0000',
-        },
-      });
-    }
-  }, [reconnectionStatus]);
-
-  useEffect(() => {
-    if (cursorPosition) {
-      setEditorState((prevState) => ({
-        ...prevState,
-        cursorPositions: [...prevState.cursorPositions, cursorPosition],
-      }));
-    }
-  }, [cursorPosition]);
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
+  };
 
   return (
     <div>
-      <AwarenessConsistency editor={{ state: editorState, setState: setEditorState }} />
-      <ConflictResolver editor={{ state: editorState, setState: setEditorState }} />
-      <CursorTracker editor={{ state: editorState, setState: setEditorState }} />
+      <select value={language} onChange={handleLanguageChange}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <div className="editor">
+        {editor}
+      </div>
     </div>
   );
 };
