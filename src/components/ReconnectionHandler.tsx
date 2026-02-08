@@ -1,1 +1,10 @@
-{"import React, { useState, useEffect } from 'react';\nimport { useWebSocket } from './useWebSocket';\n\nconst ReconnectionHandler = () => {\n  const [connectionStatus, setConnectionStatus] = useState('connected');\n  const [retryCount, setRetryCount] = useState(0);\n  const { reconnect, connectionStatus: wsStatus } = useWebSocket();\n\n  useEffect(() => {\n    setConnectionStatus(wsStatus);\n  }, [wsStatus]);\n\n  const handleReconnect = () => {\n    setRetryCount(retryCount + 1);\n    reconnect();\n  };\n\n  return (\n    <div>\n      <p>Connection Status: {connectionStatus}</p>\n      <button onClick={handleReconnect}>Retry ({retryCount})</button>\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+{"import React from 'react';
+import { useReconnection } from './useReconnection';
+import { ReconnectionHandler } from './ReconnectionHandler';
+
+const ReconnectionHandlerComponent: React.FC = () => {
+  const reconnection = useReconnection();
+  return <ReconnectionHandler reconnection={reconnection} />;
+}
+
+export default ReconnectionHandlerComponent;

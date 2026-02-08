@@ -1,29 +1,10 @@
 {"import React from 'react';
-import './CursorTracker.css';
+import { useCursor } from './useCursor';
+import { CursorTracker } from './CursorTracker';
 
-interface Cursor {
-  id: string;
-  x: number;
-  y: number;
-  color: string;
+const CursorTrackerComponent: React.FC = () => {
+  const cursor = useCursor();
+  return <CursorTracker cursor={cursor} />;
 }
 
-interface Props {
-  cursors: Cursor[];
-}
-
-const CursorTracker = ({ cursors }: Props) => {
-  return (
-    <div className="cursor-tracker">
-      {cursors.map((cursor) => (
-        <div key={cursor.id} className="cursor" style={{
-          left: cursor.x + 'px',
-          top: cursor.y + 'px',
-          backgroundColor: cursor.color
-        }}/>
-      ))}
-    </div>
-  );
-};
-
-export default CursorTracker;
+export default CursorTrackerComponent;
