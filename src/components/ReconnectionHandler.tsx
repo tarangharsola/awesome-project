@@ -1,10 +1,1 @@
-{"import React from 'react';
-import { useReconnection } from './useReconnection';
-import { ReconnectionHandler } from './ReconnectionHandler';
-
-const ReconnectionHandlerComponent: React.FC = () => {
-  const reconnection = useReconnection();
-  return <ReconnectionHandler reconnection={reconnection} />;
-}
-
-export default ReconnectionHandlerComponent;
+{"import React, { useState, useEffect } from 'react';\nimport { useWebSocket } from './useWebSocket';\n\ninterface ReconnectionHandlerProps {\n  children: React.ReactNode;\n}\n\nconst ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ children }) => {\n  const [reconnecting, setReconnecting] = useState(false);\n  const { reconnect } = useWebSocket();\n  \n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      if (reconnecting) {\n        reconnect();\n      }\n    }, 1000);\n    return () => clearInterval(intervalId);\n  }, [reconnecting, reconnect]);\n  \n  return (\n    <div>\n      {children}\n      {reconnecting ? (\n        <div>\n          Reconnecting...\n        </div>\n      ) : null}\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
