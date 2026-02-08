@@ -1,9 +1,16 @@
-.editor {
-  padding: 10px;
-  border: 1px solid #ccc;
+/* Add language selector and formatting defaults */
+
+/* Language selector */
+#language-selector {
+  position: absolute;
+  top: 10px;
+  left: 10px;
 }
 
-.select {
+/* Formatting defaults */
+#editor {
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.5;
   padding: 10px;
-  border: 1px solid #ccc;
 }
