@@ -1,33 +1,49 @@
 {"import React from 'react';
-import { EditorState, Editor } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { DOMParser } from 'prosemirror-model';
+import { useState, useEffect } from 'react';
+import CodeMirror from 'codemirror';
 
-const EditorComponent = () => {
-  const [editorState, setEditorState] = React.useState(EditorState.create());
-  const [view, setView] = React.useState(null);
+const Editor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
+  const [formattedCode, setFormattedCode] = useState('');
 
-  React.useEffect(() => {
-    const parser = new DOMParser();
-    const doc = parser.parse(document.body.innerHTML);
-    const state = EditorState.create({ doc });
-    setEditorState(state);
-    setView(new EditorView(document.body, { state }));
-  }, []);
+  useEffect(() => {
+    const cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      theme: 'monokai'
+    });
 
-  const handleUpdate = (state) => {
-    setEditorState(state);
-    view.update(state);
+    cm.on('change', (instance, changes) => {
+      setCode(instance.getValue());
+      setFormattedCode(instance.getValue());
+    });
+
+    return () => {
+      cm.toTextArea();
+    };
+  }, [language]);
+
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
+  };
+
+  const handleFormat = () => {
+    const formattedCode = CodeMirror.formatter.format(code);
+    setFormattedCode(formattedCode);
   };
 
   return (
-    <div className="editor">
-      <Editor
-        value={editorState}
-        onChange={handleUpdate}
-      />
+    <div>
+      <select value={language} onChange={handleLanguageChange}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <button onClick={handleFormat}>Format</button>
+      <textarea id="editor" value={formattedCode} readOnly></textarea>
     </div>
   );
 };
 
-export default EditorComponent;
+export default Editor;
