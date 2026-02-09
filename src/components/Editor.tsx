@@ -1,26 +1,32 @@
 {"import React from 'react';
-import { Editor } from '@monaco-editor/react';
+import { EditorState, Editor } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { DOMParser } from 'prosemirror-model';
 
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
+const EditorComponent = () => {
+  const [editorState, setEditorState] = React.useState(EditorState.create());
+  const [view, setView] = React.useState(null);
 
-const EditorComponent = ({ value, onChange, language }: Props) => {
-  const handleEditorChange = (newValue: string) => {
-    onChange(newValue);
+  React.useEffect(() => {
+    const parser = new DOMParser();
+    const doc = parser.parse(document.body.innerHTML);
+    const state = EditorState.create({ doc });
+    setEditorState(state);
+    setView(new EditorView(document.body, { state }));
+  }, []);
+
+  const handleUpdate = (state) => {
+    setEditorState(state);
+    view.update(state);
   };
 
   return (
-    <Editor
-      value={value}
-      onChange={handleEditorChange}
-      language={language}
-      theme="vs-dark"
-      height="100vh"
-      width="100%"
-    />
+    <div className="editor">
+      <Editor
+        value={editorState}
+        onChange={handleUpdate}
+      />
+    </div>
   );
 };
 

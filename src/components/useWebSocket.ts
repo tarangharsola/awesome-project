@@ -3,31 +3,35 @@ import WebSocket from 'ws';
 
 const useWebSocket = () => {
   const [ws, setWs] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [dispatch, setDispatch] = useState(() => () => {});
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
     setWs(ws);
-
-    return () => {
-      ws.close();
-    };
+    setDispatch((dispatch) => (action) => {
+      ws.send(JSON.stringify(action));
+      dispatch(action);
+    });
   }, []);
 
-  const send = (data) => {
-    if (ws) {
-      ws.send(JSON.stringify(data));
-    }
-  };
+  useEffect(() => {
+    ws.onmessage = (event) => {
+      const action = JSON.parse(event.data);
+      switch (action.type) {
+        case 'JOIN':
+          setUsers((prevUsers) => [...prevUsers, action.user]);
+          break;
+        case 'LEAVE':
+          setUsers((prevUsers) => prevUsers.filter((user) => user.id !== action.userId));
+          break;
+        default:
+          break;
+      }
+    };
+  }, [ws]);
 
-  const receive = (callback) => {
-    if (ws) {
-      ws.onmessage = (event) => {
-        callback(JSON.parse(event.data));
-      };
-    }
-  };
-
-  return { send, receive };
+  return { users, dispatch };
 };
 
 export default useWebSocket;

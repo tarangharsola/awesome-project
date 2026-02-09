@@ -1,30 +1,37 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
+import { EditorView } from 'prosemirror-view';
 
-interface Cursor {
-  id: string;
-  name: string;
-  color: string;
-  x: number;
-  y: number;
-}
-
-interface Props {
-  cursors: Cursor[];
-}
-
-const CursorTracker: React.FC<Props> = ({ cursors }) => {
-  const [cursorPositions, setCursorPositions] = useState<Cursor[]>([]);
+const CursorTracker = () => {
+  const [cursors, setCursors] = useState([]);
+  const [view, setView] = useState(null);
 
   useEffect(() => {
-    setCursorPositions(cursors);
-  }, [cursors]);
+    const handleCursorUpdate = (cursor) => {
+      setCursors((prevCursors) => [...prevCursors, cursor]);
+    };
+
+    const handleCursorRemove = (cursor) => {
+      setCursors((prevCursors) => prevCursors.filter((c) => c.id !== cursor.id));
+    };
+
+    return () => {
+      view.destroy();
+    };
+  }, []);
 
   return (
     <div className="cursor-tracker">
-      {cursorPositions.map((cursor) => (
-        <div key={cursor.id} style={{ backgroundColor: cursor.color, position: 'absolute', left: cursor.x, top: cursor.y, width: 10, height: 10, borderRadius: 5, zIndex: 1 }}>
-          <span style={{ color: 'white', position: 'absolute', left: 20, top: 5 }}>{cursor.name}</span>
+      {cursors.map((cursor) => (
+        <div key={cursor.id} style={{
+          position: 'absolute',
+          left: cursor.pos - 10,
+          top: cursor.line - 10,
+          width: 20,
+          height: 20,
+          borderRadius: '50%',
+          backgroundColor: cursor.color,
+        }}>
+          <span>{cursor.name}</span>
         </div>
       ))}
     </div>

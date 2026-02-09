@@ -1,17 +1,14 @@
 {"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-interface useUsersProps {
-  roomId: string;
-}
-
-const useUsers = ({ roomId }: useUsersProps) => {
-  const [users, setUsers] = useState([]);
+const useUsers = () => {
+  const { users, dispatch } = useWebSocket();
 
   useEffect(() => {
-    // Fetch users from server
+    dispatch({ type: 'JOIN' });
   }, []);
 
-  return users;
+  return { users };
 };
 
 export default useUsers;
