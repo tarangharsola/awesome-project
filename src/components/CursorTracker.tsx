@@ -1,41 +1,46 @@
 {"import React, { useState, useEffect } from 'react';
 import { EditorView } from 'prosemirror-view';
 
-const CursorTracker = () => {
-  const [cursors, setCursors] = useState([]);
-  const [view, setView] = useState(null);
+interface Props {
+  editorView: EditorView;
+}
+
+const CursorTracker: React.FC<Props> = ({ editorView }) => {
+  const [cursorPositions, setCursorPositions] = useState({} as { [key: string]: number });
 
   useEffect(() => {
-    const handleCursorUpdate = (cursor) => {
-      setCursors((prevCursors) => [...prevCursors, cursor]);
+    const handleCursorChange = (from: number, to: number) => {
+      const userId = editorView.state.selection.from.user;
+      setCursorPositions((prevPositions) => ({ ...prevPositions, [userId]: from }));
     };
-
-    const handleCursorRemove = (cursor) => {
-      setCursors((prevCursors) => prevCursors.filter((c) => c.id !== cursor.id));
-    };
-
+    editorView.on('selectionChange', handleCursorChange);
     return () => {
-      view.destroy();
+      editorView.off('selectionChange', handleCursorChange);
     };
-  }, []);
+  }, [editorView]);
 
   return (
     <div className="cursor-tracker">
-      {cursors.map((cursor) => (
-        <div key={cursor.id} style={{
+      {Object.keys(cursorPositions).map((userId) => (
+        <div key={userId} style={{
           position: 'absolute',
-          left: cursor.pos - 10,
-          top: cursor.line - 10,
-          width: 20,
-          height: 20,
-          borderRadius: '50%',
-          backgroundColor: cursor.color,
+          left: cursorPositions[userId],
+          top: 0,
+          width: 2,
+          height: '100%',
+          backgroundColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`
         }}>
-          <span>{cursor.name}</span>
+          <span style={{
+            position: 'absolute',
+            left: -10,
+            top: -10,
+            fontSize: 12,
+            color: 'white'
+          }}>{userId}</span>
         </div>
       ))}
     </div>
   );
-};
+}
 
 export default CursorTracker;

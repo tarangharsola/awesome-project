@@ -1,49 +1,35 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import CodeMirror from 'codemirror';
+import { EditorState, Editor } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { Extension } from 'prosemirror-extensions';
 
-const Editor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState('');
-  const [formattedCode, setFormattedCode] = useState('');
+interface Props {
+  onChange: (state: EditorState) => void;
+  value: string;
+}
 
-  useEffect(() => {
-    const cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-      theme: 'monokai'
-    });
+const EditorComponent: React.FC<Props> = ({ onChange, value }) => {
+  const [editorState, setEditorState] = React.useState(EditorState.create(value));
+  const [editorView, setEditorView] = React.useState(null);
 
-    cm.on('change', (instance, changes) => {
-      setCode(instance.getValue());
-      setFormattedCode(instance.getValue());
-    });
-
+  React.useEffect(() => {
+    const view = new EditorView(editorState, new Extension());
+    setEditorView(view);
     return () => {
-      cm.toTextArea();
+      view.destroy();
     };
-  }, [language]);
+  }, [editorState]);
 
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
-  };
-
-  const handleFormat = () => {
-    const formattedCode = CodeMirror.formatter.format(code);
-    setFormattedCode(formattedCode);
+  const handleEditorChange = (state: EditorState) => {
+    setEditorState(state);
+    onChange(state);
   };
 
   return (
-    <div>
-      <select value={language} onChange={handleLanguageChange}>
-        <option value="javascript">JavaScript</option>
-        <option value="python">Python</option>
-        <option value="html">HTML</option>
-      </select>
-      <button onClick={handleFormat}>Format</button>
-      <textarea id="editor" value={formattedCode} readOnly></textarea>
+    <div className="editor">
+      <EditorView editorState={editorState} onSelectionChange={handleEditorChange} />
     </div>
   );
-};
+}
 
-export default Editor;
+export default EditorComponent;
