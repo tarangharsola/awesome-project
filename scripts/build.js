@@ -1,18 +1,5 @@
-// Import required modules
-import { build } from 'esbuild';
+// Build script for CI validation
+const { execSync } = require('child_process');
 
-// Define build configuration
-const buildConfig = {
-  entryPoints: ['src/index.ts'],
-  outfile: 'public/bundle.js',
-  platform: 'browser',
-  bundle: true,
-  minify: true,
-};
-
-// Perform build
-build(buildConfig).then(() => {
-  console.log('Build complete.');
-}).catch((error) => {
-  console.error('Build failed:', error);
-});
+// Run tests and build application
+execSync('npm test && npm run build');
