@@ -1,25 +1,61 @@
-{"import React, { useState, useEffect } from 'react';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+
+interface User {
+  id: string;
+  name: string;
+  color: string;
+}
 
 interface Props {
-  users: { [key: string]: string };
+  users: User[];
 }
 
 const UserList: React.FC<Props> = ({ users }) => {
-  const [activeUsers, setActiveUsers] = useState({} as { [key: string]: string });
+  const [activeUsers, setActiveUsers] = useState([]);
 
   useEffect(() => {
     setActiveUsers(users);
   }, [users]);
 
   return (
-    <div className="user-list">
-      {Object.keys(activeUsers).map((userId) => (
-        <div key={userId} style={{
-          backgroundColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`
-        }}>{userId}</div>
-      ))}
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: 20,
+      backgroundColor: '#333',
+      color: '#fff',
+    }}>
+      <h2>Active Users</h2>
+      <ul style={{
+        listStyle: 'none',
+        padding: 0,
+        margin: 0,
+      }}>
+        {activeUsers.map((user, index) => (
+          <li key={index} style={{
+            backgroundColor: user.color,
+            padding: 10,
+            margin: 5,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+          }}>
+            <span style={{
+              marginRight: 10,
+              fontSize: 16,
+              fontWeight: 'bold',
+            }}>{user.name}</span>
+            <span style={{
+              fontSize: 14,
+              color: '#ccc',
+            }}>({user.id})</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
-}
+};
 
 export default UserList;

@@ -1,46 +1,47 @@
-{"import React, { useState, useEffect } from 'react';
-import { EditorView } from 'prosemirror-view';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
 
-interface Props {
-  editorView: EditorView;
+interface Cursor {
+  id: string;
+  name: string;
+  color: string;
+  x: number;
+  y: number;
 }
 
-const CursorTracker: React.FC<Props> = ({ editorView }) => {
-  const [cursorPositions, setCursorPositions] = useState({} as { [key: string]: number });
+interface Props {
+  cursors: Cursor[];
+}
+
+const CursorTracker: React.FC<Props> = ({ cursors }) => {
+  const [cursorPositions, setCursorPositions] = useState({} as { [id: string]: { x: number; y: number } });
 
   useEffect(() => {
-    const handleCursorChange = (from: number, to: number) => {
-      const userId = editorView.state.selection.from.user;
-      setCursorPositions((prevPositions) => ({ ...prevPositions, [userId]: from }));
-    };
-    editorView.on('selectionChange', handleCursorChange);
-    return () => {
-      editorView.off('selectionChange', handleCursorChange);
-    };
-  }, [editorView]);
+    setCursorPositions(cursors.reduce((acc, cursor) => ({ ...acc, [cursor.id]: { x: cursor.x, y: cursor.y } }), {}));
+  }, [cursors]);
 
   return (
-    <div className="cursor-tracker">
-      {Object.keys(cursorPositions).map((userId) => (
-        <div key={userId} style={{
+    <div style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'transparent',
+    }}>
+      {Object.keys(cursorPositions).map((id, index) => (
+        <div key={index} style={{
           position: 'absolute',
-          left: cursorPositions[userId],
-          top: 0,
-          width: 2,
-          height: '100%',
-          backgroundColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`
-        }}>
-          <span style={{
-            position: 'absolute',
-            left: -10,
-            top: -10,
-            fontSize: 12,
-            color: 'white'
-          }}>{userId}</span>
-        </div>
+          top: cursorPositions[id].y,
+          left: cursorPositions[id].x,
+          width: 10,
+          height: 10,
+          backgroundColor: cursors.find((cursor) => cursor.id === id).color,
+          borderRadius: 50,
+        }}/>
       ))}
     </div>
   );
-}
+};
 
 export default CursorTracker;
