@@ -1,25 +1,47 @@
-import React from 'react';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
 
-interface CursorTrackerProps {
-  editor: any;
-  webSocket: any;
+interface Cursor {
+  id: string;
+  name: string;
+  color: string;
+  x: number;
+  y: number;
 }
 
-const CursorTracker: React.FC<CursorTrackerProps> = ({ editor, webSocket }) => {
-  const { state, dispatch } = useEditor();
-  const { send } = useWebSocket();
+interface Props {
+  cursors: Cursor[];
+}
 
-  const handleCursorMove = (cursor: any) => {
-    send({ type: 'cursorMove', cursor });
-  };
+const CursorTracker: React.FC<Props> = ({ cursors }) => {
+  const [cursorPositions, setCursorPositions] = useState<Cursor[]>([]);
+
+  useEffect(() => {
+    setCursorPositions(cursors);
+  }, [cursors]);
 
   return (
-    <div>
-      <h2>Cursor Tracker</h2>
-      <p>Current cursor position: {state.cursor.position}</p>
-      <button onClick={() => handleCursorMove({ position: 10 })}>Move cursor</button>
+    <div className="cursor-tracker">
+      {cursorPositions.map((cursor, index) => (
+        <div key={index} style={{
+          position: 'absolute',
+          left: cursor.x,
+          top: cursor.y,
+          width: '10px',
+          height: '10px',
+          backgroundColor: cursor.color,
+          borderRadius: '50%',
+          zIndex: 1
+        }}>
+          <span style={{
+            position: 'absolute',
+            left: cursor.x + 15,
+            top: cursor.y - 15,
+            fontSize: '12px',
+            color: 'white'
+          }}>{cursor.name}</span>
+        </div>
+      ))}
     </div>
   );
 };
