@@ -1,31 +1,25 @@
-{"import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
 
 interface AwarenessConsistencyProps {
-  editor: useEditor;
+  editor: any;
+  webSocket: any;
 }
 
-const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {
-  const [awareness, setAwareness] = useState<Awareness[]>([]);
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor, webSocket }) => {
+  const { state, dispatch } = useEditor();
+  const { send } = useWebSocket();
 
-  useEffect(() => {
-    const awarenessUpdater = () => {
-      // Implement awareness consistency logic here
-      setAwareness(editor.getAwareness());
-    };
-
-    editor.on('update', awarenessUpdater);
-
-    return () => {
-      editor.off('update', awarenessUpdater);
-    };
-  }, [editor]);
+  const handleCursorMove = (cursor: any) => {
+    send({ type: 'cursorMove', cursor });
+  };
 
   return (
     <div>
-      {awareness.map((item, index) => (
-        <div key={index}>{item.user}</div>
-      ))}
+      <h2>Awareness Consistency</h2>
+      <p>Current cursor position: {state.cursor.position}</p>
+      <button onClick={() => handleCursorMove({ position: 10 })}>Move cursor</button>
     </div>
   );
 };

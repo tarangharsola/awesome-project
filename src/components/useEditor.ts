@@ -1,27 +1,26 @@
-{"import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
-interface Props {
-  initialValue: string;
-  onChange: (value: string) => void;
-  language: string;
+interface useEditorProps {
+  editor: any;
+  webSocket: any;
 }
 
-const useEditor = ({ initialValue, onChange, language }: Props) => {
-  const [value, setValue] = useState(initialValue);
+const useEditor = ({ editor, webSocket }: useEditorProps) => {
+  const [state, setState] = useState({ text: '', cursor: { position: 0 } });
+  const { send } = webSocket;
 
   useEffect(() => {
-    onChange(value);
-  }, [value]);
+    const handleTextChange = (text: any) => {
+      setState({ text, cursor: state.cursor });
+    };
 
-  const handleEditorChange = (newValue: string) => {
-    setValue(newValue);
-  };
+    send({ type: 'textChange', text });
+    return () => {
+      send({ type: 'textChange', text: null });
+    };
+  }, [send]);
 
-  return {
-    value,
-    onChange: handleEditorChange,
-    language
-  };
+  return { state, dispatch: setState };
 };
 
 export default useEditor;

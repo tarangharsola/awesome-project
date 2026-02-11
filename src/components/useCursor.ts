@@ -1,21 +1,26 @@
-{"import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface useCursorProps {
   editor: any;
+  webSocket: any;
 }
 
-const useCursor = ({ editor }: useCursorProps) => {
-  const [cursorPosition, setCursorPosition] = useState(null);
+const useCursor = ({ editor, webSocket }: useCursorProps) => {
+  const [cursor, setCursor] = useState({ position: 0 });
+  const { send } = webSocket;
 
   useEffect(() => {
-    const handleCursorChange = (position) => {
-      setCursorPosition(position);
+    const handleCursorMove = (cursor: any) => {
+      setCursor(cursor);
     };
-    editor.on('cursorChange', handleCursorChange);
-    return () => editor.off('cursorChange', handleCursorChange);
-  }, [editor]);
 
-  return cursorPosition;
+    send({ type: 'cursorMove', cursor });
+    return () => {
+      send({ type: 'cursorMove', cursor: null });
+    };
+  }, [send]);
+
+  return cursor;
 };
 
 export default useCursor;

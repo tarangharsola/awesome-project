@@ -1,30 +1,23 @@
-{"import React, { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import React from 'react';
+import { useWebSocket } from './useWebSocket';
 
-interface Props {
-  onMessage: (message: string) => void;
+interface WebSocketProps {
+  webSocket: any;
 }
 
-const WebSocketComponent: React.FC<Props> = ({ onMessage }) => {
-  const [ws, setWs] = useState(null);
+const WebSocket: React.FC<WebSocketProps> = ({ webSocket }) => {
+  const { send, receive } = useWebSocket();
 
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-    return () => {
-      ws.close();
-    };
-  }, []);
+  const handleSendMessage = () => {
+    send({ type: 'message', text: 'Hello, world!' });
+  };
 
-  useEffect(() => {
-    if (ws) {
-      ws.onmessage = (event) => {
-        onMessage(event.data);
-      };
-    }
-  }, [ws, onMessage]);
+  return (
+    <div>
+      <h2>WebSocket</h2>
+      <button onClick={handleSendMessage}>Send message</button>
+    </div>
+  );
+};
 
-  return null;
-}
-
-export default WebSocketComponent;
+export default WebSocket;

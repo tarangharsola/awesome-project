@@ -1,29 +1,25 @@
-{"import React from 'react';
+import React from 'react';
 import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
 
 interface ConflictResolverProps {
-  editor: useEditor;
+  editor: any;
+  webSocket: any;
 }
 
-const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {
-  const { operations } = editor;
-  const [conflicts, setConflicts] = React.useState<Operation[]>([]);
+const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor, webSocket }) => {
+  const { state, dispatch } = useEditor();
+  const { send } = useWebSocket();
 
-  React.useEffect(() => {
-    const conflictResolver = (operation: Operation) => {
-      // Implement conflict resolution logic here
-      return operation;
-    };
-
-    const resolvedOperations = operations.map(conflictResolver);
-    setConflicts(resolvedOperations);
-  }, [operations]);
+  const handleConflict = (conflict: any) => {
+    send({ type: 'conflict', conflict });
+  };
 
   return (
     <div>
-      {conflicts.map((conflict, index) => (
-        <div key={index}>{conflict.path}</div>
-      ))}
+      <h2>Conflict Resolver</h2>
+      <p>Current conflict: {state.conflict}</p>
+      <button onClick={() => handleConflict({ type: 'merge' })}>Resolve conflict</button>
     </div>
   );
 };

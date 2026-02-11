@@ -1,37 +1,29 @@
-{"import { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import { useState, useEffect } from 'react';
 
-const useWebSocket = () => {
-  const [ws, setWs] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [dispatch, setDispatch] = useState(() => () => {});
+interface useWebSocketProps {
+  webSocket: any;
+}
 
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-    setDispatch((dispatch) => (action) => {
-      ws.send(JSON.stringify(action));
-      dispatch(action);
-    });
-  }, []);
+const useWebSocket = ({ webSocket }: useWebSocketProps) => {
+  const [send, setSend] = useState(() => () => {});
+  const [receive, setReceive] = useState(() => () => {});
 
   useEffect(() => {
-    ws.onmessage = (event) => {
-      const action = JSON.parse(event.data);
-      switch (action.type) {
-        case 'JOIN':
-          setUsers((prevUsers) => [...prevUsers, action.user]);
-          break;
-        case 'LEAVE':
-          setUsers((prevUsers) => prevUsers.filter((user) => user.id !== action.userId));
-          break;
-        default:
-          break;
-      }
+    const handleSendMessage = (message: any) => {
+      setSend(() => () => webSocket.send(message));
     };
-  }, [ws]);
 
-  return { users, dispatch };
+    const handleReceiveMessage = (message: any) => {
+      setReceive(() => () => webSocket.onmessage(message));
+    };
+
+    webSocket.onmessage = handleReceiveMessage;
+    return () => {
+      webSocket.onmessage = null;
+    };
+  }, [webSocket]);
+
+  return { send, receive };
 };
 
 export default useWebSocket;

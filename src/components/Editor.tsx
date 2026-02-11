@@ -1,1 +1,26 @@
-{"import React, { useState, useEffect } from 'react';\nimport { EditorProps } from './EditorProps';\nimport { useEditor } from './useEditor';\nimport { useWebSocket } from './useWebSocket';\nimport { useUsers } from './useUsers';\nimport { useCursor } from './useCursor';\nimport { useReconnection } from './useReconnection';\nimport { ConflictResolver } from './ConflictResolver';\nimport { AwarenessConsistency } from './AwarenessConsistency';\nimport { CursorTracker } from './CursorTracker';\nimport { UserList } from './UserList';\nimport { WebSocket } from './WebSocket';\n\ninterface EditorProps {\n  language: string;\n  value: string;\n  onChange: (value: string) => void;\n}\n\nconst Editor = ({ language, value, onChange }: EditorProps) => {\n  const { editorState, setEditorState } = useEditor();\n  const { language: currentLanguage } = useWebSocket();\n  const { users } = useUsers();\n  const { cursor } = useCursor();\n  const { reconnectionStatus } = useReconnection();\n  const conflictResolver = new ConflictResolver();\n  const awarenessConsistency = new AwarenessConsistency();\n  const cursorTracker = new CursorTracker();\n  const userList = new UserList();\n  const webSocket = new WebSocket();\n\n  useEffect(() => {\n    setEditorState({ language, value });\n  }, [language, value]);\n\n  const handleLanguageChange = (newLanguage: string) => {\n    setEditorState({ language: newLanguage, value });\n  };\n\n  const handleFormat = () => {\n    const formattedValue = conflictResolver.resolve(editorState.value);\n    setEditorState({ language, value: formattedValue });\n  };\n\n  const handleKeyboardShortcut = (event: React.KeyboardEvent) => {\n    if (event.key === 'f') {\n      handleFormat();\n    }\n  };\n\n  return (\n    <div>\n      <select value={currentLanguage} onChange={(event) => handleLanguageChange(event.target.value)}>\n        <option value="javascript">JavaScript</option>\n        <option value="python">Python</option>\n        <option value="html">HTML</option>\n      </select>\n      <textarea value={editorState.value} onChange={(event) => onChange(event.target.value)} onKeyDown={handleKeyboardShortcut} />\n      <button onClick={handleFormat}>Format</button>\n      <CursorTracker cursor={cursor} />\n      <UserList users={users} />\n      <WebSocket reconnectionStatus={reconnectionStatus} />\n    </div>\n  );\n}\n\nexport default Editor;
+import React from 'react';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
+
+interface EditorProps {
+  editor: any;
+  webSocket: any;
+}
+
+const Editor: React.FC<EditorProps> = ({ editor, webSocket }) => {
+  const { state, dispatch } = useEditor();
+  const { send } = useWebSocket();
+
+  const handleTextChange = (text: any) => {
+    send({ type: 'textChange', text });
+  };
+
+  return (
+    <div>
+      <h2>Editor</h2>
+      <textarea value={state.text} onChange={(e) => handleTextChange(e.target.value)} />
+    </div>
+  );
+};
+
+export default Editor;

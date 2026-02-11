@@ -1,14 +1,30 @@
-{"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { useState, useEffect } from 'react';
 
-const useUsers = () => {
-  const { users, dispatch } = useWebSocket();
+interface useUsersProps {
+  webSocket: any;
+}
+
+const useUsers = ({ webSocket }: useUsersProps) => {
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    dispatch({ type: 'JOIN' });
-  }, []);
+    const handleUserJoin = (user: any) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
+    };
 
-  return { users };
+    const handleUserLeave = (userId: any) => {
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+    };
+
+    webSocket.on('userJoin', handleUserJoin);
+    webSocket.on('userLeave', handleUserLeave);
+    return () => {
+      webSocket.off('userJoin', handleUserJoin);
+      webSocket.off('userLeave', handleUserLeave);
+    };
+  }, [webSocket]);
+
+  return users;
 };
 
 export default useUsers;
