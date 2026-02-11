@@ -1,21 +1,37 @@
-import React from 'react';
-import { useWebSocket } from './useWebSocket';
+{"import React, { useState, useEffect } from 'react';
+import { WebSocket } from 'ws';
 
 interface ReconnectionHandlerProps {
-  webSocket: any;
+  children: React.ReactNode;
 }
 
-const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ webSocket }) => {
-  const { reconnect } = useWebSocket();
+const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ children }) => {
+  const [reconnecting, setReconnecting] = useState(false);
+  const [ws, setWs] = useState<WebSocket | null>(null);
 
-  const handleReconnect = () => {
+  useEffect(() => {
+    const reconnect = () => {
+      setReconnecting(true);
+      const ws = new WebSocket('ws://localhost:8080');
+      setWs(ws);
+      ws.onmessage = (event) => {
+        console.log(event.data);
+      };
+      ws.onclose = () => {
+        setReconnecting(false);
+        setTimeout(reconnect, 1000);
+      };
+    };
     reconnect();
-  };
+    return () => {
+      ws?.close();
+    };
+  }, []);
 
   return (
     <div>
-      <h2>Reconnection Handler</h2>
-      <button onClick={handleReconnect}>Reconnect</button>
+      {children}
+      {reconnecting ? 'Reconnecting...' : ''}
     </div>
   );
 };
