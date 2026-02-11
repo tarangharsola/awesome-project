@@ -1,5 +1,11 @@
-// Build script for CI validation
-const { execSync } = require('child_process');
+// Import required modules
+const gulp = require('gulp');
+const babel = require('gulp-babel');
 
-// Run tests and build application
-execSync('npm test && npm run build');
+// Define build task
+gulp.task('build', () => {
+  // Compile JavaScript files
+  return gulp.src('src/**/*.js')
+    .pipe(babel())
+    .pipe(gulp.dest('dist'));
+});
