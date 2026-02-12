@@ -1,53 +1,48 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import AceEditor from 'react-ace';
+import { EditorState, Editor } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { DOMParser } from 'prosemirror-model';
 
-const Editor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [value, setValue] = useState('');
-  const [fontSize, setFontSize] = useState(14);
+const EditorComponent = () => {
+  const [editorState, setEditorState] = React.useState(EditorState.create());
+  const [view, setView] = React.useState(null);
 
-  useEffect(() => {
-    const storedLanguage = localStorage.getItem('language');
-    if (storedLanguage) {
-      setLanguage(storedLanguage);
-    }
+  React.useEffect(() => {
+    const parser = new DOMParser();
+    const doc = parser.parse(document.body.innerHTML);
+    const state = EditorState.createWithJSON(doc);
+    setEditorState(state);
   }, []);
 
-  const handleLanguageChange = (e) => {
-    setLanguage(e.target.value);
-    localStorage.setItem('language', e.target.value);
+  const updateEditorState = (newState) => {
+    setEditorState(newState);
   };
 
-  const handleFontSizeChange = (e) => {
-    setFontSize(e.target.value);
+  const handleEditorChange = (newState) => {
+    updateEditorState(newState);
   };
+
+  React.useEffect(() => {
+    const view = new EditorView(document.getElementById('editor'), {
+      state: editorState,
+      dispatchTransaction: (transaction) => {
+        updateEditorState(transaction.apply(editorState));
+      },
+    });
+    setView(view);
+    return () => {
+      view.destroy();
+    };
+  }, [editorState]);
 
   return (
-    <div>
-      <select value={language} onChange={handleLanguageChange}>
-        <option value="javascript">JavaScript</option>
-        <option value="python">Python</option>
-        <option value="html">HTML</option>
-      </select>
-      <select value={fontSize} onChange={handleFontSizeChange}>
-        <option value="10">10</option>
-        <option value="12">12</option>
-        <option value="14">14</option>
-        <option value="16">16</option>
-        <option value="18">18</option>
-      </select>
-      <AceEditor
-        mode={language}
-        theme="monokai"
-        value={value}
-        onChange={setValue}
-        fontSize={fontSize}
-        width="100%"
-        height="100%"
+    <div id="editor" style={{ height: '500px' }}>
+      <Editor
+        state={editorState}
+        onChange={handleEditorChange}
       />
     </div>
   );
 };
 
-export default Editor;
+export default EditorComponent;
