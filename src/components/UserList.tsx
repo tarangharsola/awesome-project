@@ -11,8 +11,8 @@ interface Props {
   users: User[];
 }
 
-const UserList: React.FC<Props> = ({ users }) => {
-  const [activeUsers, setActiveUsers] = useState<User[]>([]);
+const UserList = ({ users }: Props) => {
+  const [activeUsers, setActiveUsers] = useState(users);
 
   useEffect(() => {
     setActiveUsers(users);
@@ -26,8 +26,7 @@ const UserList: React.FC<Props> = ({ users }) => {
           color: 'white',
           padding: '5px',
           borderRadius: '5px',
-          display: 'inline-block',
-          margin: '5px'
+          marginRight: '10px',
         }}>
           {user.name}
         </div>
