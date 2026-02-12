@@ -1,11 +1,17 @@
-// Import required modules
-const gulp = require('gulp');
-const babel = require('gulp-babel');
+// Build script for production
+const fs = require('fs');
+const path = require('path');
+const webpack = require('webpack');
+const config = require('./webpack.config');
 
-// Define build task
-gulp.task('build', () => {
-  // Compile JavaScript files
-  return gulp.src('src/**/*.js')
-    .pipe(babel())
-    .pipe(gulp.dest('dist'));
-});
+module.exports = function build() {
+  return new Promise((resolve, reject) => {
+    webpack(config, (err, stats) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(stats);
+      }
+    });
+  });
+};
