@@ -1,1 +1,53 @@
-{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport { EditorState, ContentState, convertFromRaw } from 'draft-js';\nimport 'draft-js/dist/draft.min.css';\n\ninterface Props {\n  initialValue?: string;\n  onChange?: (value: string) => void;\n}\n\nconst Editor = ({ initialValue, onChange }: Props) => {\n  const [editorState, setEditorState] = useState(initialValue ? EditorState.createWithContent(convertFromRaw(JSON.parse(initialValue))) : EditorState.createEmpty());\n  const [language, setLanguage] = useState('javascript');\n  const [formatting, setFormatting] = useState('default');\n  const [keyboardShortcuts, setKeyboardShortcuts] = useState(true);\n\n  useEffect(() => {\n    const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {\n      setLanguage(event.target.value);\n    };\n    const handleFormattingChange = (event: React.ChangeEvent<HTMLSelectElement>) => {\n      setFormatting(event.target.value);\n    };\n    const handleKeyboardShortcutsChange = (event: React.ChangeEvent<HTMLInputElement>) => {\n      setKeyboardShortcuts(event.target.checked);\n    };\n    return () => {\n      // Cleanup\n    };\n  }, []);\n\n  const handleEditorChange = (editorState: EditorState) => {\n    setEditorState(editorState);\n    if (onChange) {\n      onChange(editorState.getCurrentContent().getPlainText());\n    }\n  };\n\n  return (\n    <div className="editor-container">\n      <div className="editor-header">\n        <select value={language} onChange={handleLanguageChange}>\n          <option value="javascript">JavaScript</option>\n          <option value="python">Python</option>\n          <option value="html">HTML</option>\n        </select>\n        <select value={formatting} onChange={handleFormattingChange}>\n          <option value="default">Default</option>\n          <option value="monokai">Monokai</option>\n          <option value="tomorrow">Tomorrow</option>\n        </select>\n        <input type="checkbox" checked={keyboardShortcuts} onChange={handleKeyboardShortcutsChange} />\n        Keyboard Shortcuts\n      </div>\n      <div className="editor-content">\n        <EditorState editorState={editorState} onChange={handleEditorChange} />\n      </div>\n    </div>\n  );\n};\n\nexport default Editor;
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import AceEditor from 'react-ace';
+
+const Editor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [value, setValue] = useState('');
+  const [fontSize, setFontSize] = useState(14);
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage) {
+      setLanguage(storedLanguage);
+    }
+  }, []);
+
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value);
+    localStorage.setItem('language', e.target.value);
+  };
+
+  const handleFontSizeChange = (e) => {
+    setFontSize(e.target.value);
+  };
+
+  return (
+    <div>
+      <select value={language} onChange={handleLanguageChange}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <select value={fontSize} onChange={handleFontSizeChange}>
+        <option value="10">10</option>
+        <option value="12">12</option>
+        <option value="14">14</option>
+        <option value="16">16</option>
+        <option value="18">18</option>
+      </select>
+      <AceEditor
+        mode={language}
+        theme="monokai"
+        value={value}
+        onChange={setValue}
+        fontSize={fontSize}
+        width="100%"
+        height="100%"
+      />
+    </div>
+  );
+};
+
+export default Editor;
