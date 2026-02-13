@@ -1,42 +1,38 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
+import { EditorView } from 'prosemirror-view';
 
-interface Cursor {
-  id: string;
-  name: string;
-  color: string;
-  x: number;
-  y: number;
-}
-
-interface Props {
-  cursors: Cursor[];
-}
-
-const CursorTracker = ({ cursors }: Props) => {
-  const [cursorPositions, setCursorPositions] = useState({} as { [id: string]: { x: number; y: number } });
+const CursorTracker = () => {
+  const [view, setView] = useState(null);
+  const [cursors, setCursors] = useState([]);
 
   useEffect(() => {
-    setCursorPositions(cursors.reduce((acc, cursor) => ({ ...acc, [cursor.id]: cursor }), {}));
-  }, [cursors]);
+    const handleCursorUpdate = (cursor) => {
+      setCursors((prevCursors) => [...prevCursors, cursor]);
+    };
+
+    const handleCursorRemove = (cursorID) => {
+      setCursors((prevCursors) => prevCursors.filter((cursor) => cursor.id !== cursorID));
+    };
+
+    return () => {
+      // cleanup
+    };
+  }, []);
 
   return (
-    <div className="cursor-tracker">
-      {Object.keys(cursorPositions).map((id, index) => (
+    <div>
+      {cursors.map((cursor, index) => (
         <div key={index} style={{
-          position: "absolute",
-          left: cursorPositions[id].x + "px",
-          top: cursorPositions[id].y + "px",
-          width: "10px",
-          height: "10px",
-          backgroundColor: cursors.find((cursor) => cursor.id === id).color,
-          borderRadius: "50%",
-        }}>
-          {cursors.find((cursor) => cursor.id === id).name}
-        </div>
+          position: 'absolute',
+          left: cursor.pos,
+          top: 0,
+          width: 2,
+          height: '100%',
+          backgroundColor: cursor.color,
+        }} />
       ))}
     </div>
   );
-}
+};
 
 export default CursorTracker;

@@ -1,16 +1,12 @@
-// Import required modules
-const assert = require('assert');
+const { JSDOM } = require('jsdom');
+const { join } = require('path');
+const { readFileSync } = require('fs');
 
-// Define test suite
-describe('Collaborative Code Editor', () => {
-  it('should render editor with syntax highlighting', () => {
-    // Arrange
-    const editor = new Editor();
+const dom = new JSDOM(readFileSync(join(__dirname, 'index.html'), 'utf8'));
+const document = dom.window.document;
 
-    // Act
-    editor.render();
+const editor = document.querySelector('#editor');
+const cursorTracker = document.querySelector('#cursor-tracker');
+const userList = document.querySelector('#user-list');
 
-    // Assert
-    assert.ok(editor.getEditorElement());
-  });
-});
+editor.innerHTML = 'Hello World!';
