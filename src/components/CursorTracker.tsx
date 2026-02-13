@@ -1,44 +1,42 @@
-{"import React, { useState, useEffect } from 'react';
-import { EditorView } from 'prosemirror-view';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
 
-const CursorTracker = () => {
-  const [cursors, setCursors] = useState([]);
-  const [view, setView] = useState(null);
+interface Cursor {
+  id: string;
+  name: string;
+  color: string;
+  x: number;
+  y: number;
+}
+
+interface Props {
+  cursors: Cursor[];
+}
+
+const CursorTracker = ({ cursors }: Props) => {
+  const [cursorPositions, setCursorPositions] = useState({} as { [id: string]: { x: number; y: number } });
 
   useEffect(() => {
-    const handleCursorChange = (cursor) => {
-      setCursors((prevCursors) => [...prevCursors, cursor]);
-    };
-
-    const handleCursorRemove = (cursorID) => {
-      setCursors((prevCursors) => prevCursors.filter((cursor) => cursor.id !== cursorID));
-    };
-
-    const view = new EditorView(document.getElementById('editor'), {
-      dispatchTransaction: (transaction) => {
-        // Handle cursor changes and removals
-      },
-    });
-    setView(view);
-    return () => {
-      view.destroy();
-    };
-  }, []);
+    setCursorPositions(cursors.reduce((acc, cursor) => ({ ...acc, [cursor.id]: cursor }), {}));
+  }, [cursors]);
 
   return (
-    <div id="cursor-tracker">
-      {cursors.map((cursor, index) => (
+    <div className="cursor-tracker">
+      {Object.keys(cursorPositions).map((id, index) => (
         <div key={index} style={{
-          position: 'absolute',
-          top: cursor.pos.top,
-          left: cursor.pos.left,
-          backgroundColor: cursor.color,
-          width: 2,
-          height: 2,
-        }} />
+          position: "absolute",
+          left: cursorPositions[id].x + "px",
+          top: cursorPositions[id].y + "px",
+          width: "10px",
+          height: "10px",
+          backgroundColor: cursors.find((cursor) => cursor.id === id).color,
+          borderRadius: "50%",
+        }}>
+          {cursors.find((cursor) => cursor.id === id).name}
+        </div>
       ))}
     </div>
   );
-};
+}
 
 export default CursorTracker;
