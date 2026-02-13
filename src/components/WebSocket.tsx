@@ -1,21 +1,28 @@
-import React from 'react';
-import { useWebSocket } from './useWebSocket';
+{"import React, { useState, useEffect } from 'react';
+import WebSocket from 'ws';
 
-interface WebSocketProps {
-  webSocket: any;
-}
+const WebSocket = () => {
+  const [connected, setConnected] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
-const WebSocket: React.FC<WebSocketProps> = ({ webSocket }) => {
-  const { send, receive } = useWebSocket();
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onopen = () => setConnected(true);
+    ws.onclose = () => setConnected(false);
+    ws.onerror = () => setConnected(false);
+    ws.onmessage = (event) => {
+      // Handle incoming messages here
+    };
+  }, []);
 
-  const handleSendMessage = () => {
-    send({ type: 'message', text: 'Hello, world!' });
+  const retryConnection = () => {
+    // Implement retry logic here
   };
 
   return (
     <div>
-      <h2>WebSocket</h2>
-      <button onClick={handleSendMessage}>Send message</button>
+      {connected ? 'Connected' : 'Disconnected'}
+      <button onClick={retryConnection}>Retry</button>
     </div>
   );
 };
