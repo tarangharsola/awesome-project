@@ -1,1 +1,21 @@
-{"import React from 'react';\nimport { useEditor } from './useEditor';\n\ninterface AwarenessConsistencyProps {\n  editor: useEditor;\n}\n\nconst AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {\n  const { ops } = editor.getOperations();\n  const awareness = ops.filter((op) => op.type === 'awareness');\n  \n  return (\n    <div>\n      {awareness.map((awarenessOp, index) => (\n        <div key={index}>\n          User {awarenessOp.userId} is aware of position {awarenessOp.position}\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default AwarenessConsistency;
+{"import React from 'react';
+import { useEditor } from './useEditor';
+
+interface AwarenessConsistencyProps {
+  editor: useEditor;
+}
+
+const AwarenessConsistency: React.FC<AwarenessConsistencyProps> = ({ editor }) => {
+  const { operations } = editor;
+  const awareness = operations.filter((operation) => operation.type === 'awareness');
+
+  return (
+    <div>
+      {awareness.map((awareness, index) => (
+        <div key={index}>{`Awareness at ${awareness.path}`}</div>
+      ))}
+    </div>
+  );
+};
+
+export default AwarenessConsistency;
