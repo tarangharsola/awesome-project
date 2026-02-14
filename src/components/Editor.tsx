@@ -1,32 +1,45 @@
 {"import React from 'react';
-import { EditorState, EditorProps } from 'prosemirror-state';
-import { EditorView, EditorProps as ProsemirrorEditorProps } from 'prosemirror-view';
-import { Extension } from 'prosemirror-extensions';
+import { useState, useEffect } from 'react';
+import CodeMirror from 'codemirror';
 
-interface EditorProps extends ProsemirrorEditorProps {
-  // Add custom props here
-}
+const Editor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
 
-const Editor = ({ children, ...props }: EditorProps) => {
-  const [editorState, setEditorState] = React.useState(EditorState.create());
-  const [view, setView] = React.useState<EditorView>();
+  useEffect(() => {
+    const cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      theme: 'monokai'
+    });
 
-  React.useEffect(() => {
-    const updateEditorState = () => {
-      setEditorState(EditorState.create());
+    cm.on('cursorActivity', (instance, cursor) => {
+      setCursorPosition(cursor);
+    });
+
+    return () => {
+      cm.toTextArea();
     };
+  }, [language]);
 
-    const updateView = () => {
-      setView(new EditorView(document.getElementById('editor'), editorState, extension));
-    };
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value);
+  };
 
-    updateEditorState();
-    updateView();
-  }, []);
+  const handleCodeChange = (e) => {
+    setCode(e.target.value);
+  };
 
   return (
-    <div id="editor" style={{ height: '100vh' }}>
-      {view && view.render()}
+    <div>
+      <select value={language} onChange={handleLanguageChange}>
+        <option value='javascript'>JavaScript</option>
+        <option value='python'>Python</option>
+        <option value='html'>HTML</option>
+      </select>
+      <textarea id='editor' value={code} onChange={handleCodeChange} />
+      <div>Cursor Position: {cursorPosition.line},{cursorPosition.ch}</div>
     </div>
   );
 };

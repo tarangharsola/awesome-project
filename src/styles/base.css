@@ -1,21 +1,28 @@
 body {
-  font-family: "Monaco", monospace;
+  font-family: monospace;
+  background-color: #f0f0f0;
 }
 
 #editor {
   width: 100%;
-  height: 100vh;
+  height: 500px;
   padding: 10px;
+  font-size: 14px;
 }
 
-#language-selector {
-  position: absolute;
-  top: 10px;
-  left: 10px;
+#editor select {
+  padding: 5px;
+  font-size: 14px;
 }
 
-#font-size-selector {
+#editor textarea {
+  padding: 5px;
+  font-size: 14px;
+}
+
+.cursor {
   position: absolute;
-  top: 30px;
-  left: 10px;
+  background-color: red;
+  width: 2px;
+  height: 2px;
 }
