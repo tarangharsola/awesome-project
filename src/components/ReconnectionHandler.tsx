@@ -1,1 +1,14 @@
-{"import React, { useState, useEffect } from 'react';\n\nconst ReconnectionHandler = () => {\n  const [connectionStatus, setConnectionStatus] = useState('connected');\n  const [retryCount, setRetryCount] = useState(0);\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      if (connectionStatus === 'disconnected') {\n        setRetryCount(retryCount + 1);\n      }\n    }, 5000);\n    return () => clearInterval(intervalId);\n  }, [connectionStatus]);\n\n  const handleConnectionStatusChange = (status) => {\n    setConnectionStatus(status);\n  };\n\n  const handleRetry = () => {\n    setRetryCount(0);\n  };\n\n  return (\n    <div>\n      <p>Connection Status: {connectionStatus}</p>\n      {connectionStatus === 'disconnected' ? (\n        <button onClick={handleRetry}>Retry ({retryCount})</button>\n      ) : null}\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+{"import React from 'react';
+import { useReconnection } from './useReconnection';
+
+const ReconnectionHandler = () => {
+  const reconnection = useReconnection();
+
+  return (
+    <div>
+      {reconnection.status === 'connected' ? 'Connected' : 'Disconnected'}
+    </div>
+  );
+};
+
+export default ReconnectionHandler;

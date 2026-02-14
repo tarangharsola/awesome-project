@@ -1,30 +1,34 @@
 {"import React from 'react';
-import { EditorState, Editor } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { DOMParser } from 'prosemirror-model';
+import { EditorState, EditorProps } from 'prosemirror-state';
+import { EditorView, EditorProps as ProsemirrorEditorProps } from 'prosemirror-view';
+import { Extension } from 'prosemirror-extensions';
 
-const EditorComponent = () => {
+interface EditorProps extends ProsemirrorEditorProps {
+  // Add custom props here
+}
+
+const Editor = ({ children, ...props }: EditorProps) => {
   const [editorState, setEditorState] = React.useState(EditorState.create());
-  const [view, setView] = React.useState(null);
-
-  const handleUpdate = (state) => {
-    setEditorState(state);
-  };
+  const [view, setView] = React.useState<EditorView>();
 
   React.useEffect(() => {
-    const view = new EditorView(document.querySelector('#editor'), {
-      state: editorState,
-      dispatchTransaction: handleUpdate,
-    });
-    setView(view);
-    return () => view.destroy();
-  }, [editorState]);
+    const updateEditorState = () => {
+      setEditorState(EditorState.create());
+    };
+
+    const updateView = () => {
+      setView(new EditorView(document.getElementById('editor'), editorState, extension));
+    };
+
+    updateEditorState();
+    updateView();
+  }, []);
 
   return (
-    <div id="editor" style={{ height: 500 }}>
-      <Editor state={editorState} />
+    <div id="editor" style={{ height: '100vh' }}>
+      {view && view.render()}
     </div>
   );
 };
 
-export default EditorComponent;
+export default Editor;
