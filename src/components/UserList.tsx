@@ -1,16 +1,1 @@
-{"import React from 'react';
-import { useUsers } from './useUsers';
-
-const UserList = () => {
-  const users = useUsers();
-
-  return (
-    <ul>
-      {users.map((user, index) => (
-        <li key={index}>{user.name} ({user.color})</li>
-      ))}
-    </ul>
-  );
-};
-
-export default UserList;
+{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport { User } from './types';\n\ninterface Props {\n  users: User[];\n}\n\nconst UserList = ({ users }: Props) => {\n  const [activeUsers, setActiveUsers] = useState(users);\n\n  useEffect(() => {\n    setActiveUsers(users);\n  }, [users]);\n\n  return (\n    <div className='active-users-panel'>\n      {activeUsers.map((user, index) => (\n        <div key={index} style={{\n          backgroundColor: user.color,\n          color: 'white',\n          padding: '5px',\n          borderRadius: '5px',\n          margin: '5px',\n        }}\n        >\n          {user.name}\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default UserList;
