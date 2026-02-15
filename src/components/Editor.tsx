@@ -1,47 +1,28 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import CodeMirror from 'codemirror';
+import { EditorState, EditorProps } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { Editor } from 'react-prosemirror';
 
-const Editor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState('');
-  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
+interface Props extends EditorProps {
+  onChange: (state: EditorState) => void;
+}
 
-  useEffect(() => {
-    const cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-      theme: 'monokai'
-    });
+const EditorComponent: React.FC<Props> = ({ onChange, ...props }) => {
+  const [state, setState] = React.useState(EditorState.createEmpty());
+  const view = new EditorView(state, new EditorState(state));
 
-    cm.on('cursorActivity', (instance, cursor) => {
-      setCursorPosition(cursor);
-    });
-
-    return () => {
-      cm.toTextArea();
-    };
-  }, [language]);
-
-  const handleLanguageChange = (e) => {
-    setLanguage(e.target.value);
-  };
-
-  const handleCodeChange = (e) => {
-    setCode(e.target.value);
+  const handleChange = (state: EditorState) => {
+    onChange(state);
+    setState(state);
   };
 
   return (
-    <div>
-      <select value={language} onChange={handleLanguageChange}>
-        <option value='javascript'>JavaScript</option>
-        <option value='python'>Python</option>
-        <option value='html'>HTML</option>
-      </select>
-      <textarea id='editor' value={code} onChange={handleCodeChange} />
-      <div>Cursor Position: {cursorPosition.line},{cursorPosition.ch}</div>
-    </div>
+    <Editor
+      value={state}
+      onChange={handleChange}
+      {...props}
+    />
   );
 };
 
-export default Editor;
+export default EditorComponent;

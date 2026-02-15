@@ -1,1 +1,22 @@
-{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport { User } from './types';\n\ninterface Props {\n  users: User[];\n}\n\nconst UserList = ({ users }: Props) => {\n  const [activeUsers, setActiveUsers] = useState(users);\n\n  useEffect(() => {\n    setActiveUsers(users);\n  }, [users]);\n\n  return (\n    <div className='active-users-panel'>\n      {activeUsers.map((user, index) => (\n        <div key={index} style={{\n          backgroundColor: user.color,\n          color: 'white',\n          padding: '5px',\n          borderRadius: '5px',\n          margin: '5px',\n        }}\n        >\n          {user.name}\n        </div>\n      ))}\n    </div>\n  );\n};\n\nexport default UserList;
+{"import React from 'react';
+import { useUsers } from './useUsers';
+
+interface Props {
+  users: { userId: string; username: string; color: string }[];
+}
+
+const UserList: React.FC<Props> = ({ users }) => {
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.userId} style={{
+          backgroundColor: user.color,
+          padding: 10,
+          borderRadius: 5,
+        }}>{user.username}</li>
+      ))}
+    </ul>
+  );
+};
+
+export default UserList;

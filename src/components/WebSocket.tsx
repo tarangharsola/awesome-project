@@ -1,1 +1,37 @@
-{"import React, { useState, useEffect } from 'react';\n\nconst WebSocket = () => {\n  const [connectionStatus, setConnectionStatus] = useState('connected');\n  const [retryCount, setRetryCount] = useState(0);\n\n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onopen = () => {\n      setConnectionStatus('connected');\n    };\n    ws.onclose = () => {\n      setConnectionStatus('disconnected');\n    };\n    ws.onerror = () => {\n      setConnectionStatus('disconnected');\n    };\n\n    const intervalId = setInterval(() => {\n      if (connectionStatus === 'disconnected') {\n        setRetryCount(retryCount + 1);\n      }\n    }, 5000);\n    return () => {\n      clearInterval(intervalId);\n      ws.close();\n    };\n  }, [connectionStatus]);\n\n  return (\n    <div>\n      <p>Connection Status: {connectionStatus}</p>\n      {connectionStatus === 'disconnected' ? (\n        <button onClick={() => ws.reconnect()}>Retry ({retryCount})</button>\n      ) : null}\n    </div>\n  );\n};\n\nexport default WebSocket;
+{"import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+
+interface Props {
+  onConnect: () => void;
+  onDisconnect: () => void;
+  onMessage: (message: any) => void;
+}
+
+const WebSocket: React.FC<Props> = ({ onConnect, onDisconnect, onMessage }) => {
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  useEffect(() => {
+    const newSocket = io();
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      onConnect();
+    });
+
+    newSocket.on('disconnect', () => {
+      onDisconnect();
+    });
+
+    newSocket.on('message', (message) => {
+      onMessage(message);
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+
+  return null;
+};
+
+export default WebSocket;
