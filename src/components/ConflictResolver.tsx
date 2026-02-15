@@ -1,18 +1,22 @@
 {"import React from 'react';
 import { useEditor } from './useEditor';
 
-interface ConflictResolverProps {
-  editor: useEditor;
-}
+const ConflictResolver = () => {
+  const { editorState, dispatch } = useEditor();
+  const { conflicts } = editorState;
 
-const ConflictResolver: React.FC<ConflictResolverProps> = ({ editor }) => {
-  const { operations } = editor;
-  const conflicts = operations.filter((operation) => operation.type === 'conflict');
+  const handleConflict = (conflict) => {
+    // Handle conflict resolution logic here
+    dispatch({ type: 'RESOLVE_CONFLICT', conflict });
+  };
 
   return (
     <div>
-      {conflicts.map((conflict, index) => (
-        <div key={index}>{`Conflict at ${conflict.path}`}</div>
+      {conflicts.map((conflict) => (
+        <div key={conflict.id}>
+          Conflict detected: {conflict.message}
+          <button onClick={() => handleConflict(conflict)}>Resolve</button>
+        </div>
       ))}
     </div>
   );

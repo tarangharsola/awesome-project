@@ -1,27 +1,27 @@
 {"import React, { useState, useEffect } from 'react';
 import { useWebSocket } from './useWebSocket';
 
-interface ReconnectionHandlerProps {
-  children: React.ReactNode;
-}
-
-const ReconnectionHandler: React.FC<ReconnectionHandlerProps> = ({ children }) => {
+const ReconnectionHandler = () => {
   const [reconnecting, setReconnecting] = useState(false);
-  const { reconnect } = useWebSocket();
+  const { reconnect, error } = useWebSocket();
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (reconnecting) {
-        reconnect();
-      }
-    }, 10000);
-    return () => clearInterval(intervalId);
-  }, [reconnecting, reconnect]);
+    if (error) {
+      setReconnecting(true);
+    }
+  }, [error]);
+
+  const handleReconnect = () => {
+    reconnect();
+  };
 
   return (
     <div>
-      {children}
-      {reconnecting ? <div>Reconnecting...</div> : null}
+      {reconnecting ? (
+        <div>Reconnecting...</div>
+      ) : (
+        <button onClick={handleReconnect}>Reconnect</button>
+      )}
     </div>
   );
 };
