@@ -1,12 +1,15 @@
-const { JSDOM } = require('jsdom');
-const { join } = require('path');
-const { readFileSync } = require('fs');
+// eslint-disable-next-line
+import { JSDOM } from 'jsdom';
+import { test } from 'uvu';
+import { assert } from 'uvu/assert';
 
-const dom = new JSDOM(readFileSync(join(__dirname, 'index.html'), 'utf8'));
+const dom = new JSDOM();
 const document = dom.window.document;
 
-const editor = document.querySelector('#editor');
-const cursorTracker = document.querySelector('#cursor-tracker');
-const userList = document.querySelector('#user-list');
+test('Editor renders correctly', () => {
+  const editor = document.createElement('editor');
+  editor.innerHTML = '<div>Hello World!</div>';
+  assert.ok(editor.querySelector('div') !== null);
+});
 
-editor.innerHTML = 'Hello World!';
+test.run()

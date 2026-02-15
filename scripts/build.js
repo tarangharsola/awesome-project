@@ -1,20 +1,20 @@
-const webpack = require('webpack');
-const path = require('path');
+import { spawn } from 'child_process';
+import { resolve } from 'path';
 
-module.exports = {
-  entry: './src/index.tsx',
-  output: {
-    path: path.resolve(__dirname, 'public'),
-    filename: 'bundle.js',
-  },
-  module: {
-    rules: [
-      {
-        test: /.tsx?$/, use: 'ts-loader', exclude: /node_modules/,
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.ts', '.tsx', '.js'],
-  },
+const build = () => {
+  const child = spawn('webpack', ['--mode', 'production'], {
+    cwd: resolve(__dirname, '..'),
+    stdio: 'inherit',
+  });
+  return new Promise((resolve, reject) => {
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Build failed with code ${code}`));
+      }
+    });
+  });
 };
+
+export default build;
