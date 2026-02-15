@@ -1,28 +1,29 @@
 {"import React from 'react';
-import { EditorState, EditorProps } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { Editor } from 'react-prosemirror';
+import { useState } from 'react';
+import CodeMirror from 'codemirror';
 
-interface Props extends EditorProps {
-  onChange: (state: EditorState) => void;
-}
+const Editor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
 
-const EditorComponent: React.FC<Props> = ({ onChange, ...props }) => {
-  const [state, setState] = React.useState(EditorState.createEmpty());
-  const view = new EditorView(state, new EditorState(state));
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value);
+  };
 
-  const handleChange = (state: EditorState) => {
-    onChange(state);
-    setState(state);
+  const handleCodeChange = (e) => {
+    setCode(e.target.value);
   };
 
   return (
-    <Editor
-      value={state}
-      onChange={handleChange}
-      {...props}
-    />
+    <div>
+      <select value={language} onChange={handleLanguageChange}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <CodeMirror value={code} onChange={handleCodeChange} language={language} />
+    </div>
   );
 };
 
-export default EditorComponent;
+export default Editor;
