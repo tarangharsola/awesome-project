@@ -1,34 +1,29 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorView } from 'prosemirror-view';
-import { CursorTracker } from './CursorTracker';
+import { WebSocket } from 'ws';
 
-interface Props {
-  view: EditorView;
-  userId: string;
-}
-
-const CursorTrackerComponent: React.FC<Props> = ({ view, userId }) => {
-  const [cursorPosition, setCursorPosition] = useState(view.state.selection.from);
-  const [cursorColor, setCursorColor] = useState(`#${Math.floor(Math.random() * 16777215).toString(16)}`);
+const CursorTracker = () => {
+  const [cursors, setCursors] = useState([]);
 
   useEffect(() => {
-    const handleStateChange = () => {
-      setCursorPosition(view.state.selection.from);
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'cursor') {
+        setCursors(data.cursors);
+      }
     };
-    view.dispatch({ type: 'set_selection', selection: view.state.selection });
     return () => {
-      view.destroy();
+      ws.close();
     };
-  }, [view.state.selection, view.state.selection.from]);
+  }, []);
 
   return (
-    <div className="cursor" style={{
-      left: `${cursorPosition}px`,
-      backgroundColor: cursorColor,
-    }}>
-      {userId}
+    <div>
+      {cursors.map((cursor, index) => (
+        <div key={index}>{cursor.name} ({cursor.line}, {cursor.column})</div>
+      ))}
     </div>
   );
-}
+};
 
-export default CursorTrackerComponent;
+export default CursorTracker;

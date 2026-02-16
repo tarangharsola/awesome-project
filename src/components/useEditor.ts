@@ -1,26 +1,31 @@
-import { useState, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-editor';
+import { OperationalTransformation } from 'ot-react';
 
-interface useEditorProps {
-  editor: any;
-  webSocket: any;
-}
-
-const useEditor = ({ editor, webSocket }: useEditorProps) => {
-  const [state, setState] = useState({ text: '', cursor: { position: 0 } });
-  const { send } = webSocket;
+const useEditor = () => {
+  const [editorState, setEditorState] = useState({
+    text: ''
+  });
 
   useEffect(() => {
-    const handleTextChange = (text: any) => {
-      setState({ text, cursor: state.cursor });
-    };
-
-    send({ type: 'textChange', text });
+    const ot = new OperationalTransformation();
+    ot.init();
     return () => {
-      send({ type: 'textChange', text: null });
+      ot.destroy();
     };
-  }, [send]);
+  }, []);
 
-  return { state, dispatch: setState };
+  const handleEditorChange = (newText) => {
+    setEditorState({
+      text: newText
+    });
+    ot.applyChange(newText);
+  };
+
+  return {
+    editorState,
+    handleEditorChange
+  };
 };
 
 export default useEditor;
