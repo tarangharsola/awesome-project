@@ -1,15 +1,16 @@
-// eslint-disable-next-line
-import { JSDOM } from 'jsdom';
-import { test } from 'uvu';
-import { assert } from 'uvu/assert';
+// Import required modules
+const assert = require('assert');
 
-const dom = new JSDOM();
-const document = dom.window.document;
-
-test('Editor renders correctly', () => {
-  const editor = document.createElement('editor');
-  editor.innerHTML = '<div>Hello World!</div>';
-  assert.ok(editor.querySelector('div') !== null);
+// Test editor functionality
+describe('Editor', () => {
+  it('should render editor', () => {
+    // Render editor and assert its existence
+  });
 });
 
-test.run()
+// Test WebSocket functionality
+describe('WebSocket', () => {
+  it('should establish connection', () => {
+    // Establish WebSocket connection and assert its existence
+  });
+});

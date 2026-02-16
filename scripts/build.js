@@ -1,20 +1,19 @@
-import { spawn } from 'child_process';
-import { resolve } from 'path';
+// Import required modules
+const gulp = require('gulp');
+const babel = require('gulp-babel');
+const uglify = require('gulp-uglify');
 
-const build = () => {
-  const child = spawn('webpack', ['--mode', 'production'], {
-    cwd: resolve(__dirname, '..'),
-    stdio: 'inherit',
-  });
-  return new Promise((resolve, reject) => {
-    child.on('close', (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Build failed with code ${code}`));
-      }
-    });
-  });
-};
+// Define build task
+gulp.task('build', () => {
+  return gulp.src(['src/**/*.js', 'src/**/*.jsx'])
+    .pipe(babel({
+      presets: ['@babel/preset-env']
+    }))
+    .pipe(uglify())
+    .pipe(gulp.dest('dist'));
+});
 
-export default build;
+// Define default task
+gulp.task('default', ['build'], () => {
+  console.log('Build complete.');
+});
