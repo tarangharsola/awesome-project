@@ -1,30 +1,35 @@
-{"import React, { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-editor';
-import { OperationalTransformation } from 'ot-react';
+{"import { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-code-editor';
+import { Highlight, Languages } from 'prismjs';
 
 const useEditor = () => {
-  const [editorState, setEditorState] = useState({
-    text: ''
-  });
+  const [language, setLanguage] = useState(Languages.javascript);
+  const [code, setCode] = useState('');
+  const [formattedCode, setFormattedCode] = useState('');
 
   useEffect(() => {
-    const ot = new OperationalTransformation();
-    ot.init();
-    return () => {
-      ot.destroy();
-    };
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage) {
+      setLanguage(storedLanguage);
+    }
   }, []);
 
-  const handleEditorChange = (newText) => {
-    setEditorState({
-      text: newText
-    });
-    ot.applyChange(newText);
+  const handleLanguageChange = (language: string) => {
+    setLanguage(language);
+    localStorage.setItem('language', language);
+  };
+
+  const handleCodeChange = (code: string) => {
+    setCode(code);
+    setFormattedCode(prism.highlight(code, Highlight.javascript, Languages.javascript));
   };
 
   return {
-    editorState,
-    handleEditorChange
+    language,
+    code,
+    formattedCode,
+    handleLanguageChange,
+    handleCodeChange,
   };
 };
 
