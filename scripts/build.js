@@ -1,19 +1,25 @@
-// Import required modules
-const gulp = require('gulp');
-const babel = require('gulp-babel');
-const uglify = require('gulp-uglify');
+// Build script for production
+const { execSync } = require('child_process');
+const path = require('path');
+const fs = require('fs');
 
-// Define build task
-gulp.task('build', () => {
-  return gulp.src(['src/**/*.js', 'src/**/*.jsx'])
-    .pipe(babel({
-      presets: ['@babel/preset-env']
-    }))
-    .pipe(uglify())
-    .pipe(gulp.dest('dist'));
-});
+const buildDir = 'dist';
+const srcDir = 'src';
+const tsConfig = 'tsconfig.json';
 
-// Define default task
-gulp.task('default', ['build'], () => {
-  console.log('Build complete.');
-});
+function build() {
+  console.log('Building production code...');
+  const tsConfigPath = path.join(__dirname, tsConfig);
+  const tsConfigContent = fs.readFileSync(tsConfigPath, 'utf8');
+  const tsConfigJson = JSON.parse(tsConfigContent);
+  const tsConfigOptions = tsConfigJson.compilerOptions;
+  const tsConfigTarget = tsConfigOptions.target;
+  const tsConfigModule = tsConfigOptions.module;
+  const tsConfigOutDir = tsConfigOptions.outDir;
+
+  const buildCommand = `tsc --target ${tsConfigTarget} --module ${tsConfigModule} --outDir ${buildDir} ${srcDir}/**/*.ts`; // eslint-disable-line
+  execSync(buildCommand, { stdio: 'inherit' });
+  console.log('Production code built.');
+}
+
+module.exports = build;
