@@ -1,27 +1,31 @@
-{"import React, { useState, useEffect } from 'react';
-import { WebSocket } from './WebSocket';
+{"import React from 'react';
+import './UserList.css';
 
-const UserList = () => {
-  const { socket, reconnecting } = WebSocket();
-  const [users, setUsers] = useState([]);
+interface User {
+  id: string;
+  name: string;
+  color: string;
+}
 
-  useEffect(() => {
-    const handleUserUpdate = (user) => {
-      setUsers((prevUsers) => {
-        return [...prevUsers, user];
-      });
-    };
+interface Props {
+  users: User[];
+}
 
-    socket.on('userUpdate', handleUserUpdate);
+const UserList = ({ users }: Props) => {
+  return (
+    <div className="user-list">
+      {users.map((user) => (
+        <div key={user.id} className="user">
+          <span className="username" style={{
+            backgroundColor: user.color,
+            color: "#fff",
+          }}>
+            {user.name}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-    return () => {
-      socket.off('userUpdate', handleUserUpdate);
-    };
-  }, []);
-
-  return {
-    users,
-    reconnecting,
-  };
-};
 export default UserList;

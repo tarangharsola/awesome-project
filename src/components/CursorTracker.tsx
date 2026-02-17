@@ -1,44 +1,32 @@
-{"import React, { useState, useEffect } from 'react';
-import { Editor } from 'slate-react';
-import { OperationalTransform } from 'ot-react';
+{"import React from 'react';
+import './CursorTracker.css';
 
-const CursorTracker = () => {
-  const [editor, setEditor] = useState(new Editor());
-  const [ot, setOt] = useState(new OperationalTransform());
-  const [cursors, setCursors] = useState({});
+interface Cursor {
+  id: string;
+  x: number;
+  y: number;
+  color: string;
+}
 
-  useEffect(() => {
-    const handleChanges = (changes) => {
-      setOt((prevOt) => prevOt.apply(changes));
-      setEditor((prevEditor) => prevEditor.applyChanges(changes));
-    };
+interface Props {
+  cursors: Cursor[];
+}
 
-    const handleCursorUpdate = (cursor) => {
-      setCursors((prevCursors) => {
-        return {
-          ...prevCursors,
-          [cursor.userId]: cursor,
-        };
-      });
-    };
+const CursorTracker = ({ cursors }: Props) => {
+  return (
+    <div className="cursor-tracker">
+      {cursors.map((cursor) => (
+        <div key={cursor.id} className="cursor" style={{
+          left: cursor.x + 'px',
+          top: cursor.y + 'px',
+          backgroundColor: cursor.color,
+          color: "#fff",
+        }}>
+          {cursor.id}
+        </div>
+      ))}
+    </div>
+  );
+}
 
-    setEditor((prevEditor) => {
-      prevEditor.on('changes', handleChanges);
-      prevEditor.on('cursorUpdate', handleCursorUpdate);
-      return prevEditor;
-    });
-
-    return () => {
-      setEditor((prevEditor) => {
-        prevEditor.off('changes', handleChanges);
-        prevEditor.off('cursorUpdate', handleCursorUpdate);
-        return prevEditor;
-      });
-    };
-  }, []);
-
-  return {
-    cursors,
-  };
-};
 export default CursorTracker;
