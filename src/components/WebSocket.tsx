@@ -1,29 +1,37 @@
 {"import React, { useState, useEffect } from 'react';
-import { WebSocket } from './WebSocket';
+import { io } from 'socket.io-client';
 
-interface Props {
-  onMessage: (message: string) => void;
-}
-
-const WebSocketComponent: React.FC<Props> = ({ onMessage }) => {
+const WebSocket = () => {
   const [socket, setSocket] = useState(null);
+  const [reconnecting, setReconnecting] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setSocket(ws);
-    ws.onmessage = (event) => {
-      onMessage(event.data);
-    };
+    const socket = io('ws://localhost:3001');
+    setSocket(socket);
+
+    socket.on('connect', () => {
+      console.log('Connected to server');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+
+    socket.on('reconnection', () => {
+      setReconnecting(true);
+      setTimeout(() => {
+        setReconnecting(false);
+      }, 1000);
+    });
+
     return () => {
-      ws.close();
+      socket.disconnect();
     };
   }, []);
 
-  return (
-    <div className="websocket">
-      {socket && <div>Connected to WebSocket</div>}
-    </div>
-  );
-}
-
-export default WebSocketComponent;
+  return {
+    socket,
+    reconnecting,
+  };
+};
+export default WebSocket;

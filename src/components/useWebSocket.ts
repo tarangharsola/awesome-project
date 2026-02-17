@@ -1,1 +1,9 @@
-{"import { useState, useEffect } from 'react';\nimport { io } from 'socket.io-client';\n\ninterface WebSocketContextValue {\n  send: (message: any) => void;\n  messages: { subscribe: (callback: (message: any) => void) => void; unsubscribe: (callback: (message: any) => void) => void; };\n}\n\nconst useWebSocket = () => {\n  const [socket, setSocket] = useState<Socket | null>(null);\n\n  useEffect(() => {\n    const socket = io();\n    setSocket(socket);\n    return () => {\n      socket.disconnect();\n    };\n  }, []);\n\n  const send = (message: any) => {\n    socket.emit('message', message);\n  };\n\n  const messages = {\n    subscribe: (callback: (message: any) => void) => {\n      socket.on('message', callback);\n    },\n    unsubscribe: (callback: (message: any) => void) => {\n      socket.off('message', callback);\n    },\n  };\n\n  return { send, messages };\n};\n\nexport default useWebSocket;
+{"import { useState, useEffect } from 'react';
+import WebSocket from './WebSocket';
+
+const useWebSocket = () => {
+  const { socket, reconnecting } = WebSocket();
+
+  return { socket, reconnecting };
+};
+export default useWebSocket;

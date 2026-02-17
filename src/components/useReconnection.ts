@@ -1,24 +1,21 @@
-import { useState, useEffect } from 'react';
+{"import { useState, useEffect } from 'react';
 
-interface useReconnectionProps {
-  webSocket: any;
-}
-
-const useReconnection = ({ webSocket }: useReconnectionProps) => {
+const useReconnection = () => {
   const [reconnecting, setReconnecting] = useState(false);
 
   useEffect(() => {
-    const handleReconnect = () => {
+    const handleReconnection = () => {
       setReconnecting(true);
+      setTimeout(() => {
+        setReconnecting(false);
+      }, 1000);
     };
 
-    webSocket.reconnect(handleReconnect);
     return () => {
-      webSocket.reconnect(null);
+      // Clean up on unmount
     };
-  }, [webSocket]);
+  }, []);
 
   return reconnecting;
 };
-
 export default useReconnection;

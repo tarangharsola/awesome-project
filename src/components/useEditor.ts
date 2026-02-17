@@ -1,36 +1,36 @@
-{"import { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-code-editor';
-import { Highlight, Languages } from 'prismjs';
+{"import React, { useState, useEffect } from 'react';
+import { Editor } from 'slate-react';
+import { OperationalTransform } from 'ot-react';
 
 const useEditor = () => {
-  const [language, setLanguage] = useState(Languages.javascript);
-  const [code, setCode] = useState('');
-  const [formattedCode, setFormattedCode] = useState('');
+  const [editor, setEditor] = useState(new Editor());
+  const [ot, setOt] = useState(new OperationalTransform());
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem('language');
-    if (storedLanguage) {
-      setLanguage(storedLanguage);
-    }
+    const handleChanges = (changes) => {
+      setOt((prevOt) => prevOt.apply(changes));
+      setEditor((prevEditor) => prevEditor.applyChanges(changes));
+    };
+
+    const handleReconnection = () => {
+      console.log('Reconnected');
+    };
+
+    setEditor((prevEditor) => {
+      prevEditor.on('changes', handleChanges);
+      prevEditor.on('reconnection', handleReconnection);
+      return prevEditor;
+    });
+
+    return () => {
+      setEditor((prevEditor) => {
+        prevEditor.off('changes', handleChanges);
+        prevEditor.off('reconnection', handleReconnection);
+        return prevEditor;
+      });
+    };
   }, []);
 
-  const handleLanguageChange = (language: string) => {
-    setLanguage(language);
-    localStorage.setItem('language', language);
-  };
-
-  const handleCodeChange = (code: string) => {
-    setCode(code);
-    setFormattedCode(prism.highlight(code, Highlight.javascript, Languages.javascript));
-  };
-
-  return {
-    language,
-    code,
-    formattedCode,
-    handleLanguageChange,
-    handleCodeChange,
-  };
+  return { editor, ot };
 };
-
 export default useEditor;

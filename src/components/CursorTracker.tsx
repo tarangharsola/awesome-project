@@ -1,1 +1,44 @@
-{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport { useWebSocket } from './useWebSocket';\n\ninterface CursorTrackerProps {\n  userId: string;\n  cursorPosition: number;\n}\n\nconst CursorTracker: React.FC<CursorTrackerProps> = ({ userId, cursorPosition }) => {\n  const { send, messages } = useWebSocket();\n  const [cursorColor, setCursorColor] = useState(getRandomColor());\n  const [cursorPositionState, setCursorPositionState] = useState(cursorPosition);\n\n  useEffect(() => {\n    setCursorPositionState(cursorPosition);\n  }, [cursorPosition]);\n\n  const handleMouseMove = (event: MouseEvent) => {\n    send({ type: 'cursor-move', data: { userId, x: event.clientX, y: event.clientY } });\n  };\n\n  return (\n    <div\n      style={{\n        position: 'absolute',\n        left: cursorPositionState,\n        top: 0,\n        width: 2,\n        height: '100%',\n        backgroundColor: cursorColor,\n      }}\n      onMouseMove={handleMouseMove}\n    />\n  );\n};\n\nexport default CursorTracker;
+{"import React, { useState, useEffect } from 'react';
+import { Editor } from 'slate-react';
+import { OperationalTransform } from 'ot-react';
+
+const CursorTracker = () => {
+  const [editor, setEditor] = useState(new Editor());
+  const [ot, setOt] = useState(new OperationalTransform());
+  const [cursors, setCursors] = useState({});
+
+  useEffect(() => {
+    const handleChanges = (changes) => {
+      setOt((prevOt) => prevOt.apply(changes));
+      setEditor((prevEditor) => prevEditor.applyChanges(changes));
+    };
+
+    const handleCursorUpdate = (cursor) => {
+      setCursors((prevCursors) => {
+        return {
+          ...prevCursors,
+          [cursor.userId]: cursor,
+        };
+      });
+    };
+
+    setEditor((prevEditor) => {
+      prevEditor.on('changes', handleChanges);
+      prevEditor.on('cursorUpdate', handleCursorUpdate);
+      return prevEditor;
+    });
+
+    return () => {
+      setEditor((prevEditor) => {
+        prevEditor.off('changes', handleChanges);
+        prevEditor.off('cursorUpdate', handleCursorUpdate);
+        return prevEditor;
+      });
+    };
+  }, []);
+
+  return {
+    cursors,
+  };
+};
+export default CursorTracker;

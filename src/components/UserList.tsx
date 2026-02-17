@@ -1,1 +1,27 @@
-{"import React from 'react';\nimport { useUsers } from './useUsers';\n\ninterface UserListProps {\n  users: { id: string; name: string; color: string }[];\n}\n\nconst UserList: React.FC<UserListProps> = ({ users }) => {\n  return (\n    <ul\n      style={{\n        listStyle: 'none',\n        padding: 0,\n        margin: 0,\n      }}\n    >\n      {users.map((user) => (\n        <li\n          key={user.id}\n          style={{\n            display: 'inline-block',\n            margin: 5,\n            padding: 5,\n            backgroundColor: user.color,\n            borderRadius: 5,\n          }}\n        >\n          {user.name}\n        </li>\n      ))}\n    </ul>\n  );\n};\n\nexport default UserList;
+{"import React, { useState, useEffect } from 'react';
+import { WebSocket } from './WebSocket';
+
+const UserList = () => {
+  const { socket, reconnecting } = WebSocket();
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const handleUserUpdate = (user) => {
+      setUsers((prevUsers) => {
+        return [...prevUsers, user];
+      });
+    };
+
+    socket.on('userUpdate', handleUserUpdate);
+
+    return () => {
+      socket.off('userUpdate', handleUserUpdate);
+    };
+  }, []);
+
+  return {
+    users,
+    reconnecting,
+  };
+};
+export default UserList;
