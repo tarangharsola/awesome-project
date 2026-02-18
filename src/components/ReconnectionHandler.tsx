@@ -1,1 +1,31 @@
-{"import React, { useState, useEffect } from 'react';\n\ninterface Props {\n  children: React.ReactNode;\n  onReconnect: () => void;\n}\n\nconst ReconnectionHandler: React.FC<Props> = ({ children, onReconnect }) => {\n  const [connected, setConnected] = useState(false);\n  const [retryCount, setRetryCount] = useState(0);\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      if (!connected) {\n        setRetryCount(retryCount + 1);\n      }\n    }, 5000);\n    return () => clearInterval(intervalId);\n  }, [connected]);\n\n  const handleReconnect = () => {\n    onReconnect();\n    setConnected(true);\n    setRetryCount(0);\n  };\n\n  return (\n    <div>\n      {children}\n      {retryCount > 0 && (\n        <button onClick={handleReconnect}>\n          Reconnect ({retryCount})\n        </button>\n      )}\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+
+interface Props {
+  children: React.ReactNode;
+  onReconnect: () => void;
+}
+
+const ReconnectionHandler: React.FC<Props> = ({ children, onReconnect }) => {
+  const [connected, setConnected] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (!connected) {
+        onReconnect();
+      }
+    }, 5000);
+    return () => clearInterval(intervalId);
+  }, [connected, onReconnect]);
+
+  return (
+    <div>
+      {children}
+      <p>Connection status: {connected ? 'Connected' : 'Disconnected'}</p>
+      <p>Retry count: {retryCount}</p>
+    </div>
+  );
+};
+
+export default ReconnectionHandler;

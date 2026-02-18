@@ -1,1 +1,59 @@
-{"import React, { useState, useEffect } from 'react';\n\ninterface Props {\n  children: React.ReactNode;\n  onMessage: (message: string) => void;\n}\n\nconst WebSocket: React.FC<Props> = ({ children, onMessage }) => {\n  const [connected, setConnected] = useState(false);\n  const [retryCount, setRetryCount] = useState(0);\n\n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onmessage = (event) => {\n      onMessage(event.data);\n    };\n    ws.onopen = () => {\n      setConnected(true);\n    };\n    ws.onclose = () => {\n      setConnected(false);\n    };\n    ws.onerror = () => {\n      setConnected(false);\n    };\n\n    const intervalId = setInterval(() => {\n      if (!connected) {\n        setRetryCount(retryCount + 1);\n      }\n    }, 5000);\n    return () => {\n      clearInterval(intervalId);\n      ws.close();\n    };\n  }, []);\n\n  return (\n    <div>\n      {children}\n      {retryCount > 0 && (\n        <button onClick={() => {\n          // Implement reconnect logic here\n        }}>\n          Reconnect ({retryCount})\n        </button>\n      )}\n    </div>\n  );\n};\n\nexport default WebSocket;
+{"import React, { useState, useEffect } from 'react';
+import WebSocket from 'ws';
+
+interface Props {
+  children: React.ReactNode;
+  onConnect: () => void;
+  onDisconnect: () => void;
+}
+
+const WebSocketComponent: React.FC<Props> = ({ children, onConnect, onDisconnect }) => {
+  const [ws, setWs] = useState<WebSocket | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
+    const wsUrl = 'ws://localhost:8080';
+    const wsOptions = {
+      rejectUnauthorized: false,
+    };
+
+    const ws = new WebSocket(wsUrl, wsOptions);
+
+    ws.onopen = () => {
+      setWs(ws);
+      onConnect();
+    };
+
+    ws.onclose = () => {
+      setWs(null);
+      onDisconnect();
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [onConnect, onDisconnect]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (!ws) {
+        setRetryCount(retryCount + 1);
+      }
+    }, 5000);
+    return () => clearInterval(intervalId);
+  }, [ws, retryCount]);
+
+  return (
+    <div>
+      {children}
+      <p>Connection status: {ws ? 'Connected' : 'Disconnected'}</p>
+      <p>Retry count: {retryCount}</p>
+    </div>
+  );
+};
+
+export default WebSocketComponent;
