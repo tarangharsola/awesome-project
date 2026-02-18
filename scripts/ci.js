@@ -1,12 +1,6 @@
-import { spawnSync } from 'child_process';
-import { test } from 'tap';
+{"const { execSync } = require('child_process');
 
-test('build script', async (t) => {
-  const result = spawnSync('npm', ['run', 'build']);
-  t.ok(result.status === 0);
-});
-
-test('test script', async (t) => {
-  const result = spawnSync('npm', ['run', 'test']);
-  t.ok(result.status === 0);
-});
+module.exports = function() {
+  execSync('npm run build');
+  execSync('jest');
+};
