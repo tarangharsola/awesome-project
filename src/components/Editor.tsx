@@ -1,1 +1,50 @@
-{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport { EditorState, Editor } from 'react-simple-editor';\nimport { MonacoEditor } from 'react-monaco-editor';\nimport { useLanguage } from './useLanguage';\n\nconst EditorComponent = ({ language, onChange }) => {\n  const [editorState, setEditorState] = useState({});\n  const [languageState, setLanguageState] = useState(language);\n\n  useEffect(() => {\n    setLanguageState(language);\n  }, [language]);\n\n  const handleLanguageChange = (newLanguage) => {\n    setLanguageState(newLanguage);\n  };\n\n  return (\n    <div>\n      <select value={languageState} onChange={(e) => handleLanguageChange(e.target.value)}>\n        <option value="javascript">JavaScript</option>\n        <option value="python">Python</option>\n        <option value="html">HTML</option>\n      </select>\n      <MonacoEditor\n        language={languageState}\n        value={editorState.value}\n        onChange={(value) => setEditorState({ value })}\n        options={{\n          selectOnLineNumbers: true,\n          fontSize: 14,\n          lineNumbers: 'on',\n          minimap: { enabled: false },\n        }}\n      />\n    </div>\n  );\n};\n\nexport default EditorComponent;
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-code-editor';
+import { Highlight, Languages } from 'prismjs';
+
+const EditorComponent = () => {
+  const [language, setLanguage] = useState(Languages.javascript);
+  const [code, setCode] = useState('');
+  const [formattedCode, setFormattedCode] = useState('');
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        setCode(code + '  ');
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleLanguageChange = (language) => {
+    setLanguage(language);
+    Highlight.init(language);
+  };
+
+  const handleCodeChange = (code) => {
+    setCode(code);
+    setFormattedCode(prism.highlight(code, Highlight.getLanguage(language), 'x'));
+  };
+
+  return (
+    <div>
+      <select value={language} onChange={(event) => handleLanguageChange(event.target.value)}>
+        <option value={Languages.javascript}>JavaScript</option>
+        <option value={Languages.python}>Python</option>
+        <option value={Languages.html}>HTML</option>
+      </select>
+      <Editor
+        value={code}
+        onValueChange={handleCodeChange}
+        highlight={formattedCode}
+        padding={10}
+        style={{ fontFamily: 'monospace', fontSize: 12 }}
+      />
+    </div>
+  );
+};
+
+export default EditorComponent;
