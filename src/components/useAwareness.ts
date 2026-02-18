@@ -1,20 +1,18 @@
 {"import { useState, useEffect } from 'react';
 
 interface AwarenessProps {
+  username: string;
   users: string[];
-  cursorPositions: { [user: string]: number };
 }
 
-const useAwareness = ({ users, cursorPositions }: AwarenessProps) => {
-  const [awareness, setAwareness] = useState({ users, cursorPositions });
+const useAwareness = ({ username, users }: AwarenessProps) => {
+  const [presence, setPresence] = useState({ [username]: true });
 
   useEffect(() => {
-    // Implement awareness logic here
-    // For demonstration purposes, assume awareness is updated immediately
-    setAwareness({ users, cursorPositions });
-  }, [users, cursorPositions]);
+    setPresence((prevPresence) => ({ ...prevPresence, ...users.reduce((acc, user) => ({ ...acc, [user]: true }), {}) }));
+  }, [users]);
 
-  return awareness;
-};
+  return presence;
+}
 
 export default useAwareness;

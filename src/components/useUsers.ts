@@ -1,1 +1,16 @@
-{"import { useState, useEffect } from 'react';\nimport { io } from 'socket.io-client';\n\ninterface UsersContextValue {\n  users: { id: string; name: string; color: string }[];\n}\n\nconst useUsers = () => {\n  const [users, setUsers] = useState<{ id: string; name: string; color: string }[]>([]);\n\n  useEffect(() => {\n    const socket = io();\n    socket.on('users', (users: { id: string; name: string; color: string }[]) => {\n      setUsers(users);\n    });\n    return () => {\n      socket.disconnect();\n    };\n  }, []);\n\n  return users;\n};\n\nexport default useUsers;
+{"import { useState, useEffect } from 'react';
+
+interface UsersProps {
+}
+
+const useUsers = () => {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    // implement user tracking logic here
+  }, []);
+
+  return users;
+}
+
+export default useUsers;

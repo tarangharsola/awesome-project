@@ -1,22 +1,18 @@
 {"import { useState, useEffect } from 'react';
 
 interface ConflictResolverProps {
-  user: string;
-  cursorPosition: number;
-  document: string;
+  text: string;
+  users: string[];
 }
 
-const useConflictResolver = ({ user, cursorPosition, document }: ConflictResolverProps) => {
-  const [conflict, setConflict] = useState(false);
-  const [resolved, setResolved] = useState(false);
+const useConflictResolver = ({ text, users }: ConflictResolverProps) => {
+  const [resolvedText, setResolvedText] = useState(text);
 
   useEffect(() => {
-    // Implement conflict resolution logic here
-    // For demonstration purposes, assume conflict is resolved immediately
-    setResolved(true);
-  }, []);
+    // implement conflict resolution logic here
+  }, [text, users]);
 
-  return { conflict, resolved };
-};
+  return resolvedText;
+}
 
 export default useConflictResolver;

@@ -1,21 +1,16 @@
 {"import { useState, useEffect } from 'react';
 
+interface ReconnectionProps {
+}
+
 const useReconnection = () => {
-  const [reconnecting, setReconnecting] = useState(false);
+  const [reconnected, setReconnected] = useState(false);
 
   useEffect(() => {
-    const handleReconnection = () => {
-      setReconnecting(true);
-      setTimeout(() => {
-        setReconnecting(false);
-      }, 1000);
-    };
-
-    return () => {
-      // Clean up on unmount
-    };
+    // implement reconnection logic here
   }, []);
 
-  return reconnecting;
-};
+  return reconnected;
+}
+
 export default useReconnection;

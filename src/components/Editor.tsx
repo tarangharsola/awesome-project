@@ -1,50 +1,31 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-code-editor';
-import { Highlight, Languages } from 'prismjs';
+{"import React, { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
 
-const EditorComponent = () => {
-  const [language, setLanguage] = useState(Languages.javascript);
-  const [code, setCode] = useState('');
-  const [formattedCode, setFormattedCode] = useState('');
+interface EditorProps {
+  language: string;
+  value: string;
+}
+
+const Editor = ({ language, value }: EditorProps) => {
+  const [text, setText] = useState(value);
+  const { sendText } = useWebSocket();
+  const { updateEditor } = useEditor();
 
   useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === 'Tab') {
-        event.preventDefault();
-        setCode(code + '  ');
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+    updateEditor(text);
+  }, [text]);
 
-  const handleLanguageChange = (language) => {
-    setLanguage(language);
-    Highlight.init(language);
-  };
-
-  const handleCodeChange = (code) => {
-    setCode(code);
-    setFormattedCode(prism.highlight(code, Highlight.getLanguage(language), 'x'));
+  const handleTextChange = (newText: string) => {
+    setText(newText);
+    sendText(newText);
   };
 
   return (
     <div>
-      <select value={language} onChange={(event) => handleLanguageChange(event.target.value)}>
-        <option value={Languages.javascript}>JavaScript</option>
-        <option value={Languages.python}>Python</option>
-        <option value={Languages.html}>HTML</option>
-      </select>
-      <Editor
-        value={code}
-        onValueChange={handleCodeChange}
-        highlight={formattedCode}
-        padding={10}
-        style={{ fontFamily: 'monospace', fontSize: 12 }}
-      />
+      <textarea value={text} onChange={(e) => handleTextChange(e.target.value)} />
     </div>
   );
-};
+}
 
-export default EditorComponent;
+export default Editor;

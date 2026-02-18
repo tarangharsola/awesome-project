@@ -1,9 +1,17 @@
 {"import { useState, useEffect } from 'react';
-import WebSocket from './WebSocket';
 
-const useWebSocket = () => {
-  const { socket, reconnecting } = WebSocket();
+interface WebSocketProps {
+  username: string;
+}
 
-  return { socket, reconnecting };
-};
+const useWebSocket = ({ username }: WebSocketProps) => {
+  const [text, setText] = useState('');
+
+  useEffect(() => {
+    // implement WebSocket logic here
+  }, []);
+
+  return { sendText: (newText: string) => setText(newText) };
+}
+
 export default useWebSocket;

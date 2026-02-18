@@ -1,1 +1,17 @@
-{"import { useState, useEffect } from 'react';\n\nconst useLanguage = () => {\n  const [language, setLanguage] = useState('javascript');\n\n  useEffect(() => {\n    const storedLanguage = localStorage.getItem('language');\n    if (storedLanguage) {\n      setLanguage(storedLanguage);\n    }\n  }, []);\n\n  const handleLanguageChange = (newLanguage) => {\n    setLanguage(newLanguage);\n    localStorage.setItem('language', newLanguage);\n  };\n\n  return [language, handleLanguageChange];\n};\n\nexport default useLanguage;
+{"import { useState, useEffect } from 'react';
+
+interface LanguageProps {
+  language: string;
+}
+
+const useLanguage = ({ language }: LanguageProps) => {
+  const [selectedLanguage, setSelectedLanguage] = useState(language);
+
+  useEffect(() => {
+    // implement language selection logic here
+  }, [language]);
+
+  return selectedLanguage;
+}
+
+export default useLanguage;

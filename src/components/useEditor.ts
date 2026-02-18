@@ -1,36 +1,17 @@
-{"import React, { useState, useEffect } from 'react';
-import { Editor } from 'slate-react';
-import { OperationalTransform } from 'ot-react';
+{"import { useState, useEffect } from 'react';
 
-const useEditor = () => {
-  const [editor, setEditor] = useState(new Editor());
-  const [ot, setOt] = useState(new OperationalTransform());
+interface EditorProps {
+  text: string;
+}
+
+const useEditor = ({ text }: EditorProps) => {
+  const [editorText, setEditorText] = useState(text);
 
   useEffect(() => {
-    const handleChanges = (changes) => {
-      setOt((prevOt) => prevOt.apply(changes));
-      setEditor((prevEditor) => prevEditor.applyChanges(changes));
-    };
+    // implement editor logic here
+  }, [text]);
 
-    const handleReconnection = () => {
-      console.log('Reconnected');
-    };
+  return { updateEditor: (newText: string) => setEditorText(newText) };
+}
 
-    setEditor((prevEditor) => {
-      prevEditor.on('changes', handleChanges);
-      prevEditor.on('reconnection', handleReconnection);
-      return prevEditor;
-    });
-
-    return () => {
-      setEditor((prevEditor) => {
-        prevEditor.off('changes', handleChanges);
-        prevEditor.off('reconnection', handleReconnection);
-        return prevEditor;
-      });
-    };
-  }, []);
-
-  return { editor, ot };
-};
 export default useEditor;
