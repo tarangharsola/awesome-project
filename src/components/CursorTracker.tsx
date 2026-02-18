@@ -1,11 +1,11 @@
 {"import React from 'react';
-import './CursorTracker.css';
+import { useState, useEffect } from 'react';
 
 interface Cursor {
   id: string;
-  x: number;
-  y: number;
+  name: string;
   color: string;
+  position: number;
 }
 
 interface Props {
@@ -13,20 +13,29 @@ interface Props {
 }
 
 const CursorTracker = ({ cursors }: Props) => {
+  const [activeCursors, setActiveCursors] = useState([]);
+
+  useEffect(() => {
+    const activeCursors = cursors.filter((cursor) => cursor.isActive);
+    setActiveCursors(activeCursors);
+  }, [cursors]);
+
   return (
-    <div className="cursor-tracker">
-      {cursors.map((cursor) => (
-        <div key={cursor.id} className="cursor" style={{
-          left: cursor.x + 'px',
-          top: cursor.y + 'px',
+    <div>
+      {activeCursors.map((cursor) => (
+        <div key={cursor.id} style={{
           backgroundColor: cursor.color,
-          color: "#fff",
+          color: 'white',
+          padding: '5px',
+          borderRadius: '5px',
+          display: 'inline-block',
+          margin: '5px'
         }}>
-          {cursor.id}
+          {cursor.name} ({cursor.position})
         </div>
       ))}
     </div>
   );
-}
+};
 
 export default CursorTracker;
