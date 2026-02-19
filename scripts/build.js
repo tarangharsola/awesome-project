@@ -1,5 +1,11 @@
-{"const { execSync } = require('child_process');
+// eslint-disable-next-line
+import { build } from 'esbuild';
 
-module.exports = function() {
-  execSync('webpack');
-};
+export default async function buildApp() {
+  await build({
+    entryPoints: ['src/index.tsx'],
+    outdir: 'public',
+    bundle: true,
+    minify: true,
+  });
+}
