@@ -1,17 +1,1 @@
-{"import { useState, useEffect } from 'react';
-
-interface EditorProps {
-  text: string;
-}
-
-const useEditor = ({ text }: EditorProps) => {
-  const [editorText, setEditorText] = useState(text);
-
-  useEffect(() => {
-    // implement editor logic here
-  }, [text]);
-
-  return { updateEditor: (newText: string) => setEditorText(newText) };
-}
-
-export default useEditor;
+{"import { useState, useEffect } from 'react';\n\ninterface Props {\n  value: string;\n  onChange: (value: string) => void;\n}\n\nconst useEditor = ({ value, onChange }: Props) => {\n  const [language, setLanguage] = useState('javascript');\n  const [formattedValue, setFormattedValue] = useState(value);\n\n  useEffect(() => {\n    setFormattedValue(value);\n  }, [value]);\n\n  const handleLanguageChange = (language: string) => {\n    setLanguage(language);\n  };\n\n  const handleFormat = () => {\n    // Implement formatting logic here\n  };\n\n  const handleKeyDown = (event: React.KeyboardEvent) => {\n    // Implement keyboard shortcuts here\n  };\n\n  return {\n    language,\n    formattedValue,\n    handleLanguageChange,\n    handleFormat,\n    handleKeyDown,\n  };\n};\n\nexport default useEditor;
