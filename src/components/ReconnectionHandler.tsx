@@ -1,29 +1,27 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
 
-interface Props {
-  children: React.ReactNode;
-  onReconnect: () => void;
-}
-
-const ReconnectionHandler: React.FC<Props> = ({ children, onReconnect }) => {
+const ReconnectionHandler = () => {
   const [connected, setConnected] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       if (!connected) {
-        onReconnect();
+        setRetryCount(retryCount + 1);
       }
     }, 5000);
     return () => clearInterval(intervalId);
-  }, [connected, onReconnect]);
+  }, [connected, retryCount]);
+
+  const retryConnection = () => {
+    // Implement retry logic here
+  };
 
   return (
     <div>
-      {children}
-      <p>Connection status: {connected ? 'Connected' : 'Disconnected'}</p>
-      <p>Retry count: {retryCount}</p>
+      {connected ? 'Connected' : 'Disconnected'}
+      <button onClick={retryConnection}>Retry</button>
     </div>
   );
 };
