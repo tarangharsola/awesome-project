@@ -1,1 +1,23 @@
-{"import { useState, useEffect } from 'react';\n\ninterface Props {\n  value: string;\n  onChange: (value: string) => void;\n}\n\nconst useEditor = ({ value, onChange }: Props) => {\n  const [language, setLanguage] = useState('javascript');\n  const [formattedValue, setFormattedValue] = useState(value);\n\n  useEffect(() => {\n    setFormattedValue(value);\n  }, [value]);\n\n  const handleLanguageChange = (language: string) => {\n    setLanguage(language);\n  };\n\n  const handleFormat = () => {\n    // Implement formatting logic here\n  };\n\n  const handleKeyDown = (event: React.KeyboardEvent) => {\n    // Implement keyboard shortcuts here\n  };\n\n  return {\n    language,\n    formattedValue,\n    handleLanguageChange,\n    handleFormat,\n    handleKeyDown,\n  };\n};\n\nexport default useEditor;
+{"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+
+interface Props {
+  language: string;
+}
+
+const useEditor = (language: string) => {
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const [users, setUsers] = useState([]);
+  const { send, receive } = useWebSocket();
+
+  useEffect(() => {
+    receive((data) => {
+      setCursor(data.cursor);
+      setUsers(data.users);
+    });
+  }, []);
+
+  return { cursor, users };
+}
+
+export default useEditor;

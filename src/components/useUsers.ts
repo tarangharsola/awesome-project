@@ -1,13 +1,18 @@
 {"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-interface UsersProps {
+interface Props {
+  language: string;
 }
 
-const useUsers = () => {
+const useUsers = (language: string) => {
   const [users, setUsers] = useState([]);
+  const { receive } = useWebSocket();
 
   useEffect(() => {
-    // implement user tracking logic here
+    receive((data) => {
+      setUsers(data.users);
+    });
   }, []);
 
   return users;

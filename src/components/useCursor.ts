@@ -1,18 +1,18 @@
 {"import { useState, useEffect } from 'react';
 
-interface CursorProps {
-  x: number;
-  y: number;
+interface Props {
+  id: string;
 }
 
-const useCursor = () => {
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+const useCursor = (id: string) => {
+  const [color, setColor] = useState('#' + Math.floor(Math.random() * 16777215).toString(16));
+  const [name, setName] = useState('User ' + id);
 
   useEffect(() => {
-    // implement cursor tracking logic here
+    // Generate a random color and name for each user
   }, []);
 
-  return cursor;
+  return { color, name };
 }
 
 export default useCursor;
