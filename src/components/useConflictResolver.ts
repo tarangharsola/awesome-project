@@ -1,22 +1,11 @@
-{"import { useState, useEffect } from 'react';
-import { OperationalTransformation } from 'ot-js';
-
-interface ConflictResolverState {
-  document: string;
-  conflicts: { [id: string]: string };
-}
+{"import React from 'react';
+import { useEditor } from './useEditor';
 
 const useConflictResolver = () => {
-  const [conflictResolverState, setConflictResolverState] = useState<ConflictResolverState>({ document: '', conflicts: {} });
-  const ot = new OperationalTransformation();
-
-  useEffect(() => {
-    ot.on('conflict', (id: string, conflict: string) => {
-      setConflictResolverState((prev) => ({ ...prev, conflicts: { ...prev.conflicts, [id]: conflict } }));
-    });
-  }, []);
-
-  return conflictResolverState;
+  const editor = useEditor();
+  const conflicts = editor.getConflicts();
+  const resolved = editor.resolveConflicts(conflicts);
+  return resolved;
 };
 
 export default useConflictResolver;
