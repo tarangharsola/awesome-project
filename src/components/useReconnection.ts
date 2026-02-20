@@ -13,15 +13,7 @@ const useReconnection = () => {
     return () => clearInterval(intervalId);
   }, [connected, retryCount]);
 
-  const retryConnection = () => {
-    // Implement retry logic here
-  };
-
-  return {
-    connected,
-    retryCount,
-    retryConnection
-  };
+  return { connected, retryCount };
 };
 
 export default useReconnection;

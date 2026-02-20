@@ -14,14 +14,9 @@ const ReconnectionHandler = () => {
     return () => clearInterval(intervalId);
   }, [connected, retryCount]);
 
-  const retryConnection = () => {
-    // Implement retry logic here
-  };
-
   return (
     <div>
-      {connected ? 'Connected' : 'Disconnected'}
-      <button onClick={retryConnection}>Retry</button>
+      {connected ? 'Connected' : `Disconnected (retry count: ${retryCount})`}
     </div>
   );
 };
