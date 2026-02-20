@@ -1,21 +1,17 @@
 {"import React from 'react';
-import { useCursor } from './useCursor';
+import { useCursor } from '../useCursor';
 
-interface Props {
-  cursor: { x: number; y: number; }
-}
+function CursorTracker() {
+  const { cursor, name, color } = useCursor();
 
-const CursorTracker: React.FC<Props> = ({ cursor }) => {
-  const { color, name } = useCursor();
   return (
-    <div style={{
-      position: 'absolute',
-      left: cursor.x,
-      top: cursor.y,
-      width: 2,
-      height: 20,
+    <div className="cursor" style={{
       backgroundColor: color,
-      borderRadius: 2,
+      color: 'white',
+      position: 'absolute',
+      top: cursor.y,
+      left: cursor.x,
+      zIndex: 1
     }}>
       {name}
     </div>
