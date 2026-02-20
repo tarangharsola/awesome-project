@@ -1,17 +1,21 @@
 {"import { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 
-interface LanguageProps {
+interface LanguageState {
   language: string;
 }
 
-const useLanguage = ({ language }: LanguageProps) => {
-  const [selectedLanguage, setSelectedLanguage] = useState(language);
+const useLanguage = () => {
+  const [languageState, setLanguageState] = useState<LanguageState>({ language: '' });
+  const socket = io();
 
   useEffect(() => {
-    // implement language selection logic here
-  }, [language]);
+    socket.on('language', (language: string) => {
+      setLanguageState({ language });
+    });
+  }, []);
 
-  return selectedLanguage;
-}
+  return languageState;
+};
 
 export default useLanguage;

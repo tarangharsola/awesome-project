@@ -1,19 +1,11 @@
 {"import { renderHook } from '@testing-library/react-hooks';
-import { useConflictResolver } from '../useConflictResolver';
+import { useConflictResolver } from './useConflictResolver';
 
-it('should resolve conflicts', () => {
-  const { result } = renderHook(() => useConflictResolver());
-  const conflict = { type: 'insert', position: 10, value: 'new text' };
-  const resolved = result.current.resolveConflict(conflict);
-  expect(resolved).toEqual({ type: 'insert', position: 10, value: 'new text' });
+describe('useConflictResolver', () => {
+  it('should return the conflict resolver state', () => {
+    const { result } = renderHook(() => useConflictResolver());
+    expect(result.current).toEqual({ document: '', conflicts: {} });
+  });
 });
 
-it('should handle concurrent edits', () => {
-  const { result } = renderHook(() => useConflictResolver());
-  const conflict1 = { type: 'insert', position: 10, value: 'new text' };
-  const conflict2 = { type: 'insert', position: 15, value: 'more text' };
-  const resolved1 = result.current.resolveConflict(conflict1);
-  const resolved2 = result.current.resolveConflict(conflict2);
-  expect(resolved1).toEqual({ type: 'insert', position: 10, value: 'new text' });
-  expect(resolved2).toEqual({ type: 'insert', position: 15, value: 'more text' });
-});
+export {};

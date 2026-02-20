@@ -1,23 +1,31 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { io } from 'socket.io-client';
+import { OperationalTransformation } from 'ot-js';
 
-interface Props {
-  language: string;
+interface EditorState {
+  document: string;
+  cursorPositions: { [id: string]: { x: number; y: number } };
+  conflicts: { [id: string]: string };
 }
 
-const useEditor = (language: string) => {
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const [users, setUsers] = useState([]);
-  const { send, receive } = useWebSocket();
+const useEditor = () => {
+  const [editorState, setEditorState] = useState<EditorState>({ document: '', cursorPositions: {}, conflicts: {} });
+  const socket = io();
+  const ot = new OperationalTransformation();
 
   useEffect(() => {
-    receive((data) => {
-      setCursor(data.cursor);
-      setUsers(data.users);
+    socket.on('users', (users: { id: string; name: string; color: string }[]) => {
+      setEditorState((prev) => ({ ...prev, cursorPositions: {} }));
+    });
+    socket.on('cursorPositions', (cursorPositions: { [id: string]: { x: number; y: number } }) => {
+      setEditorState((prev) => ({ ...prev, cursorPositions }));
+    });
+    ot.on('conflict', (id: string, conflict: string) => {
+      setEditorState((prev) => ({ ...prev, conflicts: { ...prev.conflicts, [id]: conflict } }));
     });
   }, []);
 
-  return { cursor, users };
-}
+  return editorState;
+};
 
 export default useEditor;

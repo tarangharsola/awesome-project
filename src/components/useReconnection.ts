@@ -1,19 +1,24 @@
 {"import { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+
+interface ReconnectionState {
+  connected: boolean;
+}
 
 const useReconnection = () => {
-  const [connected, setConnected] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+  const [reconnectionState, setReconnectionState] = useState<ReconnectionState>({ connected: false });
+  const socket = io();
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (!connected) {
-        setRetryCount(retryCount + 1);
-      }
-    }, 5000);
-    return () => clearInterval(intervalId);
-  }, [connected, retryCount]);
+    socket.on('connect', () => {
+      setReconnectionState({ connected: true });
+    });
+    socket.on('disconnect', () => {
+      setReconnectionState({ connected: false });
+    });
+  }, []);
 
-  return { connected, retryCount };
+  return reconnectionState;
 };
 
 export default useReconnection;
