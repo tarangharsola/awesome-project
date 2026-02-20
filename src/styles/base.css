@@ -1,1 +1,20 @@
-/* Add CSS for language selector and formatting */
+.editor {
+  font-family: monospace;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.editor select {
+  padding: 5px;
+  border: 1px solid #ccc;
+}
+
+.editor textarea {
+  padding: 5px;
+  border: 1px solid #ccc;
+}
+
+.editor MonacoEditor {
+  padding: 10px;
+  border: 1px solid #ccc;
+}

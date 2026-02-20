@@ -1,31 +1,45 @@
-{"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
-import { OperationalTransformation } from 'ot-js';
-
-interface EditorState {
-  document: string;
-  cursorPositions: { [id: string]: { x: number; y: number } };
-  conflicts: { [id: string]: string };
-}
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-editor';
+import { MonacoEditor } from 'react-monaco-editor';
 
 const useEditor = () => {
-  const [editorState, setEditorState] = useState<EditorState>({ document: '', cursorPositions: {}, conflicts: {} });
-  const socket = io();
-  const ot = new OperationalTransformation();
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
+  const [editor, setEditor] = useState(null);
 
   useEffect(() => {
-    socket.on('users', (users: { id: string; name: string; color: string }[]) => {
-      setEditorState((prev) => ({ ...prev, cursorPositions: {} }));
-    });
-    socket.on('cursorPositions', (cursorPositions: { [id: string]: { x: number; y: number } }) => {
-      setEditorState((prev) => ({ ...prev, cursorPositions }));
-    });
-    ot.on('conflict', (id: string, conflict: string) => {
-      setEditorState((prev) => ({ ...prev, conflicts: { ...prev.conflicts, [id]: conflict } }));
-    });
+    const handleLanguageChange = (event) => {
+      setLanguage(event.target.value);
+    };
+
+    const handleCodeChange = (event) => {
+      setCode(event.target.value);
+    };
+
+    const handleEditorChange = (editor) => {
+      setEditor(editor);
+    };
+
+    document.addEventListener('languageChange', handleLanguageChange);
+    document.addEventListener('codeChange', handleCodeChange);
+    document.addEventListener('editorChange', handleEditorChange);
+
+    return () => {
+      document.removeEventListener('languageChange', handleLanguageChange);
+      document.removeEventListener('codeChange', handleCodeChange);
+      document.removeEventListener('editorChange', handleEditorChange);
+    };
   }, []);
 
-  return editorState;
+  return {
+    language,
+    code,
+    editor,
+    setLanguage,
+    setCode,
+    setEditor
+  };
 };
 
 export default useEditor;
