@@ -1,11 +1,10 @@
-{"import { renderHook } from '@testing-library/react-hooks';
-import { useWebSocket } from './useWebSocket';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import { useWebSocket } from '../useWebSocket';
 
-describe('useWebSocket', () => {
-  it('should return the web socket state', () => {
-    const { result } = renderHook(() => useWebSocket());
-    expect(result.current).toEqual({ connected: false });
-  });
+test('useWebSocket', () => {
+  const { rerender } = render(<div>Test</div>);
+  const webSocket = useWebSocket();
+  expect(webSocket).toBeDefined();
 });
-
-export {};

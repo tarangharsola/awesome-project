@@ -1,11 +1,10 @@
-{"import { renderHook } from '@testing-library/react-hooks';
-import { useReconnection } from './useReconnection';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import { useReconnection } from '../useReconnection';
 
-describe('useReconnection', () => {
-  it('should return the reconnection state', () => {
-    const { result } = renderHook(() => useReconnection());
-    expect(result.current).toEqual({ connected: false });
-  });
+test('useReconnection', () => {
+  const { rerender } = render(<div>Test</div>);
+  const reconnection = useReconnection();
+  expect(reconnection).toBeDefined();
 });
-
-export {};

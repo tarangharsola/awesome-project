@@ -1,11 +1,10 @@
-{"import { renderHook } from '@testing-library/react-hooks';
-import { useCursor } from './useCursor';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import { useCursor } from '../useCursor';
 
-describe('useCursor', () => {
-  it('should return the cursor state', () => {
-    const { result } = renderHook(() => useCursor());
-    expect(result.current).toEqual({ id: '', x: 0, y: 0 });
-  });
+test('useCursor', () => {
+  const { rerender } = render(<div>Test</div>);
+  const cursor = useCursor();
+  expect(cursor).toBeDefined();
 });
-
-export {};

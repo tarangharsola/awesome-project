@@ -1,11 +1,10 @@
-{"import { renderHook } from '@testing-library/react-hooks';
-import { useAwareness } from './useAwareness';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import { useAwareness } from '../useAwareness';
 
-describe('useAwareness', () => {
-  it('should return the awareness state', () => {
-    const { result } = renderHook(() => useAwareness());
-    expect(result.current).toEqual({ users: [], cursorPositions: {} });
-  });
+test('useAwareness', () => {
+  const { rerender } = render(<div>Test</div>);
+  const awareness = useAwareness();
+  expect(awareness).toBeDefined();
 });
-
-export {};

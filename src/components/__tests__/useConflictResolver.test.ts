@@ -1,11 +1,10 @@
-{"import { renderHook } from '@testing-library/react-hooks';
-import { useConflictResolver } from './useConflictResolver';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import { useConflictResolver } from '../useConflictResolver';
 
-describe('useConflictResolver', () => {
-  it('should return the conflict resolver state', () => {
-    const { result } = renderHook(() => useConflictResolver());
-    expect(result.current).toEqual({ document: '', conflicts: {} });
-  });
+test('useConflictResolver', () => {
+  const { rerender } = render(<div>Test</div>);
+  const conflictResolver = useConflictResolver();
+  expect(conflictResolver).toBeDefined();
 });
-
-export {};

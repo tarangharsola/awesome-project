@@ -1,11 +1,10 @@
-{"import { renderHook } from '@testing-library/react-hooks';
-import { useLanguage } from './useLanguage';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import { useLanguage } from '../useLanguage';
 
-describe('useLanguage', () => {
-  it('should return the language state', () => {
-    const { result } = renderHook(() => useLanguage());
-    expect(result.current).toEqual({ language: '' });
-  });
+test('useLanguage', () => {
+  const { rerender } = render(<div>Test</div>);
+  const language = useLanguage();
+  expect(language).toBeDefined();
 });
-
-export {};

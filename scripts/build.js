@@ -1,11 +1,22 @@
-// eslint-disable-next-line
-import { build } from 'esbuild';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const webpack = require('webpack');
+const path = require('path');
 
-export default async function buildApp() {
-  await build({
-    entryPoints: ['src/index.tsx'],
-    outdir: 'public',
-    bundle: true,
-    minify: true,
-  });
-}
+module.exports = {
+  entry: './src/index.tsx',
+  output: {
+    path: path.resolve(__dirname, 'public'),
+    filename: 'bundle.js',
+  },
+  module: {
+    rules: [
+      {
+        test: /.tsx?$/, exclude: /node_modules/,
+        use: 'ts-loader',
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js'],
+  },
+};
