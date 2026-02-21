@@ -16,7 +16,8 @@ const ReconnectionHandler = () => {
 
   return (
     <div>
-      {connected ? 'Connected' : `Disconnected (retry count: ${retryCount})`}
+      <p>Connection Status: {connected ? 'Connected' : 'Disconnected'}</p>
+      <p>Retry Count: {retryCount}</p>
     </div>
   );
 };
