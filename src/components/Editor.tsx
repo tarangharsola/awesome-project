@@ -1,39 +1,42 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
-import { MonacoEditor } from 'react-monaco-editor';
+{"import React, { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-editor';
+import { useWebSocket } from './useWebSocket';
 
-const Editor = () => {
-  const { language, code, editor, setLanguage, setCode, setEditor } = useEditor();
+interface EditorProps {
+  language: string;
+  value: string;
+  onChange: (value: string) => void;
+}
 
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
+const EditorComponent: React.FC<EditorProps> = ({ language, value, onChange }) => {
+  const [editorValue, setEditorValue] = useState(value);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [cursorVisible, setCursorVisible] = useState(false);
+
+  const { send, receive } = useWebSocket();
+
+  useEffect(() => {
+    setEditorValue(value);
+  }, [value]);
+
+  const handleEditorChange = (newValue: string) => {
+    setEditorValue(newValue);
+    onChange(newValue);
   };
 
-  const handleCodeChange = (event) => {
-    setCode(event.target.value);
-  };
-
-  const handleEditorChange = (editor) => {
-    setEditor(editor);
+  const handleCursorPositionChange = (newCursorPosition: number) => {
+    setCursorPosition(newCursorPosition);
+    setCursorVisible(true);
   };
 
   return (
-    <div>
-      <select value={language} onChange={handleLanguageChange}>
-        <option value='javascript'>JavaScript</option>
-        <option value='python'>Python</option>
-        <option value='html'>HTML</option>
-      </select>
-      <br />
-      <textarea value={code} onChange={handleCodeChange} />
-      <br />
-      <MonacoEditor
-        language={language}
-        value={code}
-        onChange={handleEditorChange}
-      />
-    </div>
+    <Editor
+      value={editorValue}
+      onChange={handleEditorChange}
+      language={language}
+      onCursorPositionChange={handleCursorPositionChange}
+    />
   );
-};
+}
 
-export default Editor;
+export default EditorComponent;
