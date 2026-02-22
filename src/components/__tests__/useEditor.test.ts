@@ -1,10 +1,11 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
-import { useEditor } from '../useEditor';
+import { render } from '@testing-library/react';
+import { Editor } from '../Editor';
 
-test('useEditor', () => {
-  const { rerender } = render(<div>Test</div>);
-  const editor = useEditor();
-  expect(editor).toBeDefined();
+describe('Editor', () => {
+  it('renders editor', () => {
+    const { getByRole } = render(<Editor />);
+    const editor = getByRole('textbox');
+    assert.ok(editor);
+  });
 });
