@@ -1,27 +1,27 @@
-{"import { useState, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
+import { EditorState, ContentState } from 'draft-js';
 
-interface LanguageMap {
-  [language: string]: string;
+interface Props {
+  onChange: (state: EditorState) => void;
+  value: string;
 }
 
-const useEditor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [document, setDocument] = useState('');
-  const [languageMap, setLanguageMap] = useState<LanguageMap>({ 'javascript': 'javascript', 'python': 'python', 'html': 'html' });
+const useEditor = ({ onChange, value }: Props) => {
+  const [editorState, setEditorState] = useState(EditorState.createWithContent(ContentState.createFromText(value)));
 
   useEffect(() => {
-    // Load language map from storage or API
-  }, []);
+    setEditorState(EditorState.createWithContent(ContentState.createFromText(value)));
+  }, [value]);
 
-  const handleLanguageChange = (newLanguage: string) => {
-    setLanguage(newLanguage);
-  }
+  const handleChange = (state: EditorState) => {
+    onChange(state);
+    setEditorState(state);
+  };
 
   return {
-    language,
-    languageMap,
-    handleLanguageChange,
+    editorState,
+    onChange: handleChange,
   };
-}
+};
 
 export default useEditor;

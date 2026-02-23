@@ -1,46 +1,27 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
-import { useCursor } from './useCursor';
+import { EditorState, ContentState } from 'draft-js';
+import useEditor from './useEditor';
 
-interface EditorProps {
-  language: string;
-  document: string;
+interface Props {
+  onChange: (state: EditorState) => void;
+  value: string;
 }
 
-const Editor = ({ language, document }: EditorProps) => {
-  const [text, setText] = useState(document);
-  const { sendText } = useWebSocket();
-  const { cursor } = useCursor();
-  const { languageMap } = useEditor();
+const Editor = ({ onChange, value }: Props) => {
+  const { editorState, onChange: handleEditorChange } = useEditor({ onChange, value });
 
-  useEffect(() => {
-    sendText(text);
-  }, [text]);
-
-  const handleTextChange = (newText: string) => {
-    setText(newText);
-  }
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onChange(EditorState.createEmpty());
+    }
+  };
 
   return (
-    <div style={{
-      padding: 20,
-      backgroundColor: '#f0f0f0',
-    }}>
-      <textarea
-        value={text}
-        onChange={(e) => handleTextChange(e.target.value)}
-        style={{
-          width: '100%',
-          height: 200,
-          padding: 10,
-          fontSize: 14,
-          fontFamily: 'monospace',
-        }}
-      />
-      <CursorTracker cursor={cursor} userId={userId} color={color} />
+    <div className="editor">
+      <EditorState onChange={handleEditorChange} onKeyPress={handleKeyDown} />
     </div>
   );
-}
+};
 
 export default Editor;
