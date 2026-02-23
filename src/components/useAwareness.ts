@@ -7,8 +7,8 @@ const useAwareness = () => {
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
-    ws.on('message', (event) => {
-      const data = JSON.parse(event.data);
+    ws.on('message', (message) => {
+      const data = JSON.parse(message);
       if (data.type === 'users') {
         setUsers(data.users);
       } else if (data.type === 'presence') {
