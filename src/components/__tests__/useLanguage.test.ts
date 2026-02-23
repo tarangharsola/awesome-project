@@ -1,10 +1,15 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { useLanguage } from '../useLanguage';
+import { WebSocketProvider } from '../WebSocket';
 
-test('useLanguage', () => {
-  const { rerender } = render(<div>Test</div>);
-  const language = useLanguage();
-  expect(language).toBeDefined();
+describe('useLanguage', () => {
+  it('should return language', () => {
+    const { getByText } = render(
+      <WebSocketProvider>
+        <useLanguage />
+      </WebSocketProvider>
+    );
+    expect(getByText('Language')).toBeInTheDocument();
+  });
 });

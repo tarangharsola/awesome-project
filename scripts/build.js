@@ -1,6 +1,14 @@
-const { execSync } = require('child_process');
-const build = () => {
-  execSync('webpack --mode production');
+import { build } from 'esbuild';
+import { resolve } from 'path';
+
+const buildConfig = {
+  entryPoints: ['src/index.tsx'],
+  outdir: 'public',
+  bundle: true,
+  minify: true,
+  sourcemap: true,
 };
 
-build();
+build(buildConfig).then(() => {
+  console.log('Build complete');
+});

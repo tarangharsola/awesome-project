@@ -1,11 +1,15 @@
 import React from 'react';
-import { render } from '@testing-library/react';
-import { Editor } from '../Editor';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import { useEditor } from '../useEditor';
+import { WebSocketProvider } from '../WebSocket';
 
-describe('Editor', () => {
-  it('renders editor', () => {
-    const { getByRole } = render(<Editor />);
-    const editor = getByRole('textbox');
-    assert.ok(editor);
+describe('useEditor', () => {
+  it('should render editor', () => {
+    const { getByText } = render(
+      <WebSocketProvider>
+        <useEditor />
+      </WebSocketProvider>
+    );
+    expect(getByText('Editor')).toBeInTheDocument();
   });
 });

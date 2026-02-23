@@ -1,10 +1,15 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { useCursor } from '../useCursor';
+import { WebSocketProvider } from '../WebSocket';
 
-test('useCursor', () => {
-  const { rerender } = render(<div>Test</div>);
-  const cursor = useCursor();
-  expect(cursor).toBeDefined();
+describe('useCursor', () => {
+  it('should return cursor position', () => {
+    const { getByText } = render(
+      <WebSocketProvider>
+        <useCursor />
+      </WebSocketProvider>
+    );
+    expect(getByText('Cursor position')).toBeInTheDocument();
+  });
 });

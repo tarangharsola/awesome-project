@@ -1,10 +1,15 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { useConflictResolver } from '../useConflictResolver';
+import { WebSocketProvider } from '../WebSocket';
 
-test('useConflictResolver', () => {
-  const { rerender } = render(<div>Test</div>);
-  const conflictResolver = useConflictResolver();
-  expect(conflictResolver).toBeDefined();
+describe('useConflictResolver', () => {
+  it('should resolve conflicts', () => {
+    const { getByText } = render(
+      <WebSocketProvider>
+        <useConflictResolver />
+      </WebSocketProvider>
+    );
+    expect(getByText('Conflict resolved')).toBeInTheDocument();
+  });
 });

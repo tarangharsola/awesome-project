@@ -1,10 +1,15 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { useWebSocket } from '../useWebSocket';
+import { WebSocketProvider } from '../WebSocket';
 
-test('useWebSocket', () => {
-  const { rerender } = render(<div>Test</div>);
-  const webSocket = useWebSocket();
-  expect(webSocket).toBeDefined();
+describe('useWebSocket', () => {
+  it('should establish WebSocket connection', () => {
+    const { getByText } = render(
+      <WebSocketProvider>
+        <useWebSocket />
+      </WebSocketProvider>
+    );
+    expect(getByText('Connected')).toBeInTheDocument();
+  });
 });
