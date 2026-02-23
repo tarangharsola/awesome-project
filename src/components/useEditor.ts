@@ -1,29 +1,27 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
-import { useLanguage } from './useLanguage';
+{"import { useState, useEffect } from 'react';
 
-interface Editor {
-  language: string;
-  code: string;
-  setCode: (code: string) => void;
+interface LanguageMap {
+  [language: string]: string;
 }
 
 const useEditor = () => {
-  const [code, setCode] = useState('');
   const [language, setLanguage] = useState('javascript');
-  const languageData = useLanguage();
+  const [document, setDocument] = useState('');
+  const [languageMap, setLanguageMap] = useState<LanguageMap>({ 'javascript': 'javascript', 'python': 'python', 'html': 'html' });
 
   useEffect(() => {
-    if (languageData) {
-      setLanguage(languageData.syntax);
-    }
-  }, [languageData]);
+    // Load language map from storage or API
+  }, []);
 
-  const handleCodeChange = (code: string) => {
-    setCode(code);
- );
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage);
+  }
 
-  return { language, code, setCode: handleCodeChange };
-};
+  return {
+    language,
+    languageMap,
+    handleLanguageChange,
+  };
+}
 
 export default useEditor;

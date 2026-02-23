@@ -1,23 +1,20 @@
 {"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
 
-interface CursorState {
-  id: string;
+interface Cursor {
   x: number;
   y: number;
 }
 
 const useCursor = () => {
-  const [cursorState, setCursorState] = useState<CursorState>({ id: '', x: 0, y: 0 });
-  const socket = io();
+  const [cursor, setCursor] = useState<Cursor>({ x: 0, y: 0 });
 
   useEffect(() => {
-    socket.on('cursorPosition', (cursorPosition: { id: string; x: number; y: number }) => {
-      setCursorState(cursorPosition);
-    });
+    // Load cursor position from storage or API
   }, []);
 
-  return cursorState;
-};
+  return {
+    cursor,
+  };
+}
 
 export default useCursor;
