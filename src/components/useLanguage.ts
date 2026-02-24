@@ -1,22 +1,12 @@
 {"import { useState } from 'react';
 
-interface Props {
-  onChange: (language: string) => void;
-  value: string;
-}
-
-const useLanguage = ({ onChange, value }: Props) => {
-  const [language, setLanguage] = useState(value);
-
-  const handleLanguageChange = (newLanguage: string) => {
-    onChange(newLanguage);
-    setLanguage(newLanguage);
+const useLanguage = () => {
+  const [language, setLanguage] = useState('javascript');
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
   };
 
-  return {
-    language,
-    onChange: handleLanguageChange,
-  };
+  return [language, handleLanguageChange];
 };
 
 export default useLanguage;

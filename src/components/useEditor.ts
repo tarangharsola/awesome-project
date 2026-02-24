@@ -1,27 +1,36 @@
-{"import React, { useState, useEffect } from 'react';
-import { EditorState, ContentState } from 'draft-js';
+{"import React from 'react';
+import { useLanguage } from './useLanguage';
 
-interface Props {
-  onChange: (state: EditorState) => void;
-  value: string;
-}
+const Editor = () => {
+  const language = useLanguage();
+  const [code, setCode] = React.useState('');
+  const [formattedCode, setFormattedCode] = React.useState('');
 
-const useEditor = ({ onChange, value }: Props) => {
-  const [editorState, setEditorState] = useState(EditorState.createWithContent(ContentState.createFromText(value)));
+  React.useEffect(() => {
+    const handleLanguageChange = () => {
+      setFormattedCode(highlightCode(code, language));
+    };
+    handleLanguageChange();
+    return () => {
+      handleLanguageChange();
+    };
+  }, [code, language]);
 
-  useEffect(() => {
-    setEditorState(EditorState.createWithContent(ContentState.createFromText(value)));
-  }, [value]);
-
-  const handleChange = (state: EditorState) => {
-    onChange(state);
-    setEditorState(state);
+  const handleCodeChange = (event) => {
+    setCode(event.target.value);
   };
 
-  return {
-    editorState,
-    onChange: handleChange,
+  const handleFormatCode = () => {
+    setFormattedCode(highlightCode(code, language));
   };
+
+  return (
+    <div>
+      <textarea value={code} onChange={handleCodeChange} />
+      <button onClick={handleFormatCode}>Format</button>
+      <pre>{formattedCode}</pre>
+    </div>
+  );
 };
 
-export default useEditor;
+export default Editor;
