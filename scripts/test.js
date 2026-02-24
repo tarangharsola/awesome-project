@@ -1,12 +1,24 @@
-const assert = require('assert');
-const { JSDOM } = require('jsdom');
-
-const dom = new JSDOM();
-const document = dom.window.document;
-
-describe('Editor', () => {
-  it('renders editor', () => {
-    const editor = document.createElement('editor');
-    assert.ok(editor);
-  });
-});
+// Jest configuration
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  moduleDirectories: ['node_modules', 'src'],
+  testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)(spec|test).ts?(x)'],
+  transform: {
+    '^.+\.(ts|tsx)$': 'ts-jest',
+  },
+  transformIgnorePatterns: ['node_modules/(?!(jest-)?react|@react-)/'],
+  collectCoverage: true,
+  coverageDirectory: 'coverage',
+  coverageReporters: ['json', 'lcov', 'clover'],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+  },
+};
