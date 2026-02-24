@@ -7,12 +7,14 @@ const useAwareness = () => {
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
-    ws.on('message', (message) => {
-      const data = JSON.parse(message);
-      if (data.type === 'users') {
-        setUsers(data.users);
-      } else if (data.type === 'presence') {
-        setPresence(data.presence);
+    ws.on('message', (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'join') {
+        setUsers([...users, data.user]);
+        setPresence({ ...presence, [data.user]: true });
+      } else if (data.type === 'leave') {
+        setUsers(users.filter((user) => user !== data.user));
+        setPresence({ ...presence, [data.user]: false });
       }
     });
   }, []);

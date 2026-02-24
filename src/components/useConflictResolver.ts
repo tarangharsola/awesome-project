@@ -8,7 +8,7 @@ const useConflictResolver = () => {
   useEffect(() => {
     const ot = new OperationalTransformation();
     ot.on('conflict', (conflict) => {
-      setConflicts(conflict);
+      setConflicts([...conflicts, conflict]);
     });
     ot.on('resolved', () => {
       setResolved(true);
