@@ -19,14 +19,13 @@ const UserList = ({ users }: Props) => {
   }, [users]);
 
   return (
-    <div className="active-users">
+    <div className="active-users-panel">
       {activeUsers.map((user) => (
         <div key={user.id} style={{
           backgroundColor: user.color,
-          color: 'white',
-          padding: '4px 8px',
-          borderRadius: '4px',
-          marginRight: '8px',
+          padding: '5px',
+          borderRadius: '5px',
+          marginRight: '10px',
         }}>
           {user.name}
         </div>
