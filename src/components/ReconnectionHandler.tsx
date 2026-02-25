@@ -7,29 +7,21 @@ const ReconnectionHandler = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      if (!connected) {
-        setRetryCount(retryCount + 1);
-      }
-    }, 5000);
+      // Simulate connection status updates
+      setConnected(Math.random() < 0.5);
+    }, 1000);
     return () => clearInterval(intervalId);
-  }, [connected, retryCount]);
+  }, []);
 
-  const handleConnect = () => {
-    setConnected(true);
-    setRetryCount(0);
- );
-
-  const handleDisconnect = () => {
-    setConnected(false);
-  }
+  const handleRetry = () => {
+    setRetryCount(retryCount + 1);
+  };
 
   return (
     <div>
-      {connected ? 'Connected' : `Disconnected (retry count: ${retryCount})`}
-      <button onClick={handleConnect}>Connect</button>
-      <button onClick={handleDisconnect}>Disconnect</button>
+      <p>Connection Status: {connected ? 'Connected' : 'Disconnected'}</p>
+      <button onClick={handleRetry}>Retry ({retryCount})</button>
     </div>
   );
 };
-
 export default ReconnectionHandler;
