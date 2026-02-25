@@ -1,21 +1,21 @@
 {"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-interface User {
-  id: string;
-  name: string;
-  color: string;
+interface UsersProps {
+  users: { username: string; color: string; }[];
 }
 
-const useUsers = () => {
-  const [users, setUsers] = useState<User[]>([]);
+const useUsers = ({ users }) => {
+  const [activeUsers, setActiveUsers] = useState(users);
 
   useEffect(() => {
-    // Load users from storage or API
-  }, []);
+    const intervalId = setInterval(() => {
+      setActiveUsers(users);
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [users]);
 
-  return {
-    users,
-  };
+  return activeUsers;
 }
 
 export default useUsers;

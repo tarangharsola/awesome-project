@@ -1,12 +1,20 @@
-{"import { useState } from 'react';
+{"import { useState, useEffect } from 'react';
 
-const useLanguage = () => {
-  const [language, setLanguage] = useState('javascript');
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
-  };
+interface LanguageProps {
+  language: string;
+}
 
-  return [language, handleLanguageChange];
-};
+const useLanguage = ({ language }) => {
+  const [selectedLanguage, setSelectedLanguage] = useState(language);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setSelectedLanguage(language);
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [language]);
+
+  return selectedLanguage;
+}
 
 export default useLanguage;

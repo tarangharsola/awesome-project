@@ -1,25 +1,20 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
 
-const useAwareness = () => {
-  const [users, setUsers] = useState([]);
-  const [presence, setPresence] = useState({});
+interface AwarenessProps {
+  users: { username: string; color: string; }[];
+}
+
+const useAwareness = ({ users }) => {
+  const [activeUsers, setActiveUsers] = useState(users);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.on('message', (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'join') {
-        setUsers([...users, data.user]);
-        setPresence({ ...presence, [data.user]: true });
-      } else if (data.type === 'leave') {
-        setUsers(users.filter((user) => user !== data.user));
-        setPresence({ ...presence, [data.user]: false });
-      }
-    });
-  }, []);
+    const intervalId = setInterval(() => {
+      setActiveUsers(users);
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [users]);
 
-  return { users, presence };
-};
+  return activeUsers;
+}
 
 export default useAwareness;

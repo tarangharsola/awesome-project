@@ -1,22 +1,21 @@
-{"import React from 'react';
-import { useLanguage } from './useLanguage';
+{"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
 interface EditorProps {
-  value: string;
-  onChange: (value: string) => void;
   language: string;
 }
 
-const Editor = ({ value, onChange, language }) => {
-  const { syntaxHighlighting } = useLanguage(language);
-  return (
-    <div className="editor" style={{
-      backgroundColor: syntaxHighlighting.backgroundColor,
-      color: syntaxHighlighting.foregroundColor
-    }}>
-      <pre>{value}</pre>
-    </div>
-  );
+const useEditor = ({ language }) => {
+  const [code, setCode] = useState('');
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCode('');
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [language]);
+
+  return code;
 }
 
-export default Editor;
+export default useEditor;

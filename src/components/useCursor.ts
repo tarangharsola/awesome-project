@@ -1,20 +1,22 @@
 {"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-interface Cursor {
-  x: number;
-  y: number;
+interface CursorProps {
+  username: string;
+  color: string;
 }
 
-const useCursor = () => {
-  const [cursor, setCursor] = useState<Cursor>({ x: 0, y: 0 });
+const useCursor = ({ username, color }) => {
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    // Load cursor position from storage or API
+    const intervalId = setInterval(() => {
+      setCursor({ x: Math.random() * 100, y: Math.random() * 100 });
+    }, 100);
+    return () => clearInterval(intervalId);
   }, []);
 
-  return {
-    cursor,
-  };
+  return cursor;
 }
 
 export default useCursor;

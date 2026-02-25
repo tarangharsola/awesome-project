@@ -1,12 +1,20 @@
 {"import { useState, useEffect } from 'react';
-import { OperationalTransformation } from 'ot-js';
 
-const useConflictResolver = () => {
-  const [ot, setOt] = useState(new OperationalTransformation());
+interface ConflictResolverProps {
+  users: { username: string; color: string; }[];
+}
+
+const useConflictResolver = ({ users }) => {
+  const [conflicts, setConflicts] = useState([]);
+
   useEffect(() => {
-    // Handle conflicts here
-  }, []);
-  return ot;
+    const intervalId = setInterval(() => {
+      setConflicts([]);
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [users]);
+
+  return conflicts;
 }
 
 export default useConflictResolver;
