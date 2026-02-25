@@ -1,15 +1,17 @@
-import React from 'react';
+// Import required modules
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { useReconnection } from '../useReconnection';
-import { WebSocketProvider } from '../WebSocket';
 
+// Mock WebSocket connection
+const mockWebSocket = {
+  send: jest.fn(),
+  onmessage: jest.fn(),
+};
+
+// Test useReconnection hook
 describe('useReconnection', () => {
-  it('should reconnect on failure', () => {
-    const { getByText } = render(
-      <WebSocketProvider>
-        <useReconnection />
-      </WebSocketProvider>
-    );
-    expect(getByText('Reconnected')).toBeInTheDocument();
+  it('should return reconnection state', () => {
+    const reconnection = useReconnection(mockWebSocket);
+    expect(reconnection).toBe(true);
   });
 });

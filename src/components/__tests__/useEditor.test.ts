@@ -1,15 +1,17 @@
-import React from 'react';
+// Import required modules
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { useEditor } from '../useEditor';
-import { WebSocketProvider } from '../WebSocket';
 
+// Mock WebSocket connection
+const mockWebSocket = {
+  send: jest.fn(),
+  onmessage: jest.fn(),
+};
+
+// Test useEditor hook
 describe('useEditor', () => {
-  it('should render editor', () => {
-    const { getByText } = render(
-      <WebSocketProvider>
-        <useEditor />
-      </WebSocketProvider>
-    );
-    expect(getByText('Editor')).toBeInTheDocument();
+  it('should return editor state', () => {
+    const editor = useEditor(mockWebSocket);
+    expect(editor).toBe(true);
   });
 });

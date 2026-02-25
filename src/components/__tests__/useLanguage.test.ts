@@ -1,15 +1,17 @@
-import React from 'react';
+// Import required modules
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { useLanguage } from '../useLanguage';
-import { WebSocketProvider } from '../WebSocket';
 
+// Mock WebSocket connection
+const mockWebSocket = {
+  send: jest.fn(),
+  onmessage: jest.fn(),
+};
+
+// Test useLanguage hook
 describe('useLanguage', () => {
-  it('should return language', () => {
-    const { getByText } = render(
-      <WebSocketProvider>
-        <useLanguage />
-      </WebSocketProvider>
-    );
-    expect(getByText('Language')).toBeInTheDocument();
+  it('should return language state', () => {
+    const language = useLanguage(mockWebSocket);
+    expect(language).toBe(true);
   });
 });

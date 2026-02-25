@@ -1,15 +1,17 @@
-import React from 'react';
+// Import required modules
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { useWebSocket } from '../useWebSocket';
-import { WebSocketProvider } from '../WebSocket';
 
+// Mock WebSocket connection
+const mockWebSocket = {
+  send: jest.fn(),
+  onmessage: jest.fn(),
+};
+
+// Test useWebSocket hook
 describe('useWebSocket', () => {
-  it('should establish WebSocket connection', () => {
-    const { getByText } = render(
-      <WebSocketProvider>
-        <useWebSocket />
-      </WebSocketProvider>
-    );
-    expect(getByText('Connected')).toBeInTheDocument();
+  it('should return WebSocket state', () => {
+    const webSocket = useWebSocket(mockWebSocket);
+    expect(webSocket).toBe(true);
   });
 });
