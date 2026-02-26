@@ -2,9 +2,9 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+  setupFilesAfterEnv: ['<rootDir>/setupTests.ts'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  moduleDirectories: ['node_modules', 'src'],
+  moduleDirectories: ['node_modules', 'src/components'],
   testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)(spec|test).ts?(x)'],
   transform: {
     '^.+\.(ts|tsx)$': 'ts-jest',
@@ -12,7 +12,7 @@ module.exports = {
   transformIgnorePatterns: ['node_modules/(?!(jest-)?react|@react-)/'],
   collectCoverage: true,
   coverageDirectory: 'coverage',
-  coverageReporters: ['json', 'lcov', 'clover'],
+  coverageReporters: ['json', 'lcov', 'text'],
   coverageThreshold: {
     global: {
       branches: 80,
