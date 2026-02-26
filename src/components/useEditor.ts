@@ -2,20 +2,20 @@
 import { useWebSocket } from './useWebSocket';
 
 interface EditorProps {
-  language: string;
+  users: { id: string; name: string; color: string }[]
 }
 
-const useEditor = ({ language }) => {
-  const [code, setCode] = useState('');
+const useEditor = ({ users }) => {
+  const [editorState, setEditorState] = useState('');
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setCode('');
+      setEditorState(editorState + 'Hello World!');
     }, 1000);
     return () => clearInterval(intervalId);
-  }, [language]);
+  }, [editorState]);
 
-  return code;
+  return editorState;
 }
 
 export default useEditor;

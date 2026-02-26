@@ -2,11 +2,10 @@
 import { useWebSocket } from './useWebSocket';
 
 interface CursorProps {
-  username: string;
-  color: string;
+  user: { id: string; name: string; color: string }
 }
 
-const useCursor = ({ username, color }) => {
+const useCursor = ({ user }) => {
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
