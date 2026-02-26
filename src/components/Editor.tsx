@@ -1,25 +1,36 @@
-{"import React, { useState, useEffect } from 'react';
-import { EditorState, ContentState } from 'draft-js';
-import useEditor from './useEditor';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-editor';
+import { MonacoEditor } from 'react-monaco-editor';
+import LanguageSelector from './LanguageSelector';
 
-interface Props {
-  onChange: (state: EditorState) => void;
-  value: string;
-}
+const Editor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, column: 0 });
 
-const Editor = ({ onChange, value }: Props) => {
-  const { editorState, onChange: handleEditorChange } = useEditor({ onChange, value });
+  useEffect(() => {
+    const handleLanguageChange = (language) => {
+      setLanguage(language);
+    };
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      onChange(EditorState.createEmpty());
-    }
-  };
+    const handleCodeChange = (code) => {
+      setCode(code);
+    };
+
+    const handleCursorPositionChange = (cursorPosition) => {
+      setCursorPosition(cursorPosition);
+    };
+
+    return () => {
+      // Clean up
+    };
+  }, []);
 
   return (
-    <div className="editor">
-      <EditorState onChange={handleEditorChange} onKeyPress={handleKeyDown} />
+    <div>
+      <LanguageSelector language={language} setLanguage={setLanguage} />
+      <Editor language={language} code={code} cursorPosition={cursorPosition} setCode={setCode} setCursorPosition={setCursorPosition} />
     </div>
   );
 };

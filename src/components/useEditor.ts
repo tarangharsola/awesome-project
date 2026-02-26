@@ -1,21 +1,39 @@
-{"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-editor';
+import { MonacoEditor } from 'react-monaco-editor';
 
-interface EditorProps {
-  users: { id: string; name: string; color: string }[]
-}
-
-const useEditor = ({ users }) => {
-  const [editorState, setEditorState] = useState('');
+const useEditor = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, column: 0 });
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setEditorState(editorState + 'Hello World!');
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, [editorState]);
+    const handleLanguageChange = (language) => {
+      setLanguage(language);
+    };
 
-  return editorState;
-}
+    const handleCodeChange = (code) => {
+      setCode(code);
+    };
+
+    const handleCursorPositionChange = (cursorPosition) => {
+      setCursorPosition(cursorPosition);
+    };
+
+    return () => {
+      // Clean up
+    };
+  }, []);
+
+  return {
+    language,
+    code,
+    cursorPosition,
+    setLanguage,
+    setCode,
+    setCursorPosition
+  };
+};
 
 export default useEditor;
