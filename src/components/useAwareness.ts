@@ -1,20 +1,15 @@
-{"import { useState, useEffect } from 'react';
+{"import React from 'react';
+import { useEditor } from './useEditor';
 
-interface AwarenessProps {
-  users: { id: string; name: string; color: string }[]
-}
+const useAwareness = () => {
+  const editor = useEditor();
+  const users = editor.getUsers();
 
-const useAwareness = ({ users }) => {
-  const [activeUsers, setActiveUsers] = useState(users);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setActiveUsers(users);
-    }, 1000);
-    return () => clearInterval(intervalId);
+  React.useEffect(() => {
+    editor.updateUsers(users);
   }, [users]);
 
-  return activeUsers;
-}
+  return users;
+};
 
 export default useAwareness;

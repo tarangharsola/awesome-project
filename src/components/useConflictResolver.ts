@@ -1,20 +1,15 @@
-{"import { useState, useEffect } from 'react';
+{"import React from 'react';
+import { useEditor } from './useEditor';
 
-interface ConflictResolverProps {
-  users: { id: string; name: string; color: string }[]
-}
+const useConflictResolver = () => {
+  const editor = useEditor();
+  const conflicts = editor.getConflicts();
 
-const useConflictResolver = ({ users }) => {
-  const [conflicts, setConflicts] = useState([]);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setConflicts([]);
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, []);
+  React.useEffect(() => {
+    editor.resolveConflicts(conflicts);
+  }, [conflicts]);
 
   return conflicts;
-}
+};
 
 export default useConflictResolver;
