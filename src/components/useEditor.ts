@@ -1,19 +1,20 @@
-{"import { useState, useEffect } from 'react';
+{"import React from 'react';
+import { useCodeEditor } from 'react-codemirror-editor';
+import { EditorState } from 'codemirror';
 
-interface Props {
-  documentId: string;
+interface EditorProps {
+  value: string;
+  onChange: (value: string) => void;
   language: string;
 }
 
-const useEditor = ({ documentId, language }) => {
-  const [text, setText] = useState('');
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+const Editor: React.FC<EditorProps> = ({ value, onChange, language }) => {
+  const { editor } = useCodeEditor({
+    value,
+    onChange,
+    language,
+  });
+  return editor;
+};
 
-  useEffect(() => {
-    // implement editor logic here
-  }, []);
-
-  return { updateCursor: () => ({ cursor: cursor }) };
-}
-
-export default useEditor;
+export default Editor;

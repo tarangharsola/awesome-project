@@ -1,18 +1,30 @@
-{"import { useState, useEffect } from 'react';
+{"import React from 'react';
+import { useEditor } from './useEditor';
 
-interface Props {
-  language: string;
+interface Language {
+  id: string;
+  name: string;
 }
 
-const useLanguage = ({ language }) => {
-  const [languages, setLanguages] = useState(['javascript', 'python', 'html']);
-  const [selectedLanguage, setSelectedLanguage] = useState(language);
-
-  useEffect(() => {
-    // implement language selection logic here
-  }, []);
-
-  return { languages, selectLanguage: (lang) => setSelectedLanguage(lang) };
+interface LanguageSelectorProps {
+  languages: Language[];
+  selectedLanguage: Language;
+  onChange: (language: Language) => void;
 }
 
-export default useLanguage;
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({ languages, selectedLanguage, onChange }) => {
+  const { editor } = useEditor();
+  const handleLanguageChange = (language: Language) => {
+    onChange(language);
+    editor.setLanguage(language.id);
+  };
+  return (
+    <select value={selectedLanguage.id} onChange={(e) => handleLanguageChange(languages.find((lang) => lang.id === e.target.value))}>
+      {languages.map((language) => (
+        <option key={language.id} value={language.id}>{language.name}</option>
+      ))}
+    </select>
+  );
+};
+
+export default LanguageSelector;

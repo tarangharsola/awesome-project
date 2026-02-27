@@ -1,15 +1,21 @@
-{"import { useState } from 'react';
+{"import React from 'react';
+import { useEditor } from './useEditor';
 
-const useKeyboardShortcuts = () => {
-  const [activeShortcut, setActiveShortcut] = useState(null);
-  const handleKeyDown = (event) => {
-    if (event.key === 'Ctrl+C') {
-      setActiveShortcut('copy');
-    } else if (event.key === 'Ctrl+V') {
-      setActiveShortcut('paste');
+interface KeyboardShortcutsProps {
+  editor: any;
+}
+
+const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ editor }) => {
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Ctrl+S') {
+      editor.save();
     }
   };
-  return [activeShortcut, handleKeyDown];
+  return (
+    <div onKeyPress={handleKeyDown}>
+      {/* Keyboard shortcuts will be implemented here */}
+    </div>
+  );
 };
 
-export default useKeyboardShortcuts;
+export default KeyboardShortcuts;
