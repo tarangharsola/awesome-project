@@ -1,38 +1,50 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-editor';
-import { MonacoEditor } from 'react-monaco-editor';
-import LanguageSelector from './LanguageSelector';
+{"import React, { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
+import { useConflictResolver } from './useConflictResolver';
 
-const Editor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState('');
-  const [cursorPosition, setCursorPosition] = useState({ line: 0, column: 0 });
+interface Props {
+  documentId: string;
+  language: string;
+}
+
+const Editor = ({ documentId, language }) => {
+  const [text, setText] = useState('');
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const { sendText, receiveText } = useWebSocket(documentId);
+  const { resolveConflict } = useConflictResolver(text, cursor);
+  const { updateCursor } = useEditor(setCursor);
 
   useEffect(() => {
-    const handleLanguageChange = (language) => {
-      setLanguage(language);
-    };
-
-    const handleCodeChange = (code) => {
-      setCode(code);
-    };
-
-    const handleCursorPositionChange = (cursorPosition) => {
-      setCursorPosition(cursorPosition);
-    };
-
-    return () => {
-      // Clean up
-    };
+    receiveText((text) => setText(text));
   }, []);
 
+  const handleTextChange = (event) => {
+    const newText = event.target.value;
+    const newCursor = resolveConflict(newText, cursor);
+    setText(newText);
+    setCursor(newCursor);
+    sendText(newText);
+  };
+
   return (
-    <div>
-      <LanguageSelector language={language} setLanguage={setLanguage} />
-      <Editor language={language} code={code} cursorPosition={cursorPosition} setCode={setCode} setCursorPosition={setCursorPosition} />
+    <div style={{
+      width: '100%',
+      height: '100vh',
+      padding: 10
+    }}>
+      <textarea
+        value={text}
+        onChange={handleTextChange}
+        style={{
+          width: '100%',
+          height: '100%',
+          padding: 10
+        }}
+      />
+      <CursorTracker cursor={cursor} user={{ name: 'John Doe', color: '#ff0000' }} />
     </div>
   );
-};
+}
 
 export default Editor;

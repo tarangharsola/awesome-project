@@ -1,21 +1,17 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
 
-interface UsersProps {
-  users: { username: string; color: string; }[];
+interface Props {
+  documentId: string;
 }
 
-const useUsers = ({ users }) => {
-  const [activeUsers, setActiveUsers] = useState(users);
+const useUsers = ({ documentId }) => {
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setActiveUsers(users);
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, [users]);
+    // implement user tracking logic here
+  }, []);
 
-  return activeUsers;
+  return { users };
 }
 
 export default useUsers;

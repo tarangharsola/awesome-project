@@ -1,19 +1,18 @@
 {"import { useState, useEffect } from 'react';
 
-interface WebSocketProps {
-  users: { id: string; name: string; color: string }[]
+interface Props {
+  documentId: string;
 }
 
-const useWebSocket = ({ users }) => {
-  const [ws, setWs] = useState(null);
+const useWebSocket = ({ documentId }) => {
+  const [text, setText] = useState('');
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-    return () => ws.close();
+    // implement WebSocket logic here
   }, []);
 
-  return ws;
+  return { sendText: (text) => setText(text), receiveText: (text) => setText(text) };
 }
 
 export default useWebSocket;

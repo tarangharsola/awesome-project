@@ -1,21 +1,18 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
 
-interface CursorProps {
-  user: { id: string; name: string; color: string }
+interface Props {
+  cursor: { x: number; y: number; }
+  user: { name: string; color: string }
 }
 
-const useCursor = ({ user }) => {
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+const useCursor = ({ cursor, user }) => {
+  const [cursorState, setCursorState] = useState(cursor);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setCursor({ x: Math.random() * 100, y: Math.random() * 100 });
-    }, 100);
-    return () => clearInterval(intervalId);
+    // implement cursor tracking logic here
   }, []);
 
-  return cursor;
+  return { cursor: cursorState, user: user };
 }
 
 export default useCursor;

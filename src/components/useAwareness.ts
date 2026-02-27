@@ -1,15 +1,27 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
+{"import { useState, useEffect } from 'react';
 
-const useAwareness = () => {
-  const editor = useEditor();
-  const users = editor.getUsers();
+interface Props {
+  documentId: string;
+}
 
-  React.useEffect(() => {
-    editor.updateUsers(users);
-  }, [users]);
+const useAwareness = ({ documentId }) => {
+  const [users, setUsers] = useState([]);
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
 
-  return users;
-};
+  useEffect(() => {
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
+    };
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u !== user));
+    };
+
+    return () => {
+      // handle cleanup
+    };
+  }, []);
+
+  return { users, cursor };
+}
 
 export default useAwareness;

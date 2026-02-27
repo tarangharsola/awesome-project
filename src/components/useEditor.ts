@@ -1,39 +1,19 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-editor';
-import { MonacoEditor } from 'react-monaco-editor';
+{"import { useState, useEffect } from 'react';
 
-const useEditor = () => {
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState('');
-  const [cursorPosition, setCursorPosition] = useState({ line: 0, column: 0 });
+interface Props {
+  documentId: string;
+  language: string;
+}
+
+const useEditor = ({ documentId, language }) => {
+  const [text, setText] = useState('');
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const handleLanguageChange = (language) => {
-      setLanguage(language);
-    };
-
-    const handleCodeChange = (code) => {
-      setCode(code);
-    };
-
-    const handleCursorPositionChange = (cursorPosition) => {
-      setCursorPosition(cursorPosition);
-    };
-
-    return () => {
-      // Clean up
-    };
+    // implement editor logic here
   }, []);
 
-  return {
-    language,
-    code,
-    cursorPosition,
-    setLanguage,
-    setCode,
-    setCursorPosition
-  };
-};
+  return { updateCursor: () => ({ cursor: cursor }) };
+}
 
 export default useEditor;
