@@ -1,27 +1,23 @@
 {"import { useState, useEffect } from 'react';
+import { WebSocket } from 'ws';
 
-interface Props {
-  documentId: string;
-}
-
-const useAwareness = ({ documentId }) => {
+const useAwareness = () => {
   const [users, setUsers] = useState([]);
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const [presence, setPresence] = useState({});
 
   useEffect(() => {
-    const handleUserJoin = (user) => {
-      setUsers((prevUsers) => [...prevUsers, user]);
-    };
-    const handleUserLeave = (user) => {
-      setUsers((prevUsers) => prevUsers.filter((u) => u !== user));
-    };
-
-    return () => {
-      // handle cleanup
-    };
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.on('message', (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'users') {
+        setUsers(data.users);
+      } else if (data.type === 'presence') {
+        setPresence(data.presence);
+      }
+    });
   }, []);
 
-  return { users, cursor };
-}
+  return { users, presence };
+};
 
 export default useAwareness;

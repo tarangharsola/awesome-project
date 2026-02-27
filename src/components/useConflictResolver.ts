@@ -1,19 +1,21 @@
 {"import { useState, useEffect } from 'react';
+import { OperationalTransformation } from 'operational-transformation';
 
-interface Props {
-  text: string;
-  cursor: { x: number; y: number; }
-}
-
-const useConflictResolver = ({ text, cursor }) => {
-  const [resolvedText, setResolvedText] = useState(text);
-  const [resolvedCursor, setResolvedCursor] = useState(cursor);
+const useConflictResolver = () => {
+  const [conflicts, setConflicts] = useState([]);
+  const [resolved, setResolved] = useState(false);
 
   useEffect(() => {
-    // implement conflict resolution logic here
+    const ot = new OperationalTransformation();
+    ot.on('conflict', (conflict) => {
+      setConflicts(conflict);
+    });
+    ot.on('resolved', () => {
+      setResolved(true);
+    });
   }, []);
 
-  return { resolveConflict: () => ({ text: resolvedText, cursor: resolvedCursor }) };
-}
+  return { conflicts, resolved };
+};
 
 export default useConflictResolver;
