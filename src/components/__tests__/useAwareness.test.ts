@@ -1,17 +1,14 @@
-// Import required modules
+import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { useAwareness } from '../useAwareness';
 
-// Mock WebSocket connection
-const mockWebSocket = {
-  send: jest.fn(),
-  onmessage: jest.fn(),
-};
+it('should return user presence', () => {
+  const { result } = render(<useAwareness />);
+  expect(result.current.users).toEqual([]);
+});
 
-// Test useAwareness hook
-describe('useAwareness', () => {
-  it('should return awareness state', () => {
-    const awareness = useAwareness(mockWebSocket);
-    expect(awareness).toBe(true);
-  });
+it('should update user presence', () => {
+  const { result } = render(<useAwareness />);
+  fireEvent.change(result.current.input, { target: { value: 'username' } });
+  expect(result.current.users).toEqual(['username']);
 });

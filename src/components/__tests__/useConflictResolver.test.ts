@@ -1,17 +1,15 @@
-// Import required modules
+import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { useConflictResolver } from '../useConflictResolver';
 
-// Mock WebSocket connection
-const mockWebSocket = {
-  send: jest.fn(),
-  onmessage: jest.fn(),
-};
+it('should resolve conflicts', () => {
+  const { result } = render(<useConflictResolver />);
+  expect(result.current.conflicts).toEqual([]);
+});
 
-// Test useConflictResolver hook
-describe('useConflictResolver', () => {
-  it('should return conflict resolver state', () => {
-    const conflictResolver = useConflictResolver(mockWebSocket);
-    expect(conflictResolver).toBe(true);
-  });
+it('should handle concurrent edits', () => {
+  const { result } = render(<useConflictResolver />);
+  fireEvent.change(result.current.input, { target: { value: 'edit 1' } });
+  fireEvent.change(result.current.input, { target: { value: 'edit 2' } });
+  expect(result.current.conflicts).toEqual(['edit 1', 'edit 2']);
 });
