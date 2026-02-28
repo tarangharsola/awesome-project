@@ -1,24 +1,42 @@
 {"import React from 'react';
-import { useCursor } from './useCursor';
+import { useState, useEffect } from 'react';
 
-interface Props {
-  cursor: { x: number; y: number; }
-  user: { name: string; color: string }
+interface Cursor {
+  id: string;
+  name: string;
+  color: string;
+  x: number;
+  y: number;
 }
 
-const CursorTracker = ({ cursor, user }) => {
-  const { x, y } = cursor;
-  const { name, color } = user;
+interface Props {
+  cursors: Cursor[];
+}
+
+const CursorTracker = ({ cursors }: Props) => {
+  const [cursorPositions, setCursorPositions] = useState({} as { [id: string]: { x: number; y: number } });
+
+  useEffect(() => {
+    const cursorPositions = cursors.reduce((acc, cursor) => ({ ...acc, [cursor.id]: { x: cursor.x, y: cursor.y } }), {});
+    setCursorPositions(cursorPositions);
+  }, [cursors]);
+
   return (
-    <div style={{
-      position: 'absolute',
-      left: x,
-      top: y,
-      backgroundColor: color,
-      width: 5,
-      height: 5
-    }}>
-      {name}
+    <div className="cursor-tracker">
+      {Object.keys(cursorPositions).map((id, index) => (
+        <div key={index} style={{
+          backgroundColor: cursors.find((cursor) => cursor.id === id).color,
+          color: "#fff",
+          position: "absolute",
+          left: cursorPositions[id].x + "px",
+          top: cursorPositions[id].y + "px",
+          width: "10px",
+          height: "10px",
+          borderRadius: "50%",
+        }}>
+          {cursors.find((cursor) => cursor.id === id).name}
+        </div>
+      ))}
     </div>
   );
 }
