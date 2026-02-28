@@ -1,50 +1,25 @@
-{"import React, { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
-import { useConflictResolver } from './useConflictResolver';
+{"import React from 'react';
+import { useState } from 'react';
+import LanguageSelector from './LanguageSelector';
 
-interface Props {
-  documentId: string;
-  language: string;
-}
+const Editor = () => {
+  const [code, setCode] = useState('');
+  const [language, setLanguage] = useState('javascript');
 
-const Editor = ({ documentId, language }) => {
-  const [text, setText] = useState('');
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const { sendText, receiveText } = useWebSocket(documentId);
-  const { resolveConflict } = useConflictResolver(text, cursor);
-  const { updateCursor } = useEditor(setCursor);
+  const handleCodeChange = (event) => {
+    setCode(event.target.value);
+  };
 
-  useEffect(() => {
-    receiveText((text) => setText(text));
-  }, []);
-
-  const handleTextChange = (event) => {
-    const newText = event.target.value;
-    const newCursor = resolveConflict(newText, cursor);
-    setText(newText);
-    setCursor(newCursor);
-    sendText(newText);
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
   };
 
   return (
-    <div style={{
-      width: '100%',
-      height: '100vh',
-      padding: 10
-    }}>
-      <textarea
-        value={text}
-        onChange={handleTextChange}
-        style={{
-          width: '100%',
-          height: '100%',
-          padding: 10
-        }}
-      />
-      <CursorTracker cursor={cursor} user={{ name: 'John Doe', color: '#ff0000' }} />
+    <div>
+      <LanguageSelector value={language} onChange={handleLanguageChange} />
+      <textarea value={code} onChange={handleCodeChange} />
     </div>
   );
-}
+};
 
 export default Editor;
