@@ -2,13 +2,28 @@ const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 
-const config = require('./webpack.config');
+const config = {
+  entry: './src/index.tsx',
+  output: {
+    path: path.resolve(__dirname, 'public'),
+    filename: 'bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        test: /.tsx?$/, use: 'ts-loader', exclude: /node_modules/
+      }
+    ]
+  },
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js']
+  }
+};
 
-fs.writeFileSync(path.join(__dirname, 'dist', 'index.html'), fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'));
 webpack(config, (err, stats) => {
   if (err) {
     console.error(err);
   } else {
     console.log(stats.toString());
   }
-})
+});
