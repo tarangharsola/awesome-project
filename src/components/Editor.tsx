@@ -1,39 +1,68 @@
-{"import React, { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
-import { useUsers } from './useUsers';
-import { useConflictResolver } from './useConflictResolver';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import { Editor as CodeMirror } from 'react-codemirror-editor';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/fold/mark-folded-code';
+import 'codemirror/addon/search/searchcursor';
+import 'codemirror/addon/search/search';
+import 'codemirror/addon/dialog/dialog';
+import 'codemirror/addon/selection/active-line';
+import 'codemirror/addon/display/placeholder';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/fold/mark-folded-code';
+import 'codemirror/addon/search/searchcursor';
+import 'codemirror/addon/search/search';
+import 'codemirror/addon/dialog/dialog';
+import 'codemirror/addon/selection/active-line';
+import 'codemirror/addon/display/placeholder';
 
-interface Props {
-  documentId: string;
-}
+const languages = {
+  javascript: 'javascript',
+  python: 'python',
+  html: 'htmlmixed'
+};
 
-const Editor: React.FC<Props> = ({ documentId }) => {
-  const [document, setDocument] = useState('');
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const [users, setUsers] = useState([]);
-  const { sendOperation, operations } = useWebSocket(documentId);
-  const { resolveConflicts } = useConflictResolver(operations);
-  const { updateCursor } = useUsers(users);
+const Editor = () => {
+  const [value, setValue] = useState('');
+  const [language, setLanguage] = useState('javascript');
+  const [options, setOptions] = useState({
+    lineNumbers: true,
+    mode: languages[language],
+    theme: 'monokai'
+  });
 
   useEffect(() => {
-    const handleOperation = (operation: any) => {
-      resolveConflicts(operation);
-      setDocument(operation.document);
-      setCursor(operation.cursor);
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), options);
+    setValue(editor.getValue());
+    return () => {
+      editor.toTextArea();
     };
-    sendOperation(handleOperation);
-  }, [sendOperation, resolveConflicts, setDocument, setCursor]);
+  }, [options]);
+
+  const handleLanguageChange = (language: string) => {
+    setLanguage(language);
+    setOptions({
+      ...options,
+      mode: languages[language]
+    });
+  };
 
   return (
     <div>
-      <textarea
-        value={document}
-        onChange={(e) => setDocument(e.target.value)}
-      />
-      <CursorTracker cursor={cursor} userId={users[0].id} color={users[0].color} />
+      <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
+        {Object.keys(languages).map((language) => (
+          <option key={language} value={language}>{language}</option>
+        ))}
+      </select>
+      <textarea id='editor' value={value} onChange={(e) => setValue(e.target.value)} />
     </div>
   );
-}
+};
 
 export default Editor;

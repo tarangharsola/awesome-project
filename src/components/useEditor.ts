@@ -1,27 +1,40 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
-import { useConflictResolver } from './useConflictResolver';
+import { Editor as CodeMirror } from 'react-codemirror-editor';
 
-interface Props {
-  documentId: string;
-}
-
-const useEditor = ({ documentId }) => {
-  const [document, setDocument] = useState('');
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const { sendOperation, operations } = useWebSocket(documentId);
-  const { resolveConflicts } = useConflictResolver(operations);
+const useEditor = () => {
+  const [value, setValue] = useState('');
+  const [language, setLanguage] = useState('javascript');
+  const [options, setOptions] = useState({
+    lineNumbers: true,
+    mode: 'javascript',
+    theme: 'monokai'
+  });
 
   useEffect(() => {
-    const handleOperation = (operation: any) => {
-      resolveConflicts(operation);
-      setDocument(operation.document);
-      setCursor(operation.cursor);
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), options);
+    setValue(editor.getValue());
+    return () => {
+      editor.toTextArea();
     };
-    sendOperation(handleOperation);
-  }, [sendOperation, resolveConflicts, setDocument, setCursor]);
+  }, [options]);
 
-  return { document: document, cursor: cursor, sendOperation: sendOperation, operations: operations };
-}
+  const handleLanguageChange = (language: string) => {
+    setLanguage(language);
+    setOptions({
+      ...options,
+      mode: language
+    });
+  };
+
+  return {
+    value,
+    setValue,
+    language,
+    setLanguage,
+    options,
+    setOptions,
+    handleLanguageChange
+  };
+};
 
 export default useEditor;
