@@ -1,18 +1,25 @@
 {"import { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
 
 interface Props {
   cursor: { x: number; y: number; }
-  user: { name: string; color: string }
+  userId: string;
+  color: string;
 }
 
-const useCursor = ({ cursor, user }) => {
-  const [cursorState, setCursorState] = useState(cursor);
+const useCursor = ({ cursor, userId, color }) => {
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    // implement cursor tracking logic here
-  }, []);
+    const handleCursorUpdate = () => {
+      setCursorPosition(cursor);
+    };
+    return () => {
+      // Clean up
+    };
+  }, [cursor]);
 
-  return { cursor: cursorState, user: user };
+  return cursorPosition;
 }
 
 export default useCursor;

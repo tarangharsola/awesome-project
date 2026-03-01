@@ -1,17 +1,23 @@
 {"import { useState, useEffect } from 'react';
+import { useUsers } from './useUsers';
 
 interface Props {
-  documentId: string;
+  users: any[];
 }
 
-const useUsers = ({ documentId }) => {
-  const [users, setUsers] = useState([]);
+const useUsers = ({ users }) => {
+  const [userList, setUserList] = useState([]);
 
   useEffect(() => {
-    // implement user tracking logic here
-  }, []);
+    const handleUserJoin = () => {
+      setUserList(users);
+    };
+    return () => {
+      // Clean up
+    };
+  }, [users]);
 
-  return { users };
+  return userList;
 }
 
 export default useUsers;

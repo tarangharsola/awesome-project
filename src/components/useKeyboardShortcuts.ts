@@ -1,21 +1,22 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
+{"import { useState, useEffect } from 'react';
 
-interface KeyboardShortcutsProps {
-  editor: any;
+interface Props {
+  shortcuts: any[];
 }
 
-const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ editor }) => {
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Ctrl+S') {
-      editor.save();
-    }
-  };
-  return (
-    <div onKeyPress={handleKeyDown}>
-      {/* Keyboard shortcuts will be implemented here */}
-    </div>
-  );
-};
+const useKeyboardShortcuts = ({ shortcuts }) => {
+  const [activeShortcut, setActiveShortcut] = useState(null);
 
-export default KeyboardShortcuts;
+  useEffect(() => {
+    const handleShortcut = (event: any) => {
+      // Shortcut logic here
+    };
+    return () => {
+      // Clean up
+    };
+  }, []);
+
+  return activeShortcut;
+}
+
+export default useKeyboardShortcuts;

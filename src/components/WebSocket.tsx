@@ -1,1 +1,22 @@
-{"import React, { useState, useEffect } from 'react';\nimport WebSocket from 'ws';\n\nconst WebSocket = () => {\n  const [connected, setConnected] = useState(false);\n  const [retryCount, setRetryCount] = useState(0);\n\n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onopen = () => {\n      setConnected(true);\n    };\n    ws.onclose = () => {\n      setConnected(false);\n    };\n    ws.onerror = (error) => {\n      console.error(error);\n    };\n  }, []);\n\n  const handleConnectionStatus = (status) => {\n    setConnected(status);\n  };\n\n  return (\n    <div>\n      {connected ? (\n        <span>Connected</span>\n      ) : (\n        <span>Disconnected ({retryCount} retries)</span>\n      )}\n    </div>\n  );\n};\n\nexport default WebSocket;
+{"import WebSocket from 'ws';
+import { useWebSocket } from './useWebSocket';
+
+interface Props {
+  documentId: string;
+}
+
+const WebSocket: React.FC<Props> = ({ documentId }) => {
+  const { sendOperation, operations } = useWebSocket(documentId);
+  return (
+    <div>
+      <button onClick={() => sendOperation({ type: 'create', document: 'Hello World!' })}>Send Operation</button>
+      <ul>
+        {operations.map((operation) => (
+          <li key={operation.id}>{operation.type}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default WebSocket;

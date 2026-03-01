@@ -1,11 +1,22 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
+{"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-const useConflictResolver = () => {
-  const editor = useEditor();
-  const conflicts = editor.getConflicts();
-  const resolved = editor.resolveConflicts(conflicts);
-  return { conflicts, resolved };
-};
+interface Props {
+  operations: any[];
+}
+
+const useConflictResolver = ({ operations }) => {
+  const [resolvedOperations, setResolvedOperations] = useState([]);
+
+  useEffect(() => {
+    const resolveConflicts = () => {
+      // Conflict resolution logic here
+    };
+    resolveConflicts();
+    setResolvedOperations(operations);
+  }, [operations]);
+
+  return { resolveConflicts: resolveConflicts, resolvedOperations: resolvedOperations };
+}
 
 export default useConflictResolver;
