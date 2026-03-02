@@ -1,5 +1,5 @@
 {"import React from 'react';
-import './UserList.css';
+import { useState, useEffect } from 'react';
 
 interface User {
   id: string;
@@ -12,24 +12,27 @@ interface Props {
 }
 
 const UserList = ({ users }: Props) => {
+  const [activeUsers, setActiveUsers] = useState([]);
+
+  useEffect(() => {
+    setActiveUsers(users.filter((user) => user.id !== "self"));
+  }, [users]);
+
   return (
-    <div className="user-list">
-      {users.map((user, index) => (
-        <div key={index} style={{
+    <div className="active-users">
+      {activeUsers.map((user) => (
+        <div key={user.id} style={{
           backgroundColor: user.color,
           color: "#fff",
-          padding: "10px",
-          borderRadius: "10px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          padding: "5px",
+          borderRadius: "5px",
+          display: "inline-block",
+          margin: "5px",
         }}>
-          <span>{user.name}</span>
-          <span>{user.id}</span>
+          {user.name}
         </div>
       ))}
     </div>
-  );
-}
+  );}
 
-export default UserList;
+  export default UserList;
