@@ -1,38 +1,23 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-
-interface User {
-  id: string;
-  name: string;
-  color: string;
-}
+import { useUsers } from './useUsers';
 
 interface Props {
-  users: User[];
+  users: { id: string; name: string; color: string }[];
 }
 
-const UserList = ({ users }: Props) => {
-  const [activeUsers, setActiveUsers] = useState([]);
-
-  useEffect(() => {
-    setActiveUsers(users.filter((user) => user.id !== "self"));
-  }, [users]);
-
+const UserList: React.FC<Props> = ({ users }) => {
   return (
-    <div className="active-users">
-      {activeUsers.map((user) => (
-        <div key={user.id} style={{
+    <ul>
+      {users.map((user) => (
+        <li key={user.id} style={{
           backgroundColor: user.color,
-          color: "#fff",
-          padding: "5px",
-          borderRadius: "5px",
-          display: "inline-block",
-          margin: "5px",
+          padding: 10,
         }}>
           {user.name}
-        </div>
+        </li>
       ))}
-    </div>
-  );}
+    </ul>
+  );
+}
 
-  export default UserList;
+export default UserList;

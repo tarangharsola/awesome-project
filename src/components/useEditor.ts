@@ -1,40 +1,30 @@
 {"import { useState, useEffect } from 'react';
-import { Editor as CodeMirror } from 'react-codemirror-editor';
 
-const useEditor = () => {
-  const [value, setValue] = useState('');
-  const [language, setLanguage] = useState('javascript');
-  const [options, setOptions] = useState({
-    lineNumbers: true,
-    mode: 'javascript',
-    theme: 'monokai'
-  });
+interface EditorState {
+  documentId: string;
+  text: string;
+  cursorId: string;
+}
+
+const useEditor = (documentId: string) => {
+  const [document, setDocument] = useState<EditorState>({ documentId, text: '', cursorId: '' });
 
   useEffect(() => {
-    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), options);
-    setValue(editor.getValue());
-    return () => {
-      editor.toTextArea();
+    const handleDocumentChange = (newDocument: EditorState) => {
+      setDocument(newDocument);
     };
-  }, [options]);
+    // Simulate real-time updates from WebSocket
+    const intervalId = setInterval(() => {
+      handleDocumentChange({
+        documentId,
+        text: 'Real-time update: ' + new Date().toISOString(),
+        cursorId: document.cursorId,
+      });
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [documentId]);
 
-  const handleLanguageChange = (language: string) => {
-    setLanguage(language);
-    setOptions({
-      ...options,
-      mode: language
-    });
-  };
-
-  return {
-    value,
-    setValue,
-    language,
-    setLanguage,
-    options,
-    setOptions,
-    handleLanguageChange
-  };
-};
+  return { document, setDocument };
+}
 
 export default useEditor;

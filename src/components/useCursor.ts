@@ -1,25 +1,23 @@
 {"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
 
-interface Props {
-  cursor: { x: number; y: number; }
-  userId: string;
-  color: string;
+interface CursorState {
+  id: string;
+  x: number;
+  y: number;
 }
 
-const useCursor = ({ cursor, userId, color }) => {
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+const useCursor = (cursorId: string) => {
+  const [cursor, setCursor] = useState<CursorState>({ id: cursorId, x: 0, y: 0 });
 
   useEffect(() => {
-    const handleCursorUpdate = () => {
-      setCursorPosition(cursor);
+    const handleMouseMove = (event: MouseEvent) => {
+      setCursor({ id: cursorId, x: event.clientX, y: event.clientY });
     };
-    return () => {
-      // Clean up
-    };
-  }, [cursor]);
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => document.removeEventListener('mousemove', handleMouseMove);
+  }, [cursorId]);
 
-  return cursorPosition;
+  return cursor;
 }
 
 export default useCursor;

@@ -1,23 +1,34 @@
 {"import { useState, useEffect } from 'react';
-import { useUsers } from './useUsers';
 
-interface Props {
-  users: any[];
+interface UserState {
+  id: string;
+  name: string;
+  color: string;
 }
 
-const useUsers = ({ users }) => {
-  const [userList, setUserList] = useState([]);
+const useUsers = () => {
+  const [users, setUsers] = useState<UserState[]>([]);
 
   useEffect(() => {
-    const handleUserJoin = () => {
-      setUserList(users);
+    const handleUserJoin = (user: UserState) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
-    return () => {
-      // Clean up
+    const handleUserLeave = (userId: string) => {
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
     };
-  }, [users]);
+    // Simulate real-time updates from WebSocket
+    const intervalId = setInterval(() => {
+      handleUserJoin({
+        id: 'user1',
+        name: 'John Doe',
+        color: 'red',
+      });
+      handleUserLeave('user2');
+    }, 2000);
+    return () => clearInterval(intervalId);
+  }, []);
 
-  return userList;
+  return users;
 }
 
 export default useUsers;

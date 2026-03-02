@@ -1,4 +1,4 @@
-body {
+{"body {
   font-family: Arial, sans-serif;
   background-color: #f0f0f0;
 }
@@ -10,18 +10,9 @@ body {
   padding: 10px;
 }
 
-#cursor {
-  position: absolute;
-  width: 2px;
-  height: 20px;
-  background-color: #000;
-}
-
 #user-list {
   position: absolute;
   top: 10px;
   right: 10px;
-  background-color: #fff;
-  padding: 10px;
-  border: 1px solid #ccc;
 }
+"

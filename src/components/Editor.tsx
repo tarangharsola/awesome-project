@@ -1,35 +1,39 @@
-{"import React, { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-editor';
-import { useLanguage } from './useLanguage';
+{"import React from 'react';
+import { useEditor } from './useEditor';
+import { useCursor } from './useCursor';
+import CursorTracker from './CursorTracker';
 
 interface Props {
-  language: string;
-  value: string;
-  onChange: (value: string) => void;
+  documentId: string;
 }
 
-const EditorComponent = ({ language, value, onChange }) => {
-  const [formattedValue, setFormattedValue] = useState(value);
-  const languageData = useLanguage(language);
-
-  useEffect(() => {
-    const formattedValue = languageData.format(value);
-    setFormattedValue(formattedValue);
-  }, [value, languageData]);
-
-  const handleOnChange = (value: string) => {
-    onChange(value);
-    setFormattedValue(value);
-  };
-
+const Editor: React.FC<Props> = ({ documentId }) => {
+  const { document, setDocument } = useEditor(documentId);
+  const cursor = useCursor(document.cursorId);
   return (
-    <Editor
-      value={formattedValue}
-      onChange={handleOnChange}
-      language={language}
-    />
+    <div style={{
+      position: 'relative',
+      width: 800,
+      height: 600,
+    }}>
+      <CursorTracker cursor={cursor} />
+      <div style={{
+        position: 'absolute',
+        left: cursor.x,
+        top: cursor.y,
+        width: 2,
+        height: 10,
+        backgroundColor: 'blue',
+      }} />
+      <textarea value={document.text} onChange={(event) => setDocument({ ...document, text: event.target.value })} style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: 800,
+        height: 600,
+      }} />
+    </div>
   );
-
-  return EditorComponent;
 }
-export default EditorComponent;
+
+export default Editor;
