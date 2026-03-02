@@ -1,8 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+// Import required modules
 const webpack = require('webpack');
+const path = require('path');
 
-const config = {
+// Define the build configuration
+module.exports = {
   entry: './src/index.tsx',
   output: {
     path: path.resolve(__dirname, 'public'),
@@ -19,11 +20,3 @@ const config = {
     extensions: ['.ts', '.tsx', '.js']
   }
 };
-
-webpack(config, (err, stats) => {
-  if (err) {
-    console.error(err);
-  } else {
-    console.log(stats.toString());
-  }
-});

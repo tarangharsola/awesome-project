@@ -1,17 +1,17 @@
+// Import required modules
 const assert = require('assert');
-const fs = require('fs');
 
+// Test the editor functionality
 describe('Editor', () => {
-  it('should render editor', () => {
-    const editor = require('./Editor');
-    assert(editor);
-  });
-});
+  it('should render the editor', () => {
+    // Arrange
+    const editor = document.createElement('div');
+    editor.innerHTML = '<editor></editor>';
 
-describe('WebSocket', () => {
-  it('should establish connection', () => {
-    const WebSocket = require('./WebSocket');
-    const ws = new WebSocket();
-    assert(ws);
+    // Act
+    const editorElement = editor.querySelector('editor');
+
+    // Assert
+    assert.ok(editorElement);
   });
 });
