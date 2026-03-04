@@ -1,1 +1,1 @@
-{"import React from 'react';\nimport { useUsers } from './useUsers';\n\ninterface UserListProps {\n  users: UserState[];\n}\n\nconst UserList = ({ users }: UserListProps) => {\n  return (\n    <ul>\n      {users.map((user) => (\n        <li key={user.id}>{user.name}</li>\n      ))}\n    </ul>\n  );\n};\n\nexport default UserList;
+import React from 'react';const UserList = ({ users }) => {  return (    <ul>      {users.map((user) => (        <li key={user.id}>{user.name}</li>      ))}    </ul>  );};export default UserList;
