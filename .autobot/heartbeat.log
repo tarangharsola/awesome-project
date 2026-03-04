@@ -2,3 +2,4 @@
 2026-03-04T09:59:07.761061+00:00 | Implement the core UI shell and routing for shareable collaborative rooms (unique URLs).
 2026-03-04T09:59:17.896537+00:00 | Add a real code editor component with syntax highlighting for JavaScript, Python, and HTML.
 2026-03-04T09:59:37.501121+00:00 | Add real-time sync using a CRDT/OT library and a WebSocket server (no placeholders).
+2026-03-04T09:59:47.336369+00:00 | Add live cursor/presence indicators + active users panel with stable colors.
