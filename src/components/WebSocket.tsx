@@ -1,1 +1,14 @@
-{"import React from 'react';\nimport { io } from 'socket.io-client';\n\ninterface SocketProps {\n  children: React.ReactNode;\n}\n\nconst WebSocket = ({ children }: SocketProps) => {\n  const socket = io();\n  return (\n    <div>\n      {children}\n      <button onClick={() => socket.emit('disconnect')}>Disconnect</button>\n    </div>\n  );\n};\n\nexport default WebSocket;
+{"import React, { useState, useEffect } from 'react';
+import WebSocket from 'ws';
+
+const WebSocketProvider = ({ children }) => {
+  const [ws, setWs] = useState(null);
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
+    return () => ws.close();
+  }, []);
+  return <WebSocketContext.Provider value={ws}>{children}</WebSocketContext.Provider>;
+};
+
+export default WebSocketProvider;
