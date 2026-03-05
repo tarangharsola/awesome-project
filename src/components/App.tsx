@@ -1,1 +1,20 @@
-import React from 'react';import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';import Room from './Room';const App = () => {  return (    <Router>      <Switch>        <Route path="/rooms/:roomId">          <Room />        </Route>        <Route path="/">          <h1>Welcome to the Collaborative Code Editor</h1>        </Route>      </Switch>    </Router>  );};export default App;
+{"import React from 'react';
+import ReconnectionHandler from './ReconnectionHandler';
+
+const App: React.FC = () => {
+  const [connected, setConnected] = React.useState(false);
+
+  const handleReconnect = () => {
+    setConnected(true);
+  };
+
+  return (
+    <div>
+      <ReconnectionHandler onReconnect={handleReconnect}>
+        {/* Editor and other components */}
+      </ReconnectionHandler>
+    </div>
+  );
+};
+
+export default App;
