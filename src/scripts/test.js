@@ -1,17 +1,11 @@
-// Import required modules
-const assert = require('assert');
+// eslint-disable-next-line
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
+import { App } from '../components/App';
 
-// Test the editor functionality
-describe('Editor', () => {
-  it('should render the editor', () => {
-    // Arrange
-    const editor = document.createElement('div');
-    editor.innerHTML = '<editor></editor>';
-
-    // Act
-    const editorElement = editor.querySelector('editor');
-
-    // Assert
-    assert.ok(editorElement);
+describe('App', () => {
+  it('should render without errors', () => {
+    const app = new App();
+    expect(app).to.be.ok;
   });
 });
