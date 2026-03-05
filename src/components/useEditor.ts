@@ -1,1 +1,24 @@
-{"import { useState, useEffect } from 'react';\nimport { Editor } from 'react-simple-editor';\n\ninterface EditorState {\n  value: string;\n  onChange: (value: string) => void;\n}\n\nconst useEditor = () => {\n  const [value, setValue] = useState<string>('');\n\n  useEffect(() => {\n    // Initialize editor\n  }, []);\n\n  return { value, onChange: setValue };\n};\n\nexport default useEditor;
+{"import { useState, useEffect } from 'react';
+
+interface EditorState {
+  value: string;
+  language: string;
+}
+
+const useEditor = (initialValue: string, initialLanguage: string) => {
+  const [state, setState] = useState({ value: initialValue, language: initialLanguage });
+  const [languageState, setLanguageState] = useState(initialLanguage);
+
+  useEffect(() => {
+    setState({ value: initialValue, language: initialLanguage });
+    setLanguageState(initialLanguage);
+  }, [initialValue, initialLanguage]);
+
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguageState(newLanguage);
+  };
+
+  return [state, handleLanguageChange];
+}
+
+export default useEditor;

@@ -1,1 +1,13 @@
-{"import React from 'react';\n\ninterface LanguageSelectorProps {\n  languages: string[];\n  selectedLanguage: string;\n  onChange: (language: string) => void;\n}\n\nconst LanguageSelector = ({ languages, selectedLanguage, onChange }: LanguageSelectorProps) => {\n  return (\n    <select value={selectedLanguage} onChange={(e) => onChange(e.target.value)}>\n      {languages.map((language) => (\n        <option key={language} value={language}>{language}</option>\n      ))}\n    </select>\n  );\n};\n\nexport default LanguageSelector;
+{"import React from 'react';
+
+const LanguageSelector = () => {
+  return (
+    <select>
+      <option value="javascript">JavaScript</option>
+      <option value="python">Python</option>
+      <option value="html">HTML</option>
+    </select>
+  );
+}
+
+export default LanguageSelector;
