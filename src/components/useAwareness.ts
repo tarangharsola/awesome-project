@@ -7,23 +7,35 @@ const useAwareness = () => {
 
   useEffect(() => {
     const wsUrl = 'ws://localhost:8080';
-    const ws = new WebSocket(wsUrl);
+    const wsOptions = {
+      // ws options
+    };
+
+    const ws = new WebSocket(wsUrl, wsOptions);
 
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'users') {
-        setUsers(data.users);
-      } else if (data.type === 'cursorPositions') {
-        setCursorPositions(data.cursorPositions);
+      const message = JSON.parse(event.data);
+      if (message.type === 'users') {
+        setUsers(message.users);
+      } else if (message.type === 'cursorPositions') {
+        setCursorPositions(message.cursorPositions);
       }
     };
 
     return () => {
-      ws.close();
+      // Clean up
     };
   }, []);
 
-  return { users, cursorPositions };
+  const updateUsers = (newUsers) => {
+    setUsers(newUsers);
+  };
+
+  const updateCursorPositions = (newCursorPositions) => {
+    setCursorPositions(newCursorPositions);
+  };
+
+  return { users, cursorPositions, updateUsers, updateCursorPositions };
 };
 
 export default useAwareness;
