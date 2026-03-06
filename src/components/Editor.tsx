@@ -1,46 +1,38 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
-import { Editor } from 'slate-react';
-import { EditorProps } from 'slate-react';
+{"import React, { useState, useEffect } from 'react';
+import { Editor as CodeMirror } from 'react-codemirror';
+import 'codemirror/mode/javascript/javascript.js';
+import 'codemirror/mode/python/python.js';
+import 'codemirror/mode/htmlmixed/htmlmixed.js';
 
-interface EditorState {
-  value: string;
-  language: string;
-}
-
-const EditorComponent = ({
-  value,
-  onChange,
-  language,
-  children,
-}: EditorProps<EditorState>) => {
-  const [state, setState] = useState(value);
-  const [languageState, setLanguageState] = useState(language);
+const Editor = ({ document, setDocument, cursorPositions }) => {
+  const [language, setLanguage] = useState('javascript');
 
   useEffect(() => {
-    setState(value);
-    setLanguageState(language);
-  }, [value, language]);
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+    });
 
-  const handleLanguageChange = (newLanguage: string) => {
-    setLanguageState(newLanguage);
-  };
+    editor.on('change', (instance, changes) => {
+      setDocument(instance.getValue());
+      WebSocket.send({ type: 'document', document: instance.getValue() });
+    });
+
+    return () => {
+      editor.toTextArea();
+    };
+  }, [document, setDocument, language, cursorPositions]);
 
   return (
     <div>
-      <select value={languageState} onChange={(e) => handleLanguageChange(e.target.value)}>
+      <textarea id="editor" />
+      <select value={language} onChange={(e) => setLanguage(e.target.value)}>
         <option value="javascript">JavaScript</option>
         <option value="python">Python</option>
-        <option value="html">HTML</option>
+        <option value="htmlmixed">HTML</option>
       </select>
-      <Editor
-        value={state}
-        onChange={onChange}
-        language={languageState}
-      />
-      {children}
     </div>
   );
-}
+};
 
-export default EditorComponent;
+export default Editor;
