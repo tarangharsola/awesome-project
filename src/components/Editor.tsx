@@ -1,38 +1,46 @@
-{"import React, { useState, useEffect } from 'react';
-import { Editor as CodeMirror } from 'react-codemirror';
-import 'codemirror/mode/javascript/javascript.js';
-import 'codemirror/mode/python/python.js';
-import 'codemirror/mode/htmlmixed/htmlmixed.js';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-code-editor';
+import { Highlight, Languages } from 'prism-react-renderer';
 
-const Editor = ({ document, setDocument, cursorPositions }) => {
-  const [language, setLanguage] = useState('javascript');
+const EditorComponent = () => {
+  const [language, setLanguage] = useState(Languages.JS);
+  const [code, setCode] = useState('');
+  const [formattedCode, setFormattedCode] = useState('');
 
   useEffect(() => {
-    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-    });
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage) {
+      setLanguage(storedLanguage);
+    }
+  }, []);
 
-    editor.on('change', (instance, changes) => {
-      setDocument(instance.getValue());
-      WebSocket.send({ type: 'document', document: instance.getValue() });
-    });
+  const handleLanguageChange = (language: string) => {
+    setLanguage(language);
+    localStorage.setItem('language', language);
+  };
 
-    return () => {
-      editor.toTextArea();
-    };
-  }, [document, setDocument, language, cursorPositions]);
+  const handleCodeChange = (code: string) => {
+    setCode(code);
+    setFormattedCode(prism.highlight(code, Languages[language], true));
+  };
 
   return (
     <div>
-      <textarea id="editor" />
-      <select value={language} onChange={(e) => setLanguage(e.target.value)}>
-        <option value="javascript">JavaScript</option>
-        <option value="python">Python</option>
-        <option value="htmlmixed">HTML</option>
-      </select>
+      <LanguageSelector language={language} onChange={handleLanguageChange} />
+      <Editor
+        value={code}
+        onChange={handleCodeChange}
+        highlight={formattedCode}
+        language={language}
+        padding={10}
+        style={{
+          fontFamily: 'monospace',
+          fontSize: 12,
+        }}
+      />
     </div>
   );
 };
 
-export default Editor;
+export default EditorComponent;
