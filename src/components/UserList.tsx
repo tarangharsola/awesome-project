@@ -1,27 +1,28 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import WebSocket from './WebSocket';
+import './UserList.css';
 
-function UserList({ users }) {
-  const [userList, setUserList] = useState([]);
+interface User {
+  id: string;
+  name: string;
+  color: string;
+}
 
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'users') {
-        setUserList(data.users);
-      }
-    };
-    return () => {
-      ws.close();
-    };
-  }, []);
+interface Props {
+  users: User[];
+}
 
+const UserList = ({ users }: Props) => {
   return (
-    <div>
-      {userList.map((user, index) => (
-        <div key={index}>{user.name}</div>
+    <div className="user-list">
+      {users.map((user) => (
+        <div key={user.id} className="user">
+          <span className="name" style={{
+            backgroundColor: user.color,
+            color: "#fff",
+          }}>
+            {user.name}
+          </span>
+        </div>
       ))}
     </div>
   );
