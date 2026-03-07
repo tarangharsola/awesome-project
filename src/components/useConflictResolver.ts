@@ -1,33 +1,21 @@
 {"import { useState, useEffect } from 'react';
-import { OperationalTransform } from 'ot.js';
+import { OperationalTransformation } from 'operational-transformation';
 
 const useConflictResolver = () => {
-  const [ot, setOt] = useState(new OperationalTransform());
-  const [localDoc, setLocalDoc] = useState('');
-  const [remoteDoc, setRemoteDoc] = useState('');
+  const [conflicts, setConflicts] = useState([]);
+  const [resolved, setResolved] = useState(false);
 
   useEffect(() => {
-    const handleUpdate = (newDoc) => {
-      setLocalDoc(newDoc);
-      setOt(new OperationalTransform(newDoc, localDoc));
-    };
-
-    const handleDelete = (path) => {
-      setLocalDoc((doc) => doc.replace(path, ''));
-    };
-
-    return () => {
-      // Clean up
-    };
+    const ot = new OperationalTransformation();
+    ot.on('conflict', (conflict) => {
+      setConflicts(conflict);
+    });
+    ot.on('resolved', () => {
+      setResolved(true);
+    });
   }, []);
 
-  const resolveConflict = (localDoc, remoteDoc) => {
-    const ot = new OperationalTransform(localDoc, remoteDoc);
-    const resolvedDoc = ot.resolve();
-    return resolvedDoc;
-  };
-
-  return { resolveConflict, localDoc, remoteDoc, handleUpdate, handleDelete };
+  return { conflicts, resolved };
 };
 
 export default useConflictResolver;

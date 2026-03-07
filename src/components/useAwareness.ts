@@ -3,39 +3,21 @@ import { WebSocket } from 'ws';
 
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
-  const [cursorPositions, setCursorPositions] = useState({});
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const wsUrl = 'ws://localhost:8080';
-    const wsOptions = {
-      // ws options
-    };
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
 
-    const ws = new WebSocket(wsUrl, wsOptions);
-
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'users') {
-        setUsers(message.users);
-      } else if (message.type === 'cursorPositions') {
-        setCursorPositions(message.cursorPositions);
+    ws.on('message', (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'users') {
+        setUsers(data.users);
       }
-    };
-
-    return () => {
-      // Clean up
-    };
+    });
   }, []);
 
-  const updateUsers = (newUsers) => {
-    setUsers(newUsers);
-  };
-
-  const updateCursorPositions = (newCursorPositions) => {
-    setCursorPositions(newCursorPositions);
-  };
-
-  return { users, cursorPositions, updateUsers, updateCursorPositions };
+  return { users };
 };
 
 export default useAwareness;
