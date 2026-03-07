@@ -1,46 +1,35 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-code-editor';
-import { Highlight, Languages } from 'prism-react-renderer';
+{"import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { EditorState, Editor } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { history } from 'history';
 
-const EditorComponent = () => {
-  const [language, setLanguage] = useState(Languages.JS);
-  const [code, setCode] = useState('');
-  const [formattedCode, setFormattedCode] = useState('');
+const Editor = () => {
+  const { roomId } = useParams();
+  const [editorState, setEditorState] = useState(EditorState.create());
+  const [cursorPositions, setCursorPositions] = useState({});
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem('language');
-    if (storedLanguage) {
-      setLanguage(storedLanguage);
-    }
-  }, []);
+    WebSocket.connect(roomId);
+    return () => WebSocket.disconnect();
+  }, [roomId]);
 
-  const handleLanguageChange = (language: string) => {
-    setLanguage(language);
-    localStorage.setItem('language', language);
-  };
-
-  const handleCodeChange = (code: string) => {
-    setCode(code);
-    setFormattedCode(prism.highlight(code, Languages[language], true));
+  const onTextChange = (newEditorState) => {
+    setEditorState(newEditorState);
+    WebSocket.sendText(roomId, newEditorState.toString());
   };
 
   return (
     <div>
-      <LanguageSelector language={language} onChange={handleLanguageChange} />
-      <Editor
-        value={code}
-        onChange={handleCodeChange}
-        highlight={formattedCode}
-        language={language}
-        padding={10}
-        style={{
-          fontFamily: 'monospace',
-          fontSize: 12,
-        }}
+      <EditorView
+        state={editorState}
+        dispatchTransaction={onTextChange}
+        plugins={[
+          history
+        ]}
       />
     </div>
   );
 };
 
-export default EditorComponent;
+export default Editor;

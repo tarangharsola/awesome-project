@@ -1,17 +1,15 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import WebSocket from './WebSocket';
 
 const UserList = () => {
+  const { roomId } = useParams();
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    WebSocket.onMessage((message) => {
-      if (message.type === 'userList') {
-        setUsers(message.users);
-      }
-    });
-  }, []);
+    WebSocket.connect(roomId);
+    return () => WebSocket.disconnect();
+  }, [roomId]);
 
   return (
     <ul>

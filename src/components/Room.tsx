@@ -1,31 +1,24 @@
 {"import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import Editor from './Editor';
 import UserList from './UserList';
 import WebSocket from './WebSocket';
 
 const Room = () => {
+  const { roomId } = useParams();
   const [users, setUsers] = useState([]);
-  const [document, setDocument] = useState('');
   const [cursorPositions, setCursorPositions] = useState({});
 
   useEffect(() => {
-    WebSocket.connect();
-    WebSocket.onMessage((message) => {
-      if (message.type === 'cursorPosition') {
-        setCursorPositions((prevCursorPositions) => ({ ...prevCursorPositions, [message.userId]: message.position }));
-      } else if (message.type === 'userList') {
-        setUsers(message.users);
-      } else if (message.type === 'document') {
-        setDocument(message.document);
-      }
-    });
-  }, []);
+    WebSocket.connect(roomId);
+    return () => WebSocket.disconnect();
+  }, [roomId]);
 
   return (
     <div>
-      <Editor document={document} setDocument={setDocument} cursorPositions={cursorPositions} />
+      <Editor roomId={roomId} users={users} cursorPositions={cursorPositions} />
       <UserList users={users} />
-      <WebSocket />
+      <WebSocket roomId={roomId} users={users} cursorPositions={cursorPositions} />
     </div>
   );
 };
