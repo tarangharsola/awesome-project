@@ -1,22 +1,20 @@
-{"import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import WebSocket from './WebSocket';
+{"import React from 'react';
+import { User } from './User';
 
-const UserList = () => {
-  const { roomId } = useParams();
-  const [users, setUsers] = useState([]);
+interface UserListProps {
+  users: User[];
+}
 
-  useEffect(() => {
-    WebSocket.connect(roomId);
-    return () => WebSocket.disconnect();
-  }, [roomId]);
-
+const UserList = ({ users }: UserListProps) => {
   return (
-    <ul>
-      {users.map((user) => (
-        <li key={user.id}>{user.name}</li>
+    <div className="user-list">
+      {users.map((user, index) => (
+        <div key={index} className="user-item">
+          <span className="user-name">{user.name}</span>
+          <span className="user-color" style={{ backgroundColor: user.color }}></span>
+        </div>
       ))}
-    </ul>
+    </div>
   );
 };
 
