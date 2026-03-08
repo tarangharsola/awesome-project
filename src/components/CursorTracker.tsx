@@ -1,21 +1,34 @@
 {"import React from 'react';
-import { Cursor } from './Cursor';
+import { useState, useEffect } from 'react';
+import { useCursor } from './useCursor';
 
 interface CursorTrackerProps {
-  cursors: Cursor[];
+  cursorPosition: number;
+  onChangeCursorPosition: (newCursorPosition: number) => void;
 }
 
-const CursorTracker = ({ cursors }: CursorTrackerProps) => {
+const CursorTracker: React.FC<CursorTrackerProps> = ({ cursorPosition, onChangeCursorPosition }) => {
+  const [cursorPositionState, setCursorPositionState] = useState(cursorPosition);
+
+  useEffect(() => {
+    onChangeCursorPosition(cursorPositionState);
+  }, [cursorPositionState, onChangeCursorPosition]);
+
+  const handleCursorPositionChange = (newCursorPosition: number) => {
+    setCursorPositionState(newCursorPosition);
+  };
+
   return (
-    <div className="cursor-tracker">
-      {cursors.map((cursor, index) => (
-        <div key={index} className="cursor-item">
-          <span className="cursor-name">{cursor.name}</span>
-          <span className="cursor-color" style={{ backgroundColor: cursor.color }}></span>
-          <span className="cursor-position">{cursor.position}</span>
-        </div>
-      ))}
-    </div>
+    <div
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: cursorPositionState,
+        width: 2,
+        height: '100%',
+        backgroundColor: 'red',
+      }}
+    />
   );
 };
 
