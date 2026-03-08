@@ -1,24 +1,49 @@
 {"import { useState, useEffect } from 'react';
-import { useLanguage } from './useLanguage';
 
-interface Props {
-  language: string;
+interface Language {
+  syntaxHighlighting: (value: string) => string;
 }
 
-const useLanguage = ({ language }) => {
-  const [languages, setLanguages] = useState(['JavaScript', 'Python', 'HTML']);
-  const [selectedLanguage, setSelectedLanguage] = useState(language);
+const useLanguage = (language: string) => {
+  const [syntaxHighlighting, setSyntaxHighlighting] = useState<Language['syntaxHighlighting']>({}
+  );
 
   useEffect(() => {
-    const handleLanguageChange = () => {
-      setSelectedLanguage(language);
-    };
-    return () => {
-      // Clean up
-    };
+    switch (language) {
+      case 'javascript':
+        setSyntaxHighlighting((value) => {
+          const syntaxHighlighting = (value: string) => {
+            // Add JavaScript syntax highlighting logic here
+          };
+          return syntaxHighlighting;
+        });
+        break;
+      case 'python':
+        setSyntaxHighlighting((value) => {
+          const syntaxHighlighting = (value: string) => {
+            // Add Python syntax highlighting logic here
+          };
+          return syntaxHighlighting;
+        });
+        break;
+      case 'html':
+        setSyntaxHighlighting((value) => {
+          const syntaxHighlighting = (value: string) => {
+            // Add HTML syntax highlighting logic here
+          };
+          return syntaxHighlighting;
+        });
+        break;
+      default:
+        setSyntaxHighlighting((value) => {
+          const syntaxHighlighting = (value: string) => value;
+          return syntaxHighlighting;
+        });
+        break;
+    }
   }, [language]);
 
-  return { languages: languages, selectLanguage: setSelectedLanguage };
-}
+  return { syntaxHighlighting };
+};
 
 export default useLanguage;
