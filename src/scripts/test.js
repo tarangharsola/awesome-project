@@ -1,11 +1,18 @@
-// Import required modules
-const assert = require('assert');
-
-// Test function
-function testEditor() {
-  // Test editor functionality
-  assert.ok(true);
-}
-
-// Run test
-testEditor();
+// Jest configuration
+const jest = require('jest');
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'jsdom',
+  testMatch: ['**/__tests__/**/*.js?(x)', '**/?(*.)+(spec|test).js?(x)'],
+  moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json'],
+  transform: {
+    '^.+\.(js|jsx|ts|tsx)$': 'ts-jest',
+  },
+  collectCoverage: true,
+  coverageDirectory: 'coverage',
+  coverageReporters: ['json', 'text', 'lcov', 'clover'],
+  setupFilesAfterEnv: ['<rootDir>/setupTests.js'],
+  testEnvironmentOptions: {
+    url: 'http://localhost:3000',
+  },
+};
