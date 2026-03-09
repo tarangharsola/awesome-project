@@ -1,16 +1,14 @@
-// Import required modules
-const gulp = require('gulp');
-const ts = require('gulp-typescript');
-const tslint = require('gulp-tslint');
+import { execSync } from 'child_process';
+import { resolve } from 'path';
+import { readFileSync } from 'fs';
 
-// Define build task
-gulp.task('build', () => {
-  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(ts())
-    .pipe(gulp.dest('dist'));
-});
+const build = () => {
+  const tsConfig = readFileSync(resolve(__dirname, '../tsconfig.json'), 'utf8');
+  const tsConfigJson = JSON.parse(tsConfig);
+  const tsConfigPaths = tsConfigJson.compilerOptions.paths;
+  const tsConfigOutDir = tsConfigJson.compilerOptions.outDir;
 
-// Define default task
-gulp.task('default', ['build'], () => {
-  console.log('Build complete.');
-});
+  execSync(`tsc --build ${resolve(__dirname, '../tsconfig.json')} --outDir ${tsConfigOutDir}`);
+};
+
+export default build;
