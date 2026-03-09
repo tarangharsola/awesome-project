@@ -1,46 +1,66 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-code-editor';
-import { Highlight, Languages } from 'prismjs';
+{"import React, { useState, useEffect } from 'react';
+import EditorComponent from './EditorComponent';
+import useWebSocket from './useWebSocket';
+import useUsers from './useUsers';
+import useCursor from './useCursor';
+import useConflictResolver from './useConflictResolver';
 
-const EditorComponent = () => {
-  const [language, setLanguage] = useState(Languages.javascript);
-  const [code, setCode] = useState('');
-  const [formattedCode, setFormattedCode] = useState('');
+const Editor = () => {
+  const [text, setText] = useState('');
+  const [users, setUsers] = useState([]);
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const [conflict, setConflict] = useState(null);
+
+  const { send, receive } = useWebSocket();
+  const { users: connectedUsers } = useUsers();
+  const { cursor: remoteCursor } = useCursor();
+  const { resolveConflict } = useConflictResolver();
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem('language');
-    if (storedLanguage) {
-      setLanguage(storedLanguage);
-    }
+    receive((message) => {
+      if (message.type === 'cursor') {
+        setCursor(message.data);
+      } else if (message.type === 'text') {
+        setText(message.data);
+      } else if (message.type === 'users') {
+        setUsers(message.data);
+      }
+    });
   }, []);
 
-  const handleLanguageChange = (language: string) => {
-    setLanguage(language);
-    localStorage.setItem('language', language);
+  const handleTextChange = (newText) => {
+    setText(newText);
+    send({ type: 'text', data: newText });
   };
 
-  const handleCodeChange = (code: string) => {
-    setCode(code);
-    setFormattedCode(prism.highlight(code, Highlight.javascript, Languages.javascript));
+  const handleCursorChange = (newCursor) => {
+    setCursor(newCursor);
+    send({ type: 'cursor', data: newCursor });
+  };
+
+  const handleUserJoin = (newUser) => {
+    setUsers((prevUsers) => [...prevUsers, newUser]);
+  };
+
+  const handleUserLeave = (userId) => {
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
   };
 
   return (
     <div>
-      <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
-        <option value="javascript">JavaScript</option>
-        <option value="python">Python</option>
-        <option value="html">HTML</option>
-      </select>
-      <Editor
-        value={code}
-        onValueChange={handleCodeChange}
-        highlight={formattedCode}
-        padding={10}
-        style={{ fontFamily: 'monospace', fontSize: 12 }}
+      <EditorComponent
+        text={text}
+        setText={handleTextChange}
+        cursor={cursor}
+        setCursor={handleCursorChange}
+        users={users}
+        connectedUsers={connectedUsers}
+        remoteCursor={remoteCursor}
+        conflict={conflict}
+        resolveConflict={resolveConflict}
       />
     </div>
   );
 };
 
-export default EditorComponent;
+export default Editor;

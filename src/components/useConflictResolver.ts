@@ -1,23 +1,24 @@
 {"import { useState, useEffect } from 'react';
-import { OperationalTransformation } from 'ot-js';
+import WebSocket from 'ws';
 
 const useConflictResolver = () => {
-  const [conflicts, setConflicts] = useState([]);
-  const [ot, setOt] = useState(new OperationalTransformation());
+  const [conflict, setConflict] = useState(null);
 
   useEffect(() => {
-    const handleConflict = (conflict) => {
-      setConflicts((prevConflicts) => [...prevConflicts, conflict]);
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'conflict') {
+        setConflict(message.data);
+      }
     };
-
-    const handleResolve = (resolvedConflict) => {
-      setConflicts((prevConflicts) => prevConflicts.filter((c) => c.id !== resolvedConflict.id));
-    };
-
-    setOt(new OperationalTransformation(handleConflict, handleResolve));
   }, []);
 
-  return { conflicts, ot };
+  const resolveConflict = (conflict) => {
+    setConflict(conflict);
+  };
+
+  return { resolveConflict };
 };
 
 export default useConflictResolver;

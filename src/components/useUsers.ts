@@ -1,1 +1,20 @@
-{"import { useState, useEffect } from 'react';\n\ninterface UserState {\n  id: string;\n  name: string;\n  color: string;\n}\n\nconst useUsers = () => {\n  const [users, setUsers] = useState<UserState[]>([]);\n\n  useEffect(() => {\n    // Fetch users from server\n  }, []);\n\n  return users;\n};\n\nexport default useUsers;
+{"import { useState, useEffect } from 'react';
+import WebSocket from 'ws';
+
+const useUsers = () => {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'users') {
+        setUsers(message.data);
+      }
+    };
+  }, []);
+
+  return { users };
+};
+
+export default useUsers;

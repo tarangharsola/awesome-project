@@ -1,1 +1,20 @@
-{"import { useState, useEffect } from 'react';\n\ninterface CursorState {\n  x: number;\n  y: number;\n  color: string;\n}\n\nconst useCursor = () => {\n  const [cursor, setCursor] = useState<CursorState>({ x: 0, y: 0, color: '' });\n\n  useEffect(() => {\n    // Update cursor position on mouse move\n  }, []);\n\n  return cursor;\n};\n\nexport default useCursor;
+{"import { useState, useEffect } from 'react';
+import WebSocket from 'ws';
+
+const useCursor = () => {
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'cursor') {
+        setCursor(message.data);
+      }
+    };
+  }, []);
+
+  return { cursor };
+};
+
+export default useCursor;
