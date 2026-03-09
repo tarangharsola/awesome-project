@@ -1,23 +1,16 @@
-{"import { useState, useEffect } from 'react';
+{"import { useState } from 'react';
 
 const useKeyboardShortcuts = () => {
   const [shortcut, setShortcut] = useState('');
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Ctrl+Shift+P') {
-        setShortcut('Format Code');
-      }
-    };
+  const handleShortcutChange = (shortcut: string) => {
+    setShortcut(shortcut);
+  };
 
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
-  return shortcut;
+  return {
+    shortcut,
+    handleShortcutChange
+  };
 };
 
 export default useKeyboardShortcuts;

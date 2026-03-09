@@ -1,24 +1,36 @@
 {"import { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-code-editor';
+import { Highlight, Languages } from 'prismjs';
 
-interface EditorState {
-  value: string;
-  language: string;
-}
-
-const useEditor = (initialValue: string, initialLanguage: string) => {
-  const [state, setState] = useState({ value: initialValue, language: initialLanguage });
-  const [languageState, setLanguageState] = useState(initialLanguage);
+const useEditor = () => {
+  const [language, setLanguage] = useState(Languages.javascript);
+  const [code, setCode] = useState('');
+  const [formattedCode, setFormattedCode] = useState('');
 
   useEffect(() => {
-    setState({ value: initialValue, language: initialLanguage });
-    setLanguageState(initialLanguage);
-  }, [initialValue, initialLanguage]);
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage) {
+      setLanguage(storedLanguage);
+    }
+  }, []);
 
-  const handleLanguageChange = (newLanguage: string) => {
-    setLanguageState(newLanguage);
+  const handleLanguageChange = (language: string) => {
+    setLanguage(language);
+    localStorage.setItem('language', language);
   };
 
-  return [state, handleLanguageChange];
-}
+  const handleCodeChange = (code: string) => {
+    setCode(code);
+    setFormattedCode(prism.highlight(code, Highlight.javascript, Languages.javascript));
+  };
+
+  return {
+    language,
+    code,
+    formattedCode,
+    handleLanguageChange,
+    handleCodeChange
+  };
+};
 
 export default useEditor;

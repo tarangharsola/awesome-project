@@ -1,37 +1,46 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
-import { useLanguage } from './useLanguage';
+import { Editor } from 'react-simple-code-editor';
+import { Highlight, Languages } from 'prismjs';
 
-interface EditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
-
-const Editor = ({ value, onChange, language }: EditorProps) => {
-  const [formattedValue, setFormattedValue] = useState(value);
-  const { syntaxHighlighting } = useLanguage(language);
+const EditorComponent = () => {
+  const [language, setLanguage] = useState(Languages.javascript);
+  const [code, setCode] = useState('');
+  const [formattedCode, setFormattedCode] = useState('');
 
   useEffect(() => {
-    const formattedValue = syntaxHighlighting(value);
-    setFormattedValue(formattedValue);
-  }, [value, language]);
-
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Tab') {
-      event.preventDefault();
-      onChange(formattedValue + '  ');
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage) {
+      setLanguage(storedLanguage);
     }
+  }, []);
+
+  const handleLanguageChange = (language: string) => {
+    setLanguage(language);
+    localStorage.setItem('language', language);
+  };
+
+  const handleCodeChange = (code: string) => {
+    setCode(code);
+    setFormattedCode(prism.highlight(code, Highlight.javascript, Languages.javascript));
   };
 
   return (
-    <div className="editor">
-      <pre>{formattedValue}</pre>
-      <button onClick={() => onChange(formattedValue + '
-')}>Insert New Line</button>
-      <button onClick={() => onChange(formattedValue + '  ')}>Indent</button>
+    <div>
+      <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <Editor
+        value={code}
+        onValueChange={handleCodeChange}
+        highlight={formattedCode}
+        padding={10}
+        style={{ fontFamily: 'monospace', fontSize: 12 }}
+      />
     </div>
   );
 };
 
-export default Editor;
+export default EditorComponent;
