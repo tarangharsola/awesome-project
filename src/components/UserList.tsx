@@ -16,13 +16,16 @@ const UserList = ({ users }: Props) => {
     <div className="user-list">
       {users.map((user) => (
         <div key={user.id} className="user">
-          <span className="name" style={{
-            color: user.color
-          }}>{user.name}</span>
+          <span className="username" style={{
+            backgroundColor: user.color,
+            color: "#fff",
+          }}>
+            {user.name}
+          </span>
         </div>
       ))}
     </div>
   );
-};
+}
 
 export default UserList;
