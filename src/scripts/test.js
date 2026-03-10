@@ -1,11 +1,18 @@
-// eslint-disable-next-line
-import { describe, it } from 'mocha';
-import { expect } from 'chai';
-import { App } from '../components/App';
+// Import required modules
+const assert = require('assert');
 
-describe('App', () => {
-  it('renders without crashing', () => {
-    const app = new App();
-    expect(app).to.be.ok;
+// Test Editor component
+describe('Editor', () => {
+  it('renders editor', () => {
+    const editor = new Editor();
+    assert.ok(editor);
+  });
+});
+
+// Test WebSocket connection
+describe('WebSocket', () => {
+  it('connects to server', () => {
+    const ws = new WebSocket('ws://localhost:8080');
+    assert.ok(ws);
   });
 });

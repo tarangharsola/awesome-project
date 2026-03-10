@@ -1,14 +1,8 @@
-import { execSync } from 'child_process';
-import { resolve } from 'path';
-import { readFileSync } from 'fs';
+const { execSync } = require('child_process');
 
-const build = () => {
-  const tsConfig = readFileSync(resolve(__dirname, '../tsconfig.json'), 'utf8');
-  const tsConfigJson = JSON.parse(tsConfig);
-  const tsConfigPaths = tsConfigJson.compilerOptions.paths;
-  const tsConfigOutDir = tsConfigJson.compilerOptions.outDir;
-
-  execSync(`tsc --build ${resolve(__dirname, '../tsconfig.json')} --outDir ${tsConfigOutDir}`);
+module.exports = function build() {
+  // Run tests
+  execSync('jest');
+  // Build production bundle
+  execSync('webpack --mode production');
 };
-
-export default build;
