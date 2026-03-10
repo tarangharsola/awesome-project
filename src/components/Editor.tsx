@@ -1,22 +1,49 @@
-{"import React from 'react';
-import { useState } from 'react';
-import { useEditor } from './useEditor';
-import LanguageSelector from './LanguageSelector';
+{"import React, { useState, useEffect } from 'react';
+import CodeMirror from 'codemirror';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
 
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
+const Editor = ({ value, language, onChange }) => {
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
 
-const Editor = ({ value, onChange, language }: Props) => {
-  const { value: editorValue, onChange: handleEditorChange, language: languageValue, handleLanguageChange, handleFormat, handleKeyDown } = useEditor({ value, onChange, language });
+  useEffect(() => {
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      theme: 'monokai',
+      extraKeys: {
+        'Ctrl-Space': 'autocomplete'
+      }
+    });
+    editor.on('change', (instance, change) => {
+      onChange(instance.getValue());
+    });
+    return () => editor.toTextArea();
+  }, []);
+
+  const handleCursorChange = (line, ch) => {
+    setCursorPosition({ line, ch });
+  };
 
   return (
     <div>
-      <textarea value={editorValue} onChange={(event) => handleEditorChange(event.target.value)} onKeyDown={handleKeyDown} />
-      <LanguageSelector language={languageValue} onChange={handleLanguageChange} />
-      <button onClick={handleFormat}>Format</button>
+      <textarea id='editor' value={value} onChange={(e) => onChange(e.target.value)} />
+      <div>
+        <span>Line: {cursorPosition.line}</span>
+        <span>Column: {cursorPosition.ch}</span>
+      </div>
     </div>
   );
 };

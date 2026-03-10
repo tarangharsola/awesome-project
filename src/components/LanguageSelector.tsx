@@ -1,25 +1,19 @@
 {"import React from 'react';
 import { useState } from 'react';
-import { useEditor } from './useEditor';
 
-interface Props {
-  language: string;
-  onChange: (language: string) => void;
-}
-
-const LanguageSelector = ({ language, onChange }: Props) => {
+const LanguageSelector = ({ language, onChange }) => {
   const [selectedLanguage, setSelectedLanguage] = useState(language);
 
-  const handleLanguageChange = (newLanguage: string) => {
-    onChange(newLanguage);
-    setSelectedLanguage(newLanguage);
+  const handleLanguageChange = (language) => {
+    setSelectedLanguage(language);
+    onChange(language);
   };
 
   return (
-    <select value={selectedLanguage} onChange={(event) => handleLanguageChange(event.target.value)}>
-      <option value="javascript">JavaScript</option>
-      <option value="python">Python</option>
-      <option value="html">HTML</option>
+    <select value={selectedLanguage} onChange={(e) => handleLanguageChange(e.target.value)}>
+      <option value='javascript'>JavaScript</option>
+      <option value='python'>Python</option>
+      <option value='html'>HTML</option>
     </select>
   );
 };

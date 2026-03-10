@@ -1,33 +1,35 @@
 {"import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import WebSocket from 'ws';
 
-const WebSocket = () => {
-  const { roomId } = useParams();
-  const [connected, setConnected] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [cursorPositions, setCursorPositions] = useState({});
+const WebSocket = ({ cursorPositions }) => {
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://localhost:8080/${roomId}`);
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
     ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'text') {
-        setEditorState(EditorState.create(message.text));
-      } else if (message.type === 'cursor') {
-        setCursorPositions(message.cursorPositions);
-      } else if (message.type === 'users') {
-        setUsers(message.users);
+      const data = JSON.parse(event.data);
+      if (data.type === 'cursorPosition') {
+        console.log(data.cursorPositions);
+      } else if (data.type === 'users') {
+        console.log(data.users);
       }
     };
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => setConnected(false);
     return () => ws.close();
-  }, [roomId]);
+  }, []);
+
+  const handleCursorChange = (line, ch) => {
+    ws.send(JSON.stringify({ type: 'cursorPosition', cursorPositions: { [line]: ch } }));
+  };
 
   return (
     <div>
-      {connected ? 'Connected' : 'Disconnected'}
+      <h1>Cursor Positions:</h1>
+      <ul>
+        {Object.keys(cursorPositions).map((line) => (
+          <li key={line}>{line}: {cursorPositions[line]}</li>
+        ))}
+      </ul>
     </div>
   );
 };
