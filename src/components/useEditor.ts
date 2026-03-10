@@ -1,35 +1,46 @@
-{"import { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-code-editor';
-import { Highlight, Languages } from 'prismjs';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import Editor from './Editor';
 
-const useEditor = () => {
-  const [language, setLanguage] = useState(Languages.javascript);
-  const [code, setCode] = useState('');
-  const [formattedCode, setFormattedCode] = useState('');
+interface Props {
+  value: string;
+  onChange: (value: string) => void;
+  language: string;
+}
+
+const useEditor = ({ value, onChange, language }: Props) => {
+  const [editorValue, setEditorValue] = useState(value);
+  const [formattedValue, setFormattedValue] = useState(value);
+  const [languageValue, setLanguageValue] = useState(language);
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem('language');
-    if (storedLanguage) {
-      setLanguage(storedLanguage);
-    }
-  }, []);
+    onChange(editorValue);
+  }, [editorValue]);
 
   const handleLanguageChange = (language: string) => {
-    setLanguage(language);
-    localStorage.setItem('language', language);
+    setLanguageValue(language);
+    // Update formatting based on language
   };
 
-  const handleCodeChange = (code: string) => {
-    setCode(code);
-    setFormattedCode(prism.highlight(code, Highlight.javascript, Languages.javascript));
+  const handleFormat = () => {
+    // Format the editor value based on the selected language
+    setFormattedValue(editorValue);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    // Handle keyboard shortcuts
+    if (event.key === 'Ctrl+S') {
+      onChange(editorValue);
+    }
   };
 
   return {
-    language,
-    code,
-    formattedCode,
+    value: editorValue,
+    onChange: (newValue: string) => setEditorValue(newValue),
+    language: languageValue,
     handleLanguageChange,
-    handleCodeChange
+    handleFormat,
+    handleKeyDown,
   };
 };
 
