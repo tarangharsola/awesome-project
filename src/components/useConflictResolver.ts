@@ -1,24 +1,25 @@
 {"import { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import { OperationalTransform } from 'operational-transform';
 
 const useConflictResolver = () => {
-  const [conflict, setConflict] = useState(null);
+  const [conflicts, setConflicts] = useState([]);
+  const [transform, setTransform] = useState(new OperationalTransform());
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'conflict') {
-        setConflict(message.data);
-      }
+    const handleConflict = (conflict) => {
+      setConflicts((prevConflicts) => [...prevConflicts, conflict]);
+    };
+
+    return () => {
+      setConflicts([]);
     };
   }, []);
 
-  const resolveConflict = (conflict) => {
-    setConflict(conflict);
+  const resolveConflict = (operation) => {
+    setTransform((prevTransform) => prevTransform.apply(operation));
   };
 
-  return { resolveConflict };
+  return { conflicts, resolveConflict, transform };
 };
 
 export default useConflictResolver;
