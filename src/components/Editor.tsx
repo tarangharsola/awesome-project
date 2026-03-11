@@ -1,27 +1,29 @@
 {"import React, { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-code-editor';
-import { Highlight, Languages } from 'prismjs';
+import { Editor } from 'slate-react';
+import { EditorProps } from 'slate-react';
+import { useEditor } from './useEditor';
 
-const EditorComponent = () => {
-  const [code, setCode] = useState('');
-  const [language, setLanguage] = useState(Languages.javascript);
+interface EditorProps extends EditorProps {
+  language: string;
+}
+
+const EditorComponent: React.FC<EditorProps> = ({ language, ...props }) => {
+  const editor = useEditor();
 
   useEffect(() => {
-    Highlight.init(Languages[language]);
-  }, [language]);
-
-  const handleCodeChange = (newCode) => {
-    setCode(newCode);
-  };
+    editor.commands.toggleBold();
+  }, []);
 
   return (
     <Editor
-      value={code}
-      onValueChange={handleCodeChange}
-      highlight={Highlight}
+      {...props}
+      value={editor.value}
+      onChange={editor.onChange}
+      placeholder={editor.placeholder}
       language={language}
     />
   );
-};
 
+  return EditorComponent;
+}
 export default EditorComponent;
