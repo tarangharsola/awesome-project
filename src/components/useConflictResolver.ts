@@ -1,15 +1,29 @@
 {"import { useState, useEffect } from 'react';
+import { OperationalTransformation } from 'ot-js';
 
 const useConflictResolver = () => {
-  const [conflict, setConflict] = useState(false);
+  const [conflicts, setConflicts] = useState([]);
+  const [ot, setOt] = useState(new OperationalTransformation());
 
   useEffect(() => {
-    // Resolve conflicts on changes
+    const handleConflict = (conflict) => {
+      setConflicts((prevConflicts) => [...prevConflicts, conflict]);
+    };
+
+    const handleResolve = () => {
+      setConflicts([]);
+    };
+
+    ot.on('conflict', handleConflict);
+    ot.on('resolve', handleResolve);
+
+    return () => {
+      ot.off('conflict', handleConflict);
+      ot.off('resolve', handleResolve);
+    };
   }, []);
 
-  return {
-    conflict,
-  };
+  return { conflicts, ot };
 };
 
 export default useConflictResolver;
