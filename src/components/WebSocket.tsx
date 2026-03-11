@@ -1,37 +1,29 @@
 {"import React, { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import { WebSocket } from 'ws';
 
-const WebSocket = ({ cursorPositions }) => {
-  const [ws, setWs] = useState(null);
+const WebSocketComponent = () => {
+  const [connected, setConnected] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'cursorPosition') {
-        console.log(data.cursorPositions);
-      } else if (data.type === 'users') {
-        console.log(data.users);
-      }
+      setMessage(event.data);
     };
-    return () => ws.close();
+    ws.onopen = () => {
+      setConnected(true);
+    };
+    ws.onclose = () => {
+      setConnected(false);
+    };
   }, []);
-
-  const handleCursorChange = (line, ch) => {
-    ws.send(JSON.stringify({ type: 'cursorPosition', cursorPositions: { [line]: ch } }));
-  };
 
   return (
     <div>
-      <h1>Cursor Positions:</h1>
-      <ul>
-        {Object.keys(cursorPositions).map((line) => (
-          <li key={line}>{line}: {cursorPositions[line]}</li>
-        ))}
-      </ul>
+      {connected ? 'Connected' : 'Disconnected'}
+      <p>{message}</p>
     </div>
   );
 };
 
-export default WebSocket;
+export default WebSocketComponent;

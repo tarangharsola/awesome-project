@@ -1,15 +1,14 @@
-{"import { useState } from 'react';
+{"import { useState, useEffect } from 'react';
 
 const useKeyboardShortcuts = () => {
   const [shortcut, setShortcut] = useState('');
 
-  const handleShortcutChange = (shortcut: string) => {
-    setShortcut(shortcut);
-  };
+  useEffect(() => {
+    // Handle keyboard shortcuts on changes
+  }, []);
 
   return {
     shortcut,
-    handleShortcutChange
   };
 };
 

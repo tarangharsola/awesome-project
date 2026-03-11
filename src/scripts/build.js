@@ -1,26 +1,28 @@
-// Webpack configuration
 const path = require('path');
 const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
 module.exports = {
   entry: './src/index.tsx',
   output: {
-    path: path.resolve(__dirname, 'public'),
+    path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
   },
   module: {
     rules: [
       {
-        test: /.tsx?$/, exclude: /node_modules/,
+        test: /.tsx?$/,
         use: 'ts-loader',
+        exclude: /node_modules/,
       },
     ],
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
   },
-  devServer: {
-    contentBase: path.join(__dirname, 'public'),
-    compress: true,
-    port: 3000,
-  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './public/index.html',
+    }),
+  ],
 };

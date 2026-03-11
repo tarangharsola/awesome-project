@@ -1,49 +1,16 @@
 {"import { useState, useEffect } from 'react';
+import { Languages } from 'prismjs';
 
-interface Language {
-  syntaxHighlighting: (value: string) => string;
-}
-
-const useLanguage = (language: string) => {
-  const [syntaxHighlighting, setSyntaxHighlighting] = useState<Language['syntaxHighlighting']>({}
-  );
+const useLanguage = () => {
+  const [language, setLanguage] = useState(Languages.javascript);
 
   useEffect(() => {
-    switch (language) {
-      case 'javascript':
-        setSyntaxHighlighting((value) => {
-          const syntaxHighlighting = (value: string) => {
-            // Add JavaScript syntax highlighting logic here
-          };
-          return syntaxHighlighting;
-        });
-        break;
-      case 'python':
-        setSyntaxHighlighting((value) => {
-          const syntaxHighlighting = (value: string) => {
-            // Add Python syntax highlighting logic here
-          };
-          return syntaxHighlighting;
-        });
-        break;
-      case 'html':
-        setSyntaxHighlighting((value) => {
-          const syntaxHighlighting = (value: string) => {
-            // Add HTML syntax highlighting logic here
-          };
-          return syntaxHighlighting;
-        });
-        break;
-      default:
-        setSyntaxHighlighting((value) => {
-          const syntaxHighlighting = (value: string) => value;
-          return syntaxHighlighting;
-        });
-        break;
-    }
+    Highlight.init(Languages[language]);
   }, [language]);
 
-  return { syntaxHighlighting };
+  return {
+    language,
+  };
 };
 
 export default useLanguage;

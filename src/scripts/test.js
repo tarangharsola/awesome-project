@@ -1,11 +1,9 @@
-// Import required modules
-const assert = require('assert');
+const jest = require('jest');
 
-// Test function
-function testEditor() {
-  // Test editor functionality
-  assert.ok(true);
-}
-
-// Run test
-testEditor();
+module.exports = {
+  testEnvironment: 'jsdom',
+  testPathIgnorePatterns: ['node_modules'],
+  transform: {
+    '^.+\.tsx?$': 'ts-jest',
+  },
+};

@@ -1,51 +1,27 @@
 {"import React, { useState, useEffect } from 'react';
-import CodeMirror from 'codemirror';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
+import { Editor } from 'react-simple-code-editor';
+import { Highlight, Languages } from 'prismjs';
 
-const Editor = ({ value, language, onChange }) => {
-  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
+const EditorComponent = () => {
+  const [code, setCode] = useState('');
+  const [language, setLanguage] = useState(Languages.javascript);
 
   useEffect(() => {
-    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-      theme: 'monokai',
-      extraKeys: {
-        'Ctrl-Space': 'autocomplete'
-      }
-    });
-    editor.on('change', (instance, change) => {
-      onChange(instance.getValue());
-    });
-    return () => editor.toTextArea();
-  }, []);
+    Highlight.init(Languages[language]);
+  }, [language]);
 
-  const handleCursorChange = (line, ch) => {
-    setCursorPosition({ line, ch });
+  const handleCodeChange = (newCode) => {
+    setCode(newCode);
   };
 
   return (
-    <div>
-      <textarea id='editor' value={value} onChange={(e) => onChange(e.target.value)} />
-      <div>
-        <span>Line: {cursorPosition.line}</span>
-        <span>Column: {cursorPosition.ch}</span>
-      </div>
-    </div>
+    <Editor
+      value={code}
+      onValueChange={handleCodeChange}
+      highlight={Highlight}
+      language={language}
+    />
   );
 };
 
-export default Editor;
+export default EditorComponent;

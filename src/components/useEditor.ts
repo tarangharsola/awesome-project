@@ -1,46 +1,23 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
-import Editor from './Editor';
+{"import { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-code-editor';
+import { Highlight, Languages } from 'prismjs';
 
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
-
-const useEditor = ({ value, onChange, language }: Props) => {
-  const [editorValue, setEditorValue] = useState(value);
-  const [formattedValue, setFormattedValue] = useState(value);
-  const [languageValue, setLanguageValue] = useState(language);
+const useEditor = () => {
+  const [code, setCode] = useState('');
+  const [language, setLanguage] = useState(Languages.javascript);
 
   useEffect(() => {
-    onChange(editorValue);
-  }, [editorValue]);
+    Highlight.init(Languages[language]);
+  }, [language]);
 
-  const handleLanguageChange = (language: string) => {
-    setLanguageValue(language);
-    // Update formatting based on language
-  };
-
-  const handleFormat = () => {
-    // Format the editor value based on the selected language
-    setFormattedValue(editorValue);
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    // Handle keyboard shortcuts
-    if (event.key === 'Ctrl+S') {
-      onChange(editorValue);
-    }
+  const handleCodeChange = (newCode) => {
+    setCode(newCode);
   };
 
   return {
-    value: editorValue,
-    onChange: (newValue: string) => setEditorValue(newValue),
-    language: languageValue,
-    handleLanguageChange,
-    handleFormat,
-    handleKeyDown,
+    code,
+    language,
+    handleCodeChange,
   };
 };
 
