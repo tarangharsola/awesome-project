@@ -1,24 +1,21 @@
 {"import { useState, useEffect } from 'react';
-import { useReconnection } from './useReconnection';
+import { useWebSocket } from './useWebSocket';
 
-interface Props {
-  reconnection: any;
-}
-
-const useReconnection = ({ reconnection }) => {
-  const [reconnecting, setReconnecting] = useState(false);
+const useReconnection = () => {
+  const [reconnect, setReconnect] = useState(() => () => {});
+  const [connectionError, setConnectionError] = useState(null);
 
   useEffect(() => {
-    const handleReconnect = () => {
-      setReconnecting(true);
-    };
-    reconnection.on('reconnect', handleReconnect);
-    return () => {
-      reconnection.off('reconnect', handleReconnect);
-    };
-  }, [reconnection]);
+    const intervalId = setInterval(() => {
+      if (connectionError) {
+        setReconnect(() => () => {
+          // implement retry logic here
+        });
+      }
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [connectionError]);
 
-  return reconnecting;
-}
-
+  return { reconnect, connectionError };
+};
 export default useReconnection;
