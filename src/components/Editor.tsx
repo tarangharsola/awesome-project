@@ -1,29 +1,30 @@
 {"import React, { useState, useEffect } from 'react';
-import { Editor } from 'slate-react';
-import { EditorProps } from 'slate-react';
-import { useEditor } from './useEditor';
+import { Editor } from 'react-simple-editor';
+import { useLanguage } from './useLanguage';
 
-interface EditorProps extends EditorProps {
-  language: string;
-}
-
-const EditorComponent: React.FC<EditorProps> = ({ language, ...props }) => {
-  const editor = useEditor();
+function EditorComponent() {
+  const language = useLanguage();
+  const [code, setCode] = useState('');
+  const [formattedCode, setFormattedCode] = useState('');
 
   useEffect(() => {
-    editor.commands.toggleBold();
-  }, []);
+    const codeMirror = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      theme: 'monokai'
+    });
+
+    codeMirror.on('change', () => {
+      setCode(codeMirror.getValue());
+      setFormattedCode(codeMirror.getValue());
+    });
+  }, [language]);
 
   return (
-    <Editor
-      {...props}
-      value={editor.value}
-      onChange={editor.onChange}
-      placeholder={editor.placeholder}
-      language={language}
-    />
+    <div>
+      <Editor value={code} onChange={setCode} />
+      <pre>{formattedCode}</pre>
+    </div>
   );
-
-  return EditorComponent;
 }
 export default EditorComponent;
