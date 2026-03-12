@@ -1,9 +1,20 @@
-const jest = require('jest');
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 
-module.exports = {
-  testEnvironment: 'jsdom',
-  testPathIgnorePatterns: ['node_modules'],
-  transform: {
-    '^.+\.tsx?$': 'ts-jest',
-  },
-};
+const testEditor = require('./testEditor');
+const testWebSocket = require('./testWebSocket');
+
+describe('Editor', () => {
+  it('should render editor', () => {
+    const editor = testEditor();
+    assert.ok(editor);
+  });
+});
+
+describe('WebSocket', () => {
+  it('should establish connection', () => {
+    const webSocket = testWebSocket();
+    assert.ok(webSocket);
+  });
+});
