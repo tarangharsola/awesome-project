@@ -1,18 +1,14 @@
 {"import React from 'react';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import store from './store';
-import Room from './Room';
+import { useReconnectionHandler } from './useReconnectionHandler';
 
 const App = () => {
+  const { reconnect, connectionStatus } = useReconnectionHandler();
   return (
-    <Provider store={store}>
-      <BrowserRouter>
-        <Switch>
-          <Route path="/" exact component={Room} />
-        </Switch>
-      </BrowserRouter>
-    </Provider>
+    <div>
+      <h1>Collaborative Code Editor</h1>
+      <button onClick={reconnect}>Reconnect</button>
+      <p>Connection Status: {connectionStatus}</p>
+    </div>
   );
 };
 

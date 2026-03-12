@@ -1,16 +1,10 @@
-{"import { createAction, createReducer } from 'redux-actions';
+{"import { createStore, combineReducers } from 'redux';
+import { userReducer } from './userReducer';
 
-const ADD_USER = 'ADD_USER';
-const REMOVE_USER = 'REMOVE_USER';
-
-const addUser = createAction(ADD_USER);
-const removeUser = createAction(REMOVE_USER);
-
-const initialState = [];
-
-const userReducer = createReducer(initialState, {
-  [ADD_USER]: (state, action) => [...state, action.payload],
-  [REMOVE_USER]: (state, action) => state.filter((user) => user.id !== action.payload.id),
+const rootReducer = combineReducers({
+  user: userReducer,
 });
 
-export default userReducer;
+const store = createStore(rootReducer);
+
+export default store;

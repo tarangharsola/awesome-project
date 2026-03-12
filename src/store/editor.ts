@@ -1,16 +1,10 @@
-{"import { createAction, createReducer } from 'redux-actions';
+{"import { createStore, combineReducers } from 'redux';
+import { editorReducer } from './editorReducer';
 
-const ADD_CODE = 'ADD_CODE';
-const REMOVE_CODE = 'REMOVE_CODE';
-
-const addCode = createAction(ADD_CODE);
-const removeCode = createAction(REMOVE_CODE);
-
-const initialState = '';
-
-const editorReducer = createReducer(initialState, {
-  [ADD_CODE]: (state, action) => state + action.payload,
-  [REMOVE_CODE]: (state, action) => state.replace(action.payload, ''),
+const rootReducer = combineReducers({
+  editor: editorReducer,
 });
 
-export default editorReducer;
+const store = createStore(rootReducer);
+
+export default store;
