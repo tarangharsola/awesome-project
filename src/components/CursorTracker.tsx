@@ -1,17 +1,19 @@
-{"import React, { useState, useEffect } from 'react';
-import { useCursor } from './useCursor';
+{"import React from 'react';
+import { Cursor } from './Cursor';
 
-const CursorTracker = () => {
-  const cursor = useCursor();
+interface Props {
+  cursors: Cursor[];
+}
 
-  useEffect(() => {
-    // Update cursor position on changes
-  }, [cursor]);
-
+const CursorTracker = ({ cursors }: Props) => {
   return (
-    <div>
-      <span>{cursor.name}</span>
-      <span>{cursor.position}</span>
+    <div className="cursor-tracker">
+      {cursors.map((cursor, index) => (
+        <div key={index} className="cursor">
+          <span className="username">{cursor.name}</span>
+          <span className="color" style={{ backgroundColor: cursor.color }}></span>
+        </div>
+      ))}
     </div>
   );
 };
