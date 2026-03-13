@@ -1,14 +1,8 @@
-{"import { User } from './User';
+{"import { combineReducers } from 'redux';
+import { users } from './user';
 
-const initialState = new User();
+const rootReducer = combineReducers({
+  users: users,
+});
 
-const userReducer = (state = initialState, action) => {
-  switch (action.type) {
-    case 'UPDATE_USER':
-      return action.user;
-    default:
-      return state;
-  }
-};
-
-export default userReducer;
+export default rootReducer;

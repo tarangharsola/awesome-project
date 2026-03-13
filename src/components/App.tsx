@@ -1,15 +1,14 @@
 {"import React from 'react';
-import { useReconnectionHandler } from './useReconnectionHandler';
+import { Provider } from 'react-redux';
+import store from './store/index';
+import Editor from './Editor';
 
-const App = () => {
-  const { reconnect, connectionStatus } = useReconnectionHandler();
+function App() {
   return (
-    <div>
-      <h1>Collaborative Code Editor</h1>
-      <button onClick={reconnect}>Reconnect</button>
-      <p>Connection Status: {connectionStatus}</p>
-    </div>
+    <Provider store={store}>
+      <Editor />
+    </Provider>
   );
-};
+}
 
 export default App;

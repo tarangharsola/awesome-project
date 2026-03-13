@@ -1,30 +1,23 @@
-{"import React, { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-editor';
-import { useLanguage } from './useLanguage';
+{"import React from 'react';
+import { EditorState, convertToRaw } from 'draft-js';
+import { Editor } from 'react-draft-wysiwyg';
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 
-function EditorComponent() {
-  const language = useLanguage();
-  const [code, setCode] = useState('');
-  const [formattedCode, setFormattedCode] = useState('');
-
-  useEffect(() => {
-    const codeMirror = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-      theme: 'monokai'
-    });
-
-    codeMirror.on('change', () => {
-      setCode(codeMirror.getValue());
-      setFormattedCode(codeMirror.getValue());
-    });
-  }, [language]);
+const EditorComponent = () => {
+  const [editorState, setEditorState] = React.useState(EditorState.createEmpty());
+  const onEditorStateChange = (editorState) => {
+    setEditorState(editorState);
+  };
 
   return (
-    <div>
-      <Editor value={code} onChange={setCode} />
-      <pre>{formattedCode}</pre>
-    </div>
+    <Editor
+      editorState={editorState}
+      onEditorStateChange={onEditorStateChange}
+      toolbarClassName='toolbarClassName'
+      wrapperClassName='wrapperClassName'
+      editorClassName='editorClassName'
+    />
   );
-}
+};
+
 export default EditorComponent;
