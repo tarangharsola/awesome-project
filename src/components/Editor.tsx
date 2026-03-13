@@ -1,23 +1,32 @@
 {"import React from 'react';
-import { EditorState, convertToRaw } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import { useState } from 'react';
+import LanguageSelector from './LanguageSelector';
 
-const EditorComponent = () => {
-  const [editorState, setEditorState] = React.useState(EditorState.createEmpty());
-  const onEditorStateChange = (editorState) => {
-    setEditorState(editorState);
+interface EditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  languages: string[];
+  selectedLanguage: string;
+}
+
+const Editor: React.FC<EditorProps> = ({ value, onChange, languages, selectedLanguage }) => {
+  const [formattedValue, setFormattedValue] = useState(value);
+
+  const handleFormat = () => {
+    // Implement formatting logic here
   };
 
   return (
-    <Editor
-      editorState={editorState}
-      onEditorStateChange={onEditorStateChange}
-      toolbarClassName='toolbarClassName'
-      wrapperClassName='wrapperClassName'
-      editorClassName='editorClassName'
-    />
+    <div>
+      <LanguageSelector languages={languages} selectedLanguage={selectedLanguage} onSelect={(language) => {
+        onChange(language);
+        setFormattedValue(language);
+      }} />
+      <textarea value={formattedValue} onChange={(e) => setFormattedValue(e.target.value)} />
+      <button onClick={handleFormat}>Format</button>
+    </div>
   );
-};
 
-export default EditorComponent;
+  return Editor;
+}
+export default Editor;
