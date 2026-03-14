@@ -1,5 +1,5 @@
 {"import React, { useState, useEffect } from 'react';
-import { useWebSocket } from '../useWebSocket';
+import { useWebSocket } from './useWebSocket';
 
 const ReconnectionHandler = () => {
   const [connectionStatus, setConnectionStatus] = useState('connected');
