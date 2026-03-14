@@ -1,16 +1,4 @@
-const fs = require('fs');
-const path = require('path');
-const webpack = require('webpack');
-const config = require('./webpack.config');
+import { execSync } from 'child_process';
 
-const buildDir = path.join(__dirname, 'dist');
-
-fs.mkdirSync(buildDir, { recursive: true });
-
-webpack(config, (err, stats) => {
-  if (err) {
-    console.error(err);
-  } else {
-    console.log(stats.toString());
-  }
-});
+execSync('npm run test');
+execSync('webpack');

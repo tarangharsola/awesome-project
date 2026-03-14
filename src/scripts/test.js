@@ -1,11 +1,8 @@
-// Import required modules
-const assert = require('assert');
+// eslint-disable-next-line
+import { test, expect } from 'vitest';
 
-// Test function
-function testEditor() {
-  // Test code editor functionality
-  assert.ok(true);
-}
+test('editor functionality', () => {
+  expect(true).toBe(true);
+});
 
-// Run test
-testEditor();
+export default test;
