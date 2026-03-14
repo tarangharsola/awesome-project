@@ -1,48 +1,31 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
-import { useUsers } from './useUsers';
-import { useConflictResolver } from './useConflictResolver';
+import { EditorState, ContentState } from 'draft-js';
+import 'draft-js/dist/draft.min.css';
 
-interface Props {
-  language: string;
-  value: string;
+interface EditorProps {
+  editorState: EditorState;
+  onEditorChange: (editorState: EditorState) => void;
 }
 
-const Editor = ({ language, value }) => {
-  const [text, setText] = useState(value);
-  const { sendText } = useWebSocket();
-  const { users } = useUsers();
-  const { resolveConflict } = useConflictResolver();
+const Editor: React.FC<EditorProps> = ({ editorState, onEditorChange }) => {
+  const [editorStateLocal, setEditorStateLocal] = useState(editorState);
 
   useEffect(() => {
-    sendText(text);
-  }, [text]);
+    setEditorStateLocal(editorState);
+  }, [editorState]);
 
-  const handleTextChange = (newText) => {
-    setText(newText);
-    resolveConflict(newText);
+  const handleEditorChange = (editorState: EditorState) => {
+    onEditorChange(editorState);
+    setEditorStateLocal(editorState);
   };
 
   return (
-    <div style={{
-      padding: 10,
-      backgroundColor: '#f0f0f0',
-      borderRadius: 5,
-    }}>
-      <textarea
-        value={text}
-        onChange={(e) => handleTextChange(e.target.value)}
-        style={{
-          width: '100%',
-          height: 200,
-          padding: 10,
-          fontSize: 14,
-          fontFamily: 'monospace',
-        }}
-      />
+    <div className="editor">
+      <EditorState editorState={editorStateLocal} onEditorChange={handleEditorChange} />
     </div>
   );
+
+  return Editor;
 }
 
 export default Editor;
