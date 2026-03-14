@@ -1,6 +1,5 @@
 {"const path = require('path');
 const webpack = require('webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: './src/index.tsx',
@@ -20,9 +19,9 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
   },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: './public/index.html',
-    }),
-  ],
+  devServer: {
+    contentBase: './public',
+    hot: true,
+    port: 3000,
+  },
 };

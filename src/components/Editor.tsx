@@ -1,32 +1,48 @@
-{"import React from 'react';
-import { useState } from 'react';
-import LanguageSelector from './LanguageSelector';
+{"import React, { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
+import { useUsers } from './useUsers';
+import { useConflictResolver } from './useConflictResolver';
 
-interface EditorProps {
+interface Props {
+  language: string;
   value: string;
-  onChange: (value: string) => void;
-  languages: string[];
-  selectedLanguage: string;
 }
 
-const Editor: React.FC<EditorProps> = ({ value, onChange, languages, selectedLanguage }) => {
-  const [formattedValue, setFormattedValue] = useState(value);
+const Editor = ({ language, value }) => {
+  const [text, setText] = useState(value);
+  const { sendText } = useWebSocket();
+  const { users } = useUsers();
+  const { resolveConflict } = useConflictResolver();
 
-  const handleFormat = () => {
-    // Implement formatting logic here
+  useEffect(() => {
+    sendText(text);
+  }, [text]);
+
+  const handleTextChange = (newText) => {
+    setText(newText);
+    resolveConflict(newText);
   };
 
   return (
-    <div>
-      <LanguageSelector languages={languages} selectedLanguage={selectedLanguage} onSelect={(language) => {
-        onChange(language);
-        setFormattedValue(language);
-      }} />
-      <textarea value={formattedValue} onChange={(e) => setFormattedValue(e.target.value)} />
-      <button onClick={handleFormat}>Format</button>
+    <div style={{
+      padding: 10,
+      backgroundColor: '#f0f0f0',
+      borderRadius: 5,
+    }}>
+      <textarea
+        value={text}
+        onChange={(e) => handleTextChange(e.target.value)}
+        style={{
+          width: '100%',
+          height: 200,
+          padding: 10,
+          fontSize: 14,
+          fontFamily: 'monospace',
+        }}
+      />
     </div>
   );
-
-  return Editor;
 }
+
 export default Editor;
