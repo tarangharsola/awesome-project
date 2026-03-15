@@ -1,16 +1,18 @@
 {"import { useState, useEffect } from 'react';
-import { Languages } from 'prismjs';
+
+interface LanguageState {
+  language: string;
+}
 
 const useLanguage = () => {
-  const [language, setLanguage] = useState(Languages.javascript);
+  const [languageState, setLanguageState] = useState<LanguageState>({ language: '' });
 
   useEffect(() => {
-    Highlight.init(Languages[language]);
-  }, [language]);
+    // Implement language state synchronization logic here
+  }, []);
 
-  return {
-    language,
-  };
-};
+  return languageState;
 
+  return useLanguage;
+}
 export default useLanguage;

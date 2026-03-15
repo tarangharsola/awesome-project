@@ -1,31 +1,40 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorState, ContentState } from 'draft-js';
-import 'draft-js/dist/draft.min.css';
+import { useEditor } from './useEditor';
+import { useLanguage } from './useLanguage';
+import LanguageSelector from './LanguageSelector';
 
 interface EditorProps {
-  editorState: EditorState;
-  onEditorChange: (editorState: EditorState) => void;
+  language: string;
+  onChange: (code: string) => void;
 }
 
-const Editor: React.FC<EditorProps> = ({ editorState, onEditorChange }) => {
-  const [editorStateLocal, setEditorStateLocal] = useState(editorState);
+const Editor: React.FC<EditorProps> = ({ language, onChange }) => {
+  const [code, setCode] = useState('');
+  const { formatCode } = useEditor();
+  const { language: selectedLanguage } = useLanguage();
 
   useEffect(() => {
-    setEditorStateLocal(editorState);
-  }, [editorState]);
+    if (selectedLanguage !== language) {
+      onChange(formatCode(code, language));
+    }
+  }, [selectedLanguage, language, code]);
 
-  const handleEditorChange = (editorState: EditorState) => {
-    onEditorChange(editorState);
-    setEditorStateLocal(editorState);
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    onChange(newCode);
   };
 
   return (
-    <div className="editor">
-      <EditorState editorState={editorStateLocal} onEditorChange={handleEditorChange} />
+    <div>
+      <LanguageSelector languages={['JavaScript', 'Python', 'HTML']} selectedLanguage={language} onChange={handleLanguageChange} />
+      <textarea value={code} onChange={(e) => handleCodeChange(e.target.value)} />
     </div>
   );
 
+  function handleLanguageChange(language: string) {
+    onChange(formatCode(code, language));
+  }
+
   return Editor;
 }
-
 export default Editor;
