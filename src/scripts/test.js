@@ -1,8 +1,11 @@
-// eslint-disable-next-line
-import { test, expect } from 'vitest';
+// Import required modules
+const assert = require('assert');
 
-test('editor functionality', () => {
-  expect(true).toBe(true);
+// Define test suite
+describe('Collaborative Editor', () => {
+  it('should render editor component', () => {
+    // Render editor component and assert its existence
+    const editor = document.getElementById('editor');
+    assert(editor);
+  });
 });
-
-export default test;
