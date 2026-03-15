@@ -1,19 +1,10 @@
 {"import React from 'react';
-import { useCursor } from '../useCursor';
+import { useCursor } from './useCursor';
 
 const CursorTracker = () => {
-  const { cursor } = useCursor();
-
+  const cursor = useCursor();
   return (
-    <div style={{
-      position: 'absolute',
-      top: cursor.y,
-      left: cursor.x,
-      width: '5px',
-      height: '5px',
-      backgroundColor: cursor.color,
-      borderRadius: '5px',
-    }} />
+    <div style={{ position: 'absolute', left: cursor.x, top: cursor.y, width: 2, height: 2, backgroundColor: cursor.color }} />
   );
 };
 

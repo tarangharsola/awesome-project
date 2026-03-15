@@ -1,40 +1,15 @@
-{"import React, { useState, useEffect } from 'react';
+{"import React from 'react';
 import { useEditor } from './useEditor';
-import { useLanguage } from './useLanguage';
-import LanguageSelector from './LanguageSelector';
+import CursorTracker from './CursorTracker';
 
-interface EditorProps {
-  language: string;
-  onChange: (code: string) => void;
-}
-
-const Editor: React.FC<EditorProps> = ({ language, onChange }) => {
-  const [code, setCode] = useState('');
-  const { formatCode } = useEditor();
-  const { language: selectedLanguage } = useLanguage();
-
-  useEffect(() => {
-    if (selectedLanguage !== language) {
-      onChange(formatCode(code, language));
-    }
-  }, [selectedLanguage, language, code]);
-
-  const handleCodeChange = (newCode: string) => {
-    setCode(newCode);
-    onChange(newCode);
-  };
-
+const Editor = () => {
+  const editor = useEditor();
   return (
-    <div>
-      <LanguageSelector languages={['JavaScript', 'Python', 'HTML']} selectedLanguage={language} onChange={handleLanguageChange} />
-      <textarea value={code} onChange={(e) => handleCodeChange(e.target.value)} />
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <CursorTracker />
+      <div style={{ position: 'absolute', left: editor.cursor.x, top: editor.cursor.y, width: 2, height: 2, backgroundColor: editor.cursor.color }} />
     </div>
   );
+};
 
-  function handleLanguageChange(language: string) {
-    onChange(formatCode(code, language));
-  }
-
-  return Editor;
-}
 export default Editor;
