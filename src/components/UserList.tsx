@@ -17,9 +17,8 @@ const UserList = () => {
           backgroundColor: user.color,
           padding: '5px',
           borderRadius: '5px',
-          margin: '5px',
           display: 'inline-block',
-          color: '#fff'
+          marginRight: '10px',
         }}>
           {user.name}
         </div>
