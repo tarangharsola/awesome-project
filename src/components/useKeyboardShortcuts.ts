@@ -2,7 +2,7 @@
 
 interface KeyboardShortcutsProps {
   shortcuts: { [key: string]: string };
-  onShortcut: (shortcut: string) => void;
+  onShortcut: (key: string) => void;
 }
 
 const useKeyboardShortcuts = ({ shortcuts, onShortcut }: KeyboardShortcutsProps) => {
@@ -10,9 +10,10 @@ const useKeyboardShortcuts = ({ shortcuts, onShortcut }: KeyboardShortcutsProps)
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (shortcuts[event.key]) {
-        onShortcut(shortcuts[event.key]);
-        setActiveShortcut(shortcuts[event.key]);
+      const key = event.key;
+      if (shortcuts[key]) {
+        onShortcut(key);
+        setActiveShortcut(key);
       }
     };
 
@@ -21,7 +22,7 @@ const useKeyboardShortcuts = ({ shortcuts, onShortcut }: KeyboardShortcutsProps)
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [shortcuts, onShortcut]);
+  }, []);
 
   return activeShortcut;
 }

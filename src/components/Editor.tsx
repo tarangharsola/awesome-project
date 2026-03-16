@@ -1,15 +1,39 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
-import CursorTracker from './CursorTracker';
+{"import React, { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-editor';
+import { useLanguage } from './useLanguage';
 
-const Editor = () => {
-  const editor = useEditor();
+interface EditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  language: string;
+}
+
+const EditorComponent: React.FC<EditorProps> = ({ value, onChange, language }) => {
+  const [formattedValue, setFormattedValue] = useState(value);
+  const [languageState, setLanguageState] = useState(language);
+
+  useEffect(() => {
+    const language = useLanguage();
+    setLanguageState(language);
+  }, []);
+
+  const handleFormat = () => {
+    const formattedValue = formatCode(value, languageState);
+    setFormattedValue(formattedValue);
+  };
+
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <CursorTracker />
-      <div style={{ position: 'absolute', left: editor.cursor.x, top: editor.cursor.y, width: 2, height: 2, backgroundColor: editor.cursor.color }} />
+    <div className="editor">
+      <Editor
+        value={formattedValue}
+        onChange={(value) => onChange(value)}
+        language={languageState}
+        onFormat={handleFormat}
+      />
     </div>
   );
-};
 
-export default Editor;
+  return EditorComponent;
+}
+
+export default EditorComponent;
