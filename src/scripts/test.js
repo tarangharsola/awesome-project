@@ -1,11 +1,12 @@
-// Import required modules
-const assert = require('assert');
+// eslint-disable-next-line
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import App from '../components/App';
 
-// Define test suite
-describe('Collaborative Editor', () => {
-  it('should render editor component', () => {
-    // Render editor component and assert its existence
-    const editor = document.getElementById('editor');
-    assert(editor);
+describe('App', () => {
+  it('renders without crashing', () => {
+    const { getByText } = render(<App />);
+    expect(getByText('Collaborative Code Editor')).toBeInTheDocument();
   });
 });
