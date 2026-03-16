@@ -1,8 +1,14 @@
 {"import { createReducer } from 'redux';
-import { EDITOR_STATE } from './editorTypes';
+import { EDITOR_UPDATE_CODE, EDITOR_UPDATE_CURSOR } from './editorActions';
 
-const editorReducer = createReducer(EDITOR_STATE, {
-  [EDITOR_STATE.CHANGE_CURSOR]: (state, action) => ({ ...state, cursor: action.cursor }),
+const initialState = {
+  code: '',
+  cursor: { x: 0, y: 0 }
+};
+
+const editorReducer = createReducer(initialState, {
+  [EDITOR_UPDATE_CODE]: (state, { code }) => ({ ...state, code }),
+  [EDITOR_UPDATE_CURSOR]: (state, { cursor }) => ({ ...state, cursor })
 });
 
 export default editorReducer;

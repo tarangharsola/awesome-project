@@ -1,9 +1,11 @@
 {"import { createReducer } from 'redux';
-import { USER_STATE } from './userTypes';
+import { USER_JOIN, USER_LEAVE } from './userActions';
 
-const userReducer = createReducer(USER_STATE, {
-  [USER_STATE.JOIN]: (state, action) => ({ ...state, users: [...state.users, action.user] }),
-  [USER_STATE.LEAVE]: (state, action) => ({ ...state, users: state.users.filter((user) => user.id !== action.userId) }),
+const initialState = [];
+
+const userReducer = createReducer(initialState, {
+  [USER_JOIN]: (state, { username, color }) => [...state, { username, color }],
+  [USER_LEAVE]: (state, { username }) => state.filter(({ username: u }) => u !== username)
 });
 
 export default userReducer;

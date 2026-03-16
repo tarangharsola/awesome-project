@@ -1,39 +1,56 @@
 {"import React, { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-editor';
-import { useLanguage } from './useLanguage';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
+import { CursorTracker } from './CursorTracker';
 
-interface EditorProps {
-  value: string;
-  onChange: (value: string) => void;
+interface Props {
+  roomId: string;
   language: string;
 }
 
-const EditorComponent: React.FC<EditorProps> = ({ value, onChange, language }) => {
-  const [formattedValue, setFormattedValue] = useState(value);
-  const [languageState, setLanguageState] = useState(language);
+const Editor: React.FC<Props> = ({ roomId, language }) => {
+  const [code, setCode] = useState('');
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const { send } = useWebSocket(roomId);
+  const { cursor: remoteCursor } = useCursor(roomId);
 
   useEffect(() => {
-    const language = useLanguage();
-    setLanguageState(language);
-  }, []);
-
-  const handleFormat = () => {
-    const formattedValue = formatCode(value, languageState);
-    setFormattedValue(formattedValue);
-  };
+    const handleCursorChange = ({ x, y }) => setCursor({ x, y });
+    send({ type: 'cursor', data: { x, y } });
+  }, [x, y]);
 
   return (
-    <div className="editor">
-      <Editor
-        value={formattedValue}
-        onChange={(value) => onChange(value)}
-        language={languageState}
-        onFormat={handleFormat}
-      />
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      height: '100vh',
+      overflow: 'hidden'
+    }}>
+      <div style={{
+        position: 'absolute',
+        left: cursor.x,
+        top: cursor.y,
+        width: 2,
+        height: 10,
+        backgroundColor: 'black',
+        zIndex: 2
+      }}/>
+      <CursorTracker cursor={cursor} username='me' color='blue'/>
+      {remoteCursor && (
+        <CursorTracker cursor={remoteCursor} username='other' color='red'/>
+      )}
+      <textarea value={code} onChange={(e) => setCode(e.target.value)} style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: '100%',
+        height: '100vh',
+        padding: 10,
+        fontSize: 14,
+        fontFamily: 'monospace'
+      }}/>
     </div>
   );
-
-  return EditorComponent;
 }
 
-export default EditorComponent;
+export default Editor;
