@@ -1,23 +1,33 @@
 {"import React, { useState, useEffect } from 'react';
 import { useEditor } from './useEditor';
 import { useWebSocket } from './useWebSocket';
-import { CursorTracker } from './CursorTracker';
 
-interface Props {
-  roomId: string;
+interface EditorProps {
+  documentId: string;
   language: string;
 }
 
-const Editor: React.FC<Props> = ({ roomId, language }) => {
+const Editor = ({ documentId, language }: EditorProps) => {
   const [code, setCode] = useState('');
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const { send } = useWebSocket(roomId);
-  const { cursor: remoteCursor } = useCursor(roomId);
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    const handleCursorChange = ({ x, y }) => setCursor({ x, y });
-    send({ type: 'cursor', data: { x, y } });
-  }, [x, y]);
+    const ws = useWebSocket(documentId);
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'update') {
+        setCode(data.code);
+        setCursor(data.cursor);
+      }
+    };
+    return () => ws.close();
+  }, [documentId]);
+
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    useWebSocket(documentId).send({ type: 'update', code: newCode });
+  };
 
   return (
     <div style={{
@@ -32,14 +42,11 @@ const Editor: React.FC<Props> = ({ roomId, language }) => {
         top: cursor.y,
         width: 2,
         height: 10,
-        backgroundColor: 'black',
-        zIndex: 2
-      }}/>
-      <CursorTracker cursor={cursor} username='me' color='blue'/>
-      {remoteCursor && (
-        <CursorTracker cursor={remoteCursor} username='other' color='red'/>
-      )}
-      <textarea value={code} onChange={(e) => setCode(e.target.value)} style={{
+        backgroundColor: 'red'
+      }}>
+        Cursor
+      </div>
+      <textarea value={code} onChange={(event) => handleCodeChange(event.target.value)} style={{
         position: 'absolute',
         left: 0,
         top: 0,
@@ -49,6 +56,24 @@ const Editor: React.FC<Props> = ({ roomId, language }) => {
         fontSize: 14,
         fontFamily: 'monospace'
       }}/>
+      <div style={{
+        position: 'absolute',
+        left: 10,
+        top: 10,
+        backgroundColor: 'white',
+        padding: 10,
+        border: '1px solid black'
+      }}>
+        Users:
+        {users.map((user, index) => (
+          <div key={index} style={{
+            backgroundColor: user.color,
+            padding: 5,
+            margin: 5,
+            borderRadius: 5
+          }}>{user.name}</div>
+        ))}
+      </div>
     </div>
   );
 }
