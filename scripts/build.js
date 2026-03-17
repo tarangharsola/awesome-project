@@ -1,17 +1,18 @@
-import { execSync } from 'child_process';
-import { resolve } from 'path';
-import { build } from 'esbuild';
+// Import required modules
+const gulp = require('gulp');
+const ts = require('gulp-typescript');
+const sourcemaps = require('gulp-sourcemaps');
 
-const buildDir = resolve(__dirname, '../dist');
-
-build({
-  entryPoints: ['src/index.tsx'],
-  outdir: buildDir,
-  bundle: true,
-  minify: true,
-  platform: 'browser',
-  format: 'cjs',
-  external: ['react', 'react-dom'],
+// Define build task
+gulp.task('build', () => {
+  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
+    .pipe(sourcemaps.init())
+    .pipe(ts.createProject('tsconfig.json')())
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest('dist'));
 });
 
-execSync(`cp ${resolve(__dirname, '../src/styles/base.css')} ${buildDir}/base.css`);
+// Define default task
+gulp.task('default', ['build'], () => {
+  console.log('Build complete.');
+});
