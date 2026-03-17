@@ -3,20 +3,35 @@ import { WebSocket } from 'ws';
 
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
-  const [cursorPositions, setCursorPositions] = useState({});
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.on('message', (message) => {
-      const data = JSON.parse(message);
-      if (data.type === 'users') {
-        setUsers(data.users);
-      } else if (data.type === 'cursorPositions') {
-        setCursorPositions(data.cursorPositions);
+    const wsUrl = 'ws://localhost:8080';
+    const wsOptions = {
+      rejectUnauthorized: false,
+    };
+
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
+    };
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
+    };
+
+    const ws = new WebSocket(wsUrl, wsOptions);
+    ws.on('message', (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'userJoin') {
+        handleUserJoin(message.user);
+      } else if (message.type === 'userLeave') {
+        handleUserLeave(message.user);
       }
     });
+    setWs(ws);
+    return () => ws.close();
   }, []);
 
-  return { users, cursorPositions };
+  return { users, ws };
 };
+
 export default useAwareness;
