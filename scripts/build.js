@@ -1,18 +1,11 @@
-// Import required modules
-const gulp = require('gulp');
-const ts = require('gulp-typescript');
-const sourcemaps = require('gulp-sourcemaps');
+import { execSync } from 'child_process';
+import { resolve } from 'path';
+import { readFileSync } from 'fs';
 
-// Define build task
-gulp.task('build', () => {
-  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(sourcemaps.init())
-    .pipe(ts.createProject('tsconfig.json')())
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('dist'));
-});
+const build = () => {
+  const packageJson = JSON.parse(readFileSync(resolve(__dirname, '../package.json'), 'utf8'));
+  const buildCommand = `tsc --build src --outDir dist --module es6 --target es6 --jsx react --sourceMap --strict --noEmitOnError`;
+  execSync(buildCommand);
+};
 
-// Define default task
-gulp.task('default', ['build'], () => {
-  console.log('Build complete.');
-});
+build();
