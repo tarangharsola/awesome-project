@@ -1,16 +1,13 @@
 {"import { createReducer } from 'redux';
+import { USER_JOINED, USER_LEFT } from './userActions';
 
-interface UserState {
-  users: { [key: string]: { name: string; color: string } }
-}
-
-const initialState: UserState = {
-  users: {}
+const initialState = {
+  users: [],
 };
 
 const userReducer = createReducer(initialState, {
-  ADD_USER: (state, action) => ({ ...state, users: { ...state.users, [action.payload.userId]: action.payload.user } }),
-  REMOVE_USER: (state, action) => ({ ...state, users: { ...state.users, [action.payload.userId]: null } })
+  [USER_JOINED]: (state, { user }) => ({ ...state, users: [...state.users, user] }),
+  [USER_LEFT]: (state, { user }) => ({ ...state, users: state.users.filter((u) => u.id !== user.id) }),
 });
 
 export default userReducer;
