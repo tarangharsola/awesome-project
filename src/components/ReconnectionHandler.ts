@@ -6,26 +6,21 @@ const ReconnectionHandler = () => {
   const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const wsUrl = 'ws://localhost:8080';
-    const wsOptions = {
-      rejectUnauthorized: false,
-    };
-
     const reconnect = () => {
       setReconnecting(true);
-      const newWs = new WebSocket(wsUrl, wsOptions);
-      newWs.on('open', () => {
-        setWs(newWs);
+      const ws = new WebSocket('ws://localhost:8080');
+      setWs(ws);
+      ws.on('open', () => {
         setReconnecting(false);
       });
-      newWs.on('error', () => {
-        setTimeout(reconnect, 1000);
+      ws.on('error', () => {
+        setTimeout(reconnect, 5000);
       });
     };
 
     reconnect();
     return () => {
-      ws && ws.close();
+      ws.close();
     };
   }, []);
 

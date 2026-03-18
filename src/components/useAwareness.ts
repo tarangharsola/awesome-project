@@ -6,29 +6,27 @@ const useAwareness = () => {
   const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const wsUrl = 'ws://localhost:8080';
-    const wsOptions = {
-      rejectUnauthorized: false,
-    };
-
     const handleUserJoin = (user) => {
       setUsers((prevUsers) => [...prevUsers, user]);
     };
+
     const handleUserLeave = (user) => {
-      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
+      setUsers((prevUsers) => prevUsers.filter((u) => u !== user));
     };
 
-    const ws = new WebSocket(wsUrl, wsOptions);
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
     ws.on('message', (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'userJoin') {
-        handleUserJoin(message.user);
-      } else if (message.type === 'userLeave') {
-        handleUserLeave(message.user);
+      const data = JSON.parse(event.data);
+      if (data.type === 'user_join') {
+        handleUserJoin(data.user);
+      } else if (data.type === 'user_leave') {
+        handleUserLeave(data.user);
       }
     });
-    setWs(ws);
-    return () => ws.close();
+    return () => {
+      ws.close();
+    };
   }, []);
 
   return { users, ws };
