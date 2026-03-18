@@ -1,49 +1,36 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
-import { useUsers } from './useUsers';
+import { Editor } from 'react-simple-editors';
+import { useLanguage } from './useLanguage';
 
-interface Props {
+interface EditorProps {
+  value: string;
+  onChange: (value: string) => void;
   language: string;
 }
 
-const Editor: React.FC<Props> = ({ language }) => {
-  const [code, setCode] = useState('');
-  const { send, receive } = useWebSocket();
-  const { users } = useUsers();
-  const { cursor, updateCursor } = useEditor(language);
+const EditorComponent: React.FC<EditorProps> = ({ value, onChange, language }) => {
+  const [formattedValue, setFormattedValue] = useState(value);
+  const [languageState, setLanguageState] = useState(language);
 
   useEffect(() => {
-    const handleCodeChange = (newCode: string) => {
-      setCode(newCode);
-      send({ type: 'code', code: newCode });
-    };
-    return handleCodeChange;
-  }, []);
+    setFormattedValue(value);
+    setLanguageState(language);
+  }, [value, language]);
 
-  useEffect(() => {
-    const handleCursorUpdate = (newCursor: { x: number; y: number }) => {
-      updateCursor(newCursor);
-    };
-    return handleCursorUpdate;
-  }, []);
+  const handleFormat = () => {
+    // Add formatting logic here
+  };
 
   return (
-    <div style={{
-      position: 'relative',
-      width: '100%',
-      height: '100vh',
-      overflow: 'auto',
-    }}>
-      <pre style={{
-        padding: 10,
-        backgroundColor: '#f0f0f0',
-        border: '1px solid #ccc',
-      }}>{code}</pre>
-      <CursorTracker cursor={cursor} />
-      <UserList users={users} />
-    </div>
+    <Editor
+      value={formattedValue}
+      onChange={(value) => onChange(value)}
+      language={languageState}
+      onFormat={handleFormat}
+    />
   );
+
+  return EditorComponent;
 }
 
-export default Editor;
+export default EditorComponent;
