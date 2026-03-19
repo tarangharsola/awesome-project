@@ -1,13 +1,15 @@
-{"import { createReducer } from 'redux';
-import { USER_JOINED, USER_LEFT } from './userActions';
+{"import { combineReducers } from 'redux';
+import { fromJS } from 'immutable';
 
-const initialState = {
-  users: [],
+const initialState = fromJS({ users: [] });
+
+const userReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case 'UPDATE_USERS':
+      return state.set('users', action.data);
+    default:
+      return state;
+  }
 };
-
-const userReducer = createReducer(initialState, {
-  [USER_JOINED]: (state, { user }) => ({ ...state, users: [...state.users, user] }),
-  [USER_LEFT]: (state, { user }) => ({ ...state, users: state.users.filter((u) => u.id !== user.id) }),
-});
 
 export default userReducer;

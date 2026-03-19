@@ -1,14 +1,19 @@
 {"import React from 'react';
-import { useParams } from 'react-router-dom';
-import Editor from './Editor';
+import RoomComponent from './RoomComponent';
+import WebSocket from './WebSocket';
+import useWebSocket from './useWebSocket';
 
 const Room = () => {
-  const { roomId } = useParams();
+  const { send, receive } = useWebSocket();
+
+  useEffect(() => {
+    send({ type: 'JOIN', data: { username: 'John Doe' } });
+  }, []);
 
   return (
     <div>
-      <h1>Room {roomId}</h1>
-      <Editor />
+      <RoomComponent />
+      <WebSocket send={send} receive={receive} />
     </div>
   );
 };
