@@ -1,19 +1,22 @@
 {"import React from 'react';
-import UserListComponent from './UserListComponent';
-import WebSocket from './WebSocket';
-import useWebSocket from './useWebSocket';
+import { useUsers } from '../useUsers';
 
 const UserList = () => {
-  const { send, receive } = useWebSocket();
-
-  useEffect(() => {
-    send({ type: 'JOIN', data: { username: 'John Doe' } });
-  }, []);
-
+  const users = useUsers();
   return (
-    <div>
-      <UserListComponent />
-      <WebSocket send={send} receive={receive} />
+    <div className="user-list">
+      {users.map((user, index) => (
+        <div key={index} style={{
+          backgroundColor: user.color,
+          color: "#fff",
+          padding: "5px",
+          borderRadius: "5px",
+          display: "inline-block",
+          margin: "5px"
+        }}>
+          {user.name}
+        </div>
+      ))}
     </div>
   );
 };
