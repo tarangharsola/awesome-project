@@ -1,18 +1,11 @@
 {"import React from 'react';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import Editor from './Editor';
-import Room from './Room';
-import UserList from './UserList';
+import ReconnectionHandler from './ReconnectionHandler';
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Switch>
-        <Route path="/" exact component={Editor} />
-        <Route path="/room/:roomId" component={Room} />
-        <Route path="/users" component={UserList} />
-      </Switch>
-    </BrowserRouter>
+    <div>
+      <ReconnectionHandler onReconnect={() => console.log('Reconnected!')}>...</ReconnectionHandler>
+    </div>
   );
 };
 
