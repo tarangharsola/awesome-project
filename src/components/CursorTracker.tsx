@@ -1,21 +1,22 @@
 {"import React from 'react';
-import { useCursor } from '../useCursor';
+import { useCursor } from './useCursor';
 
-const CursorTracker = () => {
-  const cursor = useCursor();
+interface CursorTrackerProps {
+  cursor: { id: string; x: number; y: number; }
+}
+
+const CursorTracker = ({ cursor }: CursorTrackerProps) => {
+  const { x, y } = useCursor(cursor);
   return (
-    <div className="cursor-tracker">
-      <span style={{
-        position: "absolute",
-        top: cursor.y,
-        left: cursor.x,
-        backgroundColor: cursor.color,
-        width: "5px",
-        height: "5px",
-        borderRadius: "50%"
-      }} />
-    </div>
+    <div style={{
+      position: 'absolute',
+      left: `${x}px`,
+      top: `${y}px`,
+      width: '2px',
+      height: '2px',
+      backgroundColor: 'red',
+    }} />
   );
-};
+}
 
 export default CursorTracker;

@@ -1,15 +1,8 @@
 {"import { combineReducers } from 'redux';
-import { fromJS } from 'immutable';
+import usersReducer from './usersReducer';
 
-const initialState = fromJS({ users: [] });
-
-const userReducer = (state = initialState, action) => {
-  switch (action.type) {
-    case 'UPDATE_USERS':
-      return state.set('users', action.data);
-    default:
-      return state;
-  }
-};
+const userReducer = combineReducers({
+  users: usersReducer,
+});
 
 export default userReducer;

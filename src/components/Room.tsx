@@ -1,21 +1,36 @@
-{"import React from 'react';
-import RoomComponent from './RoomComponent';
-import WebSocket from './WebSocket';
-import useWebSocket from './useWebSocket';
+{"import React, { useState, useEffect } from 'react';
+import { useRoom } from './useRoom';
 
-const Room = () => {
-  const { send, receive } = useWebSocket();
+interface RoomProps {
+  id: string;
+}
+
+const Room = ({ id }: RoomProps) => {
+  const [users, setUsers] = useState([]);
+  const { getUsers, joinRoom, leaveRoom } = useRoom(id);
 
   useEffect(() => {
-    send({ type: 'JOIN', data: { username: 'John Doe' } });
-  }, []);
+    const handleUserUpdate = (users: { id: string; name: string }[]) => {
+      setUsers(users);
+    };
+    getUsers(handleUserUpdate);
+    return () => {
+      getUsers(null);
+    };
+  }, [getUsers]);
 
   return (
     <div>
-      <RoomComponent />
-      <WebSocket send={send} receive={receive} />
+      <h1>Room {id}</h1>
+      <ul>
+        {users.map((user) => (
+          <li key={user.id}>{user.name}</li>
+        ))}
+      </ul>
+      <button onClick={() => joinRoom()}>Join Room</button>
+      <button onClick={() => leaveRoom()}>Leave Room</button>
     </div>
   );
-};
+}
 
 export default Room;
