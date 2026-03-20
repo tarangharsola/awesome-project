@@ -1,16 +1,21 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
-import { useUsers } from './useUsers';
+{"import { useState, useEffect } from 'react';
+import { WebSocket } from 'ws';
 
 const useAwareness = () => {
-  const editor = useEditor();
-  const users = useUsers();
+  const [users, setUsers] = useState([]);
+  const [cursor, setCursor] = useState(null);
 
-  React.useEffect(() => {
-    editor.updateAwareness(users);
-  }, [users]);
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
 
-  return users;
+    ws.on('users', (users) => setUsers(users));
+
+    ws.on('cursor', (cursor) => setCursor(cursor));
+
+    return () => ws.destroy();
+  }, []);
+
+  return { users, cursor };
 };
 
 export default useAwareness;
