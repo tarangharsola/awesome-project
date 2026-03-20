@@ -1,9 +1,11 @@
-// Import required modules
-const assert = require('assert');
+// eslint-disable-next-line
+import { describe, it, expect } from 'expect';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import App from './App';
 
-// Define test suite
 describe('App', () => {
-  it('should render without errors', () => {
-    // Render the app and assert there are no errors
+  it('renders without crashing', () => {
+    const { getByText } = render(<App />);
+    expect(getByText('Collaborative Code Editor')).toBeInTheDocument();
   });
 });
