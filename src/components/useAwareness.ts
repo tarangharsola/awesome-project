@@ -1,21 +1,43 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+import { useEditor } from './useEditor';
 
-const useAwareness = () => {
-  const [users, setUsers] = useState([]);
-  const [cursor, setCursor] = useState(null);
+interface AwarenessProps {
+  editor: useEditor;
+}
+
+const useAwareness = ({ editor }: AwarenessProps) => {
+  const [users, setUsers] = useState<Record<string, any>>({});
+  const [cursorPositions, setCursorPositions] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
+    const handleUserJoin = (user: string) => {
+      setUsers((prevUsers) => ({ ...prevUsers, [user]: { color: getRandomColor() } }));
+    };
 
-    ws.on('users', (users) => setUsers(users));
+    const handleUserLeave = (user: string) => {
+      setUsers((prevUsers) => ({ ...prevUsers, [user]: null }));
+    };
 
-    ws.on('cursor', (cursor) => setCursor(cursor));
+    editor.on('userJoin', handleUserJoin);
+    editor.on('userLeave', handleUserLeave);
 
-    return () => ws.destroy();
-  }, []);
+    return () => {
+      editor.off('userJoin', handleUserJoin);
+      editor.off('userLeave', handleUserLeave);
+    };
+  }, [editor]);
 
-  return { users, cursor };
+  useEffect(() => {
+    const handleCursorMove = (user: string, position: number) => {
+      setCursorPositions((prevPositions) => ({ ...prevPositions, [user]: position }));
+    };
+
+    editor.on('cursorMove', handleCursorMove);
+
+    return () => editor.off('cursorMove', handleCursorMove);
+  }, [editor]);
+
+  return { users, cursorPositions };
 };
 
 export default useAwareness;
