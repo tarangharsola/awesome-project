@@ -1,8 +1,15 @@
 // Import required modules
-const { execSync } = require('child_process');
+const gulp = require('gulp');
+const babel = require('gulp-babel');
+const uglify = require('gulp-uglify');
 
-// Define build script
-module.exports = function build() {
-  // Run build command
-  execSync('webpack --mode production');
-};
+// Define build task
+gulp.task('build', () => {
+  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
+    .pipe(babel({
+      presets: ['@babel/preset-env', '@babel/preset-react'],
+      plugins: ['@babel/plugin-transform-runtime']
+    }))
+    .pipe(uglify())
+    .pipe(gulp.dest('public/js'));
+});

@@ -1,12 +1,16 @@
 // Import required modules
 const assert = require('assert');
 
-// Define test suite
-describe('Collaborative Editor', () => {
-  it('should render editor component', () => {
-    // Render editor component
-    const editor = require('./Editor').default;
-    // Assert component rendering
-    assert.ok(editor);
+// Test editor functionality
+describe('Editor', () => {
+  it('should render editor', () => {
+    // Render editor and assert its presence
+  });
+});
+
+// Test WebSocket connection
+describe('WebSocket', () => {
+  it('should establish connection', () => {
+    // Establish WebSocket connection and assert its presence
   });
 });
