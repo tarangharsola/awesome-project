@@ -1,23 +1,39 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
 
-const CursorTracker = ({ user, cursorPosition }) => {
-  const [cursorLabel, setCursorLabel] = useState('');
+interface Cursor {
+  id: string;
+  x: number;
+  y: number;
+  color: string;
+}
+
+interface Props {
+  cursors: Cursor[];
+}
+
+const CursorTracker = ({ cursors }: Props) => {
+  const [cursorPositions, setCursorPositions] = useState({});
 
   useEffect(() => {
-    setCursorLabel(`${user.name} at ${cursorPosition}`);
-  }, [user, cursorPosition]);
+    const cursorPositions = cursors.reduce((acc, cursor) => ({ ...acc, [cursor.id]: cursor }), {});
+    setCursorPositions(cursorPositions);
+  }, [cursors]);
 
   return (
-    <div style={{
-      position: 'absolute',
-      top: cursorPosition.y,
-      left: cursorPosition.x,
-      backgroundColor: '#333',
-      color: '#fff',
-      padding: 5,
-      borderRadius: 5,
-    }}>{cursorLabel}</div>
+    <div className="cursor-tracker">
+      {Object.keys(cursorPositions).map((id) => (
+        <div key={id} style={{
+          position: 'absolute',
+          left: cursorPositions[id].x,
+          top: cursorPositions[id].y,
+          width: 2,
+          height: 2,
+          backgroundColor: cursorPositions[id].color,
+        }}>
+        </div>
+      ))}
+    </div>
   );
 };
 

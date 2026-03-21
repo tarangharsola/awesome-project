@@ -1,33 +1,34 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
 
-const UserList = ({ users, color }) => {
+interface User {
+  id: string;
+  name: string;
+  color: string;
+}
+
+interface Props {
+  users: User[];
+}
+
+const UserList = ({ users }: Props) => {
   const [activeUsers, setActiveUsers] = useState([]);
+  const [colors, setColors] = useState({});
 
   useEffect(() => {
-    setActiveUsers(users);
+    const activeUsers = users.filter((user) => user.id !== 'self');
+    setActiveUsers(activeUsers);
+    const colors = users.reduce((acc, user) => ({ ...acc, [user.id]: user.color }), {});
+    setColors(colors);
   }, [users]);
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      padding: 10,
-      backgroundColor: '#333',
-      color: '#fff',
-    }}>
-      <h2>Active Users</h2>
-      <ul>
-        {activeUsers.map((user, index) => (
-          <li key={index} style={{
-            backgroundColor: color,
-            padding: 5,
-            borderRadius: 5,
-            marginBottom: 5,
-          }}>{user.name}</li>
-        ))}
-      </ul>
+    <div className="user-list">
+      {activeUsers.map((user) => (
+        <div key={user.id} style={{ backgroundColor: colors[user.id] }}>
+          {user.name}
+        </div>
+      ))}
     </div>
   );
 };
