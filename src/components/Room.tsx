@@ -1,34 +1,36 @@
 {"import React, { useState, useEffect } from 'react';
 import { useRoom } from './useRoom';
 
-interface RoomProps {
+interface Props {
   id: string;
 }
 
-const Room = ({ id }: RoomProps) => {
+const Room = ({ id }) => {
   const [users, setUsers] = useState([]);
-  const { getUsers, joinRoom, leaveRoom } = useRoom(id);
+  const { join, leave, users: usersFromStore } = useRoom(id);
 
   useEffect(() => {
-    const handleUserUpdate = (users: { id: string; name: string }[]) => {
-      setUsers(users);
-    };
-    getUsers(handleUserUpdate);
-    return () => {
-      getUsers(null);
-    };
-  }, [getUsers]);
+    setUsers(usersFromStore);
+  }, [usersFromStore]);
+
+  const handleJoin = () => {
+    join();
+  };
+
+  const handleLeave = () => {
+    leave();
+  };
 
   return (
     <div>
-      <h1>Room {id}</h1>
+      <h2>Room {id}</h2>
+      <button onClick={handleJoin}>Join</button>
+      <button onClick={handleLeave}>Leave</button>
       <ul>
         {users.map((user) => (
-          <li key={user.id}>{user.name}</li>
+          <li key={user.name}>{user.name}</li>
         ))}
       </ul>
-      <button onClick={() => joinRoom()}>Join Room</button>
-      <button onClick={() => leaveRoom()}>Leave Room</button>
     </div>
   );
 }

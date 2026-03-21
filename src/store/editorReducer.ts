@@ -1,10 +1,26 @@
-{"import { combineReducers } from 'redux';
-import cursorReducer from './cursorReducer';
-import languageReducer from './languageReducer';
+{"import { Reducer } from 'redux';
+import { Action } from './actions';
 
-const editorReducer = combineReducers({
-  cursor: cursorReducer,
-  language: languageReducer,
-});
+const initialState = {
+  value: '',
+  cursor: { x: 0, y: 0 },
+};
+
+const editorReducer: Reducer = (state = initialState, action: Action) => {
+  switch (action.type) {
+    case 'UPDATE_VALUE':
+      return {
+        ...state,
+        value: action.value,
+      };
+    case 'UPDATE_CURSOR':
+      return {
+        ...state,
+        cursor: action.cursor,
+      };
+    default:
+      return state;
+  }
+};
 
 export default editorReducer;

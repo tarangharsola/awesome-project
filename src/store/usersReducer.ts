@@ -1,9 +1,28 @@
-{"import { handleActions } from 'redux-actions';
-import { ADD_USER, REMOVE_USER } from './actions';
+{"import { Reducer } from 'redux';
+import { Action } from './actions';
 
-const usersReducer = handleActions({
-  [ADD_USER]: (state, { payload: user }) => [...state, user],
-  [REMOVE_USER]: (state, { payload: userId }) => state.filter((user) => user.id !== userId),
-}, []);
+const initialState = {};
+
+const usersReducer: Reducer = (state = initialState, action: Action) => {
+  switch (action.type) {
+    case 'JOIN_ROOM':
+      return {
+        ...state,
+        [action.id]: action.id,
+      };
+    case 'LEAVE_ROOM':
+      return {
+        ...state,
+        [action.id]: null,
+      };
+    case 'UPDATE_ROOM':
+      return action.users.reduce((acc, user) => ({
+        ...acc,
+        [user.id]: user,
+      }), {});
+    default:
+      return state;
+  }
+};
 
 export default usersReducer;

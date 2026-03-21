@@ -1,30 +1,46 @@
 {"import React, { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-editor';
-import { useLanguage } from './useLanguage';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
 
-interface EditorProps {
+interface Props {
   value: string;
   onChange: (value: string) => void;
-  language: string;
 }
 
-const EditorComponent: React.FC<EditorProps> = ({ value, onChange, language }) => {
-  const { formatCode } = useLanguage(language);
+const Editor = ({ value, onChange }) => {
+  const [text, setText] = useState(value);
+  const { send } = useWebSocket();
+  const { cursor } = useEditor();
 
   useEffect(() => {
-    const formattedCode = formatCode(value);
-    onChange(formattedCode);
-  }, [value, language]);
+    send({ type: 'update', value: text });
+  }, [text]);
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      onChange(text);
+    }
+  };
 
   return (
-    <Editor
-      value={value}
-      onChange={onChange}
-      language={language}
-    />
+    <div style={{
+      padding: 10,
+      border: '1px solid #ccc',
+      borderRadius: 5,
+    }}>
+      <textarea
+        value={text}
+        onChange={(event) => setText(event.target.value)}
+        onKeyDown={handleKeyDown}
+        style={{
+          width: '100%',
+          height: 200,
+          padding: 10,
+          fontSize: 14,
+        }}
+      />
+    </div>
   );
-
-  return EditorComponent;
 }
 
-export default EditorComponent;
+export default Editor;
