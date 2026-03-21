@@ -4,7 +4,9 @@ import ReconnectionHandler from './ReconnectionHandler';
 const App = () => {
   return (
     <div>
-      <ReconnectionHandler onReconnect={() => console.log('Reconnected!')}>...</ReconnectionHandler>
+      <ReconnectionHandler>
+        <h1>Collaborative Code Editor</h1>
+      </ReconnectionHandler>
     </div>
   );
 };
