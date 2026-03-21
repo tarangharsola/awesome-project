@@ -9,24 +9,22 @@ interface EditorProps {
 }
 
 const EditorComponent: React.FC<EditorProps> = ({ value, onChange, language }) => {
-  const [formattedValue, setFormattedValue] = useState(value);
   const { formatCode } = useLanguage(language);
 
   useEffect(() => {
-    const formatted = formatCode(value);
-    setFormattedValue(formatted);
+    const formattedCode = formatCode(value);
+    onChange(formattedCode);
   }, [value, language]);
-
-  const handleOnChange = (newValue: string) => {
-    onChange(newValue);
-  };
 
   return (
     <Editor
-      value={formattedValue}
-      onChange={handleOnChange}
+      value={value}
+      onChange={onChange}
       language={language}
     />
   );
+
+  return EditorComponent;
 }
+
 export default EditorComponent;

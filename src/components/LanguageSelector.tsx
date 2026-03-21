@@ -30,6 +30,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ languages, selected
     </div>
   );
 
-  return <div>Language: {selectedLanguage}</div>;
+  return LanguageSelector;
 }
+
 export default LanguageSelector;
