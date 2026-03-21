@@ -1,43 +1,39 @@
 {"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
 
-interface AwarenessProps {
-  editor: useEditor;
+interface Awareness {
+  users: any[];
+  cursors: any[];
 }
 
-const useAwareness = ({ editor }: AwarenessProps) => {
-  const [users, setUsers] = useState<Record<string, any>>({});
-  const [cursorPositions, setCursorPositions] = useState<Record<string, any>>({});
+const useAwareness = () => {
+  const [users, setUsers] = useState([]);
+  const [cursors, setCursors] = useState([]);
 
   useEffect(() => {
-    const handleUserJoin = (user: string) => {
-      setUsers((prevUsers) => ({ ...prevUsers, [user]: { color: getRandomColor() } }));
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    const handleUserLeave = (user: string) => {
-      setUsers((prevUsers) => ({ ...prevUsers, [user]: null }));
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
     };
 
-    editor.on('userJoin', handleUserJoin);
-    editor.on('userLeave', handleUserLeave);
+    const handleCursorUpdate = (cursor) => {
+      setCursors((prevCursors) => [...prevCursors, cursor]);
+    };
 
     return () => {
-      editor.off('userJoin', handleUserJoin);
-      editor.off('userLeave', handleUserLeave);
+      // cleanup
     };
-  }, [editor]);
+  }, []);
 
-  useEffect(() => {
-    const handleCursorMove = (user: string, position: number) => {
-      setCursorPositions((prevPositions) => ({ ...prevPositions, [user]: position }));
-    };
-
-    editor.on('cursorMove', handleCursorMove);
-
-    return () => editor.off('cursorMove', handleCursorMove);
-  }, [editor]);
-
-  return { users, cursorPositions };
-};
+  return {
+    users,
+    cursors,
+    handleUserJoin,
+    handleUserLeave,
+    handleCursorUpdate
+  };
+}
 
 export default useAwareness;
