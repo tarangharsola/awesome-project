@@ -1,1 +1,27 @@
-{"import { useState, useEffect } from 'react';\n\ninterface KeyboardShortcutsProps {\n  shortcuts: { [key: string]: string };\n  onShortcut: (shortcut: string) => void;\n}\n\nconst useKeyboardShortcuts = ({ shortcuts, onShortcut }: KeyboardShortcutsProps) => {\n  const [activeShortcut, setActiveShortcut] = useState(null);\n\n  useEffect(() => {\n    const handleKeyDown = (event: KeyboardEvent) => {\n      if (shortcuts[event.key]) {\n        onShortcut(shortcuts[event.key]);\n      }\n    };\n\n    document.addEventListener('keydown', handleKeyDown);\n\n    return () => {\n      document.removeEventListener('keydown', handleKeyDown);\n    };\n  }, []);\n\n  return { activeShortcut };\n};\n\nexport default useKeyboardShortcuts;
+{"import { useState, useEffect } from 'react';
+
+interface KeyboardShortcutsProps {
+  shortcuts: { [key: string]: string };
+  onShortcut: (shortcut: string) => void;
+}
+
+const useKeyboardShortcuts = ({ shortcuts, onShortcut }: KeyboardShortcutsProps) => {
+  const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (shortcuts[event.key]) {
+        onShortcut(shortcuts[event.key]);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [shortcuts, onShortcut]);
+
+  return pressedKeys;
+}
+export default useKeyboardShortcuts;

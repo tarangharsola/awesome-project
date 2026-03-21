@@ -101,3 +101,4 @@
 2026-03-20T07:28:50.862222+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
 2026-03-20T07:29:00.491239+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
 2026-03-21T07:07:29.248207+00:00 | Harden realtime collaboration: conflict handling, reconnection, and awareness consistency.
+2026-03-21T07:07:30.307864+00:00 | Improve editor UX: language switching, formatting defaults, and better keyboard shortcuts.

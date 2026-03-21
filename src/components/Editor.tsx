@@ -1,1 +1,32 @@
-{"import React, { useState, useEffect } from 'react';\nimport { Editor } from 'react-simple-editor';\nimport { useLanguage } from './useLanguage';\n\ninterface EditorProps {\n  language: string;\n  value: string;\n  onChange: (value: string) => void;\n}\n\nconst EditorComponent = ({ language, value, onChange }: EditorProps) => {\n  const [formattedValue, setFormattedValue] = useState(value);\n  const languageData = useLanguage(language);\n\n  useEffect(() => {\n    setFormattedValue(value);\n  }, [value]);\n\n  const handleFormat = () => {\n    // Implement formatting logic here\n  };\n\n  return (\n    <Editor\n      value={formattedValue}\n      onChange={(value) => onChange(value)}\n      onFormat={handleFormat}\n      language={language}\n    />\n  );\n};\n\nexport default EditorComponent;
+{"import React, { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-editor';
+import { useLanguage } from './useLanguage';
+
+interface EditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  language: string;
+}
+
+const EditorComponent: React.FC<EditorProps> = ({ value, onChange, language }) => {
+  const [formattedValue, setFormattedValue] = useState(value);
+  const { formatCode } = useLanguage(language);
+
+  useEffect(() => {
+    const formatted = formatCode(value);
+    setFormattedValue(formatted);
+  }, [value, language]);
+
+  const handleOnChange = (newValue: string) => {
+    onChange(newValue);
+  };
+
+  return (
+    <Editor
+      value={formattedValue}
+      onChange={handleOnChange}
+      language={language}
+    />
+  );
+}
+export default EditorComponent;
