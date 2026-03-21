@@ -1,11 +1,8 @@
-import { execSync } from 'child_process';
-import { resolve } from 'path';
-import { readFileSync } from 'fs';
+// Import required modules
+const { execSync } = require('child_process');
 
-const build = () => {
-  const packageJson = JSON.parse(readFileSync(resolve(__dirname, '../package.json'), 'utf8'));
-  const buildCommand = `npm run build -- --mode production --env ${packageJson.version}`;
-  execSync(buildCommand);
+// Define build script
+module.exports = function build() {
+  // Run build command
+  execSync('webpack --mode production');
 };
-
-build();
