@@ -1,46 +1,33 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
+import { EditorState, ContentState, convertToRaw } from 'draft-js';
+import 'draft-js/dist/draft.min.css';
 
-interface Props {
+interface EditorProps {
   value: string;
   onChange: (value: string) => void;
 }
 
-const Editor = ({ value, onChange }) => {
-  const [text, setText] = useState(value);
-  const { send } = useWebSocket();
-  const { cursor } = useEditor();
+const Editor: React.FC<EditorProps> = ({ value, onChange }) => {
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
 
   useEffect(() => {
-    send({ type: 'update', value: text });
-  }, [text]);
+    const contentState = ContentState.createFromText(value);
+    const editorState = EditorState.push(editorState, contentState);
+    setEditorState(editorState);
+  }, [value]);
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      onChange(text);
-    }
+  const onChangeHandler = (editorState: EditorState) => {
+    const contentState = editorState.getCurrentContent();
+    const rawContentState = convertToRaw(contentState);
+    onChange(JSON.stringify(rawContentState));
   };
 
   return (
-    <div style={{
-      padding: 10,
-      border: '1px solid #ccc',
-      borderRadius: 5,
-    }}>
-      <textarea
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        onKeyDown={handleKeyDown}
-        style={{
-          width: '100%',
-          height: 200,
-          padding: 10,
-          fontSize: 14,
-        }}
-      />
+    <div className="editor">
+      <EditorState onChange={onChangeHandler} editorState={editorState} />
     </div>
   );
-}
 
+  return Editor;
+}
 export default Editor;
