@@ -1,33 +1,53 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorState, ContentState, convertToRaw } from 'draft-js';
-import 'draft-js/dist/draft.min.css';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
+import CursorTracker from './CursorTracker';
 
-interface EditorProps {
-  value: string;
-  onChange: (value: string) => void;
+interface Props {
+  roomId: string
 }
 
-const Editor: React.FC<EditorProps> = ({ value, onChange }) => {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+const Editor: React.FC<Props> = ({ roomId }) => {
+  const [code, setCode] = useState('');
+  const { send, receive } = useWebSocket(roomId);
+  const { cursor, users } = useEditor(code, send);
 
   useEffect(() => {
-    const contentState = ContentState.createFromText(value);
-    const editorState = EditorState.push(editorState, contentState);
-    setEditorState(editorState);
-  }, [value]);
-
-  const onChangeHandler = (editorState: EditorState) => {
-    const contentState = editorState.getCurrentContent();
-    const rawContentState = convertToRaw(contentState);
-    onChange(JSON.stringify(rawContentState));
-  };
+    const interval = setInterval(() => {
+      receive();
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="editor">
-      <EditorState onChange={onChangeHandler} editorState={editorState} />
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      height: '100vh',
+      overflow: 'auto'
+    }}>
+      <pre style={{
+        padding: 10,
+        fontSize: 12,
+        backgroundColor: '#f0f0f0',
+        border: '1px solid #ccc'
+      }}>{code}</pre>
+      <CursorTracker cursor={cursor} userId={users.currentUserId} />
+      <div style={{
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: '#fff',
+        padding: 5,
+        border: '1px solid #ccc'
+      }}>{users.users.map((user) => (
+        <span key={user.id} style={{
+          color: user.color,
+          marginRight: 5
+        }}>{user.name}</span>
+      ))}</div>
     </div>
   );
-
-  return Editor;
 }
+
 export default Editor;
