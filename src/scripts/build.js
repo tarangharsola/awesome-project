@@ -1,26 +1,13 @@
-{"const path = require('path');
-const webpack = require('webpack');
+// Import required modules
+const gulp = require('gulp');
+const ts = require('gulp-typescript');
+const sourcemaps = require('gulp-sourcemaps');
 
-module.exports = {
-  entry: './src/index.tsx',
-  output: {
-    path: path.resolve(__dirname, 'public'),
-    filename: 'bundle.js',
-  },
-  module: {
-    rules: [
-      {
-        test: /.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.ts', '.tsx', '.js'],
-  },
-  devServer: {
-    contentBase: path.resolve(__dirname, 'public'),
-    port: 3000,
-  },
-};
+// Define build task
+gulp.task('build', () => {
+  return gulp.src('src/**/*.ts')
+    .pipe(sourcemaps.init())
+    .pipe(ts())
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest('dist'));
+});
