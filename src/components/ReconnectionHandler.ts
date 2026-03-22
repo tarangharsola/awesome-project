@@ -1,31 +1,26 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
 
-interface Props {
-  children: React.ReactNode;
-}
-
-const ReconnectionHandler = ({ children }: Props) => {
-  const [connected, setConnected] = useState(false);
+const ReconnectionHandler = () => {
+  const [connectionStatus, setConnectionStatus] = useState('connected');
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      // Simulate connection status
-      setConnected(Math.random() < 0.5);
-    }, 1000);
+      if (connectionStatus === 'disconnected') {
+        setRetryCount(retryCount + 1);
+        if (retryCount >= 3) {
+          setConnectionStatus('reconnecting');
+        }
+      }
+    }, 5000);
     return () => clearInterval(intervalId);
-  }, []);
-
-  const handleRetry = () => {
-    setRetryCount(retryCount + 1);
-  }
+  }, [connectionStatus, retryCount]);
 
   return (
     <div>
-      {children}
-      <p>Connected: {connected ? 'Yes' : 'No'}</p>
-      <button onClick={handleRetry}>Retry ({retryCount})</button>
+      <p>Connection Status: {connectionStatus}</p>
+      <p>Retry Count: {retryCount}</p>
     </div>
   );
 };
