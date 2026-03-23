@@ -1,10 +1,1 @@
-{"import { combineReducers } from 'redux';
-import { editorReducer } from './editorReducer';
-import { usersReducer } from './usersReducer';
-
-const rootReducer = combineReducers({
-  editor: editorReducer,
-  users: usersReducer
-});
-
-export default rootReducer;
+{"import { Reducer } from 'redux';\nimport { reconnect } from './actions';\n\nconst editorReducer: Reducer<any, any> = (state = {}, action) => {\n  switch (action.type) {\n    case 'RECONNECT':\n      return { ...state, reconnecting: true };\n    default:\n      return state;\n  }\n};\n\nexport default editorReducer;

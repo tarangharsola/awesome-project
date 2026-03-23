@@ -117,3 +117,4 @@
 2026-03-22T07:12:41.142059+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
 2026-03-22T07:13:00.751947+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
 2026-03-22T07:13:10.645580+00:00 | Harden realtime collaboration: conflict handling, reconnection, and awareness consistency.
+2026-03-23T07:43:42.861810+00:00 | Add connection status indicator and retry/backoff behavior.
