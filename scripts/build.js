@@ -1,15 +1,12 @@
-// Import required modules
-const gulp = require('gulp');
-const babel = require('gulp-babel');
-const uglify = require('gulp-uglify');
+import { execSync } from 'child_process';
+import { resolve } from 'path';
+import { readFileSync } from 'fs';
 
-// Define build task
-gulp.task('build', () => {
-  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(babel({
-      presets: ['@babel/preset-env', '@babel/preset-react'],
-      plugins: ['@babel/plugin-transform-runtime']
-    }))
-    .pipe(uglify())
-    .pipe(gulp.dest('public/js'));
-});
+const build = () => {
+  const packageJson = JSON.parse(readFileSync(resolve(__dirname, '../package.json'), 'utf8'));
+  const buildCommand = `tsc --build src --outDir dist --module commonjs --target es6 --jsx react`;
+  execSync(buildCommand);
+  console.log('Build complete.');
+};
+
+build();
