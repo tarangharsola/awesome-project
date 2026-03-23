@@ -5,21 +5,24 @@ interface KeyboardShortcut {
   handler: () => void;
 }
 
-const useKeyboardShortcuts = (shortcuts: KeyboardShortcut[]) => {
-  const [activeShortcut, setActiveShortcut] = useState(null);
+const useKeyboardShortcuts = () => {
+  const [shortcuts, setShortcuts] = useState<KeyboardShortcut[]>([]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const shortcut = shortcuts.find((shortcut) => shortcut.key === event.key);
       if (shortcut) {
-        setActiveShortcut(shortcut);
         shortcut.handler();
       }
     };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [shortcuts]);
 
-  return activeShortcut;
-};
+  return [shortcuts, setShortcuts];
+}
 export default useKeyboardShortcuts;
