@@ -1,20 +1,35 @@
-import React from 'react';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
 import Editor from './Editor';
 import UserList from './UserList';
-import Room from './Room';
-import LanguageSelector from './LanguageSelector';
+import WebSocket from './WebSocket';
 
 const App = () => {
+  const [users, setUsers] = useState([]);
+  const [editorContent, setEditorContent] = useState('');
+  const [language, setLanguage] = useState('javascript');
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'users') {
+        setUsers(data.users);
+      } else if (data.type === 'editorContent') {
+        setEditorContent(data.content);
+      }
+    };
+    return () => {
+      ws.close();
+    };
+  }, []);
+
   return (
-    <BrowserRouter>
-      <Switch>
-        <Route path="/" exact component={Editor} />
-        <Route path="/users" component={UserList} />
-        <Route path="/rooms/:roomId" component={Room} />
-        <Route path="/languages" component={LanguageSelector} />
-      </Switch>
-    </BrowserRouter>
+    <div>
+      <Editor content={editorContent} language={language} />
+      <UserList users={users} />
+      <WebSocket />
+    </div>
   );
 };
 
