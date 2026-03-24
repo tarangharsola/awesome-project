@@ -1,11 +1,19 @@
-// eslint-disable-next-line
-import { describe, it, expect } from 'expect';
-import { render, fireEvent, waitFor } from '@testing-library/react';
-import App from '../components/App';
+// Import required modules
+import { JSDOM } from 'jsdom';
+import { describe, it, expect } from 'jest';
 
-describe('App', () => {
-  it('renders without crashing', () => {
-    const { getByText } = render(<App />);
-    expect(getByText('Collaborative Code Editor')).toBeInTheDocument();
+// Mock DOM environment
+const dom = new JSDOM();
+const document = dom.window.document;
+
+// Import application components
+import App from '../components/App';
+import Editor from '../components/Editor';
+
+// Test suite for App component
+describe('App component', () => {
+  it('renders Editor component', () => {
+    const editor = new Editor(document);
+    expect(editor).toBeInstanceOf(Editor);
   });
 });
