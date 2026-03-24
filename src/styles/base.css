@@ -1,99 +1,10 @@
-{"body {
+body {
   font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
-#root {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-code {
-  font-family: monospace;
-  padding: 2px 4px;
-  border-radius: 4px;
   background-color: #f0f0f0;
 }
 
-pre {
-  padding: 10px;
+#editor {
+  width: 800px;
+  height: 600px;
   border: 1px solid #ccc;
-  border-radius: 5px;
 }
-
-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  background-color: #4CAF50;
-  color: #fff;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #3e8e41;
-}
-
-button:active {
-  background-color: #2e6e33;
-}
-
-textarea {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-textarea:focus {
-  outline: none;
-  border-color: #aaa;
-}
-
-select {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-select:focus {
-  outline: none;
-  border-color: #aaa;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-li {
-  padding: 10px;
-  border-bottom: 1px solid #ccc;
-}
-
-li:last-child {
-  border-bottom: none;
-}
-
-li:hover {
-  background-color: #f0f0f0;
-}
-
-li:active {
-  background-color: #e0e0e0;
-}
-
-a {
-  text-decoration: none;
-  color: #337ab7;
-}
-
-a:hover {
-  color: #23527c;
-}
-
-a:active {
-  color: #1e7e8c;
-}
-
