@@ -1,21 +1,23 @@
 {"import { useState, useEffect } from 'react';
-import { OperationalTransformation } from 'operational-transformation';
+import { OperationalTransformation } from 'ot-js';
 
 const useConflictResolver = () => {
-  const [conflicts, setConflicts] = useState([]);
-  const [resolved, setResolved] = useState(false);
+  const [editorState, setEditorState] = useState({});
+  const [conflict, setConflict] = useState(null);
 
   useEffect(() => {
     const ot = new OperationalTransformation();
-    ot.on('conflict', (conflict) => {
-      setConflicts([...conflicts, conflict]);
-    });
-    ot.on('resolved', () => {
-      setResolved(true);
+    ot.subscribe((delta) => {
+      setEditorState((prev) => ({ ...prev, ...delta }));
     });
   }, []);
 
-  return { conflicts, resolved };
+  const resolveConflict = (delta) => {
+    setEditorState((prev) => ({ ...prev, ...delta }));
+    setConflict(null);
+ );
+
+  return { editorState, conflict, resolveConflict };
 };
 
 export default useConflictResolver;

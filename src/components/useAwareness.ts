@@ -3,26 +3,39 @@ import { WebSocket } from 'ws';
 
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
-  const [cursorPositions, setCursorPositions] = useState({});
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
 
-    ws.on('message', (message) => {
-      const data = JSON.parse(message);
-      if (data.type === 'users') {
-        setUsers(data.users);
-      } else if (data.type === 'cursorPositions') {
-        setCursorPositions(data.cursorPositions);
-      }
-    });
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setUsers((prev) => [...prev, data]);
+    };
+
+    ws.onclose = () => {
+      console.log('Disconnected from awareness service.');
+    };
+
+    ws.onerror = (event) => {
+      console.error(event);
+    };
 
     return () => {
       ws.close();
     };
   }, []);
 
-  return { users, cursorPositions };
+  const addUser = (user) => {
+    setUsers((prev) => [...prev, user]);
+  };
+
+  const removeUser = (user) => {
+    setUsers((prev) => prev.filter((u) => u.id !== user.id));
+  };
+
+  return { users, addUser, removeUser };
 };
 
 export default useAwareness;
