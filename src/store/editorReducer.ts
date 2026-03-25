@@ -1,1 +1,15 @@
-{"import { Reducer } from 'redux';\nimport { reconnect } from './actions';\n\nconst editorReducer: Reducer<any, any> = (state = {}, action) => {\n  switch (action.type) {\n    case 'RECONNECT':\n      return { ...state, reconnecting: true };\n    default:\n      return state;\n  }\n};\n\nexport default editorReducer;
+import { EditorState, ContentState } from 'draft-js';
+import { updateEditorState } from './actions';
+
+const initialState = EditorState.createEmpty();
+
+const editorReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case 'UPDATE_EDITOR_STATE':
+      return action.editorState;
+    default:
+      return state;
+  }
+};
+
+export default editorReducer;

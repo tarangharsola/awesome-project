@@ -1,1 +1,16 @@
-{"import { Action } from 'redux';\n\ninterface ReconnectAction {\n  type: 'RECONNECT';\n  retryInterval: number;\n}\n\nconst reconnect: Action<ReconnectAction> = (retryInterval: number) => ({\n  type: 'RECONNECT',\n  retryInterval,\n});\n\nexport default reconnect;
+import { EditorState, ContentState } from 'draft-js';
+
+export const updateEditorState = (editorState: EditorState) => ({
+  type: 'UPDATE_EDITOR_STATE',
+  editorState,
+});
+
+export const addUser = (user: any) => ({
+  type: 'ADD_USER',
+  user,
+});
+
+export const removeUser = (user: any) => ({
+  type: 'REMOVE_USER',
+  user,
+});

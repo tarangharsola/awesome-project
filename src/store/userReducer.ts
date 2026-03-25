@@ -1,16 +1,13 @@
-{"import { Reducer } from 'redux';
-import { Action } from './actions';
+import { addUser, removeUser } from './actions';
 
 const initialState = [];
 
-const userReducer: Reducer = (state = initialState, action: Action) => {
+const userReducer = (state = initialState, action) => {
   switch (action.type) {
-    case 'JOIN_ROOM':
-      return [...state, action.id];
-    case 'LEAVE_ROOM':
-      return state.filter((id) => id !== action.id);
-    case 'UPDATE_ROOM':
-      return action.users;
+    case 'ADD_USER':
+      return [...state, action.user];
+    case 'REMOVE_USER':
+      return state.filter((user) => user.id !== action.user.id);
     default:
       return state;
   }

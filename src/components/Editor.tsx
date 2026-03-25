@@ -1,48 +1,39 @@
-{"import React, { useState, useEffect } from 'react';
-import CodeMirror from 'codemirror';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
+import React, { useState, useEffect } from 'react';
+import { EditorState, ContentState } from 'draft-js';
+import 'draft-js/dist/draft.min.css';
+import EditorToolbar from './EditorToolbar';
+import EditorContent from './EditorContent';
 
-const Editor = ({ content, language }) => {
-  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
-  const [cursorColor, setCursorColor] = useState('#000000');
+const Editor = () => {
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    const cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-      theme: 'monokai',
-      extraKeys: {
-        'Ctrl-Space': 'autocomplete'
+    const socket = new WebSocket('ws://localhost:8080');
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'update') {
+        setEditorState(data.editorState);
       }
-    });
-    cm.on('cursorActivity', () => {
-      setCursorPosition(cm.getCursor());
-      setCursorColor(cm.getOption('cursorColor'));
-    });
+      if (data.type === 'users') {
+        setUsers(data.users);
+      }
+    };
     return () => {
-      cm.toTextArea();
+      socket.close();
     };
   }, []);
 
+  const handleUpdate = (editorState) => {
+    setEditorState(editorState);
+    const socket = new WebSocket('ws://localhost:8080');
+    socket.send(JSON.stringify({ type: 'update', editorState }));
+  };
+
   return (
     <div>
-      <textarea id='editor' value={content} readOnly={true} />
-      <div>
-        <span style={{ color: cursorColor }}>{cursorPosition.line + 1}:{cursorPosition.ch + 1}</span>
-      </div>
+      <EditorToolbar onUpdate={handleUpdate} />
+      <EditorContent editorState={editorState} users={users} />
     </div>
   );
 };
