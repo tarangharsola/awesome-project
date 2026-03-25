@@ -9,9 +9,9 @@ const LanguageSelector = () => {
 
   return (
     <select value={language} onChange={handleLanguageChange}>
-      <option value='javascript'>JavaScript</option>
-      <option value='python'>Python</option>
-      <option value='html'>HTML</option>
+      <option value="javascript">JavaScript</option>
+      <option value="python">Python</option>
+      <option value="html">HTML</option>
     </select>
   );
 };

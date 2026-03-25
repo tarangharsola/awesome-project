@@ -1,24 +1,15 @@
 {"import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import { keymap } from 'prosemirror-keymap';
-import { history } from 'prosemirror-history';
+import { EditorProps } from './types';
 
-const editorState = EditorState.create({
+const defaultEditorState = EditorState.create({
   doc: '',
-  plugins: [
-    keymap({
-      'Mod-z': () => editorState.undo(),
-      'Mod-Shift-z': () => editorState.redo(),
-    }),
-    history(),
-  ],
+  selection: EditorState.selection.empty,
 });
 
-const editorView = new EditorView(document.getElementById('editor'), {
-  state: editorState,
-  dispatchTransaction: (transaction) => {
-    editorState = editorState.apply(transaction);
-  },
+const defaultEditorView = EditorView.create({
+  state: defaultEditorState,
+  dispatchTransaction: () => {}
 });
 
-export default editorView;
+export { defaultEditorState, defaultEditorView };
