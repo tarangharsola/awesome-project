@@ -1,10 +1,28 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
+.user-list {
+  display: flex;
+  flex-direction: column;
 }
 
-#editor {
-  width: 800px;
-  height: 600px;
-  border: 1px solid #ccc;
+.user {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.username {
+  margin-right: 10px;
+}
+
+.color {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.cursor {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 1;
 }
