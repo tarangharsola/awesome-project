@@ -1,16 +1,33 @@
-import { EditorState, ContentState } from 'draft-js';
+{"import { Action } from 'redux';
 
-export const updateEditorState = (editorState: EditorState) => ({
-  type: 'UPDATE_EDITOR_STATE',
-  editorState,
+interface JoinAction {
+  type: 'join';
+  data: { id: string; name: string; cursor: { x: number; y: number; };
+}
+}
+
+interface LeaveAction {
+  type: 'leave';
+  data: { id: string; name: string; cursor: { x: number; y: number; };
+}
+}
+
+interface UpdateAction {
+  type: 'update';
+  data: string;
+}
+
+export const join = (data: JoinAction['data']): JoinAction => ({
+  type: 'join',
+  data
 });
 
-export const addUser = (user: any) => ({
-  type: 'ADD_USER',
-  user,
+export const leave = (data: LeaveAction['data']): LeaveAction => ({
+  type: 'leave',
+  data
 });
 
-export const removeUser = (user: any) => ({
-  type: 'REMOVE_USER',
-  user,
+export const update = (data: UpdateAction['data']): UpdateAction => ({
+  type: 'update',
+  data
 });

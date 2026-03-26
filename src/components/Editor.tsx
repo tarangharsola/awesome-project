@@ -1,41 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import { EditorState, ContentState } from 'draft-js';
-import 'draft-js/dist/draft.min.css';
-import EditorToolbar from './EditorToolbar';
-import EditorContent from './EditorContent';
+{"import React, { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
+import { useUsers } from './useUsers';
+import { useConflictResolver } from './useConflictResolver';
+import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 
-const Editor = () => {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  const [users, setUsers] = useState([]);
+interface EditorProps {
+  language: string;
+  document: string;
+}
+
+const Editor: React.FC<EditorProps> = ({ language, document }) => {
+  const [text, setText] = useState(document);
+  const { send, receive } = useWebSocket();
+  const { users } = useUsers();
+  const { resolveConflict } = useConflictResolver();
+  const { shortcuts } = useKeyboardShortcuts();
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'update') {
-        setEditorState(data.editorState);
-      }
-      if (data.type === 'users') {
-        setUsers(data.users);
+    const handleReceive = (message: any) => {
+      if (message.type === 'update') {
+        resolveConflict(message.data);
       }
     };
-    return () => {
-      socket.close();
-    };
-  }, []);
+    receive(handleReceive);
+    return () => receive(handleReceive);
+  }, [receive, resolveConflict]);
 
-  const handleUpdate = (editorState) => {
-    setEditorState(editorState);
-    const socket = new WebSocket('ws://localhost:8080');
-    socket.send(JSON.stringify({ type: 'update', editorState }));
+  const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = event.target.value;
+    setText(newText);
+    send({ type: 'update', data: newText });
   };
 
   return (
-    <div>
-      <EditorToolbar onUpdate={handleUpdate} />
-      <EditorContent editorState={editorState} users={users} />
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      height: '100vh',
+      padding: 10
+    }}>
+      <textarea
+        style={{
+          width: '100%',
+          height: '100%',
+          padding: 10,
+          fontSize: 14,
+          fontFamily: 'monospace',
+          backgroundColor: '#f0f0f0',
+          border: 'none',
+          resize: 'none'
+        }}
+        value={text}
+        onChange={handleTextChange}
+      />
+      <div style={{
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        zIndex: 1
+      }}>
+        {users.map((user, index) => (
+          <CursorTracker
+            key={index}
+            cursor={user.cursor}
+            user={user.name}
+            color={user.color}
+          />
+        ))}
+      </div>
     </div>
   );
-};
+}
 
 export default Editor;

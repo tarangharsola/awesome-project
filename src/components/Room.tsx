@@ -1,36 +1,59 @@
 {"import React, { useState, useEffect } from 'react';
-import { useRoom } from './useRoom';
+import { useWebSocket } from './useWebSocket';
+import { useUsers } from './useUsers';
 
-interface Props {
-  id: string;
+interface RoomProps {
+  document: string;
 }
 
-const Room = ({ id }) => {
+const Room: React.FC<RoomProps> = ({ document }) => {
   const [users, setUsers] = useState([]);
-  const { join, leave, users: usersFromStore } = useRoom(id);
+  const { send, receive } = useWebSocket();
+  const { users: usersFromStore } = useUsers();
 
   useEffect(() => {
-    setUsers(usersFromStore);
-  }, [usersFromStore]);
+    const handleReceive = (message: any) => {
+      if (message.type === 'join') {
+        setUsers((prevUsers) => [...prevUsers, message.data]);
+      } else if (message.type === 'leave') {
+        setUsers((prevUsers) => prevUsers.filter((user) => user.id !== message.data.id));
+      }
+    };
+    receive(handleReceive);
+    return () => receive(handleReceive);
+  }, [receive, setUsers]);
 
   const handleJoin = () => {
-    join();
-  };
-
-  const handleLeave = () => {
-    leave();
+    const userId = Math.random().toString(36).substr(2, 9);
+    send({ type: 'join', data: { id: userId, name: 'User ' + userId } });
   };
 
   return (
-    <div>
-      <h2>Room {id}</h2>
-      <button onClick={handleJoin}>Join</button>
-      <button onClick={handleLeave}>Leave</button>
-      <ul>
-        {users.map((user) => (
-          <li key={user.name}>{user.name}</li>
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      height: '100vh',
+      padding: 10
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        zIndex: 1
+      }}>
+        {users.map((user, index) => (
+          <CursorTracker
+            key={index}
+            cursor={user.cursor}
+            user={user.name}
+            color={user.color}
+          />
         ))}
-      </ul>
+      </div>
+      <Editor
+        language='javascript'
+        document={document}
+      />
     </div>
   );
 }

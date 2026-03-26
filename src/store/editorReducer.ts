@@ -1,12 +1,28 @@
-import { EditorState, ContentState } from 'draft-js';
-import { updateEditorState } from './actions';
+{"import { Reducer } from 'redux';
+import { JoinAction, LeaveAction, UpdateAction } from './actions';
 
-const initialState = EditorState.createEmpty();
+const initialState = {
+  users: [],
+  document: ''
+};
 
-const editorReducer = (state = initialState, action) => {
+const editorReducer: Reducer<any, any> = (state = initialState, action) => {
   switch (action.type) {
-    case 'UPDATE_EDITOR_STATE':
-      return action.editorState;
+    case 'join':
+      return {
+        ...state,
+        users: [...state.users, action.data]
+      };
+    case 'leave':
+      return {
+        ...state,
+        users: state.users.filter((user) => user.id !== action.data.id)
+      };
+    case 'update':
+      return {
+        ...state,
+        document: action.data
+      };
     default:
       return state;
   }
