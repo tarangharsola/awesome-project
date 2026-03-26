@@ -1,41 +1,31 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+import { useEditor } from './useEditor';
+import { useUsers } from './useUsers';
 
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
-  const [ws, setWs] = useState(null);
+  const editor = useEditor();
+  const usersList = useUsers();
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setUsers((prev) => [...prev, data]);
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    ws.onclose = () => {
-      console.log('Disconnected from awareness service.');
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
     };
 
-    ws.onerror = (event) => {
-      console.error(event);
-    };
+    editor.on('userJoin', handleUserJoin);
+    editor.on('userLeave', handleUserLeave);
 
     return () => {
-      ws.close();
+      editor.off('userJoin', handleUserJoin);
+      editor.off('userLeave', handleUserLeave);
     };
-  }, []);
+  }, [editor, usersList]);
 
-  const addUser = (user) => {
-    setUsers((prev) => [...prev, user]);
-  };
-
-  const removeUser = (user) => {
-    setUsers((prev) => prev.filter((u) => u.id !== user.id));
-  };
-
-  return { users, addUser, removeUser };
+  return users;
 };
 
 export default useAwareness;
