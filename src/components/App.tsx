@@ -1,15 +1,11 @@
-import React from 'react';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import Editor from './Editor';
+{"import React from 'react';
+import ReconnectionHandler from './ReconnectionHandler';
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Switch>
-        <Route path="/" exact component={Editor} />
-      </Switch>
-    </BrowserRouter>
+    <div>
+      <ReconnectionHandler />
+    </div>
   );
 };
-
 export default App;
