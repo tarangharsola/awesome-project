@@ -1,23 +1,14 @@
-{"import { useState, useEffect } from 'react';
+{"import { useSlate } from 'slate-react';
 
-interface EditorState {
-  code: string;
-  language: string;
+interface EditorProps {
+  value: any;
+  onChange: (value: any) => void;
 }
 
-const useEditor = () => {
-  const [editorState, setEditorState] = useState<EditorState>({ code: '', language: '' });
+const useEditor = (props: EditorProps) => {
+  const editor = useSlate(props);
 
-  const formatCode = (code: string, language: string) => {
-    // Implement code formatting logic here
-    return code;
-  };
-
-  useEffect(() => {
-    // Implement editor state synchronization logic here
-  }, []);
-
-  return { formatCode, editorState, setEditorState };
+  return editor;
 
   return useEditor;
 }
