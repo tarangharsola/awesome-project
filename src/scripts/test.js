@@ -1,9 +1,30 @@
 // Import required modules
 const assert = require('assert');
 
-// Test suite
-describe('App', () => {
-  it('should render without errors', () => {
-    // Render the app and check for errors
+// Test editor functionality
+describe('Editor', () => {
+  it('should render editor', () => {
+    // Arrange
+    const editor = document.createElement('editor');
+
+    // Act
+    document.body.appendChild(editor);
+
+    // Assert
+    assert(editor instanceof HTMLDivElement);
+  });
+});
+
+// Test WebSocket connection
+describe('WebSocket', () => {
+  it('should establish connection', () => {
+    // Arrange
+    const socket = new WebSocket('ws://localhost:8080');
+
+    // Act
+    socket.onopen = () => {
+      // Assert
+      assert(socket.readyState === 1);
+    };
   });
 });

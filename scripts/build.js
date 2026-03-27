@@ -1,13 +1,9 @@
-// Import required modules
-const gulp = require('gulp');
-const ts = require('gulp-typescript');
-const sourcemaps = require('gulp-sourcemaps');
+const { execSync } = require('child_process');
 
-// Define the build task
-gulp.task('build', () => {
-  return gulp.src('src/**/*.ts')
-    .pipe(sourcemaps.init())
-    .pipe(ts())
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('dist'));
-});
+module.exports = () => {
+  // Run tests
+  execSync('jest');
+
+  // Build application
+  execSync('webpack');
+};
