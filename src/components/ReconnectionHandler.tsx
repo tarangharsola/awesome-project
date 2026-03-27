@@ -1,1 +1,12 @@
-{"import React from 'react';\nimport ReconnectionHandler from './ReconnectionHandler';\n\nconst App: React.FC = () => {\n  return (\n    <div>\n      <ReconnectionHandler retryInterval={5000}>\n        <h1>Collaborative Code Editor</h1>\n      </ReconnectionHandler>\n    </div>\n  );\n};\n\nexport default App;
+{"import React from 'react';
+import ReconnectionHandler from './ReconnectionHandler';
+
+const App = () => {
+  return (
+    <div>
+      <ReconnectionHandler />
+    </div>
+  );
+};
+
+export default App;
