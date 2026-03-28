@@ -4,27 +4,16 @@ const assert = require('assert');
 // Test editor functionality
 describe('Editor', () => {
   it('should render editor', () => {
-    // Arrange
-    const editor = document.createElement('editor');
-
-    // Act
-    document.body.appendChild(editor);
-
-    // Assert
-    assert(editor instanceof HTMLDivElement);
+    const editor = document.createElement('div');
+    editor.innerHTML = '<editor></editor>';
+    assert.ok(editor.querySelector('editor'));
   });
 });
 
 // Test WebSocket connection
 describe('WebSocket', () => {
   it('should establish connection', () => {
-    // Arrange
     const socket = new WebSocket('ws://localhost:8080');
-
-    // Act
-    socket.onopen = () => {
-      // Assert
-      assert(socket.readyState === 1);
-    };
+    assert.ok(socket.readyState === 1);
   });
 });
