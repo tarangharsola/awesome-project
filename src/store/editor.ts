@@ -1,15 +1,8 @@
-{"import { EditorState } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { EditorProps } from './types';
+{"import { combineReducers } from 'redux';
+import { editorReducer } from './editorReducer';
 
-const defaultEditorState = EditorState.create({
-  doc: '',
-  selection: EditorState.selection.empty,
+const editorReducer = combineReducers({
+  editor: editorReducer
 });
 
-const defaultEditorView = EditorView.create({
-  state: defaultEditorState,
-  dispatchTransaction: () => {}
-});
-
-export { defaultEditorState, defaultEditorView };
+export default editorReducer;

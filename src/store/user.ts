@@ -1,6 +1,8 @@
-{"import { createStore } from 'redux';
-import userReducer from './userReducer';
+{"import { combineReducers } from 'redux';
+import { userReducer } from './userReducer';
 
-const store = createStore(userReducer);
+const userReducer = combineReducers({
+  user: userReducer
+});
 
-export default store;
+export default userReducer;

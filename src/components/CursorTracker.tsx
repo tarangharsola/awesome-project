@@ -1,20 +1,19 @@
 {"import React from 'react';
-import { useCursor } from './useCursor';
+import { useSelector } from 'react-redux';
+import { EditorState } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { schema } from 'prosemirror-schema-basic';
 
-interface Props {
-  cursor: { x: number; y: number; name: string; color: string; }
-}
+function CursorTracker() {
+  const { cursorPositions, users } = useSelector((state) => state.users);
 
-const CursorTracker = ({ cursor }) => {
   return (
-    <div className="cursor" style={{
-      left: cursor.x + 'px',
-      top: cursor.y + 'px',
-      backgroundColor: cursor.color,
-    }}>
-      <span className="cursor-name">{cursor.name}</span>
+    <div>
+      {users.map((user, index) => (
+        <div key={index}>{user.name}</div>
+      ))}
     </div>
   );
-};
+}
 
 export default CursorTracker;

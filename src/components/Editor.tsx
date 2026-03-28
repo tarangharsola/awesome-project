@@ -1,35 +1,47 @@
 {"import React, { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-editors';
-import LanguageSelector from './LanguageSelector';
+import { useSelector, useDispatch } from 'react-redux';
+import { EditorState, Editor } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { schema } from 'prosemirror-schema-basic';
+import { dispatchState } from './useEditor';
 
-interface EditorProps {
-  language: string;
-  value: string;
-  onChange: (value: string) => void;
-}
-
-const EditorComponent: React.FC<EditorProps> = ({ language, value, onChange }) => {
-  const [formattedValue, setFormattedValue] = useState(value);
+function Editor() {
+  const [editorState, setEditorState] = useState(EditorState.create({
+    doc: schema.node(schema.nodes.paragraph, []),
+    selection: schema.selection.empty()
+  }));
+  const dispatch = useDispatch();
+  const { cursorPositions, users } = useSelector((state) => state.users);
 
   useEffect(() => {
-    setFormattedValue(value);
-  }, [value]);
+    dispatch(dispatchState(editorState));
+  }, [editorState]);
 
-  const handleFormat = () => {
-    // implement formatting logic here
+  const handleCursorChange = (cursorPosition) => {
+    dispatch({
+      type: 'UPDATE_CURSOR_POSITION',
+      payload: cursorPosition
+    });
   };
 
   return (
-    <div className="editor">
-      <LanguageSelector languages={languages} selectedLanguage={language} onSelect={handleFormat} />
-      <Editor
-        value={formattedValue}
-        onChange={(value) => onChange(value)}
-        language={language}
+    <div>
+      <EditorView
+        editorState={editorState}
+        dispatchTransaction={(transaction) => {
+          setEditorState(transaction);
+        }}
+        onChange={(state) => {
+          handleCursorChange(state.selection.from);
+        }}
       />
+      <div>
+        {users.map((user, index) => (
+          <div key={index}>{user.name}</div>
+        ))}
+      </div>
     </div>
   );
-
-  return EditorComponent;
 }
-export default EditorComponent;
+
+export default Editor;
