@@ -1,27 +1,26 @@
-{"import { useState, useEffect } from 'react';
+{"import React from 'react';
 import { useEditor } from './useEditor';
+import { useUsers } from './useUsers';
 
 const useAwareness = () => {
-  const [users, setUsers] = useState([]);
   const editor = useEditor();
+  const users = useUsers();
 
-  useEffect(() => {
-    const handleUserJoin = (user) => {
-      setUsers((prevUsers) => [...prevUsers, user]);
-    };
+  const handleUserJoin = (user) => {
+    editor.addUser(user);
+  };
 
-    const handleUserLeave = (user) => {
-      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
-    };
+  const handleUserLeave = (user) => {
+    editor.removeUser(user);
+  };
 
-    editor.on('userJoin', handleUserJoin);
-    editor.on('userLeave', handleUserLeave);
+  React.useEffect(() => {
+    users.forEach((user) => handleUserJoin(user));
 
     return () => {
-      editor.off('userJoin', handleUserJoin);
-      editor.off('userLeave', handleUserLeave);
+      users.forEach((user) => handleUserLeave(user));
     };
-  }, [editor]);
+  }, [users]);
 
   return users;
 };
