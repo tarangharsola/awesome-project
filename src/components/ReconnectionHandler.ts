@@ -14,11 +14,14 @@ const ReconnectionHandler = () => {
     return () => clearInterval(intervalId);
   }, [connected, retryCount]);
 
+  const handleConnectionStatus = (status) => {
+    setConnected(status);
+  };
+
   return (
     <div>
       {connected ? 'Connected' : `Disconnected (retry count: ${retryCount})`}
     </div>
   );
 };
-
 export default ReconnectionHandler;
