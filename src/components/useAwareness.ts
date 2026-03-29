@@ -6,21 +6,20 @@ const useAwareness = () => {
   const editor = useEditor();
   const users = useUsers();
 
-  const handleUserJoin = (user) => {
-    editor.addUser(user);
-  };
-
-  const handleUserLeave = (user) => {
-    editor.removeUser(user);
-  };
-
   React.useEffect(() => {
-    users.forEach((user) => handleUserJoin(user));
-
-    return () => {
-      users.forEach((user) => handleUserLeave(user));
+    const handleUserJoin = (user) => {
+      editor.broadcastUserJoin(user);
     };
-  }, [users]);
+    const handleUserLeave = (user) => {
+      editor.broadcastUserLeave(user);
+    };
+    users.on('join', handleUserJoin);
+    users.on('leave', handleUserLeave);
+    return () => {
+      users.off('join', handleUserJoin);
+      users.off('leave', handleUserLeave);
+    };
+  }, [editor, users]);
 
   return users;
 };

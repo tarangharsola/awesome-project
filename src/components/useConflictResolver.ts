@@ -9,12 +9,8 @@ const useConflictResolver = () => {
     const handleConflict = (conflict) => {
       resolveConflict(conflict);
     };
-
     editor.on('conflict', handleConflict);
-
-    return () => {
-      editor.off('conflict', handleConflict);
-    };
+    return () => editor.off('conflict', handleConflict);
   }, [editor]);
 
   return conflicts;
