@@ -1,14 +1,12 @@
 {"import React from 'react';
-import { Provider } from 'react-redux';
-import store from './store/index';
-import Editor from './components/Editor';
+import ReconnectionHandler from './ReconnectionHandler';
 
-function App() {
+const App: React.FC = () => {
   return (
-    <Provider store={store}>
-      <Editor />
-    </Provider>
+    <div>
+      <ReconnectionHandler onReconnect={() => console.log('Reconnected!')}>Hello World!</ReconnectionHandler>
+    </div>
   );
-}
+};
 
 export default App;
