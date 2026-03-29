@@ -1,27 +1,35 @@
 {"import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { EditorState } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { schema } from 'prosemirror-schema-basic';
+import { useState } from 'react';
 
-function LanguageSelector() {
-  const dispatch = useDispatch();
-  const { language } = useSelector((state) => state.editor);
+interface Props {
+  languages: string[];
+  selectedLanguage: string;
+  onChange: (language: string) => void;
+}
 
-  const handleLanguageChange = (language) => {
-    dispatch({
-      type: 'UPDATE_LANGUAGE',
-      payload: language
-    });
+const LanguageSelector: React.FC<Props> = ({ languages, selectedLanguage, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = (language: string) => {
+    onChange(language);
+    setIsOpen(false);
   };
 
   return (
-    <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
-      <option value='javascript'>JavaScript</option>
-      <option value='python'>Python</option>
-      <option value='html'>HTML</option>
-    </select>
+    <div>
+      <button onClick={() => setIsOpen(true)}>Select Language</button>
+      {isOpen && (
+        <div>
+          {languages.map((language, index) => (
+            <button key={index} onClick={() => handleSelect(language)}>
+              {language}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
-}
 
+  return LanguageSelector;
+}
 export default LanguageSelector;
