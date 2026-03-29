@@ -1,45 +1,34 @@
 {"import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { EditorState, Editor } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { schema } from 'prosemirror-schema-basic';
-import { dispatchState } from './useEditor';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
+import CursorTracker from './CursorTracker';
 
-function Editor() {
-  const [editorState, setEditorState] = useState(EditorState.create({
-    doc: schema.node(schema.nodes.paragraph, []),
-    selection: schema.selection.empty()
-  }));
-  const dispatch = useDispatch();
-  const { cursorPositions, users } = useSelector((state) => state.users);
+interface Props {
+  language: string;
+}
+
+const Editor: React.FC<Props> = ({ language }) => {
+  const [code, setCode] = useState('');
+  const { send, receive } = useWebSocket();
+  const { cursor, users } = useEditor(language);
 
   useEffect(() => {
-    dispatch(dispatchState(editorState));
-  }, [editorState]);
-
-  const handleCursorChange = (cursorPosition) => {
-    dispatch({
-      type: 'UPDATE_CURSOR_POSITION',
-      payload: cursorPosition
+    receive((data) => {
+      setCode(data.code);
     });
-  };
+  }, []);
+
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    send({ type: 'code-change', code: newCode });
+  }
 
   return (
     <div>
-      <EditorView
-        editorState={editorState}
-        dispatchTransaction={(transaction) => {
-          setEditorState(transaction);
-        }}
-        onChange={(state) => {
-          handleCursorChange(state.selection.from);
-        }}
-      />
-      <div>
-        {users.map((user, index) => (
-          <div key={index}>{user.name}</div>
-        ))}
-      </div>
+      <textarea value={code} onChange={(e) => handleCodeChange(e.target.value)} />
+      {users.map((user) => (
+        <CursorTracker key={user.username} cursor={user.cursor} username={user.username} color={user.color} />
+      ))}
     </div>
   );
 }
