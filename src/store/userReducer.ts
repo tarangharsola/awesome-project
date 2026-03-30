@@ -1,11 +1,13 @@
-{"import { createReducer } from 'redux';
-import { USER_JOIN, USER_LEAVE } from './actions';
+{"import { Reducer } from 'redux';
+import { setUsers } from './actions';
 
-const initialState = [];
-
-const userReducer = createReducer(initialState, {
-  [USER_JOIN]: (state, action) => [...state, action.user],
-  [USER_LEAVE]: (state, action) => state.filter((user) => user.username !== action.user.username),
-});
+const userReducer: Reducer<{ users: { name: string; color: string }[] }, any> = (state = [], action) => {
+  switch (action.type) {
+    case 'SET_USERS':
+      return action.users;
+    default:
+      return state;
+  }
+};
 
 export default userReducer;

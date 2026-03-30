@@ -1,5 +1,18 @@
-{"function generateRandomColor() {
-  return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+{"import { WebSocket } from 'ws';
+
+const ws = new WebSocket('ws://localhost:8080');
+
+export function connectWebSocket() {
+  return new Promise((resolve, reject) => {
+    ws.onmessage = (event) => {
+      resolve(JSON.parse(event.data));
+    };
+    ws.onerror = (event) => {
+      reject(event);
+    };
+  });
 }
 
-export { generateRandomColor };
+export function disconnectWebSocket() {
+  ws.close();
+}

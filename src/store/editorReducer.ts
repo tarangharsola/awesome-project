@@ -1,16 +1,13 @@
-{"import { createReducer } from 'redux';
-import { EDITOR_CODE_CHANGE } from './actions';
+{"import { Reducer } from 'redux';
+import { setCursor } from './actions';
 
-const initialState = {
-  code: '',
-  users: [],
+const editorReducer: Reducer<{ cursor: { x: number; y: number }; }, any> = (state = { cursor: { x: 0, y: 0 } }, action) => {
+  switch (action.type) {
+    case 'SET_CURSOR':
+      return { ...state, cursor: action.cursor };
+    default:
+      return state;
+  }
 };
-
-const editorReducer = createReducer(initialState, {
-  [EDITOR_CODE_CHANGE]: (state, action) => ({
-    ...state,
-    code: action.code,
-  }),
-});
 
 export default editorReducer;

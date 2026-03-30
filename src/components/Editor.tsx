@@ -1,35 +1,34 @@
-{"import React, { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-editors';
-import { useLanguage } from './useLanguage';
+{"import React from 'react';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
 
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
-
-const EditorComponent: React.FC<Props> = ({ value, onChange, language }) => {
-  const [formattedValue, setFormattedValue] = useState(value);
-  const [languageState, setLanguageState] = useState(language);
-
-  useEffect(() => {
-    setLanguageState(language);
-  }, [language]);
-
-  const handleFormat = () => {
-    const formattedValue = formatCode(value);
-    setFormattedValue(formattedValue);
-  };
-
+const Editor = () => {
+  const { value, onChange } = useEditor();
+  const { connection } = useWebSocket();
   return (
-    <Editor
-      value={formattedValue}
-      onChange={(value) => onChange(value)}
-      language={languageState}
-      onFormat={handleFormat}
-    />
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      height: '100vh',
+      overflow: 'hidden',
+    }}>
+      <textarea style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        padding: 10,
+        fontSize: 14,
+        fontFamily: 'monospace',
+      }}
+        value={value}
+        onChange={onChange}
+      />
+      <CursorTracker cursor={connection.cursor} />
+      <UserList />
+    </div>
   );
-
-  return EditorComponent;
 }
-export default EditorComponent;
+
+export default Editor;
