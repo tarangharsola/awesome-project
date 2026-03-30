@@ -1,34 +1,30 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
+{"import React, { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-editor';
+import { useLanguage } from './useLanguage';
 
-const Editor = () => {
-  const { value, onChange } = useEditor();
-  const { connection } = useWebSocket();
-  return (
-    <div style={{
-      position: 'relative',
-      width: '100%',
-      height: '100vh',
-      overflow: 'hidden',
-    }}>
-      <textarea style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        padding: 10,
-        fontSize: 14,
-        fontFamily: 'monospace',
-      }}
-        value={value}
-        onChange={onChange}
-      />
-      <CursorTracker cursor={connection.cursor} />
-      <UserList />
-    </div>
-  );
+interface EditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  language: string;
 }
 
-export default Editor;
+const EditorComponent = ({ value, onChange, language }) => {
+  const [formattedValue, setFormattedValue] = useState(value);
+  const { formatCode } = useLanguage(language);
+
+  useEffect(() => {
+    const formattedValue = formatCode(value);
+    setFormattedValue(formattedValue);
+  }, [value, language]);
+
+  return (
+    <Editor
+      value={formattedValue}
+      onChange={(newValue) => onChange(newValue)}
+      language={language}
+    />
+  );
+
+  return EditorComponent;
+}
+export default EditorComponent;

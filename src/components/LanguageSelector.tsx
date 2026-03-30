@@ -1,31 +1,31 @@
 {"import React from 'react';
 import { useState } from 'react';
 
-interface Props {
+interface LanguageSelectorProps {
   languages: string[];
   selectedLanguage: string;
   onChange: (language: string) => void;
 }
 
-const LanguageSelector: React.FC<Props> = ({ languages, selectedLanguage, onChange }) => {
+const LanguageSelector = ({ languages, selectedLanguage, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleSelect = (language: string) => {
+  const handleLanguageChange = (language: string) => {
     onChange(language);
     setIsOpen(false);
   };
 
   return (
     <div>
-      <button onClick={() => setIsOpen(true)}>Select Language</button>
+      <button onClick={() => setIsOpen(!isOpen)}>Select Language</button>
       {isOpen && (
-        <div>
-          {languages.map((language, index) => (
-            <button key={index} onClick={() => handleSelect(language)}>
+        <ul>
+          {languages.map((language) => (
+            <li key={language} onClick={() => handleLanguageChange(language)}>
               {language}
-            </button>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
