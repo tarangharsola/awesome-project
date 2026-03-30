@@ -1,9 +1,12 @@
 // Import required modules
 const assert = require('assert');
 
-// Test suite
-describe('App', () => {
-  it('should render without errors', () => {
-    // Render the app and check for errors
+// Define test suite
+describe('Collaborative Editor', () => {
+  it('should render editor component', () => {
+    // Render editor component
+    const editor = render(<Editor />);
+    // Assert editor component is rendered
+    assert.ok(editor);
   });
 });

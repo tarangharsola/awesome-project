@@ -1,12 +1,14 @@
 // Import required modules
 const childProcess = require('child_process');
+const fs = require('fs');
 
-// Define CI script
-module.exports = async () => {
-  // Run tests and build script
-  const testResult = await childProcess.execSync('npm test');
-  const buildResult = await childProcess.execSync('npm run build');
-  // Assert test and build results
-  assert.strictEqual(testResult.status, 0);
-  assert.strictEqual(buildResult.status, 0);
-};
+// Define build script
+function build() {
+  // Run tests
+  childProcess.execSync('jest');
+  // Build application
+  childProcess.execSync('npm run build');
+}
+
+// Export build function
+module.exports = build;
