@@ -3,17 +3,11 @@ import { useEditor } from './useEditor';
 
 const useConflictResolver = () => {
   const editor = useEditor();
-  const { conflicts, resolveConflict } = editor;
-
-  React.useEffect(() => {
-    const handleConflict = (conflict) => {
-      resolveConflict(conflict);
-    };
-    editor.on('conflict', handleConflict);
-    return () => editor.off('conflict', handleConflict);
-  }, [editor]);
-
-  return conflicts;
+  const conflicts = editor.getConflicts();
+  const resolveConflict = (conflict) => {
+    editor.resolveConflict(conflict);
+  };
+  return { conflicts, resolveConflict };
 };
 
 export default useConflictResolver;

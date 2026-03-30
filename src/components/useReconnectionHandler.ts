@@ -2,17 +2,11 @@
 import { useWebSocket } from './useWebSocket';
 
 const useReconnectionHandler = () => {
-  const { reconnect, isReconnecting } = useWebSocket();
-
-  React.useEffect(() => {
-    const handleReconnect = () => {
-      reconnect();
-    };
-    window.addEventListener('beforeunload', handleReconnect);
-    return () => window.removeEventListener('beforeunload', handleReconnect);
-  }, []);
-
-  return isReconnecting;
+  const { reconnect, reconnectionError } = useWebSocket();
+  const handleReconnection = () => {
+    reconnect();
+  };
+  return { handleReconnection, reconnectionError };
 };
 
 export default useReconnectionHandler;
