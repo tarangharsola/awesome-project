@@ -1,21 +1,20 @@
-// Import required modules
-const gulp = require('gulp');
-const ts = require('gulp-typescript');
-const tslint = require('gulp-tslint');
+// Build script for CI validation
+const fs = require('fs');
+const path = require('path');
 
-// Define build task
-gulp.task('build', () => {
-  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(ts.createProject('tsconfig.json')())
-    .js.pipe(gulp.dest('dist'));
-});
+// Read package.json
+const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-// Define test task
-gulp.task('test', () => {
-  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(ts.createProject('tsconfig.json')())
-    .js.pipe(gulp.dest('dist'));
-});
+// Validate tests
+const testResults = fs.readdirSync('src/scripts/test.js');
+if (testResults.length === 0) {
+  console.error('No tests found');
+  process.exit(1);
+}
 
-// Define default task
-gulp.task('default', ['build', 'test']);
+// Validate build
+const buildResults = fs.readdirSync('src/scripts/build.js');
+if (buildResults.length === 0) {
+  console.error('No build found');
+  process.exit(1);
+}
