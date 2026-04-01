@@ -1,1 +1,35 @@
-{"import React, { useState, useEffect } from 'react';\n\nconst ReconnectionHandler = ({ children }) => {\n  const [connected, setConnected] = useState(false);\n  const [retryCount, setRetryCount] = useState(0);\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      if (!connected) {\n        setRetryCount(retryCount + 1);\n      }\n    }, 5000);\n    return () => clearInterval(intervalId);\n  }, [connected]);\n\n  const handleConnect = () => {\n    setConnected(true);\n    setRetryCount(0);\n  };\n\n  const handleDisconnect = () => {\n    setConnected(false);\n  };\n\n  return (\n    <div>\n      {children}\n      <p>\n        {connected ? 'Connected' : `Disconnected (retry ${retryCount})`}\n      </p>\n    </div>\n  );\n};\n\nexport default ReconnectionHandler;
+{"import { useState, useEffect } from 'react';
+import { WebSocket } from 'ws';
+
+const ReconnectionHandler = () => {
+  const [reconnecting, setReconnecting] = useState(false);
+  const [ws, setWs] = useState(null);
+
+  useEffect(() => {
+    const wsUrl = 'ws://localhost:8080';
+    const wsOptions = {
+      rejectUnauthorized: false
+    };
+
+    const reconnect = () => {
+      setReconnecting(true);
+      const newWs = new WebSocket(wsUrl, wsOptions);
+      newWs.onopen = () => {
+        setWs(newWs);
+        setReconnecting(false);
+      };
+      newWs.onclose = () => {
+        reconnect();
+      };
+    };
+
+    reconnect();
+  }, []);
+
+  return {
+    reconnecting,
+    ws
+  };
+};
+
+export default ReconnectionHandler;
