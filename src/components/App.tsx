@@ -3,10 +3,9 @@ import ReconnectionHandler from './ReconnectionHandler';
 
 const App: React.FC = () => {
   return (
-    <div>
-      <ReconnectionHandler onReconnect={() => console.log('Reconnected!')}>Hello World!</ReconnectionHandler>
-    </div>
+    <ReconnectionHandler>
+      {/* Your app content here */}
+    </ReconnectionHandler>
   );
 };
-
 export default App;
