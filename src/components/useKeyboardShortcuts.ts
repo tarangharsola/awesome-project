@@ -5,25 +5,21 @@ interface KeyboardShortcutsProps {
   onChange: (shortcut: string) => void;
 }
 
-const useKeyboardShortcuts = ({ shortcuts, onChange }) => {
-  const [currentShortcut, setCurrentShortcut] = useState('');
+const useKeyboardShortcuts = ({ shortcuts, onChange }: KeyboardShortcutsProps) => {
+  const [activeShortcut, setActiveShortcut] = useState('');
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (shortcuts[event.key]) {
+        setActiveShortcut(shortcuts[event.key]);
         onChange(shortcuts[event.key]);
-        setCurrentShortcut(shortcuts[event.key]);
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [shortcuts, onChange]);
 
-  return { currentShortcut };
+  return activeShortcut;
 
   return useKeyboardShortcuts;
 }

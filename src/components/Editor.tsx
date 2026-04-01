@@ -1,35 +1,32 @@
-{"import React from 'react';
-import { useState } from 'react';
-import LanguageSelector from './LanguageSelector';
+{"import React, { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-editor';
+import { useLanguage } from './useLanguage';
 
-interface Props {
+interface EditorProps {
   value: string;
   onChange: (value: string) => void;
-  languages: string[];
-  selectedLanguage: string;
+  language: string;
 }
 
-const Editor = ({ value, onChange, languages, selectedLanguage }) => {
+const EditorComponent: React.FC<EditorProps> = ({ value, onChange, language }) => {
   const [formattedValue, setFormattedValue] = useState(value);
+  const { formatCode } = useLanguage(language);
 
-  const handleFormat = () => {
-    // Format the value based on the selected language
-    const formattedValue = formatValue(value, selectedLanguage);
-    setFormattedValue(formattedValue);
-  };
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setFormattedValue(formatCode(value));
+    }, 100);
+    return () => clearInterval(intervalId);
+  }, [value, language]);
 
   return (
-    <div>
-      <LanguageSelector
-        languages={languages}
-        selectedLanguage={selectedLanguage}
-        onChange={(language) => onChange(language)}
-      />
-      <textarea value={formattedValue} onChange={(e) => onChange(e.target.value)} />
-      <button onClick={handleFormat}>Format</button>
-    </div>
+    <Editor
+      value={formattedValue}
+      onChange={onChange}
+      language={language}
+    />
   );
 
-  return Editor;
+  return EditorComponent;
 }
-export default Editor;
+export default EditorComponent;
