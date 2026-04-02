@@ -1,11 +1,14 @@
 {"import React from 'react';
-import ReconnectionHandler from './ReconnectionHandler';
+import { Provider } from 'react-redux';
+import store from './store/index';
+import Editor from './Editor';
 
-const App: React.FC = () => {
+const App = () => {
   return (
-    <ReconnectionHandler>
-      {/* Your app content here */}
-    </ReconnectionHandler>
+    <Provider store={store}>
+      <Editor />
+    </Provider>
   );
 };
+
 export default App;

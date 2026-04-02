@@ -1,33 +1,28 @@
 {"import React, { useState, useEffect } from 'react';
-import { useLanguage } from './useLanguage';
-import LanguageSelector from './LanguageSelector';
+import { useSelector, useDispatch } from 'react-redux';
+import { EditorState, Editor } from 'prosemirror-editor';
+import { history } from './useWebSocket';
 
-interface EditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
-
-const Editor: React.FC<EditorProps> = ({ value, onChange, language }) => {
-  const [formattedValue, setFormattedValue] = useState(value);
-  const { formatCode } = useLanguage(language);
+const EditorComponent = () => {
+  const dispatch = useDispatch();
+  const editorState = useSelector((state) => state.editor);
+  const [editor, setEditor] = useState(null);
 
   useEffect(() => {
-    setFormattedValue(formatCode(value));
-  }, [value, language]);
+    const editorInstance = new EditorState();
+    setEditor(editorInstance);
+  }, []);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(event.target.value);
+  const handleTextChange = (text) => {
+    dispatch({ type: 'UPDATE_EDITOR_STATE', payload: text });
   };
 
   return (
-    <div>
-      <textarea value={formattedValue} onChange={handleInputChange} />
-      <LanguageSelector languages={['JavaScript', 'Python', 'HTML']} selectedLanguage={language} onChange={setLanguage} />
-    </div>
+    <Editor
+      value={editorState}
+      onChange={handleTextChange}
+    />
   );
+};
 
-  return Editor;
-}
-
-export default Editor;
+export default EditorComponent;
