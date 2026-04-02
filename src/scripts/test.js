@@ -1,13 +1,15 @@
 // Import required modules
 const assert = require('assert');
 
-// Define test suite
-describe('Collaborative Editor', () => {
-  it('should render editor component', () => {
-    // Render editor component
-    const editor = render(<Editor />);
+// Test suite
+describe('Collaborative Code Editor', () => {
+  it('should render editor and users list', () => {
+    // Render editor and users list
+    const editor = document.getElementById('editor');
+    const usersList = document.getElementById('users-list');
 
-    // Assert editor component is rendered
-    assert.ok(editor);
+    // Assert editor and users list are rendered
+    assert(editor !== null);
+    assert(usersList !== null);
   });
 });
