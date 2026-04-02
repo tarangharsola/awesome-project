@@ -1,35 +1,29 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+import { useEditor } from './useEditor';
 
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
-  const [cursorPositions, setCursorPositions] = useState({});
+  const editor = useEditor();
 
   useEffect(() => {
-    const wsUrl = 'ws://localhost:8080';
-    const wsOptions = {
-      rejectUnauthorized: false
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    const ws = new WebSocket(wsUrl, wsOptions);
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'users') {
-        setUsers(message.users);
-      } else if (message.type === 'cursorPositions') {
-        setCursorPositions(message.cursorPositions);
-      }
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
     };
+
+    editor.on('userJoin', handleUserJoin);
+    editor.on('userLeave', handleUserLeave);
 
     return () => {
-      ws.close();
+      editor.off('userJoin', handleUserJoin);
+      editor.off('userLeave', handleUserLeave);
     };
-  }, []);
+  }, [editor]);
 
-  return {
-    users,
-    cursorPositions
-  };
+  return users;
 };
 
 export default useAwareness;
