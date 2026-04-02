@@ -15,12 +15,15 @@ const useKeyboardShortcuts = ({ shortcuts, onChange }: KeyboardShortcutsProps) =
         onChange(shortcuts[event.key]);
       }
     };
+
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [shortcuts, onChange]);
 
   return activeShortcut;
-
-  return useKeyboardShortcuts;
 }
+
 export default useKeyboardShortcuts;
