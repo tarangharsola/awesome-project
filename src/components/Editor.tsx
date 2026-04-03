@@ -1,28 +1,37 @@
 {"import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { EditorState, Editor } from 'prosemirror-editor';
-import { history } from './useWebSocket';
+import { Editor } from 'react-simple-editor';
+import { useLanguage } from './useLanguage';
 
-const EditorComponent = () => {
-  const dispatch = useDispatch();
-  const editorState = useSelector((state) => state.editor);
-  const [editor, setEditor] = useState(null);
+interface EditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  language: string;
+}
+
+const EditorComponent: React.FC<EditorProps> = ({ value, onChange, language }) => {
+  const [formattedValue, setFormattedValue] = useState(value);
+  const [languageState, setLanguageState] = useState(language);
 
   useEffect(() => {
-    const editorInstance = new EditorState();
-    setEditor(editorInstance);
-  }, []);
+    setLanguageState(language);
+  }, [language]);
 
-  const handleTextChange = (text) => {
-    dispatch({ type: 'UPDATE_EDITOR_STATE', payload: text });
+  const handleFormat = () => {
+    // implement formatting logic here
   };
 
   return (
     <Editor
-      value={editorState}
-      onChange={handleTextChange}
+      value={formattedValue}
+      onChange={(value) => {
+        onChange(value);
+        setFormattedValue(value);
+      }}
+      language={languageState}
+      onFormat={handleFormat}
     />
   );
-};
 
+  return EditorComponent;
+}
 export default EditorComponent;
