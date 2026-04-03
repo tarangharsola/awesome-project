@@ -1,19 +1,21 @@
 {"import React from 'react';
-import { Cursor } from './Cursor';
+import { User } from './User';
 
 interface Props {
-  cursors: Cursor[];
+  user: User;
 }
 
-const CursorTracker = ({ cursors }: Props) => {
+const CursorTracker = ({ user }: Props) => {
   return (
     <div className="cursor-tracker">
-      {cursors.map((cursor, index) => (
-        <div key={index} className="cursor-item">
-          <span className="username">{cursor.name}</span>
-          <span className="color" style={{ backgroundColor: cursor.color }}></span>
-        </div>
-      ))}
+      <span className="cursor-label" style={{
+        backgroundColor: user.color,
+        color: "#fff",
+        padding: "2px 4px",
+        borderRadius: "4px",
+      }}>
+        {user.cursorPosition}
+      </span>
     </div>
   );
 };
