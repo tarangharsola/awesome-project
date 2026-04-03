@@ -1,19 +1,10 @@
 // Import required modules
-const webpack = require('webpack');
-const path = require('path');
+const gulp = require('gulp');
+const ts = require('gulp-typescript');
+const tslint = require('gulp-tslint');
 
-// Define the build configuration
-module.exports = {
-  entry: './src/index.tsx',
-  output: {
-    path: path.resolve(__dirname, 'public'),
-    filename: 'bundle.js'
-  },
-  module: {
-    rules: [
-      {
-        test: /.tsx?$/, use: 'ts-loader', exclude: /node_modules/
-      }
-    ]
-  }
-};
+// Define build task
+gulp.task('build', () => {
+  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
+    .pipe(ts({ noImplicitAny: true }));
+});
