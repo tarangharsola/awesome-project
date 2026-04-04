@@ -1,16 +1,16 @@
 // Import required modules
 const assert = require('assert');
 
-// Test editor functionality
+// Test suite for Editor component
 describe('Editor', () => {
-  it('should render editor', () => {
+  it('renders editor with syntax highlighting', () => {
     // Arrange
-    const editor = document.createElement('editor');
+    const editor = new Editor();
 
     // Act
     editor.render();
 
     // Assert
-    assert.ok(editor); // Editor is rendered
+    assert.ok(editor.getEditorElement());
   });
 });

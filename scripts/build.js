@@ -1,13 +1,6 @@
-// Import required modules
-const gulp = require('gulp');
-const ts = require('gulp-typescript');
-const sourcemaps = require('gulp-sourcemaps');
+// Build script for CI validation
+const { execSync } = require('child_process');
 
-// Define build task
-gulp.task('build', () => {
-  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(sourcemaps.init())
-    .pipe(ts.createProject('tsconfig.json')())
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('dist'));
-});
+// Run tests and build
+execSync('jest');
+execSync('webpack');
