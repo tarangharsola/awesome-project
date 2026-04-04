@@ -3,22 +3,22 @@ import { User } from './User';
 
 interface Props {
   users: User[];
+  className?: string;
 }
 
-const UserList = ({ users }: Props) => {
+const UserList = ({ users, className }: Props) => {
   return (
-    <div className="user-list">
+    <div className={className || ''}>
       {users.map((user, index) => (
-        <div key={index} className="user-item">
-          <span className="username">{user.name}</span>
-          <span className="cursor-label" style={{
-            backgroundColor: user.color,
-            color: "#fff",
-            padding: "2px 4px",
-            borderRadius: "4px",
-          }}>
-            {user.cursorPosition}
-          </span>
+        <div key={index} style={{
+          backgroundColor: user.color,
+          color: 'white',
+          padding: '5px',
+          borderRadius: '5px',
+          display: 'inline-block',
+          marginRight: '10px',
+        }}>
+          {user.name}
         </div>
       ))}
     </div>
