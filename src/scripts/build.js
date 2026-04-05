@@ -1,10 +1,13 @@
 // Import required modules
 const gulp = require('gulp');
 const ts = require('gulp-typescript');
-const tslint = require('gulp-tslint');
+const sourcemaps = require('gulp-sourcemaps');
 
-// Define build task
+// Build task
 gulp.task('build', () => {
   return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(ts({ noImplicitAny: true }));
+    .pipe(sourcemaps.init())
+    .pipe(ts.createProject('tsconfig.json')())
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest('dist'));
 });
