@@ -1,45 +1,48 @@
 {"import React, { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-code-editor';
-import { languages } from 'prismjs';
-import "prismjs/themes/prism.css";
+import CodeMirror from 'codemirror';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
 
-interface EditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
-
-const EditorComponent: React.FC<EditorProps> = ({ value, onChange, language }) => {
-  const [formattedValue, setFormattedValue] = useState(value);
+function Editor({ content, language }) {
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
 
   useEffect(() => {
-    setFormattedValue(value);
-  }, [value]);
-
-  const handleFormat = () => {
-    const formatted = value.replace(/\n/g, "\n\n");
-    setFormattedValue(formatted);
-  };
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      theme: 'monokai',
+    });
+    editor.on('cursorActivity', () => {
+      setCursorPosition(editor.getCursor());
+    });
+    return () => {
+      editor.toTextArea();
+    };
+  }, [language]);
 
   return (
-    <div className="editor">
-      <Editor
-        value={formattedValue}
-        onChange={(value) => onChange(value)}
-        language={language}
-        highlight={languages[language]}
-        padding={10}
-        style={{
-          fontSize: 12,
-          fontFamily: "monospace",
-          backgroundColor: "#f0f0f0",
-          padding: 10,
-        }}
-      />
-      <button onClick={handleFormat}>Format</button>
+    <div>
+      <textarea id='editor' value={content} onChange={(e) => {
+        setCursorPosition({ line: 0, ch: 0 });
+      }} />
+      <div>
+        <span>Line: {cursorPosition.line}</span>
+        <span>Column: {cursorPosition.ch}</span>
+      </div>
     </div>
   );
-
-  return EditorComponent;
 }
-export default EditorComponent;
+
+export default Editor;
