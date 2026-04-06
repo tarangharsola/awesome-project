@@ -2,31 +2,36 @@
 import { Editor } from 'react-simple-editor';
 import { useLanguage } from './useLanguage';
 
-interface EditorProps {
+interface Props {
   value: string;
   onChange: (value: string) => void;
   language: string;
 }
 
-const EditorComponent = ({ value, onChange, language }) => {
+const EditorComponent: React.FC<Props> = ({ value, onChange, language }) => {
   const [formattedValue, setFormattedValue] = useState(value);
-  const languageData = useLanguage(language);
+  const [languageState, setLanguageState] = useState(language);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setFormattedValue(value);
-    }, 500);
-    return () => clearTimeout(timer);
+    setFormattedValue(value);
   }, [value]);
 
+  const handleFormat = () => {
+    // Implement formatting logic here
+  };
+
   return (
-    <Editor
-      value={formattedValue}
-      onChange={(newValue) => onChange(newValue)}
-      language={languageData}
-    />
+    <div>
+      <Editor
+        value={formattedValue}
+        onChange={(value) => onChange(value)}
+        language={languageState}
+      />
+      <button onClick={handleFormat}>Format</button>
+    </div>
   );
 
   return EditorComponent;
 }
+
 export default EditorComponent;
