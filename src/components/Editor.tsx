@@ -1,37 +1,26 @@
 {"import React, { useState, useEffect } from 'react';
-import { Editor } from 'react-simple-editor';
-import { useLanguage } from './useLanguage';
+import EditorComponent from './EditorComponent';
+import WebSocket from './WebSocket';
+import useWebSocket from './useWebSocket';
+import useEditor from './useEditor';
 
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  language: string;
-}
-
-const EditorComponent: React.FC<Props> = ({ value, onChange, language }) => {
-  const [formattedValue, setFormattedValue] = useState(value);
-  const [languageState, setLanguageState] = useState(language);
+const Editor = () => {
+  const [code, setCode] = useState('');
+  const [users, setUsers] = useState([]);
+  const [cursorPositions, setCursorPositions] = useState({});
+  const { send, receive } = useWebSocket();
+  const { code, users: editorUsers, cursorPositions: editorCursorPositions } = useEditor();
 
   useEffect(() => {
-    setFormattedValue(value);
-  }, [value]);
-
-  const handleFormat = () => {
-    // Implement formatting logic here
-  };
+    send({ type: 'JOIN', data: { code, users } });
+  }, [code, users]);
 
   return (
     <div>
-      <Editor
-        value={formattedValue}
-        onChange={(value) => onChange(value)}
-        language={languageState}
-      />
-      <button onClick={handleFormat}>Format</button>
+      <EditorComponent code={code} setCode={setCode} users={editorUsers} cursorPositions={editorCursorPositions} />
+      <WebSocket receive={receive} />
     </div>
   );
+};
 
-  return EditorComponent;
-}
-
-export default EditorComponent;
+export default Editor;

@@ -1,19 +1,19 @@
 {"import React from 'react';
-import { User } from './User';
+import UserListComponent from './UserListComponent';
+import WebSocket from './WebSocket';
+import useWebSocket from './useWebSocket';
 
-interface Props {
-  users: User[];
-}
+const UserList = () => {
+  const { send, receive } = useWebSocket();
 
-const UserList = ({ users }: Props) => {
+  useEffect(() => {
+    send({ type: 'JOIN', data: { users: ['user1', 'user2'] } });
+  }, []);
+
   return (
-    <div className="user-list">
-      {users.map((user, index) => (
-        <div key={index} className="user-item">
-          <span className="username">{user.username}</span>
-          <span className="color-circle" style={{ backgroundColor: user.color }}></span>
-        </div>
-      ))}
+    <div>
+      <UserListComponent users={receive.users} />
+      <WebSocket receive={receive} />
     </div>
   );
 };
