@@ -1,31 +1,21 @@
 {"import { useState, useEffect } from 'react';
+import { OperationalTransformation } from 'ot-react';
 
-interface ConflictResolverProps {
-  children: React.ReactNode;
-}
-
-const useConflictResolver = (initialValue: any) => {
-  const [value, setValue] = useState(initialValue);
-  const [conflict, setConflict] = useState(false);
+const useConflictResolver = () => {
+  const [editorState, setEditorState] = useState({}
+  const [conflict, setConflict] = useState(null);
 
   useEffect(() => {
-    const handleConflict = (newValue: any) => {
-      if (newValue !== value) {
-        setConflict(true);
-      }
-    };
-
-    return () => {
-      setConflict(false);
-    };
+    const ot = new OperationalTransformation();
+    ot.subscribe(editorState, setEditorState);
+    return () => ot.unsubscribe();
   }, []);
 
-  return {
-    value,
-    conflict,
-    setValue,
-    handleConflict
+  const handleConflict = (conflict) => {
+    setConflict(conflict);
   };
-}
+
+  return { editorState, conflict, handleConflict };
+};
 
 export default useConflictResolver;
