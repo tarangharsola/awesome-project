@@ -1,26 +1,39 @@
 {"import React, { useState, useEffect } from 'react';
-import EditorComponent from './EditorComponent';
-import WebSocket from './WebSocket';
-import useWebSocket from './useWebSocket';
-import useEditor from './useEditor';
+import { Editor as CodeMirror } from 'react-codemirror-editor';
+import 'codemirror/mode/javascript/javascript.js';
+import 'codemirror/mode/python/python.js';
+import 'codemirror/mode/htmlmixed/htmlmixed.js';
 
-const Editor = () => {
-  const [code, setCode] = useState('');
-  const [users, setUsers] = useState([]);
-  const [cursorPositions, setCursorPositions] = useState({});
-  const { send, receive } = useWebSocket();
-  const { code, users: editorUsers, cursorPositions: editorCursorPositions } = useEditor();
+interface EditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  language: string;
+}
+
+const Editor: React.FC<EditorProps> = ({ value, onChange, language }) => {
+  const [code, setCode] = useState(value);
 
   useEffect(() => {
-    send({ type: 'JOIN', data: { code, users } });
-  }, [code, users]);
+    onChange(code);
+  }, [code, onChange]);
+
+  const handleCodeChange = (code: string) => {
+    setCode(code);
+  };
 
   return (
-    <div>
-      <EditorComponent code={code} setCode={setCode} users={editorUsers} cursorPositions={editorCursorPositions} />
-      <WebSocket receive={receive} />
-    </div>
+    <CodeMirror
+      value={code}
+      onChange={handleCodeChange}
+      options={{
+        mode: language,
+        lineNumbers: true,
+        theme: 'monokai'
+      }}
+    />
   );
-};
+
+  return Editor;
+}
 
 export default Editor;
