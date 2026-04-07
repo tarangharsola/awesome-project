@@ -11,3 +11,6 @@ gulp.task('build', () => {
     .pipe(sourcemaps.write())
     .pipe(gulp.dest('dist'));
 });
+
+// Export build task
+module.exports = gulp;
