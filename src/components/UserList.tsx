@@ -10,16 +10,8 @@ const UserList = ({ users }: Props) => {
     <div className="user-list">
       {users.map((user, index) => (
         <div key={index} className="user-item">
-          <span className="username">{user.username}</span>
-          <span className="cursor-label" style={{
-            backgroundColor: user.color,
-            color: "#fff",
-            padding: "2px 4px",
-            borderRadius: "4px",
-            fontSize: "12px",
-          }}>
-            {user.cursorPosition}
-          </span>
+          <span className="username">{user.name}</span>
+          <span className="color" style={{ backgroundColor: user.color }}></span>
         </div>
       ))}
     </div>

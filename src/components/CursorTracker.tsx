@@ -2,14 +2,17 @@
 import { useCursor } from './useCursor';
 
 interface Props {
-  cursor: { x: number; y: number; username: string; color: string; }
+  cursor: { x: number; y: number; name: string; color: string; }
 }
 
 const CursorTracker = ({ cursor }: Props) => {
   return (
-    <div className="cursor-tracker">
-      <span className="cursor-label">{cursor.username}</span>
-      <span className="color-circle" style={{ backgroundColor: cursor.color }}></span>
+    <div className="cursor" style={{
+      left: cursor.x + 'px',
+      top: cursor.y + 'px',
+      backgroundColor: cursor.color,
+    }}>
+      {cursor.name}
     </div>
   );
 };
