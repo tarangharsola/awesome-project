@@ -1,40 +1,39 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+import { useEditor } from './useEditor';
 
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
   const [cursorPositions, setCursorPositions] = useState({});
+  const editor = useEditor();
 
   useEffect(() => {
-    const wsUrl = 'ws://localhost:8080';
-    const ws = new WebSocket(wsUrl);
-    setWs(ws);
-
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'users') {
-        setUsers(message.users);
-      } else if (message.type === 'cursorPositions') {
-        setCursorPositions(message.cursorPositions);
-      }
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    return () => ws.close();
-  }, []);
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
+    };
 
-  const handleUserJoin = (user) => {
-    setUsers((prevUsers) => [...prevUsers, user]);
+    const handleCursorMove = (user, position) => {
+      setCursorPositions((prevPositions) => ({ ...prevPositions, [user.id]: position }));
+    };
+
+    editor.on('userJoin', handleUserJoin);
+    editor.on('userLeave', handleUserLeave);
+    editor.on('cursorMove', handleCursorMove);
+
+    return () => {
+      editor.off('userJoin', handleUserJoin);
+      editor.off('userLeave', handleUserLeave);
+      editor.off('cursorMove', handleCursorMove);
+    };
+  }, [editor]);
+
+  return {
+    users,
+    cursorPositions,
   };
-
-  const handleUserLeave = (user) => {
-    setUsers((prevUsers) => prevUsers.filter((u) => u !== user));
-  };
-
-  const handleCursorMove = (user, position) => {
-    setCursorPositions((prevPositions) => ({ ...prevPositions, [user]: position }));
-  };
-
-  return { users, cursorPositions, handleUserJoin, handleUserLeave, handleCursorMove };
 };
 
 export default useAwareness;
