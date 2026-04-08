@@ -1,31 +1,15 @@
-{"import { Reducer } from 'redux';
-import { JOIN, LEAVE, JoinAction, LeaveAction } from './actions';
+import { createReducer } from '@reduxjs/toolkit';
+import { EditorAction } from './editorActions';
 
 const initialState = {
-  code: '',
-  users: [],
-  cursorPositions: {},
+  editorState: '',
 };
 
-const editorReducer: Reducer = (state = initialState, action: ActionT) => {
-  switch (action.type) {
-    case JOIN:
-      return {
-        ...state,
-        code: action.data.code,
-        users: action.data.users,
-        cursorPositions: action.data.cursorPositions,
-      };
-    case LEAVE:
-      return {
-        ...state,
-        code: action.data.code,
-        users: action.data.users,
-        cursorPositions: action.data.cursorPositions,
-      };
-    default:
-      return state;
-  }
-};
+const editorReducer = createReducer(initialState, (builder) => {
+  builder
+    .addCase(EditorAction.setText, (state, action) => {
+      return { ...state, editorState: action.payload };
+    });
+});
 
 export default editorReducer;

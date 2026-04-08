@@ -1,6 +1,21 @@
-{"import { combineReducers } from 'redux';
-import { userReducer } from './userReducer';
+import { createReducer } from '@reduxjs/toolkit';
+import { UserAction } from './userActions';
 
-const rootReducer = combineReducers({ user: userReducer });
+const initialState = {
+  users: [],
+};
 
-export default rootReducer;
+const userReducer = createReducer(initialState, (builder) => {
+  builder
+    .addCase(UserAction.addUser, (state, action) => {
+      return { ...state, users: [...state.users, action.payload] };
+    })
+    .addCase(UserAction.removeUser, (state, action) => {
+      return {
+        ...state,
+        users: state.users.filter((user) => user.id !== action.payload),
+      };
+    });
+});
+
+export default userReducer;
