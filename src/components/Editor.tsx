@@ -1,39 +1,32 @@
-{"import React, { useState, useEffect } from 'react';
-import { Editor as CodeMirror } from 'react-codemirror-editor';
-import 'codemirror/mode/javascript/javascript.js';
-import 'codemirror/mode/python/python.js';
-import 'codemirror/mode/htmlmixed/htmlmixed.js';
+import React from 'react';
+import { useState } from 'react';
+import LanguageSelector from './LanguageSelector';
 
 interface EditorProps {
   value: string;
   onChange: (value: string) => void;
-  language: string;
+  languages: string[];
+  selectedLanguage: string;
 }
 
-const Editor: React.FC<EditorProps> = ({ value, onChange, language }) => {
-  const [code, setCode] = useState(value);
+const Editor: React.FC<EditorProps> = ({ value, onChange, languages, selectedLanguage }) => {
+  const [formattedValue, setFormattedValue] = useState(value);
 
   useEffect(() => {
-    onChange(code);
-  }, [code, onChange]);
+    setFormattedValue(value);
+  }, [value]);
 
-  const handleCodeChange = (code: string) => {
-    setCode(code);
+  const handleFormat = () => {
+    // Implement formatting logic here
   };
 
   return (
-    <CodeMirror
-      value={code}
-      onChange={handleCodeChange}
-      options={{
-        mode: language,
-        lineNumbers: true,
-        theme: 'monokai'
-      }}
-    />
+    <div>
+      <LanguageSelector languages={languages} selectedLanguage={selectedLanguage} onChange={(language) => onChange(language)} />
+      <textarea value={formattedValue} onChange={(e) => onChange(e.target.value)} />
+      <button onClick={handleFormat}>Format</button>
+    </div>
   );
-
-  return Editor;
-}
+};
 
 export default Editor;
