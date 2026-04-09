@@ -1,16 +1,22 @@
 {"import { Action } from 'redux';
 
-export const JOIN = 'JOIN';
-export const LEAVE = 'LEAVE';
-
-export interface JoinAction {
-  type: typeof JOIN;
-  data: { code: string; users: string[]; room: string; }
+interface UpdateValueAction {
+  type: 'update';
+  value: string;
 }
 
-export interface LeaveAction {
-  type: typeof LEAVE;
-  data: { code: string; users: string[]; room: string; }
+interface JoinRoomAction {
+  type: 'joinRoom';
+  username: string;
+  color: string;
 }
 
-export type ActionT = JoinAction | LeaveAction;
+interface LeaveRoomAction {
+  type: 'leaveRoom';
+  username: string;
+}
+
+export const updateValue = (value: string): UpdateValueAction => ({ type: 'update', value });
+export const joinRoom = (username: string, color: string): JoinRoomAction => ({ type: 'joinRoom', username, color });
+export const leaveRoom = (username: string): LeaveRoomAction => ({ type: 'leaveRoom', username });
+}

@@ -1,8 +1,15 @@
-{"import { combineReducers } from 'redux';
-import { userReducer } from './userReducer';
+{"import { User } from './types';
 
-const userReducer = combineReducers({
-  user: userReducer
-});
+interface UserStateProps {
+  username: string;
+  color: string;
+}
 
-export default userReducer;
+const userState = (username: string, color: string): User => {
+  return {
+    username,
+    color
+  };
+};
+
+export default userState;
