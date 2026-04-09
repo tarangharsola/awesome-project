@@ -1,47 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
+{"import React, { useState, useEffect } from 'react';
+import { Editor } from 'react-simple-editor';
+import { useLanguage } from './useLanguage';
 
 interface EditorProps {
-  roomId: string;
+  value: string;
+  onChange: (value: string) => void;
   language: string;
 }
 
-const Editor: React.FC<EditorProps> = ({ roomId, language }) => {
-  const { editorState, setEditorState } = useEditor();
-  const { sendText, receiveText } = useWebSocket();
+const EditorComponent: React.FC<EditorProps> = ({ value, onChange, language }) => {
+  const [formattedValue, setFormattedValue] = useState(value);
+  const { formatCode } = useLanguage(language);
 
   useEffect(() => {
-    receiveText(roomId);
-  }, [roomId]);
-
-  const handleTextChange = (text: string) => {
-    setEditorState(text);
-    sendText(roomId, text);
-  };
+    const formattedValue = formatCode(value);
+    setFormattedValue(formattedValue);
+  }, [value, language]);
 
   return (
-    <div
-      style={{
-        height: '100vh',
-        width: '100vw',
-        padding: 10,
-        border: '1px solid #ccc',
-      }}
-    >
-      <textarea
-        value={editorState}
-        onChange={(e) => handleTextChange(e.target.value)}
-        style={{
-          height: '90vh',
-          width: '100%',
-          padding: 10,
-          fontSize: 14,
-          fontFamily: 'monospace',
-        }}
-      />
-    </div>
+    <Editor
+      value={formattedValue}
+      onChange={(value) => onChange(value)}
+      className="editor"
+    />
   );
-};
 
-export default Editor;
+  return EditorComponent;
+}
+export default EditorComponent;
