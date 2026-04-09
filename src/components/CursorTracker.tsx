@@ -1,36 +1,23 @@
-import React, { useState, useEffect } from 'react';
+{"import React from 'react';
 import { useCursor } from './useCursor';
-import { useUsers } from './useUsers';
 
-interface CursorTrackerProps {
-  userId: string;
+interface Props {
   cursorPosition: number;
-  userColor: string;
+  name: string;
+  color: string;
 }
 
-const CursorTracker: React.FC<CursorTrackerProps> = ({
-  userId,
-  cursorPosition,
-  userColor,
-}) => {
-  const { cursors, setCursor } = useCursor();
-  const { users, setUsers } = useUsers();
-
-  useEffect(() => {
-    setCursor(userId, cursorPosition);
-  }, [userId, cursorPosition]);
-
+const CursorTracker = ({ cursorPosition, name, color }: Props) => {
+  const { cursorRef } = useCursor();
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: cursorPosition,
-        left: 0,
-        width: '100%',
-        height: 2,
-        backgroundColor: userColor,
-      }}
-    />
+    <div style={{
+      position: 'absolute',
+      top: 0,
+      left: cursorPosition,
+      height: 2,
+      backgroundColor: color,
+      zIndex: 1,
+    }} ref={cursorRef} />
   );
 };
 
