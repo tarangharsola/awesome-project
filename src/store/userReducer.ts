@@ -1,21 +1,16 @@
-import { createReducer } from '@reduxjs/toolkit';
-import { UserAction } from './userActions';
+{"import { createReducer } from 'redux';
+import { UserAction } from './actions';
 
-const initialState = {
-  users: [],
+const initialState: UserState = {
+  username: '',
+  color: '',
+  connected: false
 };
 
-const userReducer = createReducer(initialState, (builder) => {
-  builder
-    .addCase(UserAction.addUser, (state, action) => {
-      return { ...state, users: [...state.users, action.payload] };
-    })
-    .addCase(UserAction.removeUser, (state, action) => {
-      return {
-        ...state,
-        users: state.users.filter((user) => user.id !== action.payload),
-      };
-    });
+const userReducer = createReducer(initialState, {
+  [UserAction.setUsername]: (state, action) => ({ ...state, username: action.username }),
+  [UserAction.setColor]: (state, action) => ({ ...state, color: action.color }),
+  [UserAction.setConnected]: (state, action) => ({ ...state, connected: action.connected })
 });
 
 export default userReducer;

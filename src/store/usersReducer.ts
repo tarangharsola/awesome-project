@@ -1,25 +1,11 @@
-{"import { Reducer } from 'redux';
-import { JOIN, LEAVE, JoinAction, LeaveAction } from './actions';
+{"import { createReducer } from 'redux';
+import { UsersAction } from './actions';
 
-const initialState = {
-  users: [],
-};
+const initialState: UsersState = [];
 
-const usersReducer: Reducer = (state = initialState, action: ActionT) => {
-  switch (action.type) {
-    case JOIN:
-      return {
-        ...state,
-        users: [...state.users, action.data.users[0]],
-      };
-    case LEAVE:
-      return {
-        ...state,
-        users: state.users.filter((user) => user !== action.data.users[0]),
-      };
-    default:
-      return state;
-  }
-};
+const usersReducer = createReducer(initialState, {
+  [UsersAction.addUser]: (state, action) => [...state, action.user],
+  [UsersAction.removeUser]: (state, action) => state.filter(user => user.username !== action.username)
+});
 
 export default usersReducer;
