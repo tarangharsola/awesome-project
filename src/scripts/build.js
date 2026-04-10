@@ -1,13 +1,12 @@
 // Import required modules
 const gulp = require('gulp');
-const ts = require('gulp-typescript');
-const sourcemaps = require('gulp-sourcemaps');
+const babel = require('gulp-babel');
 
-// Build task
+// Build script
 gulp.task('build', () => {
-  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(sourcemaps.init())
-    .pipe(ts.createProject('tsconfig.json')())
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('dist'));
+  return gulp.src('src/**/*.tsx')
+    .pipe(babel({
+      presets: ['@babel/preset-react', '@babel/preset-env']
+    }))
+    .pipe(gulp.dest('public/'));
 });
