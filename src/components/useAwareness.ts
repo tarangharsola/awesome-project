@@ -3,21 +3,21 @@ import { WebSocket } from 'ws';
 
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
-  const [ws, setWs] = useState<WebSocket | null>(null);
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
     setWs(ws);
-    ws.on('message', (event) => {
-      const data = JSON.parse(event.data);
+
+    ws.on('message', (message) => {
+      const data = JSON.parse(message);
       if (data.type === 'users') {
         setUsers(data.users);
       }
     });
-    return () => ws.destroy();
   }, []);
 
-  return { users };
+  return { users, ws };
 };
 
 export default useAwareness;
