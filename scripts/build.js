@@ -1,6 +1,12 @@
-// Define build script
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
+import { resolve } from 'path';
+import { existsSync } from 'fs';
 
-// Run tests and build
-execSync('jest');
-execSync('webpack');
+const buildDir = resolve(__dirname, '../build');
+const srcDir = resolve(__dirname, '../src');
+
+if (existsSync(buildDir)) {
+  execSync(`rm -rf ${buildDir}`);
+}
+
+execSync(`webpack --mode production --config webpack.config.js`);
