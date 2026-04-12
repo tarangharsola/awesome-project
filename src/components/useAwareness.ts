@@ -1,23 +1,14 @@
-{"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+{"import React from 'react';
+import { useWebSocket } from './useWebSocket';
 
 const useAwareness = () => {
-  const [users, setUsers] = useState([]);
-  const [ws, setWs] = useState(null);
+  const { users, join, leave } = useWebSocket();
 
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-
-    ws.on('message', (message) => {
-      const data = JSON.parse(message);
-      if (data.type === 'users') {
-        setUsers(data.users);
-      }
-    });
+  React.useEffect(() => {
+    join();
   }, []);
 
-  return { users, ws };
+  return { users, join, leave };
 };
 
 export default useAwareness;

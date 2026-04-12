@@ -1,1 +1,7 @@
-{"function generateRandomColor() {\n  return `#${Math.floor(Math.random() * 16777215).toString(16)}`;\n}\n\nexport { generateRandomColor };
+{"import { v4 as uuidv4 } from 'uuid';
+
+const generateUUID = () => {
+  return uuidv4();
+};
+
+export default generateUUID;
