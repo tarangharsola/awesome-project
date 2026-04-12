@@ -1,12 +1,21 @@
-import { execSync } from 'child_process';
-import { resolve } from 'path';
-import { existsSync } from 'fs';
+// Import required modules
+const gulp = require('gulp');
+const eslint = require('gulp-eslint');
+const uglify = require('gulp-uglify');
+const rename = require('gulp-rename');
 
-const buildDir = resolve(__dirname, '../build');
-const srcDir = resolve(__dirname, '../src');
+// Define build task
+gulp.task('build', () => {
+  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
+    .pipe(eslint())
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError())
+    .pipe(uglify())
+    .pipe(rename({ extname: '.min.js' }))
+    .pipe(gulp.dest('dist/'));
+});
 
-if (existsSync(buildDir)) {
-  execSync(`rm -rf ${buildDir}`);
-}
-
-execSync(`webpack --mode production --config webpack.config.js`);
+// Define default task
+gulp.task('default', ['build'], () => {
+  console.log('Build complete.');
+});
