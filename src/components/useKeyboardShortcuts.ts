@@ -1,1 +1,28 @@
-{"import { useState, useEffect } from 'react';\n\ninterface KeyboardShortcut {\n  key: string;\n  action: () => void;\n}\n\nconst useKeyboardShortcuts = (shortcuts: KeyboardShortcut[]) => {\n  const [activeShortcut, setActiveShortcut] = useState(null);\n\n  useEffect(() => {\n    const handleKeyDown = (event: KeyboardEvent) => {\n      if (shortcuts.some((shortcut) => shortcut.key === event.key)) {\n        setActiveShortcut(shortcut);\n      }\n    };\n\n    document.addEventListener('keydown', handleKeyDown);\n\n    return () => {\n      document.removeEventListener('keydown', handleKeyDown);\n    };\n  }, []);\n\n  return activeShortcut;\n};\n\nexport default useKeyboardShortcuts;
+{"import { useState, useEffect } from 'react';
+
+interface Props {
+  shortcuts: { [key: string]: () => void };
+}
+
+const useKeyboardShortcuts = (props: Props) => {
+  const [activeShortcut, setActiveShortcut] = useState(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (props.shortcuts[event.key]) {
+        setActiveShortcut(event.key);
+        props.shortcuts[event.key]();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  return activeShortcut;
+}
+
+export default useKeyboardShortcuts;
