@@ -1,19 +1,30 @@
-{"import React, { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
 
-interface WebSocketProps {
-  children: React.ReactNode;
-}
-
-const WebSocket = ({ children }: WebSocketProps) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+const WebSocket = () => {
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-    setSocket(socket);
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onopen = () => setConnectionStatus('connected');
+    ws.onclose = () => {
+      setConnectionStatus('disconnected');
+      setRetryCount(retryCount + 1);
+      if (retryCount < 3) {
+        setTimeout(() => ws.connect(), 500);
+      }
+    };
+    ws.onerror = () => {
+      setConnectionStatus('error');
+    };
   }, []);
 
-  return children;
-}
-
+  return (
+    <div>
+      <p>Connection Status: {connectionStatus}</p>
+      <p>Retry Count: {retryCount}</p>
+    </div>
+  );
+};
 export default WebSocket;
