@@ -1,34 +1,15 @@
-{"import { useState } from 'react';
+{"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-interface Language {
-  name: string;
-  formatCode: (code: string) => string;
-}
+const useLanguage = () => {
+  const [language, setLanguage] = useState('');
+  const { send, receive } = useWebSocket();
 
-const languages: Language[] = [
-  {
-    name: 'JavaScript',
-    formatCode: (code) => code.replace(/console.log/g, '// console.log'),
-  },
-  {
-    name: 'Python',
-    formatCode: (code) => code.replace(/print/g, '// print'),
-  },
-  {
-    name: 'HTML',
-    formatCode: (code) => code.replace(/<script>/g, '// <script>'),
-  },
-];
+  useEffect(() => {
+    receive('language', (data) => setLanguage(data));
+  }, []);
 
-const useLanguage = (language: string) => {
-  const [selectedLanguage, setSelectedLanguage] = useState(language);
-
-  const formatCode = (code: string) => {
-    const languageFormat = languages.find((lang) => lang.name === selectedLanguage);
-    return languageFormat ? languageFormat.formatCode(code) : code;
-  };
-
-  return { formatCode };
+  return { language, updateLanguage: (language) => send('language', language) };
 };
 
 export default useLanguage;

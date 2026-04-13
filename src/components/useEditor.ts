@@ -1,15 +1,15 @@
-{"import { useSlate } from 'slate-react';
+{"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-interface EditorProps {
-  value: any;
-  onChange: (value: any) => void;
-}
+const useEditor = () => {
+  const [document, setDocument] = useState('');
+  const { send, receive } = useWebSocket();
 
-const useEditor = (props: EditorProps) => {
-  const editor = useSlate(props);
+  useEffect(() => {
+    receive('document', (data) => setDocument(data));
+  }, []);
 
-  return editor;
+  return { document, updateDocument: (document) => send('document', document) };
+};
 
-  return useEditor;
-}
 export default useEditor;

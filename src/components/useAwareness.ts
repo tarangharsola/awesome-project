@@ -1,14 +1,17 @@
-{"import React from 'react';
+{"import { useState, useEffect } from 'react';
 import { useWebSocket } from './useWebSocket';
 
 const useAwareness = () => {
-  const { users, join, leave } = useWebSocket();
+  const [users, setUsers] = useState([]);
+  const [presence, setPresence] = useState({});
+  const { send, receive } = useWebSocket();
 
-  React.useEffect(() => {
-    join();
+  useEffect(() => {
+    receive('users', (data) => setUsers(data));
+    receive('presence', (data) => setPresence(data));
   }, []);
 
-  return { users, join, leave };
+  return { users, presence, sendPresence: (user) => send('presence', user) };
 };
 
 export default useAwareness;

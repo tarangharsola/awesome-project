@@ -1,15 +1,15 @@
 {"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
 const useCursor = () => {
   const [cursor, setCursor] = useState({});
+  const { send, receive } = useWebSocket();
 
   useEffect(() => {
-    // Update cursor position on changes
+    receive('cursor', (data) => setCursor(data));
   }, []);
 
-  return {
-    cursor,
-  };
+  return { cursor, updateCursor: (cursor) => send('cursor', cursor) };
 };
 
 export default useCursor;
