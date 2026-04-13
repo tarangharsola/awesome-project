@@ -1,17 +1,28 @@
 {"import { useState, useEffect } from 'react';
 import { useWebSocket } from './useWebSocket';
 
-const useAwareness = () => {
-  const [users, setUsers] = useState([]);
-  const [presence, setPresence] = useState({});
-  const { send, receive } = useWebSocket();
+interface AwarenessOptions {
+  webSocket: useWebSocket;
+  onPresenceChange: (presence: any) => void;
+}
+
+const useAwareness = ({ webSocket, onPresenceChange }: AwarenessOptions) => {
+  const [presence, setPresence] = useState({ users: [] });
 
   useEffect(() => {
-    receive('users', (data) => setUsers(data));
-    receive('presence', (data) => setPresence(data));
-  }, []);
+    const handlePresenceChange = (presence) => {
+      setPresence(presence);
+      onPresenceChange(presence);
+    };
 
-  return { users, presence, sendPresence: (user) => send('presence', user) };
+    webSocket.on('presence', handlePresenceChange);
+
+    return () => {
+      webSocket.off('presence', handlePresenceChange);
+    };
+  }, [webSocket, onPresenceChange]);
+
+  return { presence };
 };
 
 export default useAwareness;
