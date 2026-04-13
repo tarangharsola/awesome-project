@@ -1,33 +1,20 @@
-/* Add keyboard shortcut styles */
-
-kbd {
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  padding: 2px 4px;
+.user-list {
+  padding: 10px;
+  background-color: #333;
+  border-radius: 4px;
 }
 
-kbd:hover {
-  background-color: #ddd;
+.user-item {
+  padding: 10px;
+  border-bottom: 1px solid #444;
 }
 
-/* Add language selector styles */
-
-.language-selector {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+.username {
+  font-weight: bold;
 }
 
-.language-selector ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.language-selector li {
-  margin-bottom: 10px;
-}
-
-.language-selector li:hover {
-  background-color: #f0f0f0;
+.cursor-label {
+  display: inline-block;
+  margin-left: 10px;
+  font-size: 12px;
 }

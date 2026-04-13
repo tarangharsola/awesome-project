@@ -1,11 +1,11 @@
 {"import React from 'react';
 import { User } from './User';
 
-interface UserListProps {
+interface Props {
   users: User[];
 }
 
-const UserList = ({ users }: UserListProps) => {
+const UserList = ({ users }: Props) => {
   return (
     <div className="user-list">
       {users.map((user, index) => (
@@ -16,7 +16,6 @@ const UserList = ({ users }: UserListProps) => {
             color: "#fff",
             padding: "2px 4px",
             borderRadius: "4px",
-            fontSize: "12px",
           }}>
             {user.cursorPosition}
           </span>
