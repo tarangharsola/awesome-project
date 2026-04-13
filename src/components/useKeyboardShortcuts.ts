@@ -1,15 +1,23 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
 
-const useKeyboardShortcuts = () => {
-  const [shortcuts, setShortcuts] = useState({});
-  const { send, receive } = useWebSocket();
+const useKeyboardShortcuts = (shortcuts) => {
+  const [pressed, setPressed] = useState(false);
 
   useEffect(() => {
-    receive('shortcuts', (data) => setShortcuts(data));
+    const handleKeyDown = (event) => {
+      if (shortcuts[event.key]) {
+        setPressed(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
-  return { shortcuts, updateShortcuts: (shortcuts) => send('shortcuts', shortcuts) };
+  return pressed;
 };
 
 export default useKeyboardShortcuts;

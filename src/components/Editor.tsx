@@ -2,31 +2,24 @@
 import { useState } from 'react';
 import LanguageSelector from './LanguageSelector';
 
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  languages: string[];
-}
+const Editor = () => {
+  const [code, setCode] = useState('');
+  const [language, setLanguage] = useState('javascript');
 
-const Editor: React.FC<Props> = ({ value, onChange, languages }) => {
-  const [language, setLanguage] = useState(languages[0]);
-
-  const handleLanguageChange = (language: string) => {
-    setLanguage(language);
+  const handleCodeChange = (event) => {
+    setCode(event.target.value);
   };
 
-  const handleValueChange = (value: string) => {
-    onChange(value);
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
   };
 
   return (
     <div>
-      <LanguageSelector languages={languages} selectedLanguage={language} onSelect={handleLanguageChange} />
-      <textarea value={value} onChange={(e) => handleValueChange(e.target.value)} />
+      <LanguageSelector value={language} onChange={handleLanguageChange} />
+      <textarea value={code} onChange={handleCodeChange} />
     </div>
   );
-
-  return Editor;
-}
+};
 
 export default Editor;
