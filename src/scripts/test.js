@@ -1,16 +1,18 @@
-// Jest configuration
-const jest = require('jest');
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'jsdom',
-  testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  transform: {
-    '^.+\.(ts|tsx)$': 'ts-jest',
-  },
-  transformIgnorePatterns: ['node_modules/'],
-  collectCoverage: true,
-  coverageDirectory: 'coverage',
-  coverageReporters: ['json', 'text', 'lcov', 'clover'],
-  setupFilesAfterEnv: ['<rootDir>/src/scripts/setupTests.ts']
-};
+// Import required modules
+import { JSDOM } from 'jsdom';
+import { expect } from 'chai';
+import { render } from 'react-dom';
+import App from '../components/App';
+
+// Create a mock DOM environment
+const dom = new JSDOM();
+const document = dom.window.document;
+
+// Render the App component
+const container = document.createElement('div');
+render(<App />, container);
+
+// Export the test function
+export function testApp() {
+  // Add test logic here
+}

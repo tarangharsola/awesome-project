@@ -1,21 +1,13 @@
 // Import required modules
-const gulp = require('gulp');
-const eslint = require('gulp-eslint');
-const uglify = require('gulp-uglify');
-const rename = require('gulp-rename');
+import { execSync } from 'child_process';
+import { resolve } from 'path';
+import { readFileSync } from 'fs';
 
-// Define build task
-gulp.task('build', () => {
-  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(eslint())
-    .pipe(eslint.format())
-    .pipe(eslint.failAfterError())
-    .pipe(uglify())
-    .pipe(rename({ extname: '.min.js' }))
-    .pipe(gulp.dest('dist/'));
-});
+// Define the build script
+function build() {
+  // Run the build process
+  execSync('webpack --mode production');
+}
 
-// Define default task
-gulp.task('default', ['build'], () => {
-  console.log('Build complete.');
-});
+// Export the build function
+export { build };
