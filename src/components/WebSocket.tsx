@@ -1,1 +1,46 @@
-{"import React from 'react';\nimport { useState, useEffect } from 'react';\n\nconst WebSocket = () => {\n  const [connected, setConnected] = useState(false);\n  const [retries, setRetries] = useState(0);\n  const [retryTimeout, setRetryTimeout] = useState(null);\n\n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onopen = () => {\n      setConnected(true);\n      setRetries(0);\n    };\n    ws.onclose = () => {\n      setConnected(false);\n      setRetries(retries + 1);\n      if (retries < 3) {\n        setTimeout(() => {\n          setRetryTimeout(setTimeout(() => {\n            ws.reconnect();\n          }, 500));\n        }, 1000);\n      }\n    };\n    ws.onerror = () => {\n      setConnected(false);\n    };\n  }, []);\n\n  return (\n    <div>\n      {connected ? 'Connected' : 'Disconnected'}\n      {retries > 0 ? ` (Retry ${retries})` : ''}\n    </div>\n  );\n};\nexport default WebSocket;
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+
+interface Props {
+  children: React.ReactNode;
+}
+
+const WebSocket = ({ children }: Props) => {
+  const [connected, setConnected] = useState(false);
+  const [retries, setRetries] = useState(0);
+  const [retryTimeout, setRetryTimeout] = useState(null);
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onopen = () => {
+      setConnected(true);
+      setRetries(0);
+    };
+    ws.onclose = () => {
+      setConnected(false);
+      setRetries(retries + 1);
+      if (retries < 3) {
+        setRetryTimeout(setTimeout(() => {
+          ws.reconnect();
+        }, 5000));
+      }
+    };
+    ws.onerror = () => {
+      setConnected(false);
+    };
+    return () => {
+      ws.close();
+      clearTimeout(retryTimeout);
+    };
+  }, []);
+
+  return (
+    <div>
+      {children}
+      <p>Connected: {connected ? 'Yes' : 'No'}</p>
+      <p>Retries: {retries}</p>
+    </div>
+  );
+};
+
+export default WebSocket;
