@@ -1,1 +1,49 @@
-{"import React from 'react';\nimport { useCursor } from './useCursor';\n\ninterface CursorTrackerProps {\n  cursor: { x: number; y: number; };\n  user: { name: string; color: string; };\n}\n\nconst CursorTracker = ({ cursor, user }: CursorTrackerProps) => {\n  const { x, y } = cursor;\n  const { name, color } = user;\n  return (\n    <div\n      style={{\n        position: 'absolute',\n        left: x,\n        top: y,\n        width: 2,\n        height: 20,\n        backgroundColor: color,\n        borderRadius: '50%',\n      }}\n    />\n  );\n};\n\nexport default CursorTracker;
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+
+interface Cursor {
+  id: string;
+  x: number;
+  y: number;
+}
+
+interface Props {
+  cursors: Cursor[];
+}
+
+const CursorTracker = ({ cursors }: Props) => {
+  const [cursorPositions, setCursorPositions] = useState<Cursor[]>([]);
+
+  useEffect(() => {
+    const cursorPositionsList = cursors.map((cursor) => ({
+      id: cursor.id,
+      x: cursor.x,
+      y: cursor.y,
+    }));
+    setCursorPositions(cursorPositionsList);
+  }, [cursors]);
+
+  return (
+    <div>
+      <h2>Cursor Positions:</h2>
+      <ul>
+        {cursorPositions.map((cursor, index) => (
+          <li key={cursor.id} style={{
+            position: 'absolute',
+            left: `${cursor.x}px`,
+            top: `${cursor.y}px`,
+            width: '10px',
+            height: '10px',
+            borderRadius: '50%',
+            backgroundColor: 'white',
+            border: `2px solid ${colors[index]}`,
+          }}>
+            {cursor.id}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default CursorTracker;
