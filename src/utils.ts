@@ -1,7 +1,6 @@
-{"import { v4 as uuidv4 } from 'uuid';
+{"import { WebSocket } from 'ws';
 
-const generateUUID = () => {
-  return uuidv4();
-};
+const ws = new WebSocket('ws://localhost:8080');
 
-export default generateUUID;
+export { ws };
+}
