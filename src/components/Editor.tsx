@@ -1,25 +1,28 @@
 {"import React from 'react';
 import { useState } from 'react';
-import LanguageSelector from './LanguageSelector';
+import { useEditor } from './useEditor';
 
-const Editor = () => {
-  const [code, setCode] = useState('');
-  const [language, setLanguage] = useState('javascript');
+interface Props {
+  value: string;
+  onChange: (value: string) => void;
+}
 
-  const handleCodeChange = (event) => {
-    setCode(event.target.value);
-  };
+const Editor = ({ value, onChange }) => {
+  const [formattedValue, setFormattedValue] = useState(value);
 
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
+  const handleFormat = () => {
+    const formattedValue = formatCode(value);
+    setFormattedValue(formattedValue);
+    onChange(formattedValue);
   };
 
   return (
     <div>
-      <LanguageSelector value={language} onChange={handleLanguageChange} />
-      <textarea value={code} onChange={handleCodeChange} />
+      <textarea value={formattedValue} onChange={(e) => onChange(e.target.value)} />
+      <button onClick={handleFormat}>Format</button>
     </div>
   );
-};
 
+  return Editor;
+}
 export default Editor;
