@@ -1,28 +1,26 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { useEditor } from './useEditor';
 
-interface AwarenessOptions {
-  webSocket: useWebSocket;
-  onPresenceChange: (presence: any) => void;
+interface Awareness {
+  updatePresence: (presence: any) => void;
 }
 
-const useAwareness = ({ webSocket, onPresenceChange }: AwarenessOptions) => {
+const useAwareness = (): Awareness => {
   const [presence, setPresence] = useState({ users: [] });
+  const editor = useEditor();
 
   useEffect(() => {
-    const handlePresenceChange = (presence) => {
+    const handlePresenceUpdate = (presence) => {
       setPresence(presence);
-      onPresenceChange(presence);
+      editor.updatePresence(presence);
     };
 
-    webSocket.on('presence', handlePresenceChange);
+    editor.on('presenceUpdate', handlePresenceUpdate);
 
-    return () => {
-      webSocket.off('presence', handlePresenceChange);
-    };
-  }, [webSocket, onPresenceChange]);
+    return () => editor.off('presenceUpdate', handlePresenceUpdate);
+  }, [editor]);
 
-  return { presence };
+  return { updatePresence: (presence) => setPresence(presence) };
 };
 
 export default useAwareness;
