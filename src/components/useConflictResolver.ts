@@ -1,19 +1,25 @@
 {"import { useState, useEffect } from 'react';
 import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
 
 const useConflictResolver = () => {
-  const editor = useEditor();
-  const [conflict, setConflict] = useState(false);
+  const { editorState, setEditorState } = useEditor();
+  const { sendOperation } = useWebSocket();
 
   useEffect(() => {
-    if (editor.hasConflict) {
-      setConflict(true);
-    } else {
-      setConflict(false);
-    }
-  }, [editor.hasConflict]);
+    const handleOperation = (operation) => {
+      if (operation.type === 'insert' && editorState.selection.start !== operation.position) {
+        setEditorState((prev) => ({ ...prev, selection: { start: operation.position, end: operation.position } }));
+      }
+    };
 
-  return conflict;
+    sendOperation({ type: 'listen', data: { handleOperation } });
+  }, []);
+
+  return {
+    editorState,
+    setEditorState,
+  };
 };
 
 export default useConflictResolver;

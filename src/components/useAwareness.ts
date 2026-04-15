@@ -1,15 +1,25 @@
 {"import { useState, useEffect } from 'react';
-import { useUsers } from './useUsers';
+import { useWebSocket } from './useWebSocket';
 
 const useAwareness = () => {
-  const users = useUsers();
-  const [activeUsers, setActiveUsers] = useState([]);
+  const [users, setUsers] = useState([]);
+  const { sendOperation } = useWebSocket();
 
   useEffect(() => {
-    setActiveUsers(users.filter((user) => user.isActive));
-  }, [users]);
+    const handleOperation = (operation) => {
+      if (operation.type === 'join') {
+        setUsers((prev) => [...prev, { id: operation.data.id, color: operation.data.color }]);
+      } else if (operation.type === 'leave') {
+        setUsers((prev) => prev.filter((user) => user.id !== operation.data.id));
+      }
+    };
 
-  return activeUsers;
+    sendOperation({ type: 'listen', data: { handleOperation } });
+  }, []);
+
+  return {
+    users,
+  };
 };
 
 export default useAwareness;
