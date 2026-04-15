@@ -2,14 +2,16 @@
 import { useWebSocket } from './useWebSocket';
 
 const useEditor = () => {
-  const [document, setDocument] = useState('');
-  const { send, receive } = useWebSocket();
+  const webSocket = useWebSocket();
+  const [editorState, setEditorState] = useState({});
 
   useEffect(() => {
-    receive('document', (data) => setDocument(data));
-  }, []);
+    webSocket.onMessage((message) => {
+      setEditorState(message.editorState);
+    });
+  }, [webSocket]);
 
-  return { document, updateDocument: (document) => send('document', document) };
+  return { ...editorState, hasConflict: webSocket.hasConflict);
 };
 
 export default useEditor;

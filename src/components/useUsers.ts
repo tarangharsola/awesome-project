@@ -2,14 +2,16 @@
 import { useWebSocket } from './useWebSocket';
 
 const useUsers = () => {
+  const webSocket = useWebSocket();
   const [users, setUsers] = useState([]);
-  const { send, receive } = useWebSocket();
 
   useEffect(() => {
-    receive('users', (data) => setUsers(data));
-  }, []);
+    webSocket.onUsersUpdate((users) => {
+      setUsers(users);
+    });
+  }, [webSocket]);
 
-  return { users, addUser: (user) => send('users', user) };
+  return users;
 };
 
 export default useUsers;

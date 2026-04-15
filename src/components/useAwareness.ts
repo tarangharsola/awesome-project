@@ -1,26 +1,15 @@
 {"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
+import { useUsers } from './useUsers';
 
-interface Awareness {
-  updatePresence: (presence: any) => void;
-}
-
-const useAwareness = (): Awareness => {
-  const [presence, setPresence] = useState({ users: [] });
-  const editor = useEditor();
+const useAwareness = () => {
+  const users = useUsers();
+  const [activeUsers, setActiveUsers] = useState([]);
 
   useEffect(() => {
-    const handlePresenceUpdate = (presence) => {
-      setPresence(presence);
-      editor.updatePresence(presence);
-    };
+    setActiveUsers(users.filter((user) => user.isActive));
+  }, [users]);
 
-    editor.on('presenceUpdate', handlePresenceUpdate);
-
-    return () => editor.off('presenceUpdate', handlePresenceUpdate);
-  }, [editor]);
-
-  return { updatePresence: (presence) => setPresence(presence) };
+  return activeUsers;
 };
 
 export default useAwareness;

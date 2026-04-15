@@ -1,15 +1,15 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { useEditor } from './useEditor';
 
 const useLanguage = () => {
-  const [language, setLanguage] = useState('');
-  const { send, receive } = useWebSocket();
+  const editor = useEditor();
+  const [language, setLanguage] = useState('javascript');
 
   useEffect(() => {
-    receive('language', (data) => setLanguage(data));
-  }, []);
+    setLanguage(editor.getLanguage);
+  }, [editor.getLanguage]);
 
-  return { language, updateLanguage: (language) => send('language', language) };
+  return language;
 };
 
 export default useLanguage;
