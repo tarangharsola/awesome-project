@@ -1,0 +1,1 @@
+{"function formatCode(code: string, syntax: string): string {\n  switch (syntax) {\n    case 'javascript':\n      return code.replace(/function\s+([a-zA-Z_$][a-zA-Z_$0-9]*)\s*\(/g, 'function $1 ($1) {');\n    case 'python':\n      return code.replace(/def\s+([a-zA-Z_$][a-zA-Z_$0-9]*)\s*\(/g, 'def $1 ($1):');\n    default:\n      return code;\n  }\n}\nexport default formatCode;
