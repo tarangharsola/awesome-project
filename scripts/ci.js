@@ -1,10 +1,8 @@
 // Import required modules
 const childProcess = require('child_process');
-const fs = require('fs');
 
-// Define build script
-module.exports = function build() {
-  // Run tests and build the app
-  childProcess.execSync('npm run test');
+// Run tests and build script
+module.exports = () => {
   childProcess.execSync('npm run build');
+  childProcess.execSync('npm run test');
 };

@@ -1,13 +1,22 @@
 // Import required modules
-import { execSync } from 'child_process';
-import { resolve } from 'path';
-import { readFileSync } from 'fs';
+const webpack = require('webpack');
+const path = require('path');
 
-// Define the build script
-function build() {
-  // Run the build process
-  execSync('webpack --mode production');
-}
-
-// Export the build function
-export { build };
+// Define build configuration
+module.exports = {
+  entry: './src/index.tsx',
+  output: {
+    path: path.resolve(__dirname, 'public'),
+    filename: 'bundle.js',
+  },
+  module: {
+    rules: [
+      {
+        test: /.tsx?$/, loader: 'ts-loader', exclude: /node_modules/,
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js'],
+  },
+};
