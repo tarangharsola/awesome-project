@@ -1,52 +1,25 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
+import { useUsers } from '../useUsers';
 
-interface User {
-  id: string;
-  name: string;
-  color: string;
-}
-
-interface Props {
-  users: User[];
-}
-
-const UserList = ({ users }: Props) => {
-  const [activeUsers, setActiveUsers] = useState<User[]>([]);
-  const [colors, setColors] = useState<string[]>([]);
+const UserList = () => {
+  const [users, setUsers] = useState([]);
+  const { users: connectedUsers } = useUsers();
 
   useEffect(() => {
-    const userColors: { [id: string]: string } = {};
-    users.forEach((user) => {
-      userColors[user.id] = user.color;
-    });
-    setColors(Object.values(userColors));
-  }, [users]);
-
-  useEffect(() => {
-    const activeUsersList = users.filter((user) => user.id === user.id);
-    setActiveUsers(activeUsersList);
-  }, [users]);
+    setUsers(connectedUsers);
+  }, [connectedUsers]);
 
   return (
-    <div>
-      <h2>Active Users:</h2>
-      <ul>
-        {activeUsers.map((user, index) => (
-          <li key={user.id} style={{
-            backgroundColor: colors[index],
-            color: 'white',
-            padding: '5px',
-            borderRadius: '5px',
-            display: 'inline-block',
-            margin: '5px',
-          }}>
-            {user.name}
-          </li>
-        ))}
-      </ul>
+    <div className="user-list">
+      {users.map((user, index) => (
+        <div key={index} className="user">
+          <span className="username">{user.username}</span>
+          <span className="color" style={{ backgroundColor: user.color }}></span>
+        </div>
+      ))}
     </div>
   );
-}
+};
 
 export default UserList;
