@@ -1,22 +1,16 @@
 // Import required modules
-const webpack = require('webpack');
-const path = require('path');
+const gulp = require('gulp');
+const ts = require('gulp-typescript');
+const sourcemaps = require('gulp-sourcemaps');
 
-// Define build configuration
-module.exports = {
-  entry: './src/index.tsx',
-  output: {
-    path: path.resolve(__dirname, 'public'),
-    filename: 'bundle.js',
-  },
-  module: {
-    rules: [
-      {
-        test: /.tsx?$/, loader: 'ts-loader', exclude: /node_modules/,
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.ts', '.tsx', '.js'],
-  },
-};
+// Define build task
+gulp.task('build', () => {
+  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
+    .pipe(sourcemaps.init())
+    .pipe(ts.createProject('tsconfig.json')())
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest('dist'));
+});
+
+// Define default task
+gulp.task('default', ['build']);
