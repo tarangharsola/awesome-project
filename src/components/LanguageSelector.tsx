@@ -1,1 +1,19 @@
-{"import React from 'react';\nimport { useState } from 'react';\n\ninterface Language {\n  name: string;\n  syntax: string;\n}\n\ninterface Props {\n  languages: Language[];\n  selectedLanguage: Language;\n  onSelect: (language: Language) => void;\n}\n\nconst LanguageSelector: React.FC<Props> = ({ languages, selectedLanguage, onSelect }) => {\n  const [isOpen, setIsOpen] = useState(false);\n\n  const handleSelect = (language: Language) => {\n    onSelect(language);\n    setIsOpen(false);\n  };\n\n  return (\n    <div>\n      <button onClick={() => setIsOpen(true)}>Select Language</button>\n      {isOpen && (\n        <div>\n          {languages.map((language, index) => (\n            <button\n              key={index}\n              onClick={() => handleSelect(language)}\n              style={{\n                backgroundColor: language.syntax === 'javascript' ? 'blue' : language.syntax === 'python' ? 'green' : 'red',\n                color: 'white',\n              }}\n            >\n              {language.name}\n            </button>\n          ))}\n        </div>\n      )}\n    </div>\n  );\n};\n\nexport default LanguageSelector;
+{"import React from 'react';
+import { useState } from 'react';
+
+const LanguageSelector = () => {
+  const [language, setLanguage] = useState('javascript');
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
+  };
+
+  return (
+    <select value={language} onChange={handleLanguageChange}>
+      <option value="javascript">JavaScript</option>
+      <option value="python">Python</option>
+      <option value="html">HTML</option>
+    </select>
+  );
+};
+
+export default LanguageSelector;
