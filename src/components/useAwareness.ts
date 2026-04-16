@@ -3,23 +3,37 @@ import { useWebSocket } from './useWebSocket';
 
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
-  const { sendOperation } = useWebSocket();
+  const [cursorPositions, setCursorPositions] = useState({});
+  const webSocket = useWebSocket();
 
   useEffect(() => {
-    const handleOperation = (operation) => {
-      if (operation.type === 'join') {
-        setUsers((prev) => [...prev, { id: operation.data.id, color: operation.data.color }]);
-      } else if (operation.type === 'leave') {
-        setUsers((prev) => prev.filter((user) => user.id !== operation.data.id));
-      }
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    sendOperation({ type: 'listen', data: { handleOperation } });
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
+    };
+
+    const handleCursorMove = (cursorPosition) => {
+      setCursorPositions((prevCursorPositions) => {
+        const updatedPositions = { ...prevCursorPositions, [cursorPosition.userId]: cursorPosition.position };
+        return updatedPositions;
+      });
+    };
+
+    webSocket.on('userJoin', handleUserJoin);
+    webSocket.on('userLeave', handleUserLeave);
+    webSocket.on('cursorMove', handleCursorMove);
+
+    return () => {
+      webSocket.off('userJoin', handleUserJoin);
+      webSocket.off('userLeave', handleUserLeave);
+      webSocket.off('cursorMove', handleCursorMove);
+    };
   }, []);
 
-  return {
-    users,
-  };
+  return { users, cursorPositions };
 };
 
 export default useAwareness;
