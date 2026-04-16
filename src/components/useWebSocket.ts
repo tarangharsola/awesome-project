@@ -1,15 +1,15 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+import { WebSocket } from './WebSocket';
 
-const useWebSocket = () => {
-  const [webSocket, setWebSocket] = useState(null);
+function useWebSocket() {
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
-    setWebSocket(ws);
+    setWs(ws);
   }, []);
 
-  return webSocket;
-};
+  return { ws };
+}
 
 export default useWebSocket;

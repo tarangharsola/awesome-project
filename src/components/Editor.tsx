@@ -1,1 +1,31 @@
-{"import React, { useState, useEffect } from 'react';\nimport { Editor } from 'react-simple-editor';\nimport { useLanguage } from './useLanguage';\n\ninterface Props {\n  language: string;\n  value: string;\n  onChange: (value: string) => void;\n}\n\nconst EditorComponent: React.FC<Props> = ({ language, value, onChange }) => {\n  const [formattedValue, setFormattedValue] = useState(value);\n  const { syntax } = useLanguage(language);\n\n  useEffect(() => {\n    const formattedValue = formatCode(value, syntax);\n    setFormattedValue(formattedValue);\n  }, [value, syntax]);\n\n  const handleOnChange = (newValue: string) => {\n    onChange(newValue);\n    setFormattedValue(newValue);\n  };\n\n  return (\n    <Editor\n      value={formattedValue}\n      onChange={handleOnChange}\n      className={syntax === 'javascript' ? 'javascript' : syntax === 'python' ? 'python' : 'html'}\n    />\n  );\n};\n\nexport default EditorComponent;
+{"import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { WebSocket } from './WebSocket';
+import { useEditor } from './useEditor';
+import { useUsers } from './useUsers';
+
+function Editor() {
+  const dispatch = useDispatch();
+  const { code, cursorPosition } = useSelector((state) => state.editor);
+  const { users } = useSelector((state) => state.users);
+  const { ws } = useWebSocket();
+  const { cursor } = useCursor();
+  const { language } = useLanguage();
+  const { username } = useUsers();
+
+  useEffect(() => {
+    dispatch({ type: 'UPDATE_CODE', payload: code });
+  }, [code]);
+
+  return (
+    <div className='editor'>
+      <WebSocket ws={ws} />
+      <CursorTracker cursor={cursor} />
+      <LanguageSelector language={language} />
+      <UserList users={users} />
+      <pre>{code}</pre>
+    </div>
+  );
+}
+
+export default Editor;

@@ -1,17 +1,15 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { useSelector, useDispatch } from 'react-redux';
 
-const useUsers = () => {
-  const webSocket = useWebSocket();
-  const [users, setUsers] = useState([]);
+function useUsers() {
+  const dispatch = useDispatch();
+  const { users } = useSelector((state) => state.users);
 
   useEffect(() => {
-    webSocket.onUsersUpdate((users) => {
-      setUsers(users);
-    });
-  }, [webSocket]);
+    dispatch({ type: 'UPDATE_USERS', payload: users });
+  }, [users]);
 
-  return users;
-};
+  return { users };
+}
 
 export default useUsers;

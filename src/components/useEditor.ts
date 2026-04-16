@@ -1,17 +1,15 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { useSelector, useDispatch } from 'react-redux';
 
-const useEditor = () => {
-  const webSocket = useWebSocket();
-  const [editorState, setEditorState] = useState({});
+function useEditor() {
+  const dispatch = useDispatch();
+  const { code, cursorPosition } = useSelector((state) => state.editor);
 
   useEffect(() => {
-    webSocket.onMessage((message) => {
-      setEditorState(message.editorState);
-    });
-  }, [webSocket]);
+    dispatch({ type: 'UPDATE_CODE', payload: code });
+  }, [code]);
 
-  return { ...editorState, hasConflict: webSocket.hasConflict);
-};
+  return { code, cursorPosition };
+}
 
 export default useEditor;
