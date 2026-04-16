@@ -1,21 +1,25 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import { useUsers } from '../useUsers';
+import { User } from './User';
 
-const UserList = () => {
-  const [users, setUsers] = useState([]);
-  const { users: connectedUsers } = useUsers();
+interface UserListProps {
+  users: User[];
+}
 
-  useEffect(() => {
-    setUsers(connectedUsers);
-  }, [connectedUsers]);
-
+const UserList = ({ users }: UserListProps) => {
   return (
     <div className="user-list">
       {users.map((user, index) => (
-        <div key={index} className="user">
+        <div key={index} className="user-item">
           <span className="username">{user.username}</span>
-          <span className="color" style={{ backgroundColor: user.color }}></span>
+          <span className="cursor-label" style={{
+            backgroundColor: user.color,
+            color: 'white',
+            padding: '2px 4px',
+            borderRadius: '4px',
+            fontSize: '12px',
+          }}>
+            {user.username}
+          </span>
         </div>
       ))}
     </div>
