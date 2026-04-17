@@ -30,7 +30,7 @@ const WebSocket = () => {
 
   return (
     <div>
-      <p>Connection Status: {connected ? 'Connected' : 'Disconnected'}</p>
+      {connected ? 'Connected' : 'Disconnected'}
       <button onClick={retry}>Retry</button>
     </div>
   );
