@@ -1,17 +1,25 @@
 {"import React from 'react';
 import { useState } from 'react';
 
-const LanguageSelector = () => {
-  const [language, setLanguage] = useState('javascript');
-  const handleLanguageChange = (event) => {
-    setLanguage(event.target.value);
+interface LanguageSelectorProps {
+  languages: string[];
+  selectedLanguage: string;
+  onChange: (language: string) => void;
+}
+
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({ languages, selectedLanguage, onChange }) => {
+  const [currentLanguage, setCurrentLanguage] = useState(selectedLanguage);
+
+  const handleLanguageChange = (language: string) => {
+    onChange(language);
+    setCurrentLanguage(language);
   };
 
   return (
-    <select value={language} onChange={handleLanguageChange}>
-      <option value="javascript">JavaScript</option>
-      <option value="python">Python</option>
-      <option value="html">HTML</option>
+    <select value={currentLanguage} onChange={(e) => handleLanguageChange(e.target.value)}>
+      {languages.map((language) => (
+        <option key={language} value={language}>{language}</option>
+      ))}
     </select>
   );
 };
