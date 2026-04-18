@@ -2,22 +2,21 @@
 import { useEditor } from './useEditor';
 
 const useConflictResolver = () => {
-  const [conflicts, setConflicts] = useState([]);
-  const editor = useEditor();
+  const [editorState, setEditorState] = useState({});
+  const { editor } = useEditor();
 
   useEffect(() => {
-    const handleConflict = (conflict) => {
-      setConflicts((prevConflicts) => [...prevConflicts, conflict]);
+    const handleEditorChange = (delta) => {
+      // Handle conflicts by merging changes
+      const mergedDelta = mergeDeltas(delta);
+      setEditorState({ ...editorState, ...mergedDelta });
     };
 
-    editor.on('conflict', handleConflict);
+    editor.on('change', handleEditorChange);
+    return () => editor.off('change', handleEditorChange);
+  }, [editor]);
 
-    return () => {
-      editor.off('conflict', handleConflict);
-    };
-  }, []);
-
-  return conflicts;
+  return editorState;
 };
 
 export default useConflictResolver;
