@@ -1,9 +1,13 @@
 // Import required modules
 const assert = require('assert');
 
-// Define test suite
-describe('Collaborative Editor', () => {
-  it('should render editor with syntax highlighting', () => {
-    // Test implementation
-  });
-});
+// Test function
+function testEditor() {
+  // Editor instance
+  const editor = new Editor();
+  // Assert editor instance
+  assert(editor instanceof Editor);
+}
+
+// Run test
+testEditor();
