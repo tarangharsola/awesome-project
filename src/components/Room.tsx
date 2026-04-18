@@ -1,19 +1,26 @@
-{"import React from 'react';
-import RoomComponent from './RoomComponent';
-import WebSocket from './WebSocket';
-import useWebSocket from './useWebSocket';
+{"import React, { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+import Editor from './Editor';
+import UserList from './UserList';
 
 const Room = () => {
-  const { send, receive } = useWebSocket();
+  const [users, setUsers] = useState([]);
+  const [editorValue, setEditorValue] = useState('');
+  const { connect, disconnect, send } = useWebSocket();
 
   useEffect(() => {
-    send({ type: 'JOIN', data: { room: 'room1' } });
+    connect('ws://localhost:8080');
+    return () => disconnect();
   }, []);
+
+  const handleSendMessage = (message) => {
+    send(message);
+  };
 
   return (
     <div>
-      <RoomComponent />
-      <WebSocket receive={receive} />
+      <Editor value={editorValue} onChange={setEditorValue} />
+      <UserList users={users} />
     </div>
   );
 };
