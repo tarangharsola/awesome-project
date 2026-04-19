@@ -1,27 +1,8 @@
-{"import { useState, useEffect } from 'react';
+{"import { useLanguage } from './useLanguage';
 
-interface Language {
-  name: string;
-  formatCode: (code: string) => string;
-}
-
-const languages: Language[] = [
-  { name: 'JavaScript', formatCode: (code) => code },
-  { name: 'Python', formatCode: (code) => code },
-  { name: 'HTML', formatCode: (code) => code },
-];
-
-const useLanguage = (language: string) => {
-  const [selectedLanguage, setSelectedLanguage] = useState(language);
-
-  useEffect(() => {
-    const selectedLanguage = languages.find((lang) => lang.name === language);
-    if (selectedLanguage) {
-      setSelectedLanguage(selectedLanguage);
-    }
-  }, [language]);
-
-  return { formatCode: selectedLanguage.formatCode };
+const useLanguage = () => {
+  const language = useState('javascript');
+  return language;
 };
 
 export default useLanguage;
