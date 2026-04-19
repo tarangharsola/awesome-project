@@ -1,14 +1,28 @@
 {"import React from 'react';
-import { useUsers } from './useUsers';
+import { User } from './User';
 
-const UserList = () => {
-  const users = useUsers();
+interface Props {
+  users: User[];
+}
+
+const UserList = ({ users }: Props) => {
   return (
-    <ul>
-      {users.map(user => (
-        <li key={user.id}>{user.name}</li>
+    <div className="user-list">
+      {users.map((user, index) => (
+        <div key={index} className="user-item">
+          <span className="username">{user.username}</span>
+          <span className="cursor-label" style={{
+            backgroundColor: user.color,
+            color: "#fff",
+            padding: "2px 4px",
+            borderRadius: "4px",
+            fontSize: "12px",
+          }}>
+            {user.cursorPosition}
+          </span>
+        </div>
       ))}
-    </ul>
+    </div>
   );
 };
 
