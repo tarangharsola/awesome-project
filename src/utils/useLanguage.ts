@@ -1,8 +1,1 @@
-{"import { useLanguage } from './useLanguage';
-
-const useLanguage = () => {
-  const language = useState('javascript');
-  return language;
-};
-
-export default useLanguage;
+{"import { useState } from 'react';\n\ninterface Language {\n  name: string;\n  syntax: string;\n}\n\ninterface LanguageContext {\n  language: Language;\n  setLanguage: (language: Language) => void;\n}\n\nconst useLanguage = () => {\n  const [language, setLanguage] = useState<Language>({\n    name: 'JavaScript',\n    syntax: 'javascript',\n  });\n\n  return [language, setLanguage];\n};\n\nexport default useLanguage;
