@@ -1,24 +1,15 @@
 // Import required modules
-const webpack = require('webpack');
-const path = require('path');
+const gulp = require('gulp');
+const uglify = require('gulp-uglify');
 
-// Define build configuration
-module.exports = {
-  entry: './src/index.tsx',
-  output: {
-    path: path.resolve(__dirname, 'public'),
-    filename: 'bundle.js'
-  },
-  module: {
-    rules: [
-      {
-        test: /.tsx?$/, // .ts and .tsx files
-        use: 'ts-loader', // Use ts-loader for TypeScript files
-        exclude: /node_modules/ // Exclude node_modules
-      }
-    ]
-  },
-  resolve: {
-    extensions: ['.ts', '.tsx', '.js'] // Resolve .ts, .tsx, and .js files
-  }
-};
+// Define build task
+gulp.task('build', function() {
+  return gulp.src(['src/scripts/*.js'])
+    .pipe(uglify())
+    .pipe(gulp.dest('public/scripts'));
+});
+
+// Run build task
+gulp.task('default', ['build'], function() {
+  console.log('Build complete.');
+});

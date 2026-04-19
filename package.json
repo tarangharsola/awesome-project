@@ -1,5 +1,6 @@
-// Add test and build scripts to package.json
+// Add test and build scripts
 "scripts": {
   "test": "node src/scripts/test.js",
-  "build": "gulp build"
+  "build": "gulp",
+  "start": "node src/scripts/build.js"
 }
