@@ -1,1 +1,25 @@
-{"import { useState } from 'react';\n\ninterface Language {\n  name: string;\n  syntax: string;\n}\n\ninterface LanguageContext {\n  language: Language;\n  setLanguage: (language: Language) => void;\n}\n\nconst useLanguage = () => {\n  const [language, setLanguage] = useState<Language>({\n    name: 'JavaScript',\n    syntax: 'javascript',\n  });\n\n  return [language, setLanguage];\n};\n\nexport default useLanguage;
+{"import { useState } from 'react';
+
+interface Language {
+  syntaxHighlighting: (code: string, language: string) => string;
+}
+
+const languages: { [key: string]: Language } = {
+  javascript: {
+    syntaxHighlighting: (code, language) => code,
+  },
+  python: {
+    syntaxHighlighting: (code, language) => code,
+  },
+  html: {
+    syntaxHighlighting: (code, language) => code,
+  },
+};
+
+const useLanguage = (language: string) => {
+  const [syntaxHighlighting, setSyntaxHighlighting] = useState(languages[language].syntaxHighlighting);
+
+  return { syntaxHighlighting };
+};
+
+export default useLanguage;
