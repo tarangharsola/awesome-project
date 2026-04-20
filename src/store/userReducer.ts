@@ -1,21 +1,23 @@
-{"import { combineReducers } from 'redux';
+{"import { createReducer } from 'redux';
 
-const userReducer = combineReducers({
-  name: (state = '', action) => {
-    switch (action.type) {
-      case 'UPDATE_NAME':
-        return action.payload;
-      default:
-        return state;
-    }
-  },
-  color: (state = '', action) => {
-    switch (action.type) {
-      case 'UPDATE_COLOR':
-        return action.payload;
-      default:
-        return state;
-    }
+interface State {
+  id: string;
+  name: string;
+  color: string;
+}
+
+const initialState: State = {
+  id: '',
+  name: '',
+  color: '',
+};
+
+const userReducer = createReducer(initialState, (state = initialState, action) => {
+  switch (action.type) {
+    case 'SET_USER':
+      return action.payload;
+    default:
+      return state;
   }
 });
 

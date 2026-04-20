@@ -1,37 +1,50 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
-import { useLanguage } from '../utils/useLanguage';
-import { useEditor } from '../utils/useEditor';
+{"import React, { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
+import { useUsers } from './useUsers';
 
 interface Props {
-  value: string;
-  onChange: (value: string) => void;
+  roomId: string;
   language: string;
 }
 
-const Editor = ({ value, onChange, language }: Props) => {
-  const [localValue, setLocalValue] = useState(value);
-  const { syntaxHighlighting } = useLanguage(language);
-  const { handleKeyDown } = useEditor(onChange);
+const Editor = ({ roomId, language }) => {
+  const [code, setCode] = useState('');
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const [users, setUsers] = useState([]);
+
+  const { send, receive } = useWebSocket(roomId);
+  const { users: connectedUsers } = useUsers(roomId);
 
   useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
+    setUsers(connectedUsers);
+  }, [connectedUsers]);
 
-  const handleLanguageChange = (newLanguage: string) => {
-    onChange(syntaxHighlighting(localValue, newLanguage));
-  };
+  const handleCodeChange = (newCode) => {
+    setCode(newCode);
+    send({ type: 'code', data: newCode });
+  }
+
+  const handleCursorChange = (newCursor) => {
+    setCursor(newCursor);
+    send({ type: 'cursor', data: newCursor });
+  }
 
   return (
-    <div className="editor">
-      <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
-        <option value="javascript">JavaScript</option>
-        <option value="python">Python</option>
-        <option value="html">HTML</option>
-      </select>
-      <textarea value={localValue} onChange={(e) => setLocalValue(e.target.value)} onKeyDown={handleKeyDown} />
+    <div>
+      <h1>Editor</h1>
+      <textarea
+        value={code}
+        onChange={(e) => handleCodeChange(e.target.value)}
+      />
+      <div>
+        {users.map((user) => (
+          <div key={user.id}>{user.name}</div>
+        ))}
+      </div>
+      <CursorTracker cursor={cursor} user={users.find((u) => u.id === cursor.userId)} />
     </div>
   );
-};
+}
 
 export default Editor;
