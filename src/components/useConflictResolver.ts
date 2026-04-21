@@ -1,29 +1,21 @@
 {"import { useState, useEffect } from 'react';
-import { OT } from 'operational-transform';
+import { useEditor } from './useEditor';
 
-interface ConflictResolverProps {
-  user: string;
-  text: string;
-  cursor: number;
-}
-
-const useConflictResolver = (props: ConflictResolverProps) => {
-  const [text, setText] = useState(props.text);
-  const [cursor, setCursor] = useState(props.cursor);
+const useConflictResolver = () => {
+  const [conflicts, setConflicts] = useState([]);
+  const editor = useEditor();
 
   useEffect(() => {
-    const ot = new OT(props.text);
-    const transformedText = ot.apply(props.user, props.text);
-    setText(transformedText);
-  }, [props.text, props.user]);
+    const handleConflict = (conflict) => {
+      setConflicts((prevConflicts) => [...prevConflicts, conflict]);
+    };
 
-  useEffect(() => {
-    const ot = new OT(props.text);
-    const transformedCursor = ot.applyCursor(props.user, props.cursor);
-    setCursor(transformedCursor);
-  }, [props.text, props.user, props.cursor]);
+    editor.on('conflict', handleConflict);
 
-  return { text, cursor };
+    return () => editor.off('conflict', handleConflict);
+  }, [editor]);
+
+  return conflicts;
 };
 
 export default useConflictResolver;

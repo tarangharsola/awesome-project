@@ -1,25 +1,21 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+import { useUsers } from './useUsers';
 
-interface AwarenessProps {
-  ws: WebSocket;
-}
-
-const useAwareness = (props: AwarenessProps) => {
+const useAwareness = () => {
   const [users, setUsers] = useState([]);
+  const usersHook = useUsers();
 
   useEffect(() => {
-    props.ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'join') {
-        setUsers((prevUsers) => [...prevUsers, data.user]);
-      } else if (data.type === 'leave') {
-        setUsers((prevUsers) => prevUsers.filter((user) => user !== data.user));
-      }
+    const handleUserUpdate = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
-  }, [props.ws]);
 
-  return { users };
+    usersHook.on('userUpdate', handleUserUpdate);
+
+    return () => usersHook.off('userUpdate', handleUserUpdate);
+  }, [usersHook]);
+
+  return users;
 };
 
 export default useAwareness;
