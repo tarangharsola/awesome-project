@@ -1,8 +1,5 @@
 {"import { WebSocket } from 'ws';
 
-const useWebSocket = () => {
-  const ws = useState(new WebSocket('ws://localhost:8080'));
-  return ws;
-};
+const webSocket = new WebSocket('ws://localhost:8080');
 
-export default useWebSocket;
+export default webSocket;

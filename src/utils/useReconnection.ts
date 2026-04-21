@@ -1,21 +1,7 @@
-{"import { useState, useEffect } from 'react';
+{"import { WebSocket } from 'ws';
 
-const useReconnection = () => {
-  const [retries, setRetries] = useState(0);
-  const [connectionStatus, setConnectionStatus] = useState('connected');
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (connectionStatus === 'disconnected') {
-        setRetries(retries + 1);
-        if (retries >= 3) {
-          setConnectionStatus('reconnecting');
-        }
-      }
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, [connectionStatus, retries]);
-
-  return { retries, connectionStatus };
+const reconnection = (ws: WebSocket) => {
+  // Reconnection logic
 };
-export default useReconnection;
+
+export default reconnection;

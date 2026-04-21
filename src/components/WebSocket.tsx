@@ -1,27 +1,13 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-const WebSocket = () => {
-  const [connectionStatus, setConnectionStatus] = useState('connected');
-  const [retries, setRetries] = useState(0);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (connectionStatus === 'disconnected') {
-        setRetries(retries + 1);
-        if (retries >= 3) {
-          setConnectionStatus('reconnecting');
-        }
-      }
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, [connectionStatus, retries]);
-
+function WebSocket() {
+  const webSocket = useWebSocket();
   return (
-    <div>
-      <p>Connection Status: {connectionStatus}</p>
-      <p>Retries: {retries}</p>
+    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+      {webSocket.children}
     </div>
   );
-};
+}
+
 export default WebSocket;

@@ -1,8 +1,5 @@
 {"import { OperationalTransformation } from 'ot-js';
 
-const useConflictResolver = () => {
-  const ot = new OperationalTransformation();
-  return ot;
-};
+const conflictResolver = new OperationalTransformation();
 
-export default useConflictResolver;
+export default conflictResolver;
