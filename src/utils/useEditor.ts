@@ -1,21 +1,14 @@
-{"import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import Editor from '../components/Editor';
 
-const useEditor = (onChange: (value: string) => void) => {
-  const [value, setValue] = useState('');
-  const [cursorPosition, setCursorPosition] = useState(0);
+const useEditor = () => {
+   const [editorState, setEditorState] = useState('');
 
-  useEffect(() => {
-    onChange(value);
-  }, [value]);
+   useEffect(() => {
+      // Initialize editor state
+   }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      setValue(value + '\n');
-      setCursorPosition(cursorPosition + 1);
-    }
-  };
-
-  return { handleKeyDown, cursorPosition };
+   return { editorState, setEditorState };
 };
 
 export default useEditor;

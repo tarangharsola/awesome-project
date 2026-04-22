@@ -1,7 +1,14 @@
-{"import { WebSocket } from 'ws';
+import { useState, useEffect } from 'react';
+import WebSocket from '../components/WebSocket';
 
-const reconnection = (ws: WebSocket) => {
-  // Reconnection logic
+const useReconnection = () => {
+   const [reconnected, setReconnected] = useState(false);
+
+   useEffect(() => {
+      // Handle reconnection logic
+   }, []);
+
+   return { reconnected, setReconnected };
 };
 
-export default reconnection;
+export default useReconnection;

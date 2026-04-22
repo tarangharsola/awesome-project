@@ -1,5 +1,10 @@
-{"import { OperationalTransformation } from 'ot-js';
+import { useReducer } from 'react';
+import conflictReducer from './conflictReducer';
 
-const conflictResolver = new OperationalTransformation();
+const useConflictResolver = () => {
+   const [conflicts, dispatch] = useReducer(conflictReducer, {});
 
-export default conflictResolver;
+   return { conflicts, dispatch };
+};
+
+export default useConflictResolver;

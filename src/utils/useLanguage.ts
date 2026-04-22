@@ -1,25 +1,10 @@
-{"import { useState } from 'react';
+import { useState } from 'react';
+import { Language } from '../types';
 
-interface Language {
-  syntaxHighlighting: (code: string, language: string) => string;
-}
+const useLanguage = () => {
+   const [language, setLanguage] = useState<Language>('javascript');
 
-const languages: { [key: string]: Language } = {
-  javascript: {
-    syntaxHighlighting: (code, language) => code,
-  },
-  python: {
-    syntaxHighlighting: (code, language) => code,
-  },
-  html: {
-    syntaxHighlighting: (code, language) => code,
-  },
-};
-
-const useLanguage = (language: string) => {
-  const [syntaxHighlighting, setSyntaxHighlighting] = useState(languages[language].syntaxHighlighting);
-
-  return { syntaxHighlighting };
+   return { language, setLanguage };
 };
 
 export default useLanguage;
