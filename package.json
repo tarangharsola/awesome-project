@@ -1,6 +1,4 @@
-// Add test and build scripts
+// Add test script
 "scripts": {
-  "test": "node src/scripts/test.js",
-  "build": "gulp",
-  "start": "node src/scripts/build.js"
+  "test": "node scripts/ci.js"
 }
