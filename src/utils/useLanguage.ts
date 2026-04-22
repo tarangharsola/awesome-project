@@ -1,10 +1,25 @@
-import { useState } from 'react';
-import { Language } from '../types';
+{"import { useState, useEffect } from 'react';
 
-const useLanguage = () => {
-   const [language, setLanguage] = useState<Language>('javascript');
+interface LanguageState {
+  language: string;
+  setLanguage: (language: string) => void;
+}
 
-   return { language, setLanguage };
-};
+const useLanguage = (): LanguageState => {
+  const [language, setLanguage] = useState('javascript');
+
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage) {
+      setLanguage(storedLanguage);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('language', language);
+  }, [language]);
+
+  return { language, setLanguage };
+}
 
 export default useLanguage;
