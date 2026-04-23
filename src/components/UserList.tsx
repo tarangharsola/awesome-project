@@ -1,32 +1,23 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
-import { useUsers } from '../useUsers';
+import { useUsers } from '../store/usersReducer';
 
 const UserList = () => {
-  const { users, addUser, removeUser } = useUsers();
-  const [activeUsers, setActiveUsers] = useState([]);
+  const [users, setUsers] = useState([]);
+  const { users: usersState } = useUsers();
 
   useEffect(() => {
-    setActiveUsers(users.filter(user => user.isConnected));
-  }, [users]);
+    setUsers(usersState);
+  }, [usersState]);
 
   return (
-    <div className="active-users">
-      <h2>Active Users</h2>
-      <ul>
-        {activeUsers.map((user, index) => (
-          <li key={index} style={{
-            backgroundColor: user.color,
-            color: "#fff",
-            padding: "5px",
-            borderRadius: "5px",
-            display: "inline-block",
-            margin: "5px"
-          }}>
-            {user.name}
-          </li>
-        ))}
-      </ul>
+    <div className="user-list">
+      {users.map((user, index) => (
+        <div key={index} className="user">
+          <span className="username">{user.username}</span>
+          <span className="color" style={{ backgroundColor: user.color }}></span>
+        </div>
+      ))}
     </div>
   );
 };
