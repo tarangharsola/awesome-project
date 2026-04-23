@@ -1,11 +1,22 @@
-{"import React from 'react';
-import { useRoom } from './useRoom';
+{"import React, { useState, useEffect } from 'react';
+import Editor from './Editor';
+import UserList from './UserList';
+import WebSocket from './WebSocket';
 
 function Room() {
-  const room = useRoom();
+  const [users, setUsers] = useState([]);
+  const [code, setCode] = useState('');
+
+  useEffect(() => {
+    WebSocket.connect();
+    return () => WebSocket.disconnect();
+  }, []);
+
   return (
-    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
-      {room.children}
+    <div>
+      <Editor code={code} onChange={setCode} />
+      <UserList users={users} />
+      <WebSocket users={users} code={code} />
     </div>
   );
 }

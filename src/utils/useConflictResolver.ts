@@ -1,10 +1,15 @@
-import { useReducer } from 'react';
-import conflictReducer from './conflictReducer';
+{"import { useState, useEffect } from 'react';
+import WebSocket from './WebSocket';
 
-const useConflictResolver = () => {
-   const [conflicts, dispatch] = useReducer(conflictReducer, {});
+function useConflictResolver() {
+  const [conflicts, setConflicts] = useState([]);
 
-   return { conflicts, dispatch };
-};
+  useEffect(() => {
+    WebSocket.connect();
+    return () => WebSocket.disconnect();
+  }, []);
+
+  return { conflicts };
+}
 
 export default useConflictResolver;
