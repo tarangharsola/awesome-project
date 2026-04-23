@@ -1,18 +1,12 @@
 // Import required modules
 const gulp = require('gulp');
-const ts = require('gulp-typescript');
-const sourcemaps = require('gulp-sourcemaps');
+const browserify = require('browserify');
+const source = require('vinyl-source-stream');
 
 // Define build task
-gulp.task('build', function() {
-  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(sourcemaps.init())
-    .pipe(ts()).on('error', function(err) {
-      console.error(err);
-    })
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('dist'));
+gulp.task('build', () => {
+  return browserify('src/index.tsx')
+    .bundle()
+    .pipe(source('bundle.js'))
+    .pipe(gulp.dest('public'));
 });
-
-// Run build task
-gulp.task('default', ['build']);

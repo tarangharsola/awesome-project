@@ -1,4 +1,7 @@
-// Add test script
-"scripts": {
-  "test": "node scripts/ci.js"
+// Update package.json with test and build scripts
+{
+  "scripts": {
+    "test": "gulp test",
+    "build": "gulp build"
+  }
 }
