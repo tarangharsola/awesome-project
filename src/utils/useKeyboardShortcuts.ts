@@ -1,28 +1,17 @@
-{"import { useState, useEffect } from 'react';
+{"import { useState } from 'react';
 
-interface KeyboardShortcutsState {
+interface KeyboardShortcuts {
   shortcuts: { [key: string]: string };
-  setShortcuts: (shortcuts: { [key: string]: string }) => void;
 }
 
-const useKeyboardShortcuts = (): KeyboardShortcutsState => {
-  const [shortcuts, setShortcuts] = useState({
-    'Ctrl+S': 'Save',
-    'Ctrl+Shift+S': 'Save As',
-  });
+const useKeyboardShortcuts = () => {
+  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
 
-  useEffect(() => {
-    const storedShortcuts = localStorage.getItem('shortcuts');
-    if (storedShortcuts) {
-      setShortcuts(JSON.parse(storedShortcuts));
-    }
-  }, []);
+  const updateShortcuts = (newShortcuts: { [key: string]: string }) => {
+    setShortcuts({ shortcuts: newShortcuts });
+  };
 
-  useEffect(() => {
-    localStorage.setItem('shortcuts', JSON.stringify(shortcuts));
-  }, [shortcuts]);
-
-  return { shortcuts, setShortcuts };
+  return { shortcuts, updateShortcuts };
 }
 
 export default useKeyboardShortcuts;
