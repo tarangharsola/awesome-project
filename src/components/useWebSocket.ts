@@ -1,15 +1,29 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from './WebSocket';
+import { io } from 'socket.io-client';
 
-function useWebSocket() {
-  const [ws, setWs] = useState(null);
+const useWebSocket = () => {
+  const [connection, setConnection] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
+    const socket = io('ws://localhost:3001');
+    setConnection(socket);
+
+    socket.on('connect', () => {
+      console.log('Connected to WebSocket server');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from WebSocket server');
+      setError('Disconnected from WebSocket server');
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
-  return { ws };
-}
+  return { connection, error };
+};
 
 export default useWebSocket;
