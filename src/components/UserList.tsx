@@ -1,25 +1,33 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
-import { useUsers } from '../store/usersReducer';
+import WebSocket from './WebSocket';
 
-const UserList = () => {
-  const [users, setUsers] = useState([]);
-  const { users: usersState } = useUsers();
+function UserList({ users }) {
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    setUsers(usersState);
-  }, [usersState]);
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'users') {
+        setUsers(data.users);
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   return (
-    <div className="user-list">
-      {users.map((user, index) => (
-        <div key={index} className="user">
-          <span className="username">{user.username}</span>
-          <span className="color" style={{ backgroundColor: user.color }}></span>
-        </div>
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>{user.name}</li>
       ))}
-    </div>
+    </ul>
   );
-};
+}
 
 export default UserList;

@@ -310,3 +310,4 @@
 2026-04-23T08:20:28.993468+00:00 | Improve editor UX: language switching, formatting defaults, and better keyboard shortcuts.
 2026-04-23T08:20:53.073644+00:00 | Add connection status indicator and retry/backoff behavior.
 2026-04-24T08:30:08.736236+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
+2026-04-24T08:30:53.671529+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.

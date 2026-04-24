@@ -1,16 +1,22 @@
-{"import React from 'react';
-import { useEditor } from './useEditor';
-import CursorTracker from './CursorTracker';
+{"import React, { useRef, useEffect } from 'react';
+import { EditorState, ContentState } from 'draft-js';
+import 'draft-js/dist/draft.min.css';
 
 function Editor() {
-  const editor = useEditor();
+  const editorRef = useRef(null);
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (editor) {
+      const contentState = ContentState.createFromText('');
+      editor.focus();
+      editor.setValue(contentState.getPlainText());
+    }
+  }, []);
+
   return (
-    <div style={{ height: '100vh', width: '100vw' }}>
-      <CursorTracker />
-      <div style={{ position: 'relative', height: '100%', width: '100%' }}>
-        {editor.children}
-      </div>
-    </div>
+    <div ref={editorRef} className='editor' />
   );
 }
 
