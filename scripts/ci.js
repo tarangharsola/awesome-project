@@ -1,14 +1,8 @@
-// Run tests and build script
-const runTests = () => {
-  console.log('Running tests...');
-  const testResults = require('./test.js');
-  console.log(testResults);
-};
+// CI script
+const { execSync } = require('child_process');
 
-const buildApp = () => {
-  console.log('Building app...');
-  require('./build.js');
-};
+// Run build script
+execSync('node scripts/build.js');
 
-runTests();
-buildApp();
+// Run tests
+execSync('node scripts/test.js');

@@ -1,9 +1,14 @@
-// Import required modules
-const assert = require('assert');
+// Jest configuration
+module.exports = {
+  preset: "ts-jest",
+  testEnvironment: "jsdom",
+  setupFilesAfterEnv: ["<rootDir>/src/scripts/setupTests.js"]
+};
 
-// Define test suite
-describe('Collaborative Editor', () => {
-  it('should render editor', () => {
-    // Test editor rendering
+// Test suite
+describe('App', () => {
+  it('renders correctly', () => {
+    const tree = render(<App />);
+    expect(tree).toMatchSnapshot();
   });
 });
