@@ -5,27 +5,41 @@ import { useUsers } from './useUsers';
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
   const editor = useEditor();
-  const { users: currentUsers } = useUsers();
+  const usersList = useUsers();
 
   useEffect(() => {
-    const handleUserJoin = (user) => {
-      setUsers((prevUsers) => [...prevUsers, user]);
+    const handleUserUpdate = (user) => {
+      setUsers((prevUsers) => {
+        const index = prevUsers.findIndex((u) => u.id === user.id);
+        if (index !== -1) {
+          return [...prevUsers.slice(0, index), user, ...prevUsers.slice(index + 1)];
+        }
+        return [...prevUsers, user];
+      });
     };
 
-    editor.on('userJoin', handleUserJoin);
+    usersList.on('update', handleUserUpdate);
 
-    return () => editor.off('userJoin', handleUserJoin);
-  }, [editor]);
+    return () => {
+      usersList.off('update', handleUserUpdate);
+    };
+  }, [usersList]);
 
   useEffect(() => {
-    const handleUserLeave = (user) => {
-      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
+    const handleCursorUpdate = (cursor) => {
+      const user = users.find((u) => u.id === cursor.userId);
+      if (user) {
+        user.cursor = cursor;
+        setUsers(users);
+      }
     };
 
-    currentUsers.forEach((user) => editor.on('userLeave', handleUserLeave, user.id));
+    editor.on('cursorUpdate', handleCursorUpdate);
 
-    return () => currentUsers.forEach((user) => editor.off('userLeave', handleUserLeave, user.id));
-  }, [editor, currentUsers]);
+    return () => {
+      editor.off('cursorUpdate', handleCursorUpdate);
+    };
+  }, [editor, users]);
 
   return users;
 };
