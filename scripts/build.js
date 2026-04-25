@@ -1,16 +1,18 @@
-// Import required modules
-const gulp = require('gulp');
-const ts = require('gulp-typescript');
-const sourcemaps = require('gulp-sourcemaps');
+// Build script
+const fs = require('fs');
+const path = require('path');
 
-// Define build task
-gulp.task('build', () => {
-  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(sourcemaps.init())
-    .pipe(ts.createProject('tsconfig.json')())
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('dist'));
-});
+// Function to build the application
+function buildApp() {
+  // Copy files
+  fs.copyFileSync('src/index.tsx', 'public/index.html');
+  // Run tests
+  const testResults = require('child_process').spawnSync('node', ['src/scripts/test.js']);
+  if (testResults.status !== 0) {
+    console.error('Tests failed');
+    process.exit(1);
+  }
+}
 
-// Define default task
-gulp.task('default', ['build']);
+// Run build script
+buildApp();
