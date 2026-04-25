@@ -1,14 +1,8 @@
-import { useState, useEffect } from 'react';
-import Editor from '../components/Editor';
+{"import { Editor } from 'react-simple-editors';
 
 const useEditor = () => {
-   const [editorState, setEditorState] = useState('');
-
-   useEffect(() => {
-      // Initialize editor state
-   }, []);
-
-   return { editorState, setEditorState };
+  const editor = new Editor();
+  return editor;
 };
 
 export default useEditor;

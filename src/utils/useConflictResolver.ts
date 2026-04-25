@@ -1,15 +1,8 @@
-{"import { useState, useEffect } from 'react';
-import WebSocket from './WebSocket';
+{"import { OperationalTransformation } from 'ot-js';
 
-function useConflictResolver() {
-  const [conflicts, setConflicts] = useState([]);
-
-  useEffect(() => {
-    WebSocket.connect();
-    return () => WebSocket.disconnect();
-  }, []);
-
-  return { conflicts };
-}
+const useConflictResolver = () => {
+  const ot = new OperationalTransformation();
+  return ot;
+};
 
 export default useConflictResolver;
