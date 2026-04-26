@@ -1,1 +1,20 @@
-{"import React, { useState, useEffect } from 'react';\nimport WebSocket from 'ws';\n\ninterface WebSocketProps {\n  children: React.ReactNode;\n  url: string;\n}\n\nconst WebSocketComponent = (props: WebSocketProps) => {\n  const [connectionStatus, setConnectionStatus] = useState('disconnected');\n  const [retryCount, setRetryCount] = useState(0);\n\n  useEffect(() => {\n    const ws = new WebSocket(props.url);\n    ws.onopen = () => {\n      setConnectionStatus('connected');\n    };\n    ws.onclose = () => {\n      setConnectionStatus('disconnected');\n    };\n    ws.onerror = () => {\n      setConnectionStatus('error');\n    };\n\n    const intervalId = setInterval(() => {\n      if (connectionStatus === 'disconnected') {\n        setRetryCount(retryCount + 1);\n      }\n    }, 5000);\n    return () => clearInterval(intervalId);\n  }, [connectionStatus, retryCount, props.url]);\n\n  const handleConnectionStatus = (connected: boolean) => {\n    setConnectionStatus(connected ? 'connected' : 'disconnected');\n  };\n\n  return (\n    <div>\n      <p>Connection Status: {connectionStatus}</p>\n      <p>Retry Count: {retryCount}</p>\n      <button onClick={() => handleConnectionStatus(true)}>Connect</button>\n      <button onClick={() => handleConnectionStatus(false)}>Disconnect</button>\n    </div>\n  );\n};\n\nexport default WebSocketComponent;
+{"import React, { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+
+const WebSocket = () => {
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const { reconnect, connectionStatus: wsConnectionStatus } = useWebSocket();
+
+  useEffect(() => {
+    setConnectionStatus(wsConnectionStatus);
+  }, [wsConnectionStatus]);
+
+  return (
+    <div>
+      <p>Connection Status: {connectionStatus}</p>
+      <button onClick={reconnect}>Reconnect</button>
+    </div>
+  );
+};
+
+export default WebSocket;
