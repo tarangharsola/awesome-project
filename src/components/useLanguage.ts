@@ -1,15 +1,1 @@
-{"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-
-const useLanguage = () => {
-  const editor = useEditor();
-  const [language, setLanguage] = useState('javascript');
-
-  useEffect(() => {
-    setLanguage(editor.getLanguage);
-  }, [editor.getLanguage]);
-
-  return language;
-};
-
-export default useLanguage;
+{"import React from 'react';\n\ninterface Language {\n  name: string;\n  syntax: string;\n}\n\ninterface LanguageProps {\n  language: Language;\n}\n\nconst LanguageSelector: React.FC<LanguageProps> = ({ language }) => {\n  const handleLanguageChange = (newLanguage: Language) => {\n    // Update language state\n  };\n\n  return (\n    <div>\n      <select\n        value={language.name}\n        onChange={(e) => handleLanguageChange({ name: e.target.value, syntax: language.syntax })}\n      >\n        <option value="javascript">JavaScript</option>\n        <option value="python">Python</option>\n        <option value="html">HTML</option>\n      </select>\n    </div>\n  );\n};\n\nexport default LanguageSelector;
