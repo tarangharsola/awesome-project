@@ -1,6 +1,17 @@
 {"import { combineReducers } from 'redux';
-import { user } from './user';
+import { fromJS } from 'immutable';
 
-const rootReducer = combineReducers({ user });
+const initialState = fromJS({ username: '', color: '' });
 
-export default rootReducer;
+const userReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case 'SET_USERNAME':
+      return state.set('username', action.username);
+    case 'SET_COLOR':
+      return state.set('color', action.color);
+    default:
+      return state;
+  }
+};
+
+export default userReducer;

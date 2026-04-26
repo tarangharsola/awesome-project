@@ -1,23 +1,25 @@
-{"import React, { useRef, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
 import { EditorState, ContentState } from 'draft-js';
 import 'draft-js/dist/draft.min.css';
 
-function Editor() {
-  const editorRef = useRef(null);
+const Editor = () => {
   const [editorState, setEditorState] = useState(EditorState.createEmpty());
 
   useEffect(() => {
-    const editor = editorRef.current;
-    if (editor) {
-      const contentState = ContentState.createFromText('');
-      editor.focus();
-      editor.setValue(contentState.getPlainText());
-    }
+    const handleChanges = (newEditorState) => {
+      setEditorState(newEditorState);
+    };
+
+    return () => {
+      // Clean up
+    };
   }, []);
 
   return (
-    <div ref={editorRef} className='editor' />
+    <div className="editor">
+      <EditorState editorState={editorState} />
+    </div>
   );
-}
+};
 
 export default Editor;
