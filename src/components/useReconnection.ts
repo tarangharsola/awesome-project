@@ -1,23 +1,32 @@
-{"import { useState, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
 import { useWebSocket } from './useWebSocket';
 
 const useReconnection = () => {
   const [reconnecting, setReconnecting] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const { reconnect, connectionStatus } = useWebSocket();
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      if (connectionStatus === 'disconnected') {
-        setReconnecting(true);
+      if (reconnecting) {
         setRetryCount(retryCount + 1);
-        reconnect();
       }
     }, 5000);
     return () => clearInterval(intervalId);
-  }, [connectionStatus, reconnect, retryCount]);
+  }, [reconnecting]);
 
-  return { reconnecting, retryCount, reconnect, connectionStatus };
+  const handleConnectionStatus = (status) => {
+    if (status === 'connected') {
+      setReconnecting(false);
+    } else if (status === 'disconnected') {
+      setReconnecting(true);
+    }
+  };
+
+  return {
+    reconnecting,
+    retryCount,
+    handleConnectionStatus
+  };
 };
 
 export default useReconnection;
