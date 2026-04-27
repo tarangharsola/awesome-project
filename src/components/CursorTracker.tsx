@@ -1,56 +1,33 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
 
-interface Cursor {
-  id: string;
-  x: number;
-  y: number;
-}
-
-interface Props {
-  cursors: Cursor[];
-}
-
-const CursorTracker = ({ cursors }: Props) => {
-  const [cursorPositions, setCursorPositions] = useState({});
+const CursorTracker = () => {
+  const [cursors, setCursors] = useState([]);
+  const [colors, setColors] = useState({});
 
   useEffect(() => {
-    const cursorPositions = cursors.reduce((acc, cursor) => {
-      acc[cursor.id] = `${cursor.x},${cursor.y}`;
-      return acc;
-    }, {});
-    setCursorPositions(cursorPositions);
-  }, [cursors]);
-
-  const handleCursorUpdate = (cursor: Cursor) => {
-    setCursorPositions((prevPositions) => {
-      const updatedPositions = {
-        ...prevPositions,
-        [cursor.id]: `${cursor.x},${cursor.y}`,
-      };
-      return updatedPositions;
-    });
-  }
+    // fetch cursors from server
+    const fetchCursors = async () => {
+      const response = await fetch('/api/cursors');
+      const data = await response.json();
+      setCursors(data.cursors);
+      setColors(data.colors);
+    };
+    fetchCursors();
+  }, []);
 
   return (
-    <div className="cursor-tracker">
-      {Object.keys(cursorPositions).map((cursorId) => (
-        <div key={cursorId} style={{
+    <div>
+      {cursors.map((cursor, index) => (
+        <div key={index} style={{
           position: 'absolute',
-          left: cursorPositions[cursorId].split(',')[0],
-          top: cursorPositions[cursorId].split(',')[1],
-          width: '2px',
-          height: '2px',
-          backgroundColor: 'white',
-          borderRadius: '50%',
+          top: cursor.y,
+          left: cursor.x,
+          width: '5px',
+          height: '5px',
+          backgroundColor: colors[cursor.id],
+          borderRadius: '5px',
         }}>
-        <span style={{
-          position: 'absolute',
-          left: cursorPositions[cursorId].split(',')[0] + 5,
-          top: cursorPositions[cursorId].split(',')[1] + 5,
-          fontSize: '12px',
-          color: 'white',
-        }}>{cursors.find((cursor) => cursor.id === cursorId).name}</span>
         </div>
       ))}
     </div>

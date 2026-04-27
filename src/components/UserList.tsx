@@ -1,48 +1,29 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
 
-interface User {
-  id: string;
-  name: string;
-  color: string;
-}
-
-interface Props {
-  users: User[];
-}
-
-const UserList = ({ users }: Props) => {
-  const [activeUsers, setActiveUsers] = useState([]);
+const UserList = () => {
+  const [users, setUsers] = useState([]);
   const [colors, setColors] = useState({});
 
   useEffect(() => {
-    const userColors = users.reduce((acc, user) => {
-      acc[user.id] = user.color;
-      return acc;
-    }, {});
-    setColors(userColors);
-  }, [users]);
-
-  const handleUserUpdate = (user: User) => {
-    setActiveUsers((prevUsers) => {
-      const updatedUsers = prevUsers.map((u) => {
-        if (u.id === user.id) {
-          return user;
-        }
-        return u;
-      });
-      return updatedUsers;
-    });
-  }
+    // fetch users from server
+    const fetchUsers = async () => {
+      const response = await fetch('/api/users');
+      const data = await response.json();
+      setUsers(data.users);
+      setColors(data.colors);
+    };
+    fetchUsers();
+  }, []);
 
   return (
-    <div className="user-list">
-      {activeUsers.map((user) => (
-        <div key={user.id} style={{
+    <div>
+      {users.map((user, index) => (
+        <div key={index} style={{
           backgroundColor: colors[user.id],
           padding: '5px',
           borderRadius: '5px',
-          color: 'white',
+          color: '#fff',
         }}>
           {user.name}
         </div>
