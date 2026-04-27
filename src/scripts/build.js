@@ -1,8 +1,18 @@
-// Build script
-const { execSync } = require('child_process');
+// Import required modules
+const gulp = require('gulp');
+const babel = require('gulp-babel');
 
-// Run Jest tests
-execSync('jest --config src/scripts/test.js');
+// Define build task
+gulp.task('build', () => {
+  return gulp.src('src/**/*.{ts,tsx}')
+    .pipe(babel({
+      presets: ['@babel/preset-env', '@babel/preset-react'],
+      plugins: ['@babel/plugin-transform-runtime']
+    }))
+    .pipe(gulp.dest('dist'));
+});
 
-// Build production bundle
-execSync('webpack --config webpack.config.js');
+// Run build task
+gulp.task('default', ['build'], () => {
+  console.log('Build complete.');
+});
