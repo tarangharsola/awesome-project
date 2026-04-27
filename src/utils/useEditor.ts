@@ -1,8 +1,24 @@
-{"import { Editor } from 'react-simple-editors';
+{"import { useState, useEffect } from 'react';
+import CodeMirror from 'codemirror';
 
-const useEditor = () => {
-  const editor = new Editor();
-  return editor;
-};
+function useEditor() {
+  const [code, setCode] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(0);
+
+  useEffect(() => {
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: 'javascript',
+      lineNumbers: true,
+    });
+    editor.on('cursorActivity', (instance, cursor) => {
+      setCursorPosition(cursor.position);
+    });
+    return () => {
+      editor.toTextArea();
+    };
+  }, []);
+
+  return { code, cursorPosition };
+}
 
 export default useEditor;

@@ -1,32 +1,33 @@
 {"import React, { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import WebSocket from 'ws';
 
-const WebSocket = () => {
-  const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  const { reconnecting, retryCount, handleConnectionStatus } = useReconnection();
+function WebSocket({ language, document }) {
+  const [ws, setWs] = useState(null);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => {
-      setConnectionStatus('connected');
-      handleConnectionStatus('connected');
+    setWs(ws);
+    ws.onmessage = (event) => {
+      setMessage(event.data);
     };
-    ws.onclose = () => {
-      setConnectionStatus('disconnected');
-      handleConnectionStatus('disconnected');
+    return () => {
+      ws.close();
     };
-    ws.onerror = () => {
-      setConnectionStatus('error');
-    };
-    return () => ws.close();
   }, []);
+
+  const handleSendMessage = () => {
+    if (ws) {
+      ws.send(JSON.stringify({ type: 'document', document }));
+    }
+  };
 
   return (
     <div>
-      <p>Connection Status: {connectionStatus}</p>
-      <p>Retry Count: {retryCount}</p>
+      <button onClick={handleSendMessage}>Send message</button>
+      <div>Message: {message}</div>
     </div>
   );
-};
+}
 
 export default WebSocket;

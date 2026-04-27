@@ -1,25 +1,29 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorState, ContentState } from 'draft-js';
-import 'draft-js/dist/draft.min.css';
+import CodeMirror from 'codemirror';
 
-const Editor = () => {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+function Editor({ language, document }) {
+  const [code, setCode] = useState(document);
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   useEffect(() => {
-    const handleChanges = (newEditorState) => {
-      setEditorState(newEditorState);
-    };
-
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+    });
+    editor.on('cursorActivity', (instance, cursor) => {
+      setCursorPosition(cursor.position);
+    });
     return () => {
-      // Clean up
+      editor.toTextArea();
     };
   }, []);
 
   return (
-    <div className="editor">
-      <EditorState editorState={editorState} />
+    <div>
+      <textarea id='editor' value={code} onChange={(event) => setCode(event.target.value)} />
+      <div>Cursor position: {cursorPosition}</div>
     </div>
   );
-};
+}
 
 export default Editor;
