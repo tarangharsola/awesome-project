@@ -1,35 +1,32 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
+import { useCursor } from '../useCursor';
 
 const CursorTracker = () => {
-  const [cursors, setCursors] = useState([]);
-  const [colors, setColors] = useState({});
+  const [cursor, setCursor] = useState(null);
+  const { cursor: cursorState, error, loading } = useCursor();
 
   useEffect(() => {
-    // fetch cursors from server
-    const fetchCursors = async () => {
-      const response = await fetch('/api/cursors');
-      const data = await response.json();
-      setCursors(data.cursors);
-      setColors(data.colors);
-    };
-    fetchCursors();
-  }, []);
+    setCursor(cursorState);
+  }, [cursorState]);
+
+  if (loading) return <div>Loading...</div);
+  if (error) return <div>Error: {error.message}</div);
 
   return (
     <div>
-      {cursors.map((cursor, index) => (
-        <div key={index} style={{
+      {cursor && (
+        <div style={{
           position: 'absolute',
-          top: cursor.y,
-          left: cursor.x,
+          top: cursor.top,
+          left: cursor.left,
+          backgroundColor: cursor.color,
           width: '5px',
           height: '5px',
-          backgroundColor: colors[cursor.id],
           borderRadius: '5px',
         }}>
         </div>
-      ))}
+      )}
     </div>
   );
 };

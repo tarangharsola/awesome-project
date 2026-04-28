@@ -1,20 +1,33 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
+import { useUsers } from '../useUsers';
 
-function UserList({ users }) {
-  const [userList, setUserList] = useState([]);
+const UserList = () => {
+  const [users, setUsers] = useState([]);
+  const { users: usersState, error, loading } = useUsers();
 
   useEffect(() => {
-    setUserList(users);
-  }, [users]);
+    setUsers(usersState);
+  }, [usersState]);
+
+  if (loading) return <div>Loading...</div);
+  if (error) return <div>Error: {error.message}</div);
 
   return (
-    <ul>
-      {userList.map((user, index) => (
-        <li key={index}>{user.name}</li>
+    <div>
+      {users.map((user, index) => (
+        <div key={index} style={{
+          backgroundColor: user.color,
+          padding: '5px',
+          borderRadius: '5px',
+          display: 'inline-block',
+          margin: '5px',
+        }}>
+          {user.name}
+        </div>
       ))}
-    </ul>
+    </div>
   );
-}
+};
 
 export default UserList;
