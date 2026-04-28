@@ -19,18 +19,6 @@ const useAwareness = () => {
     };
   }, [editor]);
 
-  useEffect(() => {
-    const handleUserRemove = (userId) => {
-      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
-    };
-
-    usersList.on('userRemove', handleUserRemove);
-
-    return () => {
-      usersList.off('userRemove', handleUserRemove);
-    };
-  }, [usersList]);
-
   return users;
 };
 
