@@ -16,18 +16,16 @@ const LanguageSelector = ({ languages, selectedLanguage, onSelect }) => {
   };
 
   return (
-    <div className="language-selector">
-      <button onClick={() => setIsOpen(!isOpen)}>
-        {selectedLanguage}
-      </button>
+    <div>
+      <button onClick={() => setIsOpen(true)}>Select Language</button>
       {isOpen && (
-        <ul>
+        <div>
           {languages.map((language) => (
-            <li key={language} onClick={() => handleSelect(language)}>
+            <button key={language} onClick={() => handleSelect(language)}>
               {language}
-            </li>
+            </button>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
