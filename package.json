@@ -2,6 +2,6 @@
 {
   "scripts": {
     "test": "node src/scripts/test.js",
-    "build": "gulp"
+    "build": "gulp build"
   }
 }
