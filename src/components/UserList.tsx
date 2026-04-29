@@ -1,14 +1,29 @@
 {"import React from 'react';
-import { useUsers } from './useUsers';
+import { useState, useEffect } from 'react';
+import { useUsers } from '../useUsers';
 
 const UserList = () => {
-  const users = useUsers();
+  const [users, setUsers] = useState([]);
+  const { users: usersState, loadUsers } = useUsers();
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
   return (
-    <ul>
-      {users.map((user) => (
-        <li key={user.id}>{user.name}</li>
+    <div>
+      {usersState.map((user, index) => (
+        <div key={index} style={{
+          backgroundColor: user.color,
+          padding: '5px',
+          borderRadius: '5px',
+          display: 'inline-block',
+          margin: '5px'
+        }}>
+          {user.name}
+        </div>
       ))}
-    </ul>
+    </div>
   );
 };
 
