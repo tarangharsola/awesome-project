@@ -1,8 +1,1 @@
-{"import { useEditor } from './useEditor';
-
-const useConflictResolver = () => {
-  const editor = useEditor();
-  // Conflict resolution logic here
-};
-
-export default useConflictResolver;
+{"import { useState, useEffect } from 'react';\nimport { EditorState, ContentState } from 'draft-js';\n\nfunction useConflictResolver(editorState, contentState) {\n  const [conflict, setConflict] = useState(false);\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      const newContentState = contentState.getPlainText();\n      if (newContentState !== contentState.getPlainText()) {\n        setConflict(true);\n      }\n    }, 1000);\n    return () => clearInterval(intervalId);\n  }, [contentState]);\n\n  return conflict;\n}\n\nexport default useConflictResolver;
