@@ -1,23 +1,13 @@
 {"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useUsers } from './useUsers';
+import { useWebSocket } from './useWebSocket';
 
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
-  const editor = useEditor();
-  const usersList = useUsers();
+  const { users: usersFromWebSocket } = useWebSocket();
 
   useEffect(() => {
-    const handleUserUpdate = (user) => {
-      setUsers((prevUsers) => [...prevUsers, user]);
-    };
-
-    editor.on('userUpdate', handleUserUpdate);
-
-    return () => {
-      editor.off('userUpdate', handleUserUpdate);
-    };
-  }, [editor]);
+    setUsers(usersFromWebSocket);
+  }, [usersFromWebSocket]);
 
   return users;
 };
