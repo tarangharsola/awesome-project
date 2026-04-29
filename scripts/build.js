@@ -1,19 +1,20 @@
-// Import required modules
-const webpack = require('webpack');
-const path = require('path');
+import { build } from 'esbuild';
 
-// Define build configuration
-module.exports = {
-  entry: './src/index.tsx',
-  output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js'
+build(
+  {
+    entryPoints: ['src/index.tsx'],
+    bundle: true,
+    outfile: 'public/bundle.js',
+    platform: 'browser',
+    format: 'iife',
+    minify: true,
+    treeShaking: true,
   },
-  module: {
-    rules: [
-      {
-        test: /.tsx?$/, loader: 'ts-loader'
-      }
-    ]
+  (err, result) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    console.log(result);
   }
-};
+);
