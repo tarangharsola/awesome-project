@@ -1,20 +1,9 @@
-import { build } from 'esbuild';
+import { execSync } from 'child_process';
+import { resolve } from 'path';
 
-build(
-  {
-    entryPoints: ['src/index.tsx'],
-    bundle: true,
-    outfile: 'public/bundle.js',
-    platform: 'browser',
-    format: 'iife',
-    minify: true,
-    treeShaking: true,
-  },
-  (err, result) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    console.log(result);
-  }
-);
+const build = () => {
+  const buildCommand = `webpack --mode production --config webpack.config.js`;
+  execSync(buildCommand, { stdio: 'inherit' });
+};
+
+export default build;
