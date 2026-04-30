@@ -1,1 +1,16 @@
-{"import { useState, useEffect } from 'react';\nimport { EditorState, ContentState } from 'draft-js';\n\nfunction useConflictResolver(editorState, contentState) {\n  const [conflict, setConflict] = useState(false);\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      const newContentState = contentState.getPlainText();\n      if (newContentState !== contentState.getPlainText()) {\n        setConflict(true);\n      }\n    }, 1000);\n    return () => clearInterval(intervalId);\n  }, [contentState]);\n\n  return conflict;\n}\n\nexport default useConflictResolver;
+{"import { EditorState } from 'draft-js';
+import { OperationalTransform } from 'operational-transform';
+
+const useConflictResolver = () => {
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+
+  const resolveConflict = (newState) => {
+    const transform = OperationalTransform.fromJSON(newState.getJSON());
+    const resolvedState = transform.apply(editorState.getJSON());
+    return EditorState.push(editorState, resolvedState, 'insert-block');
+  };
+
+  return { resolveConflict };
+};
+
+export default useConflictResolver;

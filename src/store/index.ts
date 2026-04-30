@@ -1,1 +1,12 @@
-{"import { createStore, applyMiddleware } from 'redux';\nimport userReducer from './userReducer';\nimport usersReducer from './usersReducer';\nimport { composeWithDevTools } from 'redux-devtools-extension';\n\nconst store = createStore(\n  combineReducers({ user: userReducer, users: usersReducer }),\n  {},\n  composeWithDevTools(applyMiddleware())\n);\n\nexport default store;
+{"import { createStore, combineReducers } from 'redux';
+import userReducer from './userReducer';
+import usersReducer from './usersReducer';
+
+const rootReducer = combineReducers({
+  user: userReducer,
+  users: usersReducer,
+});
+
+const store = createStore(rootReducer);
+
+export default store;

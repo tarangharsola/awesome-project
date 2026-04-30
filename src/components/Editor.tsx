@@ -1,1 +1,41 @@
-{"import React, { useState, useEffect } from 'react';\nimport { EditorState, ContentState } from 'draft-js';\nimport { Editor } from 'react-draft-wysiwyg';\nimport 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';\n\nfunction EditorComponent() {\n  const [editorState, setEditorState] = useState(\n    () => EditorState.createEmpty()\n  );\n  const [users, setUsers] = useState([]);\n  const [cursorPositions, setCursorPositions] = useState({});\n\n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onmessage = (event) => {\n      const data = JSON.parse(event.data);\n      if (data.type === 'cursorUpdate') {\n        setCursorPositions(data.positions);\n      } else if (data.type === 'userUpdate') {\n        setUsers(data.users);\n      }\n    };\n    return () => {\n      ws.close();\n    };\n  }, []);\n\n  const onEditorStateChange = (editorState) => {\n    setEditorState(editorState);\n    const contentState = editorState.getCurrentContent();\n    const text = contentState.getPlainText();\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.send(JSON.stringify({ type: 'textUpdate', text }));\n  };\n\n  return (\n    <div>\n      <Editor\n        editorState={editorState}\n        onEditorStateChange={onEditorStateChange}\n        toolbarClassName='toolbarClassName'\n        wrapperClassName='wrapperClassName'\n        editorClassName='editorClassName'\n      />\n      <div>\n        {Object.keys(cursorPositions).map((userId) => (\n          <div key={userId}>\n            <span style={{\n              backgroundColor: cursorPositions[userId].color,\n              position: 'absolute',\n              top: cursorPositions[userId].top,\n              left: cursorPositions[userId].left,\n              width: 2,\n              height: 2,\n              borderRadius: '50%',\n            }}></span>\n            <span>{userId}</span>\n          </div>\n        ))}\n      </div>\n    </div>\n  );\n}\n\nexport default EditorComponent;
+{"import React, { useState, useEffect } from 'react';
+import { EditorState, ContentState } from 'draft-js';
+import { Editor } from 'react-draft-wysiwyg';
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+
+const EditorComponent = () => {
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const socket = new WebSocket('ws://localhost:8080');
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'update') {
+        setEditorState(data.editorState);
+      }
+    };
+    return () => {
+      socket.close();
+    };
+  }, []);
+
+  const handleUpdate = (editorState) => {
+    setEditorState(editorState);
+    socket.send(JSON.stringify({
+      type: 'update',
+      editorState,
+    }));
+  };
+
+  return (
+    <Editor
+      editorState={editorState}
+      onEditorStateChange={handleUpdate}
+      toolbarClassName='toolbarClassName'
+      editorClassName='editorClassName'
+    />
+  );
+};
+
+export default EditorComponent;

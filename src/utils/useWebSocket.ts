@@ -1,1 +1,18 @@
-{"import { useState, useEffect } from 'react';\nimport WebSocket from 'ws';\n\nfunction useWebSocket(url) {\n  const [ws, setWs] = useState(null);\n  const [messages, setMessages] = useState([]);\n\n  useEffect(() => {\n    const ws = new WebSocket(url);\n    setWs(ws);\n    ws.onmessage = (event) => {\n      setMessages((prevMessages) => [...prevMessages, event.data]);\n    };\n    return () => {\n      ws.close();\n    };\n  }, [url]);\n\n  return {\n    ws,\n    messages,\n  };\n}\n\nexport default useWebSocket;
+{"import { useState, useEffect } from 'react';
+import { WebSocket } from 'ws';
+
+const useWebSocket = (url: string) => {
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    const newSocket = new WebSocket(url);
+    setSocket(newSocket);
+    return () => {
+      newSocket.close();
+    };
+  }, []);
+
+  return socket;
+};
+
+export default useWebSocket;
