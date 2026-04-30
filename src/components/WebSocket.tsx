@@ -1,33 +1,65 @@
 {"import React, { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import useReconnection from './useReconnection';
 
-function WebSocket({ language, document }) {
-  const [ws, setWs] = useState(null);
-  const [message, setMessage] = useState('');
+interface WebSocketProps {
+  url: string;
+  onMessage: (message: string) => void;
+  onOpen: () => void;
+  onClose: () => void;
+}
+
+const WebSocket = ({ url, onMessage, onOpen, onClose }: WebSocketProps) => {
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [reconnecting, setReconnecting] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const { handleConnectionError, handleReconnect } = useReconnection({
+    retryDelay: 500,
+    maxRetries: 3
+  });
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
+    const ws = new WebSocket(url);
+
     ws.onmessage = (event) => {
-      setMessage(event.data);
+      onMessage(event.data);
     };
+
+    ws.onopen = () => {
+      setConnectionStatus('connected');
+      onOpen();
+    };
+
+    ws.onclose = () => {
+      setConnectionStatus('disconnected');
+      onClose();
+    };
+
+    ws.onerror = (event) => {
+      handleConnectionError();
+    };
+
     return () => {
       ws.close();
     };
-  }, []);
+  }, [url, onMessage, onOpen, onClose]);
 
-  const handleSendMessage = () => {
-    if (ws) {
-      ws.send(JSON.stringify({ type: 'document', document }));
+  useEffect(() => {
+    if (reconnecting) {
+      setRetryCount(retryCount + 1);
     }
+  }, [reconnecting, retryCount]);
+
+  const handleReconnect = () => {
+    handleReconnect();
   };
 
   return (
     <div>
-      <button onClick={handleSendMessage}>Send message</button>
-      <div>Message: {message}</div>
+      <p>Connection Status: {connectionStatus}</p>
+      <p>Retry Count: {retryCount}</p>
+      <button onClick={handleReconnect}>Reconnect</button>
     </div>
   );
-}
+};
 
 export default WebSocket;
