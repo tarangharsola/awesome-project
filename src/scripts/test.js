@@ -1,11 +1,9 @@
-// eslint-disable-next-line
-import { describe, it, expect } from 'expect';
-import { render, fireEvent, waitFor } from '@testing-library/react';
-import { App } from './App';
+import { test } from 'ava';
+import { render } from '@testing-library/react';
+import App from '../components/App';
 
-describe('App', () => {
-  it('renders without crashing', () => {
-    const { container } = render(<App />);
-    expect(container).toBeInTheDocument();
-  });
+test('renders app', async () => {
+  const { getByText } = render(<App />);
+  const linkElement = getByText(/Collaborative Code Editor/i);
+  expect(linkElement).toBeInTheDocument();
 });

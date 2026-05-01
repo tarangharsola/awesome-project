@@ -1,13 +1,17 @@
-// Import required modules
-const gulp = require('gulp');
-const uglify = require('gulp-uglify');
+import { spawn } from 'child_process';
+import { resolve } from 'path';
+import { build } from './build';
 
-// Define build task
-gulp.task('build', function() {
-  return gulp.src(['src/**/*.js', 'src/**/*.ts'])
-    .pipe(uglify())
-    .pipe(gulp.dest('dist/'));
+const buildCommand = 'tsc --build src';
+
+const buildProcess = spawn(buildCommand, {
+  cwd: resolve(__dirname, '..'),
+  stdio: 'inherit',
 });
 
-// Run build task
-gulp.build();
+buildProcess.on('close', (code) => {
+  if (code !== 0) {
+    console.error(`Build failed with code ${code}`);
+    process.exit(code);
+  }
+});

@@ -1,7 +1,6 @@
-// Update package.json with test and build scripts
 {
   "scripts": {
-    "test": "node src/scripts/test.js",
-    "build": "gulp build"
+    "test": "ava src/scripts/test.js",
+    "build": "node src/scripts/build.js"
   }
 }
