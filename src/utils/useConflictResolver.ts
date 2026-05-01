@@ -1,16 +1,8 @@
-{"import { EditorState } from 'draft-js';
-import { OperationalTransform } from 'operational-transform';
+{"import { OperationalTransformation } from 'ot-js';
 
-const useConflictResolver = () => {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
-
-  const resolveConflict = (newState) => {
-    const transform = OperationalTransform.fromJSON(newState.getJSON());
-    const resolvedState = transform.apply(editorState.getJSON());
-    return EditorState.push(editorState, resolvedState, 'insert-block');
-  };
-
-  return { resolveConflict };
-};
+function useConflictResolver() {
+  const ot = new OperationalTransformation();
+  return ot;
+}
 
 export default useConflictResolver;
