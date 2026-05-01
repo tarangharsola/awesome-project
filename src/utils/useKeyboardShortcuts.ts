@@ -1,11 +1,17 @@
 {"import { useState } from 'react';
 
-const useKeyboardShortcuts = () => {
-  const [keyboardShortcuts, setKeyboardShortcuts] = useState({
-    'Ctrl+S': 'save'
-  });
+interface KeyboardShortcuts {
+  shortcuts: { [key: string]: string };
+}
 
-  return keyboardShortcuts;
-};
+const useKeyboardShortcuts = () => {
+  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
+
+  const updateShortcuts = (newShortcuts: { [key: string]: string }) => {
+    setShortcuts({ shortcuts: newShortcuts });
+  };
+
+  return { shortcuts, updateShortcuts };
+}
 
 export default useKeyboardShortcuts;
