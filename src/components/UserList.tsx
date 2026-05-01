@@ -1,21 +1,31 @@
 {"import React from 'react';
-import { User } from './User';
+import { useState, useEffect } from 'react';
+import { useUsers } from '../store/usersReducer';
 
-interface Props {
-  users: User[];
-}
+const UserList = () => {
+  const [users, setUsers] = useState([]);
+  const { users: usersState } = useUsers();
 
-const UserList = ({ users }) => {
+  useEffect(() => {
+    setUsers(usersState);
+  }, [usersState]);
+
   return (
-    <div className="user-list">
+    <div>
       {users.map((user, index) => (
-        <div key={index} className="user-item">
-          <span className="username">{user.username}</span>
-          <span className="color" style={{ backgroundColor: user.color }}></span>
+        <div key={index} style={{
+          backgroundColor: user.color,
+          padding: '5px',
+          borderRadius: '5px',
+          color: 'white',
+          display: 'inline-block',
+          margin: '5px'
+        }}>
+          {user.name}
         </div>
       ))}
     </div>
   );
-}
+};
 
 export default UserList;
