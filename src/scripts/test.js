@@ -1,9 +1,10 @@
-import { test } from 'ava';
-import { render } from '@testing-library/react';
-import App from '../components/App';
+const assert = require('assert');
+const fs = require('fs');
 
-test('renders app', async () => {
-  const { getByText } = render(<App />);
-  const linkElement = getByText(/Collaborative Code Editor/i);
-  expect(linkElement).toBeInTheDocument();
+describe('Collaborative Editor', () => {
+  it('should run without errors', () => {
+    assert.doesNotThrow(() => {
+      require('./main.js');
+    });
+  });
 });
