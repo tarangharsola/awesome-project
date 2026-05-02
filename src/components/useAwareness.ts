@@ -1,36 +1,20 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { WebSocket } from 'ws';
 
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
   const [cursorPositions, setCursorPositions] = useState({});
-  const webSocket = useWebSocket();
 
   useEffect(() => {
-    const handleUserJoin = (user) => {
-      setUsers((prevUsers) => [...prevUsers, user]);
-    };
-
-    const handleUserLeave = (user) => {
-      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
-    };
-
-    const handleCursorUpdate = (cursorPosition) => {
-      setCursorPositions((prevCursorPositions) => {
-        const updatedCursorPositions = { ...prevCursorPositions, [cursorPosition.userId]: cursorPosition.position };
-        return updatedCursorPositions;
-      });
-    };
-
-    webSocket.on('userJoin', handleUserJoin);
-    webSocket.on('userLeave', handleUserLeave);
-    webSocket.on('cursorUpdate', handleCursorUpdate);
-
-    return () => {
-      webSocket.off('userJoin', handleUserJoin);
-      webSocket.off('userLeave', handleUserLeave);
-      webSocket.off('cursorUpdate', handleCursorUpdate);
-    };
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.on('message', (message) => {
+      const data = JSON.parse(message);
+      if (data.type === 'users') {
+        setUsers(data.users);
+      } else if (data.type === 'cursorPositions') {
+        setCursorPositions(data.cursorPositions);
+      }
+    });
   }, []);
 
   return { users, cursorPositions };
