@@ -1,41 +1,52 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorState, ContentState } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import { Editor as CodeMirror } from 'codemirror';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
 
-const EditorComponent = () => {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  const [users, setUsers] = useState([]);
+const Editor = ({ value, language }) => {
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
+  const [editorValue, setEditorValue] = useState(value);
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'update') {
-        setEditorState(data.editorState);
+    const cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      theme: 'monokai',
+      extraKeys: {
+        'Ctrl-Space': 'autocomplete'
       }
-    };
+    });
+    cm.on('cursorActivity', () => {
+      const cursorPosition = cm.getCursor();
+      setCursorPosition(cursorPosition);
+    });
     return () => {
-      socket.close();
+      cm.toTextArea();
     };
   }, []);
 
-  const handleUpdate = (editorState) => {
-    setEditorState(editorState);
-    socket.send(JSON.stringify({
-      type: 'update',
-      editorState,
-    }));
+  const handleEditorChange = (editorValue) => {
+    setEditorValue(editorValue);
   };
 
   return (
-    <Editor
-      editorState={editorState}
-      onEditorStateChange={handleUpdate}
-      toolbarClassName='toolbarClassName'
-      editorClassName='editorClassName'
-    />
+    <div>
+      <textarea id='editor' value={editorValue} onChange={(e) => handleEditorChange(e.target.value)} />
+      <div>Cursor position: {cursorPosition.line},{cursorPosition.ch}</div>
+    </div>
   );
 };
 
-export default EditorComponent;
+export default Editor;

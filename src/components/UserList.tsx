@@ -1,31 +1,29 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
-import { useUsers } from '../useUsers';
+import WebSocket from './WebSocket';
 
-const UserList = () => {
-  const { users, addUser, removeUser } = useUsers();
-  const [activeUsers, setActiveUsers] = useState([]);
+const UserList = ({ users }) => {
+  const [usersState, setUsersState] = useState(users);
 
   useEffect(() => {
-    const activeUsers = users.filter(user => user.isConnected);
-    setActiveUsers(activeUsers);
-  }, [users]);
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'users') {
+        setUsersState(data.users);
+      }
+    };
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   return (
-    <div className="active-users">
-      {activeUsers.map((user, index) => (
-        <div key={index} style={{
-          backgroundColor: user.color,
-          color: 'white',
-          padding: '5px',
-          borderRadius: '5px',
-          display: 'inline-block',
-          marginRight: '10px'
-        }}>
-          {user.name}
-        </div>
+    <ul>
+      {usersState.map((user, index) => (
+        <li key={index}>{user.name} ({user.color})</li>
       ))}
-    </div>
+    </ul>
   );
 };
 
