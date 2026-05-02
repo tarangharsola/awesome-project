@@ -2,36 +2,29 @@
 import { useState, useEffect } from 'react';
 
 const WebSocket = () => {
-  const [connected, setConnected] = useState(false);
-  const [retries, setRetries] = useState(0);
+  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => {
-      setConnected(false);
-      setRetries(retries + 1);
-    };
-    ws.onerror = () => {
-      setConnected(false);
-      setRetries(retries + 1);
-    };
+    const intervalId = setInterval(() => {
+      // Simulate connection status updates
+      const newStatus = Math.random() < 0.5 ? 'Connected' : 'Disconnected';
+      setConnectionStatus(newStatus);
+      if (newStatus === 'Disconnected') {
+        setRetryCount(retryCount + 1);
+      }
+    }, 1000);
+    return () => clearInterval(intervalId);
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!connected && retries < 5) {
-        ws.reconnect();
-        setRetries(0);
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [connected, retries, ws]);
+  const retry = () => {
+    setRetryCount(0);
+  };
 
   return (
     <div>
-      {connected ? 'Connected' : 'Disconnected'}
-      <button onClick={() => ws.reconnect()}>Retry</button>
+      <p>Connection Status: {connectionStatus}</p>
+      <button onClick={retry}>Retry ({retryCount})</button>
     </div>
   );
 };
