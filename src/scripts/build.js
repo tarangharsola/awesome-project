@@ -1,17 +1,18 @@
-import { spawn } from 'child_process';
-import { resolve } from 'path';
-import { build } from './build';
+// Import required modules
+const gulp = require('gulp');
+const ts = require('gulp-typescript');
+const sourcemaps = require('gulp-sourcemaps');
 
-const buildCommand = 'tsc --build src';
-
-const buildProcess = spawn(buildCommand, {
-  cwd: resolve(__dirname, '..'),
-  stdio: 'inherit',
+// Define build task
+gulp.task('build', function() {
+  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
+    .pipe(sourcemaps.init())
+    .pipe(ts()).on('error', function(err) {
+      console.error(err);
+    })
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest('dist'));
 });
 
-buildProcess.on('close', (code) => {
-  if (code !== 0) {
-    console.error(`Build failed with code ${code}`);
-    process.exit(code);
-  }
-});
+// Run build task
+gulp.task('default', ['build']);
