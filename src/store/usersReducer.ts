@@ -1,17 +1,11 @@
-{"import { User } from '../types';
-import { combineReducers } from 'redux';
+{"import { createReducer } from 'redux';
+import { ADD_USER, REMOVE_USER } from './userActions';
 
-const initialState: User[] = [];
+const initialState = [];
 
-const usersReducer = (state = initialState, action) => {
-  switch (action.type) {
-    case 'ADD_USER':
-      return [...state, action.user];
-    case 'REMOVE_USER':
-      return state.filter((user) => user.id !== action.userId);
-    default:
-      return state;
-  }
-};
+const usersReducer = createReducer(initialState, {
+  [ADD_USER]: (state, action) => [...state, action.user],
+  [REMOVE_USER]: (state, action) => state.filter((user) => user.id !== action.userId),
+});
 
 export default usersReducer;

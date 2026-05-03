@@ -1,52 +1,42 @@
 {"import React, { useState, useEffect } from 'react';
-import { Editor as CodeMirror } from 'codemirror';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
+import { useUsers } from './useUsers';
+import { useConflictResolver } from './useConflictResolver';
 
-const Editor = ({ value, language }) => {
-  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
-  const [editorValue, setEditorValue] = useState(value);
+interface EditorProps {
+  language: string;
+  code: string;
+}
+
+const Editor: React.FC<EditorProps> = ({ language, code }) => {
+  const [editorState, setEditorState] = useState(code);
+  const { sendText, receiveText } = useWebSocket();
+  const { users, addUser, removeUser } = useUsers();
+  const { resolveConflict } = useConflictResolver();
 
   useEffect(() => {
-    const cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-      theme: 'monokai',
-      extraKeys: {
-        'Ctrl-Space': 'autocomplete'
-      }
-    });
-    cm.on('cursorActivity', () => {
-      const cursorPosition = cm.getCursor();
-      setCursorPosition(cursorPosition);
-    });
-    return () => {
-      cm.toTextArea();
-    };
+    receiveText((text) => setEditorState(text));
   }, []);
 
-  const handleEditorChange = (editorValue) => {
-    setEditorValue(editorValue);
+  const handleTextChange = (text: string) => {
+    sendText(text);
+    resolveConflict(text);
   };
 
   return (
     <div>
-      <textarea id='editor' value={editorValue} onChange={(e) => handleEditorChange(e.target.value)} />
-      <div>Cursor position: {cursorPosition.line},{cursorPosition.ch}</div>
+      <textarea
+        value={editorState}
+        onChange={(e) => handleTextChange(e.target.value)}
+      />
+      <div>
+        {users.map((user) => (
+          <div key={user.id}>{user.name}</div>
+        ))}
+      </div>
     </div>
   );
-};
+}
 
 export default Editor;
