@@ -1,22 +1,31 @@
-{"import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
-interface LanguageState {
-  language: string;
-  setLanguage: (language: string) => void;
+interface Language {
+  id: string;
+  name: string;
 }
 
-const useLanguage = (): LanguageState => {
-  const [language, setLanguage] = useState('javascript');
+interface LanguageContextType {
+  language: Language | null;
+  setLanguage: (language: Language) => void;
+}
+
+const LanguageContext = React.createContext<LanguageContextType>({} as LanguageContextType);
+
+const useLanguage = () => {
+  const [language, setLanguage] = useState<Language | null>(null);
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem('language');
     if (storedLanguage) {
-      setLanguage(storedLanguage);
+      setLanguage(JSON.parse(storedLanguage));
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('language', language);
+    if (language) {
+      localStorage.setItem('language', JSON.stringify(language));
+    }
   }, [language]);
 
   return { language, setLanguage };
