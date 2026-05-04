@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+{"import { useState, useEffect } from 'react';
 
 interface KeyboardShortcuts {
-  [key: string]: string;
+  shortcuts: { [key: string]: string };
 }
 
-const useKeyboardShortcuts = () => {
-  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({});
+const useKeyboardShortcuts = (): KeyboardShortcuts => {
+  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
 
   useEffect(() => {
     const storedShortcuts = localStorage.getItem('keyboardShortcuts');
@@ -15,9 +15,7 @@ const useKeyboardShortcuts = () => {
   }, []);
 
   useEffect(() => {
-    if (shortcuts) {
-      localStorage.setItem('keyboardShortcuts', JSON.stringify(shortcuts));
-    }
+    localStorage.setItem('keyboardShortcuts', JSON.stringify(shortcuts));
   }, [shortcuts]);
 
   return shortcuts;
