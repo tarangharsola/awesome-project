@@ -1,11 +1,14 @@
 // Import required modules
 const assert = require('assert');
 
-// Test function
-function testEditor() {
-  // Test code editor functionality
-  assert.ok(true);
-}
+// Define test suite
+describe('Collaborative Code Editor', () => {
+  it('should render editor and user list', () => {
+    // Render editor and user list
+    const editor = document.getElementById('editor');
+    const userList = document.getElementById('user-list');
 
-// Run test
-testEditor();
+    // Assert editor and user list exist
+    assert(editor && userList);
+  });
+});

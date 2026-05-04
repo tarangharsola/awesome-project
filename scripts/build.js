@@ -1,17 +1,9 @@
-const childProcess = require('child_process');
-const fs = require('fs');
-const path = require('path');
+// Import required modules
+const { execSync } = require('child_process');
 
-const buildDir = 'build';
-const srcDir = 'src';
-
-fs.mkdirSync(buildDir);
-
-const files = fs.readdirSync(srcDir);
-files.forEach(file => {
-  if (file.endsWith('.ts') || file.endsWith('.tsx')) {
-    const filePath = path.join(srcDir, file);
-    const buildPath = path.join(buildDir, file.replace('.ts', '.js').replace('.tsx', '.jsx'));
-    childProcess.execSync(`tsc ${filePath} --outFile ${buildPath}`);
-  }
-});
+// Define build script
+module.exports = function build() {
+  // Run ESLint and Prettier
+  execSync('eslint src/**/*.{ts,tsx} --fix');
+  execSync('prettier --write src/**/*.{ts,tsx}');
+};
