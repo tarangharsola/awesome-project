@@ -1,42 +1,29 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
-import { useUsers } from './useUsers';
-import { useConflictResolver } from './useConflictResolver';
+import { Editor as CodeEditor } from 'react-simple-code-editor';
+import { highlight, languages } from 'prismjs';
 
-interface EditorProps {
-  language: string;
-  code: string;
-}
-
-const Editor: React.FC<EditorProps> = ({ language, code }) => {
-  const [editorState, setEditorState] = useState(code);
-  const { sendText, receiveText } = useWebSocket();
-  const { users, addUser, removeUser } = useUsers();
-  const { resolveConflict } = useConflictResolver();
+const Editor = ({ cursorPositions }) => {
+  const [code, setCode] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   useEffect(() => {
-    receiveText((text) => setEditorState(text));
+    const handleCursorMovement = (cursorPosition) => {
+      setCursorPosition(cursorPosition);
+    };
+
+    WebSocket.on('cursorMovement', handleCursorMovement);
+    return () => WebSocket.off('cursorMovement', handleCursorMovement);
   }, []);
 
-  const handleTextChange = (text: string) => {
-    sendText(text);
-    resolveConflict(text);
-  };
-
   return (
-    <div>
-      <textarea
-        value={editorState}
-        onChange={(e) => handleTextChange(e.target.value)}
-      />
-      <div>
-        {users.map((user) => (
-          <div key={user.id}>{user.name}</div>
-        ))}
-      </div>
-    </div>
+    <CodeEditor
+      value={code}
+      onValueChange={(code) => setCode(code)}
+      highlight={highlight}
+      language={languages.js}
+      cursorPosition={cursorPosition}
+    />
   );
-}
+};
 
 export default Editor;

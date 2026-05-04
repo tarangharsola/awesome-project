@@ -1,11 +1,19 @@
 {"import React from 'react';
-import WebSocket from './WebSocket';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import store from './store/index';
+import Room from './components/Room';
 
 const App = () => {
   return (
-    <div>
-      <WebSocket />
-    </div>
+    <Provider store={store}>
+      <BrowserRouter>
+        <Switch>
+          <Route path="/" exact component={Room} />
+        </Switch>
+      </BrowserRouter>
+    </Provider>
   );
 };
+
 export default App;

@@ -3,22 +3,22 @@ import Editor from './Editor';
 import UserList from './UserList';
 import WebSocket from './WebSocket';
 
-function Room() {
+const Room = () => {
   const [users, setUsers] = useState([]);
-  const [code, setCode] = useState('');
+  const [cursorPositions, setCursorPositions] = useState({});
 
   useEffect(() => {
     WebSocket.connect();
-    return () => WebSocket.disconnect();
+    WebSocket.on('users', (users) => setUsers(users));
+    WebSocket.on('cursorPositions', (cursorPositions) => setCursorPositions(cursorPositions));
   }, []);
 
   return (
     <div>
-      <Editor code={code} onChange={setCode} />
+      <Editor cursorPositions={cursorPositions} />
       <UserList users={users} />
-      <WebSocket users={users} code={code} />
     </div>
   );
-}
+};
 
 export default Room;
