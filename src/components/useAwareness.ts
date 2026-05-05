@@ -8,20 +8,14 @@ const useAwareness = () => {
   const usersList = useUsers();
 
   useEffect(() => {
-    const handleUserJoin = (user) => {
+    const handleUserUpdate = (user) => {
       setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    const handleUserLeave = (user) => {
-      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
-    };
-
-    editor.on('userJoin', handleUserJoin);
-    editor.on('userLeave', handleUserLeave);
+    editor.on('userUpdate', handleUserUpdate);
 
     return () => {
-      editor.off('userJoin', handleUserJoin);
-      editor.off('userLeave', handleUserLeave);
+      editor.off('userUpdate', handleUserUpdate);
     };
   }, []);
 
