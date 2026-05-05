@@ -1,5 +1,5 @@
 // Add test and build scripts
 "scripts": {
   "test": "node src/scripts/test.js",
-  "build": "gulp build"
+  "build": "node src/scripts/build.js"
 }

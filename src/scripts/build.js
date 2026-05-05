@@ -1,18 +1,11 @@
 // Import required modules
-const gulp = require('gulp');
-const ts = require('gulp-typescript');
-const sourcemaps = require('gulp-sourcemaps');
+const { execSync } = require('child_process');
 
-// Define build task
-gulp.task('build', function() {
-  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(sourcemaps.init())
-    .pipe(ts()).on('error', function(err) {
-      console.error(err);
-    })
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('dist'));
-});
+// Build script
+function buildApp() {
+  // Run build command
+  execSync('webpack --mode production');
+}
 
-// Run build task
-gulp.task('default', ['build']);
+// Run build script
+buildApp();
