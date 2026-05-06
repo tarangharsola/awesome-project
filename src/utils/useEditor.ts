@@ -1,1 +1,12 @@
-{"import { useState, useEffect } from 'react';\nimport { EditorState, ContentState } from 'draft-js';\n\nfunction useEditor() {\n  const [editorState, setEditorState] = useState(\n    () => EditorState.createEmpty()\n  );\n  const [contentState, setContentState] = useState(\n    () => ContentState.createFromText('')\n  );\n\n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onmessage = (event) => {\n      const data = JSON.parse(event.data);\n      if (data.type === 'textUpdate') {\n        setContentState(data.contentState);\n      }\n    };\n    return () => {\n      ws.close();\n    };\n  }, []);\n\n  const onEditorStateChange = (editorState) => {\n    setEditorState(editorState);\n  };\n\n  return {\n    editorState,\n    onEditorStateChange,\n    contentState,\n  };\n}\n\nexport default useEditor;
+// Editor utility
+import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+const useEditor = () => {
+  const [editorState, setEditorState] = useState({});
+  const webSocket = useWebSocket();
+  useEffect(() => {
+    // Editor state updates go here
+  }, []);
+  return editorState;
+};
+export default useEditor;

@@ -1,11 +1,12 @@
-// Import required modules
-const { execSync } = require('child_process');
-
-// Build script
-function buildApp() {
-  // Run build command
-  execSync('webpack --mode production');
-}
-
-// Run build script
-buildApp();
+// Build script for production
+const path = require('path');
+const webpack = require('webpack');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const { merge } = require('webpack-merge');
+const baseConfig = require('./base.config');
+const prodConfig = require('./prod.config');
+module.exports = merge(baseConfig, prodConfig);
