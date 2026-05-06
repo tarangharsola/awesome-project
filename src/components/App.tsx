@@ -1,14 +1,19 @@
 {"import React from 'react';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import store from './store/index';
-import Editor from './Editor';
+import Room from './components/Room';
 
-function App() {
+const App = () => {
   return (
     <Provider store={store}>
-      <Editor />
+      <BrowserRouter>
+        <Switch>
+          <Route path="/" exact component={Room} />
+        </Switch>
+      </BrowserRouter>
     </Provider>
   );
-}
+};
 
 export default App;
