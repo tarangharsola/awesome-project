@@ -1,34 +1,25 @@
-import { useState, useEffect } from 'react';
+{"import { useState } from 'react';
+import { useEditor } from './useEditor';
 
 interface Language {
-  id: string;
   name: string;
+  syntax: string;
 }
 
-interface LanguageContextType {
-  language: Language | null;
-  setLanguage: (language: Language) => void;
-}
-
-const LanguageContext = React.createContext<LanguageContextType>({} as LanguageContextType);
+const languages: Language[] = [
+  { name: 'JavaScript', syntax: 'javascript' },
+  { name: 'Python', syntax: 'python' },
+  { name: 'HTML', syntax: 'html' }
+];
 
 const useLanguage = () => {
-  const [language, setLanguage] = useState<Language | null>(null);
-
-  useEffect(() => {
-    const storedLanguage = localStorage.getItem('language');
-    if (storedLanguage) {
-      setLanguage(JSON.parse(storedLanguage));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (language) {
-      localStorage.setItem('language', JSON.stringify(language));
-    }
-  }, [language]);
-
-  return { language, setLanguage };
-}
+  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
+  const { editor } = useEditor();
+  const handleLanguageChange = (language: Language) => {
+    setSelectedLanguage(language);
+    editor.setLanguage(language.syntax);
+  };
+  return { selectedLanguage, handleLanguageChange };
+};
 
 export default useLanguage;
