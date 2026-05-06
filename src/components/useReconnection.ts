@@ -14,10 +14,8 @@ const useReconnection = () => {
 
     webSocket.on('reconnect', handleReconnect);
 
-    return () => {
-      webSocket.off('reconnect', handleReconnect);
-    };
-  }, []);
+    return () => webSocket.off('reconnect', handleReconnect);
+  }, [webSocket]);
 
   return reconnecting;
 };

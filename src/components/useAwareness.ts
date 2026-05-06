@@ -1,23 +1,19 @@
 {"import { useState, useEffect } from 'react';
 import { useEditor } from './useEditor';
-import { useUsers } from './useUsers';
 
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
   const editor = useEditor();
-  const usersList = useUsers();
 
   useEffect(() => {
-    const handleUserUpdate = (user) => {
+    const handleUserJoin = (user) => {
       setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    editor.on('userUpdate', handleUserUpdate);
+    editor.on('userJoin', handleUserJoin);
 
-    return () => {
-      editor.off('userUpdate', handleUserUpdate);
-    };
-  }, []);
+    return () => editor.off('userJoin', handleUserJoin);
+  }, [editor]);
 
   return users;
 };
