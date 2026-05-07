@@ -1,14 +1,14 @@
 {"import { useState } from 'react';
-import { useEditor } from './useEditor';
+
+interface FormattingDefaults {
+  tabSize: number;
+  indentSize: number;
+}
 
 const useFormattingDefaults = () => {
-  const [tabSize, setTabSize] = useState(2);
-  const { editor } = useEditor();
-  const handleTabSizeChange = (size: number) => {
-    setTabSize(size);
-    editor.setTabSize(size);
-  };
-  return { tabSize, handleTabSizeChange };
+  const [defaults, setDefaults] = useState<FormattingDefaults>({ tabSize: 2, indentSize: 2 });
+
+  return defaults;
 };
 
 export default useFormattingDefaults;
