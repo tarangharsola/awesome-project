@@ -1,21 +1,33 @@
 {"import { useState, useEffect } from 'react';
 import { useEditor } from './useEditor';
+import { useUsers } from './useUsers';
 
 const useAwareness = () => {
-  const [users, setUsers] = useState([]);
+  const [cursors, setCursors] = useState([]);
   const editor = useEditor();
+  const users = useUsers();
 
   useEffect(() => {
-    const handleUserJoin = (user) => {
-      setUsers((prevUsers) => [...prevUsers, user]);
+    const handleCursorUpdate = (cursor) => {
+      setCursors((prevCursors) => [...prevCursors, cursor]);
     };
 
-    editor.on('userJoin', handleUserJoin);
+    editor.on('cursorUpdate', handleCursorUpdate);
 
-    return () => editor.off('userJoin', handleUserJoin);
+    return () => editor.off('cursorUpdate', handleCursorUpdate);
   }, [editor]);
 
-  return users;
+  useEffect(() => {
+    const handleUserUpdate = (user) => {
+      setCursors((prevCursors) => prevCursors.filter((cursor) => cursor.userId !== user.id));
+    };
+
+    users.on('update', handleUserUpdate);
+
+    return () => users.off('update', handleUserUpdate);
+  }, [users]);
+
+  return cursors;
 };
 
 export default useAwareness;
