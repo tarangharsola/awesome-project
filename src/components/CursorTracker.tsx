@@ -5,11 +5,18 @@ const CursorTracker = () => {
   const { cursor, user } = useCursor();
 
   return (
-    <div className="cursor" style={{
+    <div style={{
+      position: 'absolute',
+      top: cursor.y,
+      left: cursor.x,
       backgroundColor: user.color,
-      color: 'white'
-    }}>
-      {cursor.position}
+      color: 'white',
+      padding: '5px',
+      borderRadius: '5px',
+      cursor: 'pointer'
+    }}
+    >
+      {user.name}
     </div>
   );
 };

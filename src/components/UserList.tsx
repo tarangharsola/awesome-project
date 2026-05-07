@@ -3,25 +3,38 @@ import { useState, useEffect } from 'react';
 import { useUsers } from '../useUsers';
 
 const UserList = () => {
-  const { users, addUser, removeUser } = useUsers();
-  const [activeUsers, setActiveUsers] = useState([]);
+  const [users, setUsers] = useState([]);
+  const { users: usersFromContext, join, leave } = useUsers();
 
   useEffect(() => {
-    const activeUsers = users.filter(user => user.isConnected);
-    setActiveUsers(activeUsers);
-  }, [users]);
+    setUsers(usersFromContext);
+  }, [usersFromContext]);
+
+  const handleJoin = (user) => {
+    join(user);
+  };
+
+  const handleLeave = (user) => {
+    leave(user);
+  };
 
   return (
-    <div className="active-users">
+    <div>
       <h2>Active Users:</h2>
       <ul>
-        {activeUsers.map((user, index) => (
+        {users.map((user, index) => (
           <li key={index} style={{
             backgroundColor: user.color,
-            color: 'white'
-          }}>
-            {user.name}
-          </li>
+            color: 'white',
+            padding: '5px',
+            borderRadius: '5px',
+            marginRight: '10px',
+            cursor: 'pointer'
+          }}
+          onClick={() => handleJoin(user)}
+        >
+          {user.name}
+        </li>
         ))}
       </ul>
     </div>
