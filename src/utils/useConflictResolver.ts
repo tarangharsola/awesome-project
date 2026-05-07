@@ -1,9 +1,9 @@
-// Conflict resolver utility
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
+{"import { useReducer } from 'react';
+import conflictReducer from './conflictReducer';
+
 const useConflictResolver = () => {
-  const editor = useEditor();
-  const webSocket = useWebSocket();
-  // Conflict resolution logic goes here
+  const [conflict, dispatch] = useReducer(conflictReducer, {});
+  return { conflict, dispatch };
 };
+
 export default useConflictResolver;

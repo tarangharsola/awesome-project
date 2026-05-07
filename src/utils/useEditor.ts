@@ -1,12 +1,17 @@
-// Editor utility
-import { useState, useEffect } from 'react';
+{"import { useState, useEffect } from 'react';
 import { useWebSocket } from './useWebSocket';
+
 const useEditor = () => {
   const [editorState, setEditorState] = useState({});
-  const webSocket = useWebSocket();
+  const { send, receive } = useWebSocket();
+
   useEffect(() => {
-    // Editor state updates go here
+    receive((message) => {
+      setEditorState(message);
+    });
   }, []);
-  return editorState;
+
+  return { editorState, send };
 };
+
 export default useEditor;

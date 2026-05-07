@@ -1,20 +1,29 @@
 {"import { useState, useEffect } from 'react';
-import WebSocket from './WebSocket';
+import WebSocket from 'ws';
 
-const useWebSocket = (roomId: string) => {
-  const [connected, setConnected] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [cursorPositions, setCursorPositions] = useState({});
-  const [document, setDocument] = useState('');
+const useWebSocket = () => {
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    WebSocket.connect(roomId);
-    WebSocket.on('users', (users) => setUsers(users));
-    WebSocket.on('cursorPositions', (cursorPositions) => setCursorPositions(cursorPositions));
-    WebSocket.on('document', (document) => setDocument(document));
-  }, [roomId]);
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
+  }, []);
 
-  return { connected, users, cursorPositions, document };
+  const send = (message) => {
+    if (ws) {
+      ws.send(message);
+    }
+  };
+
+  const receive = (callback) => {
+    if (ws) {
+      ws.onmessage = (event) => {
+        callback(JSON.parse(event.data));
+      };
+    }
+  };
+
+  return { send, receive };
 };
 
 export default useWebSocket;
