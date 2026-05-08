@@ -1,29 +1,27 @@
 {"import React, { useState, useEffect } from 'react';
-import { Editor as CodeEditor } from 'react-simple-code-editor';
-import { highlight, languages } from 'prismjs';
+import { Editor } from 'react-simple-editor';
+import { useLanguage } from './useLanguage';
 
-const Editor = ({ cursorPositions }) => {
-  const [code, setCode] = useState('');
-  const [cursorPosition, setCursorPosition] = useState(0);
+function EditorComponent({ value, language }) {
+  const [editorValue, setEditorValue] = useState(value);
+  const languageHook = useLanguage(language);
 
   useEffect(() => {
-    const handleCursorMovement = (cursorPosition) => {
-      setCursorPosition(cursorPosition);
-    };
+    setEditorValue(value);
+  }, [value]);
 
-    WebSocket.on('cursorMovement', handleCursorMovement);
-    return () => WebSocket.off('cursorMovement', handleCursorMovement);
-  }, []);
+  const handleEditorChange = (newEditorValue) => {
+    setEditorValue(newEditorValue);
+    // Send new editor value to server
+  };
 
   return (
-    <CodeEditor
-      value={code}
-      onValueChange={(code) => setCode(code)}
-      highlight={highlight}
-      language={languages.js}
-      cursorPosition={cursorPosition}
+    <Editor
+      value={editorValue}
+      onChange={handleEditorChange}
+      language={languageHook.language}
     />
   );
-};
+}
 
-export default Editor;
+export default EditorComponent;

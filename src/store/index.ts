@@ -1,9 +1,9 @@
-{"import { createStore, applyMiddleware } from 'redux';
-import { composeWithDevTools } from 'redux-devtools-extension';
-import rootReducer from './userReducer';
-import userReducer from './usersReducer';
-import { WebSocketMiddleware } from './WebSocketMiddleware';
+{"import { createStore, combineReducers } from 'redux';
+import usersReducer from './usersReducer';
+import editorReducer from './editorReducer';
 
-const store = createStore(rootReducer, composeWithDevTools(applyMiddleware(WsMiddleware)));
+const rootReducer = combineReducers({ users: usersReducer, editor: editorReducer });
+
+const store = createStore(rootReducer);
 
 export default store;

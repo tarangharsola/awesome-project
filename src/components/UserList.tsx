@@ -1,38 +1,28 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
+import WebSocket from './WebSocket';
 
-interface User {
-  id: string;
-  name: string;
-  color: string;
-}
-
-interface Props {
-  users: User[];
-}
-
-const UserList = ({ users }: Props) => {
-  const [activeUsers, setActiveUsers] = useState([]);
+function UserList({ users }) {
+  const [usersState, setUsersState] = useState(users);
 
   useEffect(() => {
-    const activeUsers = users.filter((user) => user.id !== "self");
-    setActiveUsers(activeUsers);
+    setUsersState(users);
   }, [users]);
 
+  const handleUserJoin = (user) => {
+    setUsersState((prevUsers) => [...prevUsers, user]);
+  };
+
+  const handleUserLeave = (user) => {
+    setUsersState((prevUsers) => prevUsers.filter((u) => u !== user));
+  };
+
   return (
-    <div className="active-users">
-      {activeUsers.map((user) => (
-        <div key={user.id} style={{
-          backgroundColor: user.color,
-          padding: "4px",
-          borderRadius: "4px",
-          display: "inline-block",
-          marginRight: "8px",
-        }}>
-          {user.name}
-        </div>
+    <ul>
+      {usersState.map((user) => (
+        <li key={user.id}>{user.name}</li>
       ))}
-    </div>
+    </ul>
   );
 }
 

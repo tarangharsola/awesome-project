@@ -1,36 +1,21 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
+{"import WebSocket from 'ws';
 
-const WebSocket = () => {
-  const [connected, setConnected] = useState(false);
-  const [retries, setRetries] = useState(0);
+class WebSocketComponent {
+  constructor(url) {
+    this.ws = new WebSocket(url);
+  }
 
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => {
-      setConnected(false);
-      setRetries(retries + 1);
-    };
-    ws.onerror = () => {
-      setConnected(false);
-      setRetries(retries + 1);
-    };
+  send(message) {
+    this.ws.send(JSON.stringify(message));
+  }
 
-    const interval = setInterval(() => {
-      if (!connected && retries < 5) {
-        ws.reconnect();
-        setRetries(0);
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  onMessage(callback) {
+    this.ws.onmessage = callback;
+  }
 
-  return (
-    <div>
-      {connected ? 'Connected' : 'Disconnected'}
-      <button onClick={() => ws.send('ping')}>Ping</button>
-    </div>
-  );
-};
-export default WebSocket;
+  close() {
+    this.ws.close();
+  }
+}
+
+export default WebSocketComponent;
