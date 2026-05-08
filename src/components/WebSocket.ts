@@ -2,32 +2,34 @@
 import { useState, useEffect } from 'react';
 
 const WebSocket = () => {
-  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+  const [connected, setConnected] = useState(false);
   const [retries, setRetries] = useState(0);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => {
-      setConnectionStatus('Connected');
-    };
+    ws.onopen = () => setConnected(true);
     ws.onclose = () => {
-      setConnectionStatus('Disconnected');
+      setConnected(false);
       setRetries(retries + 1);
     };
     ws.onerror = () => {
-      setConnectionStatus('Error');
+      setConnected(false);
+      setRetries(retries + 1);
     };
-  }, []);
 
-  const retry = () => {
-    setRetries(0);
-    ws.reconnect();
-  };
+    const interval = setInterval(() => {
+      if (!connected && retries < 5) {
+        ws.reconnect();
+        setRetries(0);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div>
-      <p>Connection Status: {connectionStatus}</p>
-      <button onClick={retry}>Retry</button>
+      {connected ? 'Connected' : 'Disconnected'}
+      <button onClick={() => ws.send('ping')}>Ping</button>
     </div>
   );
 };
