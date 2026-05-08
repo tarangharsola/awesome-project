@@ -3,31 +3,31 @@ import { useEditor } from './useEditor';
 import { useUsers } from './useUsers';
 
 const useAwareness = () => {
-  const [cursors, setCursors] = useState([]);
+  const [awareness, setAwareness] = useState({});
   const editor = useEditor();
   const users = useUsers();
 
   useEffect(() => {
-    const handleCursorUpdate = (cursor) => {
-      setCursors((prevCursors) => [...prevCursors, cursor]);
+    const handleCursorMove = () => {
+      const cursor = editor.getCursor();
+      const user = users.getCurrentUser();
+
+      if (user) {
+        setAwareness((prevAwareness) => ({
+          ...prevAwareness,
+          [user.id]: cursor,
+        }));
+      }
     };
 
-    editor.on('cursorUpdate', handleCursorUpdate);
+    editor.on('cursorMove', handleCursorMove);
 
-    return () => editor.off('cursorUpdate', handleCursorUpdate);
-  }, [editor]);
-
-  useEffect(() => {
-    const handleUserUpdate = (user) => {
-      setCursors((prevCursors) => prevCursors.filter((cursor) => cursor.userId !== user.id));
+    return () => {
+      editor.off('cursorMove', handleCursorMove);
     };
+  }, [editor, users]);
 
-    users.on('update', handleUserUpdate);
-
-    return () => users.off('update', handleUserUpdate);
-  }, [users]);
-
-  return cursors;
+  return awareness;
 };
 
 export default useAwareness;
