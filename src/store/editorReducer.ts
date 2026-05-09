@@ -1,15 +1,19 @@
-{"import { combineReducers } from 'redux';
-import { EditorValue } from './editorValue';
+{"import { createReducer, on } from '@reduxjs/toolkit';
+import { EditorActions } from './editorActions';
 
-const editorReducer = combineReducers({ editorValue: editorReducer });
+const initialState = {
+  code: '',
+  language: 'javascript',
+  users: [],
+  cursorPositions: {}
+};
 
-function editorReducer(state = '', action) {
-  switch (action.type) {
-    case 'UPDATE_EDITOR_VALUE':
-      return action.editorValue;
-    default:
-      return state;
-  }
-}
+const editorReducer = createReducer(initialState, {
+  [EditorActions.setCode]: (state, action) => ({ ...state, code: action.payload }),
+  [EditorActions.setLanguage]: (state, action) => ({ ...state, language: action.payload }),
+  [EditorActions.addUser]: (state, action) => ({ ...state, users: [...state.users, action.payload] }),
+  [EditorActions.removeUser]: (state, action) => ({ ...state, users: state.users.filter((user) => user.id !== action.payload.id) }),
+  [EditorActions.updateCursorPosition]: (state, action) => ({ ...state, cursorPositions: { ...state.cursorPositions, [action.payload.userId]: action.payload.position } })
+});
 
 export default editorReducer;
