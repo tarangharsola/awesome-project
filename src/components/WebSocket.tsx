@@ -1,65 +1,31 @@
 {"import React, { useState, useEffect } from 'react';
-import useReconnection from './useReconnection';
+import { useWebSocket } from './useWebSocket';
 
-interface WebSocketProps {
-  url: string;
-  onMessage: (message: string) => void;
-  onOpen: () => void;
-  onClose: () => void;
-}
-
-const WebSocket = ({ url, onMessage, onOpen, onClose }: WebSocketProps) => {
-  const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  const [reconnecting, setReconnecting] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
-  const { handleConnectionError, handleReconnect } = useReconnection({
-    retryDelay: 500,
-    maxRetries: 3
-  });
+const WebSocket = () => {
+  const [ws, setWs] = useState(null);
+  const { reconnect } = useWebSocket();
 
   useEffect(() => {
-    const ws = new WebSocket(url);
-
-    ws.onmessage = (event) => {
-      onMessage(event.data);
+    const wsUrl = 'ws://localhost:8080';
+    const wsOptions = {
+      // Add any WebSocket options here
     };
-
-    ws.onopen = () => {
-      setConnectionStatus('connected');
-      onOpen();
-    };
-
-    ws.onclose = () => {
-      setConnectionStatus('disconnected');
-      onClose();
-    };
-
-    ws.onerror = (event) => {
-      handleConnectionError();
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, [url, onMessage, onOpen, onClose]);
+    const ws = new WebSocket(wsUrl, wsOptions);
+    setWs(ws);
+    return () => ws.close();
+  }, []);
 
   useEffect(() => {
-    if (reconnecting) {
-      setRetryCount(retryCount + 1);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      // Handle WebSocket connection established
+    } else if (ws && ws.readyState === WebSocket.CLOSING) {
+      // Handle WebSocket connection closing
+    } else if (ws && ws.readyState === WebSocket.CLOSED) {
+      // Handle WebSocket connection closed
     }
-  }, [reconnecting, retryCount]);
+  }, [ws]);
 
-  const handleReconnect = () => {
-    handleReconnect();
-  };
-
-  return (
-    <div>
-      <p>Connection Status: {connectionStatus}</p>
-      <p>Retry Count: {retryCount}</p>
-      <button onClick={handleReconnect}>Reconnect</button>
-    </div>
-  );
+  return <div>WebSocket connection status: {ws ? ws.readyState : 'Disconnected'}</div>;
 };
 
 export default WebSocket;

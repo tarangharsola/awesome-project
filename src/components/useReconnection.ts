@@ -3,23 +3,21 @@ import { useWebSocket } from './useWebSocket';
 
 const useReconnection = () => {
   const [reconnecting, setReconnecting] = useState(false);
-  const [reconnectCount, setReconnectCount] = useState(0);
-  const webSocket = useWebSocket();
+  const [retryCount, setRetryCount] = useState(0);
+  const { ws, reconnect } = useWebSocket();
 
   useEffect(() => {
-    const handleReconnect = () => {
-      setReconnecting(true);
-      setReconnectCount(reconnectCount + 1);
-    };
+    const intervalId = setInterval(() => {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        setReconnecting(true);
+        setRetryCount(retryCount + 1);
+        reconnect();
+      }
+    }, 5000);
+    return () => clearInterval(intervalId);
+  }, [ws, reconnect, retryCount]);
 
-    webSocket.on('reconnect', handleReconnect);
-
-    return () => {
-      webSocket.off('reconnect', handleReconnect);
-    };
-  }, [webSocket]);
-
-  return reconnecting;
+  return { reconnecting, retryCount };
 };
 
 export default useReconnection;
