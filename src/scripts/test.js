@@ -1,11 +1,11 @@
-// Import required modules
-const assert = require('assert');
+// eslint-disable-next-line
+import { describe, it, expect } from 'expect';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import App from '../App';
 
-// Test function
-function testEditor() {
-  // Test code editor functionality
-  assert.ok(true);
-}
-
-// Run test
-testEditor();
+describe('App', () => {
+  it('renders without crashing', () => {
+    const { container } = render(<App />);
+    expect(container).toBeInTheDocument();
+  });
+});
