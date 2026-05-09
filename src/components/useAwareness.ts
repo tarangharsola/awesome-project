@@ -8,24 +8,34 @@ const useAwareness = () => {
   const users = useUsers();
 
   useEffect(() => {
-    const handleCursorMove = () => {
-      const cursor = editor.getCursor();
-      const user = users.getCurrentUser();
-
-      if (user) {
-        setAwareness((prevAwareness) => ({
-          ...prevAwareness,
-          [user.id]: cursor,
-        }));
-      }
+    const handleCursorMove = (cursor) => {
+      setAwareness((prevAwareness) => ({ ...prevAwareness, [cursor.userId]: cursor }));
     };
 
     editor.on('cursorMove', handleCursorMove);
 
-    return () => {
-      editor.off('cursorMove', handleCursorMove);
+    return () => editor.off('cursorMove', handleCursorMove);
+  }, [editor]);
+
+  useEffect(() => {
+    const handleUserJoin = (user) => {
+      setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
     };
-  }, [editor, users]);
+
+    users.on('join', handleUserJoin);
+
+    return () => users.off('join', handleUserJoin);
+  }, [users]);
+
+  useEffect(() => {
+    const handleUserLeave = (userId) => {
+      setAwareness((prevAwareness) => ({ ...prevAwareness, [userId]: null }));
+    };
+
+    users.on('leave', handleUserLeave);
+
+    return () => users.off('leave', handleUserLeave);
+  }, [users]);
 
   return awareness;
 };
