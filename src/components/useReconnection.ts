@@ -1,33 +1,46 @@
-{"import { useState, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
 import { useWebSocket } from './useWebSocket';
 
-const useReconnection = () => {
+interface ReconnectionProps {
+  children: React.ReactNode;
+}
+
+const Reconnection = ({ children }: ReconnectionProps) => {
   const [reconnecting, setReconnecting] = useState(false);
-  const [error, setError] = useState(null);
-  const webSocket = useWebSocket();
+  const [retryCount, setRetryCount] = useState(0);
+  const { reconnect, connectionStatus } = useWebSocket();
 
   useEffect(() => {
-    const handleReconnect = () => {
-      setReconnecting(true);
-      setError(null);
-    };
+    const intervalId = setInterval(() => {
+      if (connectionStatus === 'disconnected') {
+        setReconnecting(true);
+        setRetryCount(retryCount + 1);
+      }
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [connectionStatus, reconnect, retryCount]);
 
-    webSocket.on('reconnect', handleReconnect);
+  const handleReconnect = () => {
+    reconnect();
+    setReconnecting(false);
+    setRetryCount(0);
+  };
 
-    return () => webSocket.off('reconnect', handleReconnect);
-  }, [webSocket]);
-
-  useEffect(() => {
-    const handleReconnectError = (error) => {
-      setError(error);
-    };
-
-    webSocket.on('reconnectError', handleReconnectError);
-
-    return () => webSocket.off('reconnectError', handleReconnectError);
-  }, [webSocket]);
-
-  return reconnecting;
+  return (
+    <div>
+      {children}
+      {reconnecting ? (
+        <div>
+          Reconnecting... ({retryCount} retries)
+          <button onClick={handleReconnect}>Retry</button>
+        </div>
+      ) : (
+        <div>
+          Connected
+        </div>
+      )}
+    </div>
+  );
 };
 
-export default useReconnection;
+export default Reconnection;
