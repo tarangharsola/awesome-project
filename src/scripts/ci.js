@@ -1,22 +1,18 @@
-// Import required modules
+const { spawnSync } = require('child_process');
 const { execSync } = require('child_process');
 
-// Define test and build scripts
-const testScript = 'jest';
-const buildScript = 'npm run build';
+module.exports = {
+  run: () => {
+    const build = spawnSync('npm', ['run', 'build'], { shell: true });
+    if (build.status !== 0) {
+      console.error('Build failed');
+      process.exit(1);
+    }
 
-// Define CI validation function
-function validateCI() {
-  try {
-    // Run tests
-    execSync(testScript);
-    // Build application
-    execSync(buildScript);
-    console.log('CI validation successful');
-  } catch (error) {
-    console.error('CI validation failed:', error);
+    const test = spawnSync('npm', ['run', 'test'], { shell: true });
+    if (test.status !== 0) {
+      console.error('Tests failed');
+      process.exit(1);
+    }
   }
-}
-
-// Call CI validation function
-validateCI();
+};

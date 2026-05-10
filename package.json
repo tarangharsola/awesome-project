@@ -1,7 +1,6 @@
-// Update package.json for CI validation
-{
-  "scripts": {
-    "test": "node src/scripts/test.js",
-    "build": "gulp"
-  }
-}
+...
+"scripts": {
+  "build": "webpack --mode production",
+  "test": "tap src/scripts/test.js"
+},
+...
