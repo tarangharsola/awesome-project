@@ -1,17 +1,9 @@
-{"import { useState, useEffect } from 'react';
-import { OperationalTransformation } from 'operational-transformation';
+{"import { useReducer } from 'react';
+import { editorReducer } from './editorReducer';
 
 const useConflictResolver = () => {
-  const [conflicts, setConflicts] = useState({});
-  const [resolved, setResolved] = useState(false);
-
-  useEffect(() => {
-    const ot = new OperationalTransformation();
-    ot.resolveConflicts(conflicts);
-    setResolved(true);
-  }, [conflicts]);
-
-  return [conflicts, setConflicts, resolved];
+  const [state, dispatch] = useReducer(editorReducer, {});
+  return [state, dispatch];
 };
 
 export default useConflictResolver;

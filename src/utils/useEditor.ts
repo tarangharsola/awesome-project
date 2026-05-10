@@ -1,17 +1,13 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { useConflictResolver } from './useConflictResolver';
 
 const useEditor = () => {
-  const [editorState, setEditorState] = useState({});
-  const { send, receive } = useWebSocket();
-
+  const [state, dispatch] = useConflictResolver();
+  const [code, setCode] = useState('');
   useEffect(() => {
-    receive((message) => {
-      setEditorState(message);
-    });
-  }, []);
-
-  return { editorState, send };
+    // Handle code changes
+  }, [code]);
+  return [state, dispatch, code, setCode];
 };
 
 export default useEditor;

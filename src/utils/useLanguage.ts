@@ -1,25 +1,12 @@
-{"import { useState } from 'react';
-import { useEditor } from './useEditor';
-
-interface Language {
-  name: string;
-  syntax: string;
-}
-
-const languages: Language[] = [
-  { name: 'JavaScript', syntax: 'javascript' },
-  { name: 'Python', syntax: 'python' },
-  { name: 'HTML', syntax: 'html' }
-];
+{"import { useState, useEffect } from 'react';
+import { LanguageSelector } from './LanguageSelector';
 
 const useLanguage = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
-  const { editor } = useEditor();
-  const handleLanguageChange = (language: Language) => {
-    setSelectedLanguage(language);
-    editor.setLanguage(language.syntax);
-  };
-  return { selectedLanguage, handleLanguageChange };
+  const [language, setLanguage] = useState('');
+  useEffect(() => {
+    // Handle language changes
+  }, [language]);
+  return [language, setLanguage];
 };
 
 export default useLanguage;
