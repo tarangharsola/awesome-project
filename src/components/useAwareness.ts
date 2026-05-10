@@ -3,41 +3,29 @@ import { useEditor } from './useEditor';
 import { useUsers } from './useUsers';
 
 const useAwareness = () => {
-  const [awareness, setAwareness] = useState({});
+  const [users, setUsers] = useState([]);
   const editor = useEditor();
-  const users = useUsers();
-
-  useEffect(() => {
-    const handleCursorMove = (cursor) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, [cursor.userId]: cursor }));
-    };
-
-    editor.on('cursorMove', handleCursorMove);
-
-    return () => editor.off('cursorMove', handleCursorMove);
-  }, [editor]);
+  const usersList = useUsers();
 
   useEffect(() => {
     const handleUserJoin = (user) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    users.on('join', handleUserJoin);
-
-    return () => users.off('join', handleUserJoin);
-  }, [users]);
-
-  useEffect(() => {
-    const handleUserLeave = (userId) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, [userId]: null }));
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
     };
 
-    users.on('leave', handleUserLeave);
+    editor.on('userJoin', handleUserJoin);
+    editor.on('userLeave', handleUserLeave);
 
-    return () => users.off('leave', handleUserLeave);
-  }, [users]);
+    return () => {
+      editor.off('userJoin', handleUserJoin);
+      editor.off('userLeave', handleUserLeave);
+    };
+  }, [editor, usersList]);
 
-  return awareness;
+  return users;
 };
 
 export default useAwareness;
