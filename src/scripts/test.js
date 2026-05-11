@@ -1,16 +1,14 @@
-const { test } = require('tap');
-const { join } = require('path');
-const { execSync } = require('child_process');
+// eslint-disable-next-line
+import { test } from 'tape';
+import { resolve } from 'path';
 
-const buildDir = join(__dirname, 'build');
+const testScript = resolve(__dirname, '../scripts/test.js');
 
-test('build', (t) => {
-  t.ok(require.resolve(join(buildDir, 'index.js')));
-  t.end();
+test('basic tests', async t => {
+  const buildScript = resolve(__dirname, '../scripts/build.js');
+  const testCommand = `node ${buildScript} test`;
+  const output = await execa(testCommand);
+  t.ok(output.stdout.includes('passed'));
 });
 
-test('test', (t) => {
-  const testOutput = execSync('npm run test', { shell: true, stdio: 'pipe' });
-  t.ok(testOutput.toString().includes('OK'));
-  t.end();
-});
+export default test;
