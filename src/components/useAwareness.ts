@@ -5,7 +5,7 @@ import { useUsers } from './useUsers';
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
   const editor = useEditor();
-  const usersList = useUsers();
+  const { users: connectedUsers } = useUsers();
 
   useEffect(() => {
     const handleUserJoin = (user) => {
@@ -23,7 +23,7 @@ const useAwareness = () => {
       editor.off('userJoin', handleUserJoin);
       editor.off('userLeave', handleUserLeave);
     };
-  }, [editor, usersList]);
+  }, [editor]);
 
   return users;
 };
