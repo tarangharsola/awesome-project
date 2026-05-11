@@ -2,30 +2,23 @@
 import { useWebSocket } from './useWebSocket';
 
 const WebSocket = () => {
-  const [ws, setWs] = useState(null);
-  const { reconnect } = useWebSocket();
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const { reconnect, connectionStatus: wsConnectionStatus } = useWebSocket();
 
   useEffect(() => {
-    const wsUrl = 'ws://localhost:8080';
-    const wsOptions = {
-      // Add any WebSocket options here
-    };
-    const ws = new WebSocket(wsUrl, wsOptions);
-    setWs(ws);
-    return () => ws.close();
-  }, []);
+    setConnectionStatus(wsConnectionStatus);
+  }, [wsConnectionStatus, reconnect]);
 
-  useEffect(() => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      // Handle WebSocket connection established
-    } else if (ws && ws.readyState === WebSocket.CLOSING) {
-      // Handle WebSocket connection closing
-    } else if (ws && ws.readyState === WebSocket.CLOSED) {
-      // Handle WebSocket connection closed
-    }
-  }, [ws]);
+  const handleReconnect = () => {
+    reconnect();
+  };
 
-  return <div>WebSocket connection status: {ws ? ws.readyState : 'Disconnected'}</div>;
+  return (
+    <div>
+      <p>Connection Status: {connectionStatus}</p>
+      <button onClick={handleReconnect}>Reconnect</button>
+    </div>
+  );
 };
 
 export default WebSocket;
