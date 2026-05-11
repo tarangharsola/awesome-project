@@ -1,4 +1,4 @@
-{"import { useState } from 'react';
+{"import { useState, useEffect } from 'react';
 
 interface KeyboardShortcuts {
   shortcuts: { [key: string]: string };
@@ -7,14 +7,17 @@ interface KeyboardShortcuts {
 const useKeyboardShortcuts = () => {
   const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key in shortcuts) {
-      event.preventDefault();
-      console.log(`Shortcut pressed: ${event.key}`);
+  useEffect(() => {
+    const storedShortcuts = localStorage.getItem('keyboardShortcuts');
+    if (storedShortcuts) {
+      setShortcuts(JSON.parse(storedShortcuts));
     }
-  };
+  }, []);
 
-  return { shortcuts, handleKeyDown };
+  useEffect(() => {
+    localStorage.setItem('keyboardShortcuts', JSON.stringify(shortcuts));
+  }, [shortcuts]);
+
+  return shortcuts;
 }
-
 export default useKeyboardShortcuts;
