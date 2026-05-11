@@ -1,13 +1,1 @@
-{"import { useState, useEffect } from 'react';
-import { useConflictResolver } from './useConflictResolver';
-
-const useEditor = () => {
-  const [state, dispatch] = useConflictResolver();
-  const [code, setCode] = useState('');
-  useEffect(() => {
-    // Handle code changes
-  }, [code]);
-  return [state, dispatch, code, setCode];
-};
-
-export default useEditor;
+{"import { useState, useEffect } from 'react';\nimport { EditorState, ContentState } from 'draft-js';\n\nfunction useEditor() {\n  const [editorState, setEditorState] = useState(\n    () => EditorState.createEmpty()\n  );\n  \n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onmessage = (event) => {\n      const data = JSON.parse(event.data);\n      if (data.type === 'editorState') {\n        setEditorState(data.editorState);\n      }\n    };\n    return () => {\n      ws.close();\n    };\n  }, []);\n  \n  const onEditorStateChange = (editorState) => {\n    setEditorState(editorState);\n  };\n  \n  return [editorState, onEditorStateChange];\n}\n\nexport default useEditor;

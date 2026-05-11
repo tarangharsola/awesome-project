@@ -1,14 +1,1 @@
-{"import React from 'react';
-import { Provider } from 'react-redux';
-import store from './store';
-import Editor from './Editor';
-
-function App() {
-  return (
-    <Provider store={store}>
-      <Editor />
-    </Provider>
-  );
-}
-
-export default App;
+{"import React from 'react';\nimport { Provider } from 'react-redux';\nimport store from './store';\nimport Editor from './Editor';\n\nfunction App() {\n  return (\n    <Provider store={store}>\n      <Editor />\n    </Provider>\n  );\n}\n\nexport default App;

@@ -1,12 +1,1 @@
-{"import { useState, useEffect } from 'react';
-import { CursorTracker } from './CursorTracker';
-
-const useCursor = () => {
-  const [cursor, setCursor] = useState({});
-  useEffect(() => {
-    // Handle cursor updates
-  }, [cursor]);
-  return [cursor, setCursor];
-};
-
-export default useCursor;
+{"import { useState, useEffect } from 'react';\nimport { EditorState, ContentState } from 'draft-js';\n\nfunction useCursor() {\n  const [cursorPosition, setCursorPosition] = useState(\n    () => EditorState.createEmpty().getCurrentContent().getSelection().getStart()\n  );\n  const [cursorColor, setCursorColor] = useState('red');\n  \n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onmessage = (event) => {\n      const data = JSON.parse(event.data);\n      if (data.type === 'cursorPosition') {\n        setCursorPosition(data.cursorPosition);\n      } else if (data.type === 'cursorColor') {\n        setCursorColor(data.cursorColor);\n      }\n    };\n    return () => {\n      ws.close();\n    };\n  }, []);\n  \n  return [cursorPosition, cursorColor];\n}\n\nexport default useCursor;
