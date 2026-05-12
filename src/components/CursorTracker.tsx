@@ -2,18 +2,20 @@
 import { useCursor } from '../useCursor';
 
 const CursorTracker = () => {
-  const cursor = useCursor();
+  const { cursor, user } = useCursor();
+
   return (
     <div style={{
       position: 'absolute',
       top: cursor.y,
       left: cursor.x,
-      backgroundColor: cursor.color,
-      width: '5px',
-      height: '5px',
-      borderRadius: '5px'
+      backgroundColor: user.color,
+      color: 'white',
+      padding: '5px',
+      borderRadius: '5px',
+      zIndex: 1
     }}>
-      {cursor.name}
+      {user.name}
     </div>
   );
 };

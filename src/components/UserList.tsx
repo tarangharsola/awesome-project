@@ -1,20 +1,33 @@
 {"import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useUsers } from '../useUsers';
 
-function UserList({ users }) {
-  const [selectedUser, setSelectedUser] = useState(null);
+const UserList = () => {
+  const { users, addUser, removeUser } = useUsers();
+  const [activeUsers, setActiveUsers] = useState([]);
 
-  const handleUserSelect = (user) => {
-    setSelectedUser(user);
-  };
+  useEffect(() => {
+    setActiveUsers(users.filter(user => user.isConnected));
+  }, [users]);
 
   return (
-    <ul>
-      {users.map((user) => (
-        <li key={user} onClick={() => handleUserSelect(user)} style={{ backgroundColor: user.color, padding: 10, margin: 10, borderRadius: 10, cursor: 'pointer' }}>{user.name}</li>
-      ))}
-    </ul>
+    <div>
+      <h2>Active Users</h2>
+      <ul>
+        {activeUsers.map((user, index) => (
+          <li key={index} style={{
+            backgroundColor: user.color,
+            color: 'white',
+            padding: '5px',
+            borderRadius: '5px',
+            margin: '5px'
+          }}>
+            {user.name}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
-}
+};
 
 export default UserList;
