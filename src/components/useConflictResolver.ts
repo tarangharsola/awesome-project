@@ -1,13 +1,19 @@
 {"import { useState, useEffect } from 'react';
 import { useEditor } from './useEditor';
 
-const useConflictResolver = () => {
-  const [conflicts, setConflicts] = useState([]);
-  const editor = useEditor();
+interface ConflictResolverOptions {
+  editor: useEditor;
+  onConflict: (conflict: any) => void;
+}
+
+const useConflictResolver = ({ editor, onConflict }: ConflictResolverOptions) => {
+  const [conflict, setConflict] = useState(null);
+  const [resolved, setResolved] = useState(false);
 
   useEffect(() => {
     const handleConflict = (conflict) => {
-      setConflicts((prevConflicts) => [...prevConflicts, conflict]);
+      setConflict(conflict);
+      onConflict(conflict);
     };
 
     editor.on('conflict', handleConflict);
@@ -15,9 +21,16 @@ const useConflictResolver = () => {
     return () => {
       editor.off('conflict', handleConflict);
     };
-  }, [editor]);
+  }, [editor, onConflict]);
 
-  return conflicts;
+  useEffect(() => {
+    if (conflict && !resolved) {
+      setResolved(true);
+      editor.resolveConflict(conflict);
+    }
+  }, [conflict, editor, resolved]);
+
+  return { conflict, resolved };
 };
 
 export default useConflictResolver;
