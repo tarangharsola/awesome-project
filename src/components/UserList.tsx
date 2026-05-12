@@ -1,24 +1,20 @@
 {"import React from 'react';
-import { useUsers } from '../useUsers';
+import { useState } from 'react';
 
-const UserList = () => {
-  const users = useUsers();
+function UserList({ users }) {
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+  };
+
   return (
-    <div>
-      {users.map((user, index) => (
-        <div key={index} style={{
-          backgroundColor: user.color,
-          padding: '5px',
-          borderRadius: '5px',
-          display: 'inline-block',
-          marginRight: '10px',
-          color: '#fff'
-        }}>
-          {user.name}
-        </div>
+    <ul>
+      {users.map((user) => (
+        <li key={user} onClick={() => handleUserSelect(user)} style={{ backgroundColor: user.color, padding: 10, margin: 10, borderRadius: 10, cursor: 'pointer' }}>{user.name}</li>
       ))}
-    </div>
+    </ul>
   );
-};
+}
 
 export default UserList;

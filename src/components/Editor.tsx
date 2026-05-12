@@ -1,1 +1,54 @@
-{"import React, { useState, useEffect } from 'react';\nimport { EditorState, ContentState } from 'draft-js';\nimport { Editor } from 'react-draft-wysiwyg';\nimport 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';\n\nfunction EditorComponent() {\n  const [editorState, setEditorState] = useState(\n    () => EditorState.createEmpty()\n  );\n  const [users, setUsers] = useState([]);\n  const [cursorPositions, setCursorPositions] = useState({});\n  \n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onmessage = (event) => {\n      const data = JSON.parse(event.data);\n      if (data.type === 'cursorPosition') {\n        setCursorPositions(data.cursorPositions);\n      } else if (data.type === 'users') {\n        setUsers(data.users);\n      }\n    };\n    return () => {\n      ws.close();\n    };\n  }, []);\n  \n  const onEditorStateChange = (editorState) => {\n    setEditorState(editorState);\n    \n    const contentState = editorState.getCurrentContent();\n    const cursorPosition = contentState.getSelection().getStart();\n    \n    const ws = new WebSocket('ws://localhost:8080');\n    ws.send(JSON.stringify({\n      type: 'cursorPosition',\n      cursorPositions: {\n        [cursorPosition]: {\n          x: cursorPosition,\n          y: 0,\n          color: 'red',\n        },\n      },\n    }));\n  };\n  \n  return (\n    <Editor\n      editorState={editorState}\n      onEditorStateChange={onEditorStateChange}\n      toolbarClassName='toolbarClassName'\n      wrapperClassName='wrapperClassName'\n      editorClassName='editorClassName'\n    />\n  );\n}\n\nexport default EditorComponent;
+{"import React, { useState, useEffect } from 'react';
+import { Editor as CodeMirror } from 'codemirror';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+
+function Editor({ value, onChange, language }) {
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
+  const [cursorColor, setCursorColor] = useState('#0000ff');
+
+  useEffect(() => {
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      foldGutter: true,
+      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+      hint: true,
+      extraKeys: {
+        'Ctrl-Space': 'autocomplete'
+      }
+    });
+    editor.on('change', (instance, change) => {
+      onChange(instance.getValue());
+    });
+    editor.on('cursorActivity', (instance) => {
+      setCursorPosition(instance.getCursor());
+    });
+    return () => editor.toTextArea();
+  }, [language, onChange]);
+
+  const handleCursorChange = (cursorPosition) => {
+    setCursorPosition(cursorPosition);
+  };
+
+  return (
+    <div>
+      <textarea id='editor' value={value} onChange={(event) => onChange(event.target.value)} />
+      <div style={{ position: 'absolute', top: cursorPosition.line * 20 + 10, left: cursorPosition.ch * 20 + 10, backgroundColor: cursorColor, width: 5, height: 5 }} />
+    </div>
+  );
+}
+
+export default Editor;
