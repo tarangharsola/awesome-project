@@ -1,13 +1,10 @@
-// Import required modules
-const gulp = require('gulp');
-const uglify = require('gulp-uglify');
+// eslint-disable-next-line
+import { spawnSync } from 'child_process';
 
-// Define build task
-gulp.task('build', function() {
-  return gulp.src(['src/**/*.js', 'src/**/*.ts'])
-    .pipe(uglify())
-    .pipe(gulp.dest('dist/'));
-});
-
-// Run build task
-gulp.task('default', ['build']);
+export default function buildApp() {
+  const buildResult = spawnSync('webpack', ['--mode', 'production', '--config', 'webpack.config.js']);
+  if (buildResult.status !== 0) {
+    console.error('Build failed with code', buildResult.status);
+    process.exit(1);
+  }
+}

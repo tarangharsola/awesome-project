@@ -1,10 +1,11 @@
 // eslint-disable-next-line
 import { execSync } from 'child_process';
-import { resolve } from 'path';
 
-const build = () => {
-  const buildScript = resolve(__dirname, '../scripts/build.js');
-  execSync(`node ${buildScript}`);
-};
-
-export default build;
+export default function runTests() {
+  try {
+    execSync('jest', { stdio: 'inherit' });
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
+}

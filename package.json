@@ -1,6 +1,7 @@
-...
-"scripts": {
-  "build": "webpack --mode production",
-  "test": "tap src/scripts/test.js"
-},
-...
+// eslint-disable-next-line
+{
+  "scripts": {
+    "test": "node scripts/ci.js",
+    "build": "node scripts/build.js"
+  }
+}
