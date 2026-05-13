@@ -2,39 +2,27 @@
 import { useEditor } from './useEditor';
 import { useUsers } from './useUsers';
 
-interface AwarenessOptions {
-  editor: useEditor;
-  users: useUsers;
-}
-
-const useAwareness = ({ editor, users }: AwarenessOptions) => {
-  const [awareness, setAwareness] = useState({});
+const useAwareness = () => {
+  const [users, setUsers] = useState([]);
+  const editor = useEditor();
+  const usersList = useUsers();
 
   useEffect(() => {
-    const handleUserUpdate = (user) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
-
-    users.on('update', handleUserUpdate);
-
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
+    };
+    editor.on('userJoin', handleUserJoin);
+    editor.on('userLeave', handleUserLeave);
     return () => {
-      users.off('update', handleUserUpdate);
+      editor.off('userJoin', handleUserJoin);
+      editor.off('userLeave', handleUserLeave);
     };
-  }, [users]);
+  }, [editor, usersList]);
 
-  useEffect(() => {
-    const handleCursorUpdate = (cursor) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, [cursor.userId]: cursor }));
-    };
-
-    editor.on('cursorUpdate', handleCursorUpdate);
-
-    return () => {
-      editor.off('cursorUpdate', handleCursorUpdate);
-    };
-  }, [editor]);
-
-  return awareness;
+  return users;
 };
 
 export default useAwareness;
