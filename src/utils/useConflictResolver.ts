@@ -1,1 +1,8 @@
-{"import { useState, useEffect } from 'react';\nimport { EditorState, ContentState } from 'draft-js';\n\nfunction useConflictResolver() {\n  const [editorState, setEditorState] = useState(\n    () => EditorState.createEmpty()\n  );\n  const [conflicts, setConflicts] = useState([]);\n  \n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onmessage = (event) => {\n      const data = JSON.parse(event.data);\n      if (data.type === 'conflict') {\n        setConflicts(data.conflicts);\n      }\n    };\n    return () => {\n      ws.close();\n    };\n  }, []);\n  \n  const resolveConflict = (conflict) => {\n    const newEditorState = EditorState.push(\n      editorState,\n      ContentState.createFromText(''),\n      'insert-characters'\n    );\n    setEditorState(newEditorState);\n  };\n  \n  return [conflicts, resolveConflict];\n}\n\nexport default useConflictResolver;
+{"import { OperationalTransformation } from 'ot-js';
+
+const useConflictResolver = () => {
+  const ot = new OperationalTransformation();
+  return ot;
+};
+
+export default useConflictResolver;

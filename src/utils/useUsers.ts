@@ -1,1 +1,10 @@
-{"import { useState, useEffect } from 'react';\nimport { User } from './user';\n\nfunction useUsers() {\n  const [users, setUsers] = useState([]);\n  \n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onmessage = (event) => {\n      const data = JSON.parse(event.data);\n      if (data.type === 'users') {\n        setUsers(data.users);\n      }\n    };\n    return () => {\n      ws.close();\n    };\n  }, []);\n  \n  return users;\n}\n\nexport default useUsers;
+{"import { useStore } from 'react-redux';
+import { UserState } from './userReducerTypes';
+
+const useUsers = () => {
+  const store = useStore();
+  const userState = store.getState().userState;
+  return userState;
+};
+
+export default useUsers;

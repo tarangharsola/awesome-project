@@ -1,12 +1,8 @@
-{"import { useState, useEffect } from 'react';
-import { LanguageSelector } from './LanguageSelector';
+{"import { useEditor } from './useEditor';
 
 const useLanguage = () => {
-  const [language, setLanguage] = useState('');
-  useEffect(() => {
-    // Handle language changes
-  }, [language]);
-  return [language, setLanguage];
+  const editor = useEditor();
+  return editor.getLanguage();
 };
 
 export default useLanguage;

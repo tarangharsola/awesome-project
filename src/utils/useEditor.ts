@@ -1,1 +1,10 @@
-{"import { useState, useEffect } from 'react';\nimport { EditorState, ContentState } from 'draft-js';\n\nfunction useEditor() {\n  const [editorState, setEditorState] = useState(\n    () => EditorState.createEmpty()\n  );\n  \n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onmessage = (event) => {\n      const data = JSON.parse(event.data);\n      if (data.type === 'editorState') {\n        setEditorState(data.editorState);\n      }\n    };\n    return () => {\n      ws.close();\n    };\n  }, []);\n  \n  const onEditorStateChange = (editorState) => {\n    setEditorState(editorState);\n  };\n  \n  return [editorState, onEditorStateChange];\n}\n\nexport default useEditor;
+{"import { useStore } from 'react-redux';
+import { EditorState } from './editorReducerTypes';
+
+const useEditor = () => {
+  const store = useStore();
+  const editorState = store.getState().editorState;
+  return editorState;
+};
+
+export default useEditor;
