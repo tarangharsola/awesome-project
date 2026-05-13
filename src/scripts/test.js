@@ -1,14 +1,19 @@
-// eslint-disable-next-line
-import { test } from 'tape';
-import { resolve } from 'path';
+const assert = require('assert');
+const { join } = require('path');
+const { resolve } = require('path');
+const { spawnSync } = require('child_process');
 
+const buildScript = resolve(__dirname, '../scripts/build.js');
 const testScript = resolve(__dirname, '../scripts/test.js');
 
-test('basic tests', async t => {
-  const buildScript = resolve(__dirname, '../scripts/build.js');
-  const testCommand = `node ${buildScript} test`;
-  const output = await execa(testCommand);
-  t.ok(output.stdout.includes('passed'));
-});
+describe('Build and tests', () => {
+  it('should build successfully', () => {
+    const buildOutput = spawnSync('node', [buildScript]).stdout.toString();
+    assert(buildOutput.includes('Build successful'), 'Build failed');
+  });
 
-export default test;
+  it('should run tests successfully', () => {
+    const testOutput = spawnSync('node', [testScript]).stdout.toString();
+    assert(testOutput.includes('Tests successful'), 'Tests failed');
+  });
+});
