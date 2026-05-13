@@ -1,1 +1,23 @@
-{"import { useState, useEffect } from 'react';\n\ninterface KeyboardShortcutsProps {\n  language: string;\n}\n\nconst useKeyboardShortcuts = (props: KeyboardShortcutsProps) => {\n  const [keyboardShortcuts, setKeyboardShortcuts] = useState({});\n\n  useEffect(() => {\n    const loadKeyboardShortcuts = async () => {\n      const response = await fetch(`\n        /api/keyboard-shortcuts?language=${props.language}\n      `);\n      const data = await response.json();\n      setKeyboardShortcuts(data);\n    };\n    loadKeyboardShortcuts();\n  }, [props.language]);\n\n  return keyboardShortcuts;\n};\n\nexport default useKeyboardShortcuts;
+{"import { useState } from 'react';
+
+const useKeyboardShortcuts = () => {
+  const [keyboardShortcuts, setKeyboardShortcuts] = useState({
+    save: 'Ctrl+S',
+    undo: 'Ctrl+Z',
+    redo: 'Ctrl+Y'
+  });
+
+  const handleShortcutChange = (event) => {
+    setKeyboardShortcuts({
+      ...keyboardShortcuts,
+      [event.target.name]: event.target.value
+    });
+  };
+
+  return {
+    keyboardShortcuts,
+    handleShortcutChange
+  };
+};
+
+export default useKeyboardShortcuts;

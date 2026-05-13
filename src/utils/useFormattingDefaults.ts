@@ -1,1 +1,23 @@
-{"import { useState, useEffect } from 'react';\n\ninterface FormattingDefaultsProps {\n  language: string;\n}\n\nconst useFormattingDefaults = (props: FormattingDefaultsProps) => {\n  const [formattingDefaults, setFormattingDefaults] = useState({});\n\n  useEffect(() => {\n    const loadFormattingDefaults = async () => {\n      const response = await fetch(`\n        /api/formatting-defaults?language=${props.language}\n      `);\n      const data = await response.json();\n      setFormattingDefaults(data);\n    };\n    loadFormattingDefaults();\n  }, [props.language]);\n\n  return formattingDefaults;\n};\n\nexport default useFormattingDefaults;
+{"import { useState } from 'react';
+
+const useFormattingDefaults = () => {
+  const [formattingDefaults, setFormattingDefaults] = useState({
+    indentSize: 2,
+    tabSize: 2,
+    newlineCharacter: '\n'
+  });
+
+  const handleFormatChange = (event) => {
+    setFormattingDefaults({
+      ...formattingDefaults,
+      [event.target.name]: event.target.value
+    });
+  };
+
+  return {
+    formattingDefaults,
+    handleFormatChange
+  };
+};
+
+export default useFormattingDefaults;
