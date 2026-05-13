@@ -1,7 +1,7 @@
 {"import React from 'react';
 import { useCursor } from '../useCursor';
 
-const CursorTracker = () => {
+function CursorTracker() {
   const { cursor, user } = useCursor();
 
   return (
@@ -10,14 +10,11 @@ const CursorTracker = () => {
       top: cursor.y,
       left: cursor.x,
       backgroundColor: user.color,
-      color: 'white',
-      padding: '5px',
-      borderRadius: '5px',
-      zIndex: 1
-    }}>
-      {user.name}
-    </div>
+      width: '5px',
+      height: '5px',
+      borderRadius: '5px'
+    }}/>
   );
-};
+}
 
 export default CursorTracker;
