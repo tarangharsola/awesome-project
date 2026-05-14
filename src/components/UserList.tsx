@@ -1,18 +1,11 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
 import { useUsers } from '../useUsers';
 
-function UserList() {
-  const [users, setUsers] = useState([]);
-  const { users: usersFromStore, loadUsers } = useUsers();
-
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
+const UserList = () => {
+  const users = useUsers();
   return (
     <div>
-      {usersFromStore.map((user, index) => (
+      {users.map((user, index) => (
         <div key={index} style={{
           backgroundColor: user.color,
           padding: '5px',
@@ -25,6 +18,6 @@ function UserList() {
       ))}
     </div>
   );
-}
+};
 
 export default UserList;
