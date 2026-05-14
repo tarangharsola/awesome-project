@@ -11,16 +11,21 @@ const useAwareness = () => {
     const handleUserJoin = (user) => {
       setUsers((prevUsers) => [...prevUsers, user]);
     };
+
+    editor.on('userJoin', handleUserJoin);
+
+    return () => editor.off('userJoin', handleUserJoin);
+  }, [editor]);
+
+  useEffect(() => {
     const handleUserLeave = (user) => {
       setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
     };
-    editor.on('userJoin', handleUserJoin);
-    editor.on('userLeave', handleUserLeave);
-    return () => {
-      editor.off('userJoin', handleUserJoin);
-      editor.off('userLeave', handleUserLeave);
-    };
-  }, [editor, usersList]);
+
+    usersList.on('userLeave', handleUserLeave);
+
+    return () => usersList.off('userLeave', handleUserLeave);
+  }, [usersList]);
 
   return users;
 };
