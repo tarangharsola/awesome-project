@@ -1,7 +1,1 @@
-// eslint-disable-next-line
-{
-  "scripts": {
-    "test": "node scripts/ci.js",
-    "build": "node scripts/build.js"
-  }
-}
+{"scripts":{"build":"tsc","test":"mocha src/scripts/test.js"}}

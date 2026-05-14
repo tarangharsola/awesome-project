@@ -1,21 +1,8 @@
-const { execSync } = require('child_process');
-const { resolve } = require('path');
+// eslint-disable-next-line
+import { execSync } from 'child_process';
 
-module.exports = function ci() {
-  const buildScript = resolve(__dirname, '../scripts/build.js');
-  const testScript = resolve(__dirname, '../scripts/test.js');
-
-  try {
-    execSync(`node ${buildScript}`);
-    console.log('Build successful');
-  } catch (error) {
-    console.error('Build failed:', error);
-  }
-
-  try {
-    execSync(`node ${testScript}`);
-    console.log('Tests successful');
-  } catch (error) {
-    console.error('Tests failed:', error);
-  }
-};
+export default function ci() {
+  const build = execSync('npm run build', { stdio: 'inherit' });
+  const test = execSync('npm run test', { stdio: 'inherit' });
+  return { build, test };
+}

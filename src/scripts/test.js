@@ -1,19 +1,12 @@
-const assert = require('assert');
-const { join } = require('path');
-const { resolve } = require('path');
-const { spawnSync } = require('child_process');
+// eslint-disable-next-line
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
+import { ci } from './ci';
 
-const buildScript = resolve(__dirname, '../scripts/build.js');
-const testScript = resolve(__dirname, '../scripts/test.js');
-
-describe('Build and tests', () => {
-  it('should build successfully', () => {
-    const buildOutput = spawnSync('node', [buildScript]).stdout.toString();
-    assert(buildOutput.includes('Build successful'), 'Build failed');
-  });
-
-  it('should run tests successfully', () => {
-    const testOutput = spawnSync('node', [testScript]).stdout.toString();
-    assert(testOutput.includes('Tests successful'), 'Tests failed');
+describe('CI', () => {
+  it('should build and test successfully', () => {
+    const { build, test } = ci();
+    expect(build).to.be.a('string');
+    expect(test).to.be.a('string');
   });
 });
