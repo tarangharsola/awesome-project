@@ -27,8 +27,9 @@ const WebSocket = () => {
   return (
     <div>
       {connected ? 'Connected' : 'Disconnected'}
-      <button onClick={() => ws.send('ping')}>Ping</button>
+      {retryCount > 0 ? ` (retrying in ${5000 * retryCount}ms)` : ''}
     </div>
   );
 };
+
 export default WebSocket;
