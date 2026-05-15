@@ -1,8 +1,9 @@
-// eslint-disable-next-line
-import { execSync } from 'child_process';
+const childProcess = require('child_process');
+const fs = require('fs');
 
-export default function ci() {
-  const build = execSync('npm run build', { stdio: 'inherit' });
-  const test = execSync('npm run test', { stdio: 'inherit' });
-  return { build, test };
-}
+module.exports = function() {
+  // Run tests
+  childProcess.execSync('jest');
+  // Build the app
+  childProcess.execSync('npm run build');
+};

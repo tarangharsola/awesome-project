@@ -1,5 +1,7 @@
-const { execSync } = require('child_process');
+const childProcess = require('child_process');
+const fs = require('fs');
 
-module.exports = function build() {
-  execSync('webpack');
+module.exports = function() {
+  // Build the app
+  childProcess.execSync('npm run build');
 };

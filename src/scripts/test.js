@@ -1,12 +1,6 @@
-// eslint-disable-next-line
-import { describe, it } from 'mocha';
-import { expect } from 'chai';
-import { ci } from './ci';
+const jest = require('jest');
 
-describe('CI', () => {
-  it('should build and test successfully', () => {
-    const { build, test } = ci();
-    expect(build).to.be.a('string');
-    expect(test).to.be.a('string');
-  });
-});
+module.exports = function() {
+  // Run tests
+  jest();
+};

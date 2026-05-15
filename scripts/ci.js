@@ -1,6 +1,7 @@
-const { execSync } = require('child_process');
+const childProcess = require('child_process');
+const fs = require('fs');
 
-module.exports = function ci() {
-  execSync('npm run build');
-  execSync('npm run test');
+module.exports = function() {
+  // Run tests
+  childProcess.execSync('./src/scripts/ci.js');
 };
