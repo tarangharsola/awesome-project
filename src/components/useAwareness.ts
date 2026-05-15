@@ -5,27 +5,29 @@ import { useUsers } from './useUsers';
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
   const editor = useEditor();
-  const usersList = useUsers();
+  const { users: currentUsers } = useUsers();
 
   useEffect(() => {
     const handleUserJoin = (user) => {
       setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    editor.on('userJoin', handleUserJoin);
-
-    return () => editor.off('userJoin', handleUserJoin);
-  }, [editor]);
-
-  useEffect(() => {
     const handleUserLeave = (user) => {
       setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
     };
 
-    usersList.on('userLeave', handleUserLeave);
+    editor.on('userJoin', handleUserJoin);
+    editor.on('userLeave', handleUserLeave);
 
-    return () => usersList.off('userLeave', handleUserLeave);
-  }, [usersList]);
+    return () => {
+      editor.off('userJoin', handleUserJoin);
+      editor.off('userLeave', handleUserLeave);
+    };
+  }, []);
+
+  useEffect(() => {
+    setUsers(currentUsers);
+  }, [currentUsers]);
 
   return users;
 };

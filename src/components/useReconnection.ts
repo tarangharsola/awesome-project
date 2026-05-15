@@ -4,18 +4,23 @@ import { useWebSocket } from './useWebSocket';
 const useReconnection = () => {
   const [reconnecting, setReconnecting] = useState(false);
   const [lastKnownState, setLastKnownState] = useState({});
-  const webSocket = useWebSocket();
+  const { reconnect, lastKnownState: currentLastKnownState } = useWebSocket();
 
   useEffect(() => {
     const handleReconnect = () => {
       setReconnecting(true);
-      setLastKnownState(webSocket.getState());
     };
 
-    webSocket.on('reconnect', handleReconnect);
+    reconnect(handleReconnect);
 
-    return () => webSocket.off('reconnect', handleReconnect);
-  }, [webSocket]);
+    return () => {
+      reconnect(null);
+    };
+  }, []);
+
+  useEffect(() => {
+    setLastKnownState(currentLastKnownState);
+  }, [currentLastKnownState]);
 
   return reconnecting;
 };
