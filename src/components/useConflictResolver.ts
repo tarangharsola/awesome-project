@@ -15,7 +15,7 @@ const useConflictResolver = () => {
     return () => {
       editor.off('conflict', handleConflict);
     };
-  }, []);
+  }, [editor]);
 
   return conflicts;
 };
