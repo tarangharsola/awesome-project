@@ -446,3 +446,4 @@
 2026-05-16T08:23:37.458126+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
 2026-05-16T08:24:46.806134+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
 2026-05-16T08:24:50.519022+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
+2026-05-16T08:25:27.762865+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
