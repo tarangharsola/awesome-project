@@ -1,10 +1,17 @@
-// eslint-disable-next-line
-import { spawnSync } from 'child_process';
+// Import required modules
+const gulp = require('gulp');
+const eslint = require('gulp-eslint');
+const browserify = require('browserify');
+const uglify = require('gulp-uglify');
 
-export default function buildApp() {
-  const buildResult = spawnSync('webpack', ['--mode', 'production', '--config', 'webpack.config.js']);
-  if (buildResult.status !== 0) {
-    console.error('Build failed with code', buildResult.status);
-    process.exit(1);
-  }
-}
+// Define build task
+gulp.task('build', () => {
+  // Browserify and uglify code
+  return browserify('src/index.tsx')
+    .bundle()
+    .pipe(uglify())
+    .pipe(gulp.dest('public/'));
+});
+
+// Define default task
+gulp.task('default', ['build']);
