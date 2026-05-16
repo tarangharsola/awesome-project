@@ -449,3 +449,4 @@
 2026-05-16T08:25:27.762865+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
 2026-05-16T08:25:52.340731+00:00 | Harden realtime collaboration: conflict handling, reconnection, and awareness consistency.
 2026-05-16T08:26:09.761604+00:00 | Improve editor UX: language switching, formatting defaults, and better keyboard shortcuts.
+2026-05-16T08:26:24.720923+00:00 | Add connection status indicator and retry/backoff behavior.
