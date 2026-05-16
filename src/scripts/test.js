@@ -1,16 +1,9 @@
 // Import required modules
-const assert = require('assert');
+const { test, describe } = require('jest');
 
-// Test editor functionality
-describe('Editor', () => {
-  it('should render editor', () => {
-    // Test editor rendering
-  });
-});
-
-// Test WebSocket functionality
-describe('WebSocket', () => {
-  it('should establish connection', () => {
-    // Test WebSocket connection
+// Define test suite
+describe('App', () => {
+  it('renders correctly', () => {
+    // Test rendering of App component
   });
 });

@@ -1,7 +1,14 @@
-const childProcess = require('child_process');
-const fs = require('fs');
+// Import required modules
+const { execSync } = require('child_process');
 
-module.exports = function() {
-  // Run tests
-  childProcess.execSync('./src/scripts/ci.js');
+// Define test and build scripts
+const testScript = 'node src/scripts/ci.js';
+const buildScript = 'node src/scripts/build.js';
+
+// Run tests and build script on CI
+module.exports = () => {
+  console.log('Running tests...');
+  execSync(testScript);
+  console.log('Building project...');
+  execSync(buildScript);
 };
