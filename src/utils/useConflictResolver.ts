@@ -1,20 +1,17 @@
-{"import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
+{"import { useState, useEffect } from 'react';
+import { OperationalTransformation } from 'operational-transformation';
 
-interface ConflictResolverProps {
-  editor: { text: string; }
-  webSocket: { send: (data: any) => void }
-}
+const useConflictResolver = () => {
+  const [conflicts, setConflicts] = useState([]);
+  const [resolved, setResolved] = useState(false);
 
-const useConflictResolver = ({ editor, webSocket }) => {
-  const { text } = editor;
-  const { send } = webSocket;
+  useEffect(() => {
+    const ot = new OperationalTransformation();
+    ot.resolveConflicts(conflicts);
+    setResolved(true);
+  }, [conflicts]);
 
-  const resolveConflict = (newText: string) => {
-    send({ type: 'UPDATE_TEXT', newText });
-  };
-
-  return { resolveConflict };
-}
+  return [conflicts, setConflicts, resolved];
+};
 
 export default useConflictResolver;
