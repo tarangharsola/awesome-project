@@ -1,17 +1,26 @@
-{"import { useState } from 'react';
+{"import { useState, useEffect } from 'react';
 
-interface Props {
-  language: string;
+interface KeyboardShortcuts {
+  shortcuts: { [key: string]: string };
 }
 
-const useKeyboardShortcuts = (props: Props) => {
-  const [shortcuts, setShortcuts] = useState({
-    indent: 'tab',
-    outdent: 'shift+tab',
-    newline: 'enter',
-  });
+const useKeyboardShortcuts = () => {
+  const [keyboardShortcuts, setKeyboardShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
 
-  return shortcuts;
+  useEffect(() => {
+    // Load keyboard shortcuts from local storage
+    const storedShortcuts = localStorage.getItem('keyboardShortcuts');
+    if (storedShortcuts) {
+      setKeyboardShortcuts(JSON.parse(storedShortcuts));
+    }
+  }, []);
+
+  useEffect(() => {
+    // Save keyboard shortcuts to local storage
+    localStorage.setItem('keyboardShortcuts', JSON.stringify(keyboardShortcuts));
+  }, [keyboardShortcuts]);
+
+  return keyboardShortcuts;
 };
 
 export default useKeyboardShortcuts;
