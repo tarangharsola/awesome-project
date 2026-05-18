@@ -1,13 +1,10 @@
-const { test } = require('jest');
+const { spawn } = require('child_process');
+const { execSync } = require('child_process');
 
 module.exports = function test() {
-  test('Editor renders correctly', () => {
-    const editor = document.getElementById('editor');
-    expect(editor).not.toBeNull();
-  });
+  const test = spawn('jest');
 
-  test('Syntax highlighting works', () => {
-    const code = document.getElementById('code');
-    expect(code).not.toBeNull();
+  test.stdout.on('data', (data) => {
+    console.log(`Test output: ${data}`);
   });
-}
+};

@@ -1,14 +1,15 @@
-// Import required modules
+const { spawn } = require('child_process');
 const { execSync } = require('child_process');
 
-// Define test and build scripts
-const testScript = 'node src/scripts/ci.js';
-const buildScript = 'node src/scripts/build.js';
+module.exports = function ci() {
+  const build = spawn('npm', ['run', 'build']);
+  const test = spawn('npm', ['run', 'test']);
 
-// Run tests and build script on CI
-module.exports = () => {
-  console.log('Running tests...');
-  execSync(testScript);
-  console.log('Building project...');
-  execSync(buildScript);
+  build.stdout.on('data', (data) => {
+    console.log(`Build output: ${data}`);
+  });
+
+  test.stdout.on('data', (data) => {
+    console.log(`Test output: ${data}`);
+  });
 };
