@@ -1,19 +1,24 @@
 {"import React from 'react';
-import { useCursor } from '../useCursor';
+import { useState, useEffect } from 'react';
+import { Cursor } from './Cursor';
 
-const CursorTracker = () => {
-  const { cursorPosition, cursorColor } = useCursor();
+interface CursorTrackerProps {
+  cursors: Cursor[];
+}
+
+const CursorTracker = ({ cursors }: CursorTrackerProps) => {
+  const [activeCursors, setActiveCursors] = useState(cursors);
+
+  useEffect(() => {
+    setActiveCursors(cursors);
+  }, [cursors]);
 
   return (
-    <div style={{
-      position: "absolute",
-      top: cursorPosition.y,
-      left: cursorPosition.x,
-      width: "5px",
-      height: "5px",
-      backgroundColor: cursorColor,
-      borderRadius: "5px",
-    }} />
+    <div className="cursor-tracker">
+      {activeCursors.map((cursor, index) => (
+        <Cursor key={index} cursor={cursor} />
+      ))}
+    </div>
   );
 };
 
