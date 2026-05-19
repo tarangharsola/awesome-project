@@ -1,8 +1,14 @@
-// Import required modules
-const { execSync } = require('child_process');
+// eslint-disable-next-line
+import { spawnSync } from 'child_process';
+import { resolve } from 'path';
+import { existsSync } from 'fs';
 
-// Define build script
-module.exports = () => {
-  console.log('Building project...');
-  execSync('webpack');
+const buildScript = async () => {
+  const buildCommand = 'npm run build';
+  const buildProcess = spawnSync(buildCommand, { shell: true });
+  if (buildProcess.status !== 0) {
+    throw new Error(`Build failed with code ${buildProcess.status}`);
+  }
 };
+
+export default buildScript;
