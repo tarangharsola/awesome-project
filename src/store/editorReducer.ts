@@ -1,14 +1,8 @@
-{"import { createReducer } from 'redux';
+{"import { combineReducers } from 'redux';
+import { editorReducer } from './editorReducer';
 
-const editorReducer = createReducer(
-  {
-    value: '',
-    language: 'javascript',
-  },
-  {
-    EDITOR_VALUE: (state, action) => ({ ...state, value: action.payload }),
-    LANGUAGE: (state, action) => ({ ...state, language: action.payload }),
-  }
-);
+const rootReducer = combineReducers({
+  editor: editorReducer,
+});
 
-export default editorReducer;
+export default rootReducer;
