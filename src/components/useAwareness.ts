@@ -3,31 +3,23 @@ import { useEditor } from './useEditor';
 import { useUsers } from './useUsers';
 
 const useAwareness = () => {
-  const [users, setUsers] = useState([]);
-  const editor = useEditor();
-  const usersList = useUsers();
+  const [awareness, setAwareness] = useState({});
+  const { editorState, dispatch } = useEditor();
+  const { users } = useUsers();
 
   useEffect(() => {
-    const handleUserJoin = (user) => {
-      setUsers((prevUsers) => [...prevUsers, user]);
+    const handleCursorMove = (cursor) => {
+      setAwareness((prevAwareness) => ({ ...prevAwareness, [cursor.userId]: cursor }));
     };
 
-    editor.on('userJoin', handleUserJoin);
+    editorState.on('cursor-move', handleCursorMove);
 
-    return () => editor.off('userJoin', handleUserJoin);
-  }, []);
-
-  useEffect(() => {
-    const handleUserLeave = (user) => {
-      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
+    return () => {
+      editorState.off('cursor-move', handleCursorMove);
     };
+  }, [editorState]);
 
-    editor.on('userLeave', handleUserLeave);
-
-    return () => editor.off('userLeave', handleUserLeave);
-  }, []);
-
-  return users;
+  return awareness;
 };
 
 export default useAwareness;
