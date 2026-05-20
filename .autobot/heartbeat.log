@@ -473,3 +473,4 @@
 2026-05-20T10:00:24.546662+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
 2026-05-20T10:01:15.701636+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
 2026-05-20T10:01:16.739918+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
+2026-05-20T10:01:45.116668+00:00 | Harden realtime collaboration: conflict handling, reconnection, and awareness consistency.
