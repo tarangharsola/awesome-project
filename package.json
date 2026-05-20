@@ -1,1 +1,7 @@
-{"scripts":{"build":"tsc","test":"mocha src/scripts/test.js"}}
+...
+"scripts": {
+  "test": "jest",
+  "build": "webpack --mode production",
+  "ci": "node scripts/ci.js"
+},
+...

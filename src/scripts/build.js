@@ -1,17 +1,6 @@
-// Import required modules
-const gulp = require('gulp');
-const eslint = require('gulp-eslint');
-const browserify = require('browserify');
-const uglify = require('gulp-uglify');
+const { spawnSync } = require('child_process');
 
-// Define build task
-gulp.task('build', () => {
-  // Browserify and uglify code
-  return browserify('src/index.tsx')
-    .bundle()
-    .pipe(uglify())
-    .pipe(gulp.dest('public/'));
-});
-
-// Define default task
-gulp.task('default', ['build']);
+module.exports = function build() {
+  // Run build script
+  spawnSync('npm', ['run', 'build'], { stdio: 'inherit' });
+};
