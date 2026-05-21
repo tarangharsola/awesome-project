@@ -2,18 +2,21 @@
 import { io } from 'socket.io-client';
 
 const useCursor = () => {
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
-  const [cursorColor, setCursorColor] = useState('#000000');
+  const [cursor, setCursor] = useState(null);
 
   useEffect(() => {
     const socket = io('ws://localhost:3001');
-    socket.on('cursorUpdate', (data) => {
-      setCursorPosition(data);
-      setCursorColor(data.color);
+
+    socket.on('cursor', (cursor) => {
+      setCursor(cursor);
     });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
-  return { cursorPosition, cursorColor };
+  return cursor;
 };
 
 export default useCursor;

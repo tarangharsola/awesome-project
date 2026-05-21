@@ -1,4 +1,4 @@
-{"import React, { useState, useEffect } from 'react';
+{"import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
 const useWebSocket = () => {
@@ -11,11 +11,11 @@ const useWebSocket = () => {
     setConnected(true);
 
     socket.on('connect', () => {
-      console.log('Connected to server');
+      console.log('Connected to WebSocket server');
     });
 
     socket.on('disconnect', () => {
-      console.log('Disconnected from server');
+      console.log('Disconnected from WebSocket server');
       setConnected(false);
     });
 

@@ -6,18 +6,13 @@ interface UserState {
 }
 
 const initialState: UserState = {
-  user: null
+  user: null,
 };
 
-const userReducer: Reducer<UserState> = (state = initialState, action) => {
+const userReducer: Reducer<UserState, any> = (state = initialState, action) => {
   switch (action.type) {
     case 'SET_USER':
-      return {
-        ...state,
-        user: action.payload
-      };
-    case 'REMOVE_USER':
-      return initialState;
+      return { ...state, user: action.payload };
     default:
       return state;
   }
