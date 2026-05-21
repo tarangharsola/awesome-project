@@ -1,28 +1,15 @@
 {"import React from 'react';
-import { useCursor } from '../useCursor';
-
-interface Cursor {
-  id: string;
-  name: string;
-  color: string;
-  x: number;
-  y: number;
-}
+import { useCursor } from '../utils/useCursor';
 
 const CursorTracker = () => {
-  const cursor = useCursor();
+  const { cursor, username, color } = useCursor();
 
   return (
     <div className="cursor" style={{
-      left: cursor.x + 'px',
-      top: cursor.y + 'px',
-      backgroundColor: cursor.color,
-      color: '#fff',
-      padding: '5px 10px',
-      borderRadius: '5px'
-    }}>
-      {cursor.name}
-    </div>
+      left: cursor.x,
+      top: cursor.y,
+      backgroundColor: color
+    }}></div>
   );
 };
 
