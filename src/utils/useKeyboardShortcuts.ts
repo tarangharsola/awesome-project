@@ -4,23 +4,21 @@ interface KeyboardShortcuts {
   shortcuts: { [key: string]: string };
 }
 
-interface KeyboardShortcutsProps {
-  shortcuts: KeyboardShortcuts;
-  onChange: (shortcuts: KeyboardShortcuts) => void;
-}
-
-const useKeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ shortcuts, onChange }) => {
-  const [localShortcuts, setLocalShortcuts] = useState(shortcuts);
+const useKeyboardShortcuts = (): KeyboardShortcuts => {
+  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
 
   useEffect(() => {
-    onChange(localShortcuts);
-  }, [localShortcuts, onChange]);
+    const storedShortcuts = localStorage.getItem('keyboardShortcuts');
+    if (storedShortcuts) {
+      setShortcuts(JSON.parse(storedShortcuts));
+    }
+  }, []);
 
-  const handleShortcutChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalShortcuts({ ...localShortcuts, [event.target.name]: event.target.value });
-  };
+  useEffect(() => {
+    localStorage.setItem('keyboardShortcuts', JSON.stringify(shortcuts));
+  }, [shortcuts]);
 
-  return localShortcuts;
+  return shortcuts;
 }
 
 export default useKeyboardShortcuts;
