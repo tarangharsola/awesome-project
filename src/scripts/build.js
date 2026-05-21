@@ -1,6 +1,15 @@
-const { spawnSync } = require('child_process');
+// Import required modules
+const gulp = require('gulp');
+const ts = require('gulp-typescript');
+const sourcemaps = require('gulp-sourcemaps');
 
-module.exports = function build() {
-  // Run build script
-  spawnSync('npm', ['run', 'build'], { stdio: 'inherit' });
-};
+// Define build task
+gulp.task('build', () => {
+  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
+    .pipe(sourcemaps.init())
+    .pipe(ts()).on('error', (err) => {
+      console.error(err);
+    })
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest('dist/'));
+});
