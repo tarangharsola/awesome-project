@@ -1,6 +1,13 @@
+const { spawnSync } = require('child_process');
 const { execSync } = require('child_process');
 
 module.exports = function ci() {
-  // Run tests and build script
-  execSync('npm run test && npm run build');
+  const build = spawnSync('npm', ['run', 'build'], { stdio: 'inherit' });
+  if (build.status !== 0) {
+    process.exit(1);
+  }
+  const test = spawnSync('npm', ['run', 'test'], { stdio: 'inherit' });
+  if (test.status !== 0) {
+    process.exit(1);
+  }
 };

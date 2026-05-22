@@ -1,15 +1,9 @@
-// Import required modules
-const gulp = require('gulp');
-const ts = require('gulp-typescript');
-const sourcemaps = require('gulp-sourcemaps');
+const { spawnSync } = require('child_process');
+const { execSync } = require('child_process');
 
-// Define build task
-gulp.task('build', () => {
-  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
-    .pipe(sourcemaps.init())
-    .pipe(ts()).on('error', (err) => {
-      console.error(err);
-    })
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('dist/'));
-});
+module.exports = function build() {
+  const build = spawnSync('webpack', { stdio: 'inherit' });
+  if (build.status !== 0) {
+    process.exit(1);
+  }
+};

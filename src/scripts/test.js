@@ -1,9 +1,13 @@
-// Import required modules
-const assert = require('assert');
+const { spawnSync } = require('child_process');
+const { execSync } = require('child_process');
 
-// Define test suite
-describe('Collaborative Code Editor', () => {
-  it('should render editor with syntax highlighting', () => {
-    // Test implementation
-  });
-});
+module.exports = function test() {
+  const build = spawnSync('npm', ['run', 'build'], { stdio: 'inherit' });
+  if (build.status !== 0) {
+    process.exit(1);
+  }
+  const test = spawnSync('jest', { stdio: 'inherit' });
+  if (test.status !== 0) {
+    process.exit(1);
+  }
+};
