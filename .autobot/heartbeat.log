@@ -482,3 +482,4 @@
 2026-05-21T10:11:31.505245+00:00 | Improve editor UX: language switching, formatting defaults, and better keyboard shortcuts.
 2026-05-22T09:55:15.793421+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
 2026-05-22T09:55:58.545272+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
+2026-05-22T09:55:59.638519+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.

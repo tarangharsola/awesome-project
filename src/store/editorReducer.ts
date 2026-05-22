@@ -1,18 +1,16 @@
-{"import { createReducer, on } from 'redux';
-import { EDITOR_CHANGE } from './actions';
+{"import { combineReducers } from 'redux';
+import { EditorState } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
 
-const initialState = {
-  code: '',
-  cursorPosition: 0,
-  language: 'javascript'
-};
-
-const editorReducer = createReducer(initialState, {
-  [EDITOR_CHANGE]: (state, { code, cursorPosition, language }) => ({
-    code,
-    cursorPosition,
-    language
-  })
+const editorReducer = combineReducers({
+  state: (state = EditorState.create(), action) => {
+    switch (action.type) {
+      case 'UPDATE_EDITOR_STATE':
+        return action.payload;
+      default:
+        return state;
+    }
+  },
 });
 
 export default editorReducer;
