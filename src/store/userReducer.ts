@@ -1,17 +1,26 @@
-{"import { combineReducers } from 'redux';
-import { User } from './user';
+{"import { User } from './user';
+import { Reducer } from 'redux';
 
-const userReducer = combineReducers({
-  users: (state = [], action) => {
-    switch (action.type) {
-      case 'ADD_USER':
-        return [...state, action.payload];
-      case 'REMOVE_USER':
-        return state.filter((user) => user.id !== action.payload.id);
-      default:
-        return state;
-    }
-  },
-});
+interface UserState {
+  user: User | null;
+}
+
+const initialState: UserState = {
+  user: null
+};
+
+const userReducer: Reducer<UserState> = (state = initialState, action) => {
+  switch (action.type) {
+    case 'SET_USER':
+      return {
+        ...state,
+        user: action.payload
+      };
+    case 'REMOVE_USER':
+      return initialState;
+    default:
+      return state;
+  }
+};
 
 export default userReducer;
