@@ -1,14 +1,21 @@
-// eslint-disable-next-line
-import { spawnSync } from 'child_process';
-import { resolve } from 'path';
-import { existsSync } from 'fs';
+const fs = require('fs');
+const path = require('path');
 
-const buildScript = async () => {
-  const buildCommand = 'npm run build';
-  const buildProcess = spawnSync(buildCommand, { shell: true });
-  if (buildProcess.status !== 0) {
-    throw new Error(`Build failed with code ${buildProcess.status}`);
-  }
+module.exports = function build() {
+  const src = 'src';
+  const dist = 'public';
+  const files = fs.readdirSync(src);
+
+  files.forEach(file => {
+    const filePath = path.join(src, file);
+    const stats = fs.statSync(filePath);
+
+    if (stats.isDirectory()) {
+      const distPath = path.join(dist, file);
+      fs.mkdirSync(distPath);
+    } else if (file.endsWith('.tsx')) {
+      const distPath = path.join(dist, file);
+      fs.copyFileSync(filePath, distPath);
+    }
+  });
 };
-
-export default buildScript;

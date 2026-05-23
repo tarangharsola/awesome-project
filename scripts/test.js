@@ -1,10 +1,9 @@
-const { spawn } = require('child_process');
-const { execSync } = require('child_process');
+const assert = require('assert');
+const fs = require('fs');
 
-module.exports = function test() {
-  const test = spawn('jest');
-
-  test.stdout.on('data', (data) => {
-    console.log(`Test output: ${data}`);
+describe('Editor', () => {
+  it('should render editor', () => {
+    const editor = require('./Editor');
+    assert(editor);
   });
-};
+});
