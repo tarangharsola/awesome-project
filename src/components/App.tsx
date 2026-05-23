@@ -1,14 +1,35 @@
 {"import React from 'react';
-import { Provider } from 'react-redux';
-import store from './store';
-import Editor from './Editor';
+import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-const App = () => {
+function App() {
+  const [connectionStatus, setConnectionStatus] = useState('');
+  const { connect, reconnect, error } = useWebSocket();
+
+  useEffect(() => {
+    connect();
+    return () => {
+      disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (error) {
+      setConnectionStatus('Error: ' + error);
+    } else if (reconnect) {
+      setConnectionStatus('Reconnecting...');
+    } else {
+      setConnectionStatus('Connected');
+    }
+  }, [error, reconnect]);
+
   return (
-    <Provider store={store}>
+    <div>
+      <h1>Collaborative Code Editor</h1>
+      <p>Connection Status: {connectionStatus}</p>
       <Editor />
-    </Provider>
+    </div>
   );
-};
+}
 
 export default App;
