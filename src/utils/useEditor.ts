@@ -1,20 +1,21 @@
 {"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+import { useWebSocket } from './useWebSocket';
 
-const useEditor = () => {
-  const [editorContent, setEditorContent] = useState('');
+interface Props {
+  document: string;
+}
+
+const useEditor = (document: Props['document']) => {
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const { send, receive } = useWebSocket();
 
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-    socket.on('editorUpdate', (data) => {
-      setEditorContent(data);
+    receive((message) => {
+      setCursor(message.cursor);
     });
-    return () => {
-      socket.disconnect();
-    };
   }, []);
 
-  return editorContent;
+  return { cursor, send, receive };
 };
 
 export default useEditor;

@@ -1,54 +1,65 @@
 {"import React, { useState, useEffect } from 'react';
-import CodeMirror from 'codemirror';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
+import { useEditor } from '../utils/useEditor';
+import { useWebSocket } from '../utils/useWebSocket';
+import CursorTracker from './CursorTracker';
 
-function Editor({ editorState, setEditorState }) {
-  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
-  const [editorValue, setEditorValue] = useState(editorState.value);
+interface Props {
+  documentId: string;
+}
+
+const Editor: React.FC<Props> = ({ documentId }) => {
+  const [document, setDocument] = useState('');
+  const [users, setUsers] = useState([]);
+  const { send, receive } = useWebSocket(documentId);
+  const { cursor } = useEditor(document);
 
   useEffect(() => {
-    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: 'javascript',
-      lineNumbers: true,
-      indentUnit: 2,
-      indentWithTabs: false,
-      foldGutter: true,
-      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-      hint: true,
-      showHint: true,
-      closeBrackets: true,
-      matchBrackets: true,
+    receive((message) => {
+      setDocument(message.document);
+      setUsers(message.users);
     });
-    editor.on('cursorActivity', () => {
-      setCursorPosition(editor.getCursor());
-    });
-    editor.on('change', () => {
-      setEditorValue(editor.getValue());
-      setEditorState({ value: editor.getValue(), cursorPosition: editor.getCursor() });
-    });
-    return () => {
-      editor.toTextArea();
-    };
   }, []);
 
+  const handleSendMessage = (message) => {
+    send(message);
+  };
+
   return (
-    <div>
-      <textarea id='editor' value={editorValue} onChange={(e) => setEditorValue(e.target.value)} />
-      <div>
-        <span>Cursor position: {cursorPosition.line},{cursorPosition.ch}</span>
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      height: '100vh',
+    }}>
+      <CursorTracker cursor={cursor} />
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        padding: 10,
+        backgroundColor: '#f0f0f0',
+        overflow: 'auto',
+      }}>
+        <pre style={{
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+        }}>{document}</pre>
+      </div>
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        width: '100%',
+        padding: 10,
+        backgroundColor: '#f0f0f0',
+      }}>
+        <h2>Users:</h2>
+        <ul>
+          {users.map((user) => (
+            <li key={user.id}>{user.name}</li>
+          ))}
+        </ul>
       </div>
     </div>
   );
