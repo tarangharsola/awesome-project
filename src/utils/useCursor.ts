@@ -1,20 +1,22 @@
 {"import { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 
-interface Props {
-  cursor: { x: number; y: number; }
-}
-
-const useCursor = (cursor: Props['cursor']) => {
-  const [cursorPosition, setCursorPosition] = useState(cursor);
+const useCursor = () => {
+  const [cursor, setCursor] = useState(null);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setCursorPosition(cursor);
-    }, 100);
-    return () => clearInterval(intervalId);
+    const socket = io('ws://localhost:3001');
+
+    socket.on('cursor', (data) => {
+      setCursor(data);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
-  return cursorPosition;
+  return cursor;
 };
 
 export default useCursor;

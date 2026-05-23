@@ -6,7 +6,7 @@ interface UserState {
 }
 
 const initialState: UserState = {
-  user: null
+  user: null,
 };
 
 const userReducer: Reducer<UserState> = (state = initialState, action) => {
@@ -14,7 +14,7 @@ const userReducer: Reducer<UserState> = (state = initialState, action) => {
     case 'SET_USER':
       return {
         ...state,
-        user: action.payload
+        user: action.payload,
       };
     case 'REMOVE_USER':
       return initialState;

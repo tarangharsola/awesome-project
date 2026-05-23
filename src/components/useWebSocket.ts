@@ -8,12 +8,17 @@ const useWebSocket = () => {
   useEffect(() => {
     const socket = io('ws://localhost:3001');
     setSocket(socket);
+    setConnected(true);
+
     socket.on('connect', () => {
-      setConnected(true);
+      console.log('Connected to the server');
     });
+
     socket.on('disconnect', () => {
+      console.log('Disconnected from the server');
       setConnected(false);
     });
+
     return () => {
       socket.disconnect();
     };

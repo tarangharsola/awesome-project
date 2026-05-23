@@ -6,12 +6,17 @@ const useLanguage = () => {
 
   useEffect(() => {
     const socket = io('ws://localhost:3001');
-    socket.on('languageUpdate', (data) => {
+
+    socket.on('language', (data) => {
       setLanguage(data);
     });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
-  return { language };
+  return language;
 };
 
 export default useLanguage;
