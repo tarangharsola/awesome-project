@@ -1,15 +1,11 @@
-{"import { User } from './types';
+{"import { User } from './user';
 
-interface UserStateProps {
-  username: string;
-  color: string;
+interface UserState {
+  user: User;
 }
 
-const userState = (username: string, color: string): User => {
-  return {
-    username,
-    color
-  };
+const initialState: UserState = {
+  user: null,
 };
 
-export default userState;
+export { initialState };

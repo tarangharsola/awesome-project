@@ -3,20 +3,23 @@ import { io } from 'socket.io-client';
 
 const useEditor = () => {
   const [editorState, setEditorState] = useState({});
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     const socket = io('ws://localhost:3001');
-
-    socket.on('editor', (data) => {
+    setSocket(socket);
+    socket.on('editorState', (data) => {
       setEditorState(data);
     });
-
+    socket.on('disconnect', () => {
+      setConnected(false);
+    });
     return () => {
       socket.disconnect();
     };
   }, []);
 
-  return editorState;
+  return { editorState, connected };
 };
 
 export default useEditor;

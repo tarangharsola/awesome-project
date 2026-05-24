@@ -493,3 +493,4 @@
 2026-05-23T08:36:05.616825+00:00 | Add connection status indicator and retry/backoff behavior.
 2026-05-23T08:36:31.973831+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
 2026-05-24T09:04:28.556987+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
+2026-05-24T09:06:08.279688+00:00 | Harden realtime collaboration: conflict handling, reconnection, and awareness consistency.
