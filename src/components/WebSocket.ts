@@ -1,27 +1,37 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
 
-const WebSocket = () => {
-  const [connectionStatus, setConnectionStatus] = useState('connected');
+interface Props {
+  children: React.ReactNode;
+}
+
+const WebSocket = ({ children }: Props) => {
+  const [connected, setConnected] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      // Simulate connection loss and retry
-      if (Math.random() < 0.5) {
-        setConnectionStatus('disconnected');
-        setRetryCount(retryCount + 1);
-      } else {
-        setConnectionStatus('connected');
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onopen = () => setConnected(true);
+    ws.onclose = () => setConnected(false);
+    ws.onerror = () => setRetryCount(retryCount + 1);
+    ws.onmessage = (event) => {
+      if (event.data === 'reconnect') {
+        setRetryCount(0);
       }
-    }, 1000);
-    return () => clearInterval(intervalId);
+    };
+    return () => ws.close();
   }, []);
+
+  const reconnect = () => {
+    setRetryCount(0);
+  };
 
   return (
     <div>
-      <p>Connection Status: {connectionStatus}</p>
-      <p>Retry Count: {retryCount}</p>
+      {children}
+      <button onClick={reconnect}>Reconnect</button>
+      <p>Connected: {connected.toString()}</p>
+      <p>Retry count: {retryCount}</p>
     </div>
   );
 };
