@@ -6,14 +6,8 @@ const useCursor = () => {
 
   useEffect(() => {
     const socket = io('ws://localhost:3001');
-
-    socket.on('cursor', (data) => {
-      setCursor(data);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
+    socket.on('cursor', (cursor) => setCursor(cursor));
+    return () => socket.disconnect();
   }, []);
 
   return cursor;

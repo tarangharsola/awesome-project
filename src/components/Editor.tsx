@@ -1,68 +1,31 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from '../utils/useEditor';
-import { useWebSocket } from '../utils/useWebSocket';
-import CursorTracker from './CursorTracker';
+import { EditorState, ContentState } from 'draft-js';
+import { Editor } from 'react-draft-wysiwyg';
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 
-interface Props {
-  documentId: string;
-}
-
-const Editor: React.FC<Props> = ({ documentId }) => {
-  const [document, setDocument] = useState('');
-  const [users, setUsers] = useState([]);
-  const { send, receive } = useWebSocket(documentId);
-  const { cursor } = useEditor(document);
+const EditorComponent = () => {
+  const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
 
   useEffect(() => {
-    receive((message) => {
-      setDocument(message.document);
-      setUsers(message.users);
-    });
+    const intervalId = setInterval(() => {
+      // Send editor state to server
+    }, 1000);
+    return () => clearInterval(intervalId);
   }, []);
 
-  const handleSendMessage = (message) => {
-    send(message);
+  const onEditorStateChange = (editorState) => {
+    setEditorState(editorState);
   };
 
   return (
-    <div style={{
-      position: 'relative',
-      width: '100%',
-      height: '100vh',
-    }}>
-      <CursorTracker cursor={cursor} />
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        padding: 10,
-        backgroundColor: '#f0f0f0',
-        overflow: 'auto',
-      }}>
-        <pre style={{
-          whiteSpace: 'pre-wrap',
-          wordWrap: 'break-word',
-        }}>{document}</pre>
-      </div>
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        width: '100%',
-        padding: 10,
-        backgroundColor: '#f0f0f0',
-      }}>
-        <h2>Users:</h2>
-        <ul>
-          {users.map((user) => (
-            <li key={user.id}>{user.name}</li>
-          ))}
-        </ul>
-      </div>
-    </div>
+    <Editor
+      editorState={editorState}
+      onEditorStateChange={onEditorStateChange}
+      toolbarClassName='toolbar-class'
+      wrapperClassName='wrapper-class'
+      editorClassName='editor-class'
+    />
   );
-}
+};
 
-export default Editor;
+export default EditorComponent;

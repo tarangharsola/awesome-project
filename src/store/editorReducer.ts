@@ -1,16 +1,8 @@
 {"import { combineReducers } from 'redux';
-import { EditorState } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
+import { editorReducer } from './editorReducer';
 
-const editorReducer = combineReducers({
-  state: (state = EditorState.create(), action) => {
-    switch (action.type) {
-      case 'UPDATE_EDITOR_STATE':
-        return action.payload;
-      default:
-        return state;
-    }
-  },
+const rootReducer = combineReducers({
+  editor: editorReducer,
 });
 
-export default editorReducer;
+export default rootReducer;
