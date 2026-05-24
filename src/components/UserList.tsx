@@ -1,13 +1,13 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
-import { useUsers } from '../utils/useUsers';
+import { useUsers } from '../useUsers';
 
 const UserList = () => {
   const { users, addUser, removeUser } = useUsers();
   const [activeUsers, setActiveUsers] = useState([]);
 
   useEffect(() => {
-    setActiveUsers(users.filter(user => user.isConnected));
+    setActiveUsers(users.filter((user) => user.isActive));
   }, [users]);
 
   return (
@@ -18,8 +18,7 @@ const UserList = () => {
           color: 'white',
           padding: '5px',
           borderRadius: '5px',
-          display: 'inline-block',
-          margin: '5px'
+          marginRight: '10px',
         }}>
           {user.name}
         </div>
