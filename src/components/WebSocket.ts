@@ -1,39 +1,36 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
+{"import { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 
-interface Props {
-  children: React.ReactNode;
-}
-
-const WebSocket = ({ children }: Props) => {
+const WebSocket = () => {
+  const [messages, setMessages] = useState([]);
   const [connected, setConnected] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => setConnected(false);
-    ws.onerror = () => setRetryCount(retryCount + 1);
-    ws.onmessage = (event) => {
-      if (event.data === 'reconnect') {
-        setRetryCount(0);
-      }
+    const socket = io('ws://localhost:3001');
+    socket.on('connect', () => {
+      setConnected(true);
+    });
+    socket.on('disconnect', () => {
+      setConnected(false);
+    });
+    socket.on('message', (message) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+    });
+    return () => {
+      socket.disconnect();
     };
-    return () => ws.close();
   }, []);
 
-  const reconnect = () => {
-    setRetryCount(0);
+  const sendMessage = (message) => {
+    const socket = io('ws://localhost:3001');
+    socket.emit('message', message);
   };
 
-  return (
-    <div>
-      {children}
-      <button onClick={reconnect}>Reconnect</button>
-      <p>Connected: {connected.toString()}</p>
-      <p>Retry count: {retryCount}</p>
-    </div>
-  );
+  return {
+    messages,
+    connected,
+    sendMessage
+  };
 };
 
 export default WebSocket;
