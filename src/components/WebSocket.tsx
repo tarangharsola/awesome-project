@@ -1,22 +1,34 @@
 {"import React, { useState, useEffect } from 'react';
 import WebSocket from 'ws';
 
-function WebSocket({ ws }) {
-  const [message, setMessage] = useState(null);
+function WebSocket({ ws, users }) {
+  const [wsState, setWsState] = useState('disconnected');
 
   useEffect(() => {
-    ws.onmessage = (event) => {
-      setMessage(event.data);
-    };
-    return () => {
-      ws.close();
-    };
-  }, []);
+    if (ws) {
+      setWsState('connected');
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'users') {
+          setUsers(data.users);
+        } else if (data.type === 'editor') {
+          setEditor(data.editor);
+        }
+      };
+      return () => {
+        ws.close();
+      };
+    }
+  }, [ws]);
 
   return (
     <div>
-      <h2>WebSocket:</h2>
-      <p>Message: {message}</p>
+      <span>Connection Status: {wsState}</span>
+      <ul>
+        {users.map((user, index) => (
+          <li key={index}>{user.name} ({user.color})</li>
+        ))}
+      </ul>
     </div>
   );
 }

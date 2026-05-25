@@ -1,31 +1,31 @@
 {"import React, { useState, useEffect } from 'react';
 import { EditorState, ContentState } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import 'draft-js/dist/draft.min.css';
 
-const EditorComponent = () => {
-  const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
+function Editor({ editor }) {
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      // Send editor state to server
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, []);
+    if (editor) {
+      setEditorState(editor);
+      setCursorPosition(editor.getCursorPosition());
+    }
+  }, [editor]);
 
-  const onEditorStateChange = (editorState) => {
+  const handleTextChange = (editorState) => {
     setEditorState(editorState);
+    const cursorPosition = editorState.getCursorPosition();
+    setCursorPosition(cursorPosition);
+    ws.send(JSON.stringify({ type: 'editor', editor: editorState.toJS() }));
   };
 
   return (
-    <Editor
-      editorState={editorState}
-      onEditorStateChange={onEditorStateChange}
-      toolbarClassName='toolbar-class'
-      wrapperClassName='wrapper-class'
-      editorClassName='editor-class'
-    />
+    <div>
+      <EditorState editorState={editorState} onEditorStateChange={handleTextChange} />
+      <div style={{ position: 'absolute', left: cursorPosition.x, top: cursorPosition.y, backgroundColor: 'red', width: 10, height: 10 }} />
+    </div>
   );
-};
+}
 
-export default EditorComponent;
+export default Editor;
