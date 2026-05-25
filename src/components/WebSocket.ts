@@ -1,36 +1,51 @@
-{"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
 
 const WebSocket = () => {
-  const [messages, setMessages] = useState([]);
   const [connected, setConnected] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-    socket.on('connect', () => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onopen = () => {
       setConnected(true);
-    });
-    socket.on('disconnect', () => {
+    };
+    ws.onclose = () => {
       setConnected(false);
-    });
-    socket.on('message', (message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
-    });
-    return () => {
-      socket.disconnect();
+      setRetryCount(retryCount + 1);
+    };
+    ws.onerror = () => {
+      setConnected(false);
+      setRetryCount(retryCount + 1);
     };
   }, []);
 
-  const sendMessage = (message) => {
-    const socket = io('ws://localhost:3001');
-    socket.emit('message', message);
+  const retryConnection = () => {
+    if (retryCount < 5) {
+      setTimeout(() => {
+        setRetryCount(0);
+        const ws = new WebSocket('ws://localhost:8080');
+        ws.onopen = () => {
+          setConnected(true);
+        };
+        ws.onclose = () => {
+          setConnected(false);
+          setRetryCount(retryCount + 1);
+        };
+        ws.onerror = () => {
+          setConnected(false);
+          setRetryCount(retryCount + 1);
+        };
+      }, 5000);
+    }
   };
 
-  return {
-    messages,
-    connected,
-    sendMessage
-  };
+  return (
+    <div>
+      {connected ? 'Connected' : 'Disconnected'}
+      <button onClick={retryConnection}>Retry</button>
+    </div>
+  );
 };
 
 export default WebSocket;
