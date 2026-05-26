@@ -1,30 +1,37 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorState, ContentState } from 'draft-js';
-import 'draft-js/dist/draft.min.css';
+import { Editor as CodeEditor } from 'react-simple-code-editor';
+import { Highlight, Languages } from 'prismjs';
 
-function Editor({ editor }) {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+function Editor({ content, language }) {
+  const [code, setCode] = useState(content);
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   useEffect(() => {
-    if (editor) {
-      setEditorState(editor);
-      setCursorPosition(editor.getCursorPosition());
-    }
-  }, [editor]);
+    Highlight.init(Languages[language]);
+  }, [language]);
 
-  const handleTextChange = (editorState) => {
-    setEditorState(editorState);
-    const cursorPosition = editorState.getCursorPosition();
-    setCursorPosition(cursorPosition);
-    ws.send(JSON.stringify({ type: 'editor', editor: editorState.toJS() }));
+  const handleCodeChange = (code) => {
+    setCode(code);
+  };
+
+  const handleCursorPositionChange = (position) => {
+    setCursorPosition(position);
   };
 
   return (
-    <div>
-      <EditorState editorState={editorState} onEditorStateChange={handleTextChange} />
-      <div style={{ position: 'absolute', left: cursorPosition.x, top: cursorPosition.y, backgroundColor: 'red', width: 10, height: 10 }} />
-    </div>
+    <CodeEditor
+      value={code}
+      onValueChange={handleCodeChange}
+      highlight={Highlight}
+      language={language}
+      padding={10}
+      style={{
+        fontSize: 12,
+        fontFamily: 'monospace',
+        backgroundColor: '#f0f0f0',
+        padding: 10,
+      }}
+    />
   );
 }
 

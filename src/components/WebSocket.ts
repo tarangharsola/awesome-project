@@ -1,39 +1,27 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
+{"import WebSocket from 'ws';
 
-const WebSocket = () => {
-  const [connected, setConnected] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+class WebSocket {
+  constructor(url) {
+    this.ws = new WebSocket(url);
+  }
 
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => {
-      setConnected(false);
-      setRetryCount(retryCount + 1);
-    };
-    ws.onerror = () => {
-      setConnected(false);
-      setRetryCount(retryCount + 1);
-    };
-    return () => ws.close();
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!connected && retryCount < 5) {
-        ws.reconnect();
-        setRetryCount(0);
+  onUserJoin(callback) {
+    this.ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'users') {
+        callback(data.users);
       }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [connected, retryCount, ws]);
+    };
+  }
 
-  return (
-    <div>
-      {connected ? 'Connected' : 'Disconnected'}
-      <button onClick={() => ws.reconnect()}>Retry</button>
-    </div>
-  );
-};
+  onUserLeave(callback) {
+    this.ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'users') {
+        callback(data.users);
+      }
+    };
+  }
+}
+
 export default WebSocket;
