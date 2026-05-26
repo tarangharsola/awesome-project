@@ -1,40 +1,19 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import { useUsers } from '../utils/useUsers';
+import { User } from './User';
 
-const UserList = () => {
-  const { users, addUser, removeUser } = useUsers();
-  const [activeUsers, setActiveUsers] = useState([]);
+interface Props {
+  users: User[];
+}
 
-  useEffect(() => {
-    setActiveUsers(users.filter(user => user.isActive));
-  }, [users]);
-
-  const handleUserUpdate = (user) => {
-    if (user.isActive) {
-      setActiveUsers((prevUsers) => prevUsers.concat(user));
-    } else {
-      setActiveUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
-    }
-  };
-
+const UserList = ({ users }) => {
   return (
-    <div className="active-users">
-      <h2>Active Users</h2>
-      <ul>
-        {activeUsers.map((user) => (
-          <li key={user.id} style={{
-            backgroundColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-            color: 'white',
-            padding: '5px',
-            borderRadius: '5px',
-            display: 'inline-block',
-            marginRight: '10px',
-          }}>
-            {user.name}
-          </li>
-        ))}
-      </ul>
+    <div className="user-list">
+      {users.map((user, index) => (
+        <div key={index} className="user-item">
+          <span className="username">{user.name}</span>
+          <span className="color" style={{ backgroundColor: user.color }}></span>
+        </div>
+      ))}
     </div>
   );
 };
