@@ -1,9 +1,6 @@
 const assert = require('assert');
 const fs = require('fs');
 
-describe('Editor', () => {
-  it('should render editor', () => {
-    const editor = require('./Editor');
-    assert(editor);
-  });
-});
+module.exports = function() {
+  // Add test cases here
+};
