@@ -1,15 +1,19 @@
 {"import { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { Editor } from 'react-simple-editor';
 
-function useEditor() {
-  const dispatch = useDispatch();
-  const { code, cursorPosition } = useSelector((state) => state.editor);
+const useEditor = () => {
+  const [text, setText] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   useEffect(() => {
-    dispatch({ type: 'UPDATE_CODE', payload: code });
-  }, [code]);
+    const socket = useWebSocket().socket;
+    socket.on('update', (data) => {
+      setText(data.text);
+      setCursorPosition(data.cursorPosition);
+    });
+  }, [socket, setText, setCursorPosition]);
 
-  return { code, cursorPosition };
-}
+  return { text, cursorPosition, setText, setCursorPosition };
+};
 
 export default useEditor;

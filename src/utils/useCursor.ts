@@ -2,24 +2,18 @@
 import { io } from 'socket.io-client';
 
 const useCursor = () => {
-  const [cursor, setCursor] = useState(null);
-  const [connected, setConnected] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [username, setUsername] = useState('');
 
   useEffect(() => {
     const socket = io('ws://localhost:3001');
-    setSocket(socket);
-    socket.on('cursor', (data) => {
-      setCursor(data);
+    socket.on('cursorUpdate', (data) => {
+      setCursorPosition(data.cursorPosition);
+      setUsername(data.username);
     });
-    socket.on('disconnect', () => {
-      setConnected(false);
-    });
-    return () => {
-      socket.disconnect();
-    };
   }, []);
 
-  return { cursor, connected };
+  return { cursorPosition, username, setCursorPosition, setUsername };
 };
 
 export default useCursor;

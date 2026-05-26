@@ -1,27 +1,18 @@
-{"import WebSocket from 'ws';
+{"import { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 
-class WebSocket {
-  constructor(url) {
-    this.ws = new WebSocket(url);
-  }
+const WebSocket = () => {
+  const { socket, connected } = useWebSocket();
 
-  onUserJoin(callback) {
-    this.ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'users') {
-        callback(data.users);
-      }
-    };
-  }
+  useEffect(() => {
+    if (connected) {
+      socket.on('message', (message) => {
+        console.log(message);
+      });
+    }
+  }, [connected, socket]);
 
-  onUserLeave(callback) {
-    this.ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'users') {
-        callback(data.users);
-      }
-    };
-  }
-}
+  return <div>WebSocket</div>;
+};
 
 export default WebSocket;

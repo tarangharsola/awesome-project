@@ -6,11 +6,12 @@ const useUsers = () => {
 
   useEffect(() => {
     const socket = io('ws://localhost:3001');
-    socket.on('users', (users) => setUsers(users));
-    return () => socket.disconnect();
+    socket.on('usersUpdate', (data) => {
+      setUsers(data.users);
+    });
   }, []);
 
-  return users;
+  return { users, setUsers };
 };
 
 export default useUsers;
