@@ -20,5 +20,6 @@ const useFormattingDefaults = (): FormattingDefaults => {
   }, [defaults]);
 
   return defaults;
-}
+};
+
 export default useFormattingDefaults;

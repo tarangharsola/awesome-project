@@ -19,5 +19,6 @@ const useKeyboardShortcuts = (): KeyboardShortcuts => {
   }, [shortcuts]);
 
   return shortcuts;
-}
+};
+
 export default useKeyboardShortcuts;
