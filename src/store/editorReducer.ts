@@ -1,10 +1,13 @@
-{"import { createReducer } from 'redux';
+{"import { combineReducers } from 'redux';
 import { EditorState } from 'draft-js';
 
-const initialState = EditorState.createEmpty();
-
-const editorReducer = createReducer(initialState, {
-  EDITOR_STATE_CHANGED: (state, action) => action.editorState,
-});
+const editorReducer = (state = EditorState.createEmpty(), action) => {
+  switch (action.type) {
+    case 'UPDATE_EDITOR_STATE':
+      return action.editorState;
+    default:
+      return state;
+  }
+};
 
 export default editorReducer;

@@ -1,26 +1,22 @@
 {"import { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import { WebSocket } from 'ws';
 
 function useWebSocket(url) {
-  const [ws, setWs] = useState(null);
+  const [socket, setSocket] = useState(null);
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     const ws = new WebSocket(url);
-    setWs(ws);
+    setSocket(ws);
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'users') {
-        dispatch({ type: 'users', users: data.users });
-      } else if (data.type === 'editor') {
-        dispatch({ type: 'editor', editor: data.editor });
-      }
+      setMessages((prevMessages) => [...prevMessages, event.data]);
     };
     return () => {
       ws.close();
     };
   }, []);
 
-  return ws;
+  return [socket, messages];
 }
 
 export default useWebSocket;
