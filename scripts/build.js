@@ -1,11 +1,9 @@
-const gulp = require('gulp');
-const ts = require('gulp-typescript');
-const sourcemaps = require('gulp-sourcemaps');
+import { execSync } from 'child_process';
+import { resolve } from 'path';
 
-module.exports = function() {
-  return gulp.src('src/**/*.ts')
-    .pipe(sourcemaps.init())
-    .pipe(ts())
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('dist'));
+const build = () => {
+  const buildDir = resolve(__dirname, '../build');
+  execSync(`webpack --mode production --config webpack.config.js --output-path ${buildDir}`);
 };
+
+export default build;

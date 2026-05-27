@@ -1,1 +1,4 @@
-{"name":"collaborative-code-editor","version":"1.0.0","scripts":{"test":"node scripts/test.js","build":"node scripts/build.js"},"dependencies":{"gulp":"^4.0.2","gulp-typescript":"^5.2.2","gulp-sourcemaps":"^3.0.0"}}
+"scripts": {
+  "test": "jest",
+  "build": "node scripts/build.js"
+}
