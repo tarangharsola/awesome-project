@@ -1,22 +1,29 @@
 {"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
 
-const useLanguage = () => {
+interface UseLanguageReturn {
+  language: string;
+  selectLanguage: (language: string) => void;
+}
+
+const useLanguage = (): UseLanguageReturn => {
   const [language, setLanguage] = useState('javascript');
 
+  const selectLanguage = (language: string) => {
+    setLanguage(language);
+  };
+
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-
-    socket.on('language', (data) => {
-      setLanguage(data);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage) {
+      setLanguage(storedLanguage);
+    }
   }, []);
 
-  return language;
-};
+  useEffect(() => {
+    localStorage.setItem('language', language);
+  }, [language]);
+
+  return { language, selectLanguage };
+}
 
 export default useLanguage;
