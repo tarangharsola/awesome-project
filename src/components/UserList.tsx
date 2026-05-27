@@ -1,29 +1,29 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import WebSocket from './WebSocket';
+import { User } from './User';
 
-function UserList({ users }) {
-  const [userList, setUserList] = useState([]);
-
-  useEffect(() => {
-    setUserList(users);
-  }, [users]);
-
-  const handleUserJoin = (user) => {
-    setUserList((prevUsers) => [...prevUsers, user]);
-  };
-
-  const handleUserLeave = (user) => {
-    setUserList((prevUsers) => prevUsers.filter((u) => u !== user));
-  };
-
-  return (
-    <ul>
-      {userList.map((user) => (
-        <li key={user.id}>{user.name} ({user.color})</li>
-      ))}
-    </ul>
-  );
+interface Props {
+  users: User[];
 }
+
+const UserList = ({ users }: Props) => {
+  return (
+    <div className="user-list">
+      {users.map((user, index) => (
+        <div key={index} className="user-item">
+          <span className="username">{user.name}</span>
+          <span className="cursor-label" style={{
+            backgroundColor: user.color,
+            color: "#fff",
+            padding: "2px 4px",
+            borderRadius: "4px",
+            fontSize: "12px",
+          }}>
+            {user.cursorPosition}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export default UserList;
