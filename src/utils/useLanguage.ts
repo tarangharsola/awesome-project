@@ -1,29 +1,30 @@
-{"import { useState, useEffect } from 'react';
+{"import React from 'react';
+import { useReducer, useState } from 'react';
 
-interface UseLanguageReturn {
-  language: string;
-  selectLanguage: (language: string) => void;
-}
+const LANGUAGE_OPTIONS = [
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'python', label: 'Python' },
+  { value: 'html', label: 'HTML' }
+];
 
-const useLanguage = (): UseLanguageReturn => {
-  const [language, setLanguage] = useState('javascript');
+const useLanguage = () => {
+  const [language, setLanguage] = useState(LANGUAGE_OPTIONS[0].value);
+  const [formattingDefaults, setFormattingDefaults] = useState({});
 
-  const selectLanguage = (language: string) => {
-    setLanguage(language);
+  const handleLanguageChange = (newLanguage) => {
+    setLanguage(newLanguage);
   };
 
-  useEffect(() => {
-    const storedLanguage = localStorage.getItem('language');
-    if (storedLanguage) {
-      setLanguage(storedLanguage);
-    }
-  }, []);
+  const handleFormattingDefaultsChange = (newFormattingDefaults) => {
+    setFormattingDefaults(newFormattingDefaults);
+  };
 
-  useEffect(() => {
-    localStorage.setItem('language', language);
-  }, [language]);
-
-  return { language, selectLanguage };
-}
+  return {
+    language,
+    formattingDefaults,
+    handleLanguageChange,
+    handleFormattingDefaultsChange
+  };
+};
 
 export default useLanguage;
