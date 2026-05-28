@@ -8,4 +8,4 @@ const initialState: UsersState = {
   users: [],
 };
 
-export { initialState };
+export default initialState;
