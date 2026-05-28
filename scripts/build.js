@@ -1,9 +1,7 @@
-import { execSync } from 'child_process';
-import { resolve } from 'path';
+const fs = require('fs');
+const path = require('path');
+const webpack = require('webpack');
 
-const build = () => {
-  const buildDir = resolve(__dirname, '../build');
-  execSync(`webpack --mode production --config webpack.config.js --output-path ${buildDir}`);
+module.exports = function() {
+  // Add build script logic here
 };
-
-export default build;
