@@ -1,19 +1,22 @@
 {"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+import { useWebSocket } from './useWebSocket';
 
 const useCursor = () => {
-  const [cursorPosition, setCursorPosition] = useState(0);
-  const [username, setUsername] = useState('');
+  const { cursors, send } = useWebSocket();
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-    socket.on('cursorUpdate', (data) => {
-      setCursorPosition(data.cursorPosition);
-      setUsername(data.username);
-    });
-  }, []);
+    const interval = setInterval(() => {
+      setCursorPosition(cursors);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [cursors]);
 
-  return { cursorPosition, username, setCursorPosition, setUsername };
+  const handleMouseMove = (event) => {
+    send({ type: 'cursor', payload: event.clientX, y: event.clientY });
+  };
+
+  return { cursorPosition, handleMouseMove };
 };
 
 export default useCursor;

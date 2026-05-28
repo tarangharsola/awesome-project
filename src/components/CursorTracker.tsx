@@ -1,19 +1,31 @@
-{"import React from 'react';
-import { Editor } from './Editor';
+{"import React, { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-interface Props {
-  cursors: { name: string; color: string; position: number }[];
-}
+const CursorTracker = () => {
+  const { cursors, send } = useWebSocket();
+  const [cursorPositions, setCursorPositions] = useState({});
 
-const CursorTracker = ({ cursors }) => {
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCursorPositions(cursors);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [cursors]);
+
+  const handleMouseMove = (event) => {
+    send({ type: 'cursor', payload: event.clientX, y: event.clientY });
+  };
+
   return (
-    <div className="cursor-tracker">
-      {cursors.map((cursor, index) => (
-        <div key={index} className="cursor-item">
-          <span className="name">{cursor.name}</span>
-          <span className="color" style={{ backgroundColor: cursor.color }}></span>
-          <span className="position">{cursor.position}</span>
-        </div>
+    <div className="cursor-tracker" onMouseMove={handleMouseMove}>
+      {Object.keys(cursorPositions).map((id) => (
+        <div key={id} style={{
+          left: cursorPositions[id].x,
+          top: cursorPositions[id].y,
+          backgroundColor: cursorPositions[id].color,
+          width: 2,
+          height: 2,
+        }} />
       ))}
     </div>
   );
