@@ -1,38 +1,45 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorState, Editor } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { schema } from './schema';
-import { history } from './history';
-import { useWebSocket } from './useWebSocket';
+import { EditorState, ContentState } from 'draft-js';
+import { Editor } from 'react-draft-wysiwyg';
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 
-const EditorComponent = () => {
-  const [editorState, setEditorState] = useState(EditorState.create());
-  const [view, setView] = useState(null);
-  const { send } = useWebSocket();
+function EditorComponent() {
+  const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    const view = new EditorView(editor, editorState, onSelectionChange);
-    setView(view);
-    return () => view.destroy();
-  }, [editorState]);
+    const socket = new WebSocket('ws://localhost:8080');
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'update') {
+        setEditorState(data.editorState);
+      }
+    };
+    return () => {
+      socket.close();
+    };
+  }, []);
 
-  const onSelectionChange = () => {
-    const selection = view.state.selection;
-    send({ type: 'selection', payload: selection.from, to: selection.to });
-  };
-
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
-      send({ type: 'insert', payload: '
-' });
-    }
+  const onEditorStateChange = (editorState) => {
+    setEditorState(editorState);
+    const contentState = editorState.getCurrentContent();
+    const text = contentState.getPlainText();
+    const socket = new WebSocket('ws://localhost:8080');
+    socket.send(JSON.stringify({
+      type: 'update',
+      editorState,
+    }));
   };
 
   return (
-    <div className="editor" onKeyPress={handleKeyDown}>
-      <Editor editorState={editorState} onChange={setEditorState} />
-    </div>
+    <Editor
+      editorState={editorState}
+      onEditorStateChange={onEditorStateChange}
+      toolbarClassName='toolbar-class'
+      wrapperClassName='wrapper-class'
+      editorClassName='editor-class'
+    />
   );
-};
+}
 
 export default EditorComponent;
