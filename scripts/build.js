@@ -1,7 +1,17 @@
-const fs = require('fs');
-const path = require('path');
-const webpack = require('webpack');
+import { build } from 'esbuild';
 
-module.exports = function() {
-  // Add build script logic here
-};
+build(
+  {
+    entryPoints: ['src/index.tsx'],
+    outdir: 'public',
+    bundle: true,
+    minify: true,
+  },
+  (err, result) => {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log(result);
+    }
+  }
+);

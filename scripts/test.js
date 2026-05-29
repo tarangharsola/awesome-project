@@ -1,7 +1,14 @@
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
+// eslint-disable-next-line
+import { test, expect } from 'vitest';
 
-module.exports = function() {
-  // Add test cases here
-};
+test('editor functionality', () => {
+  // test editor functionality
+});
+
+test('websocket connection', () => {
+  // test websocket connection
+});
+
+test('user presence', () => {
+  // test user presence
+});
