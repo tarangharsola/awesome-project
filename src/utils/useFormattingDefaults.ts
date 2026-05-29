@@ -1,16 +1,18 @@
-{"import { useReducer, useState } from 'react';
+{"import { useState } from 'react';
+
+interface FormattingDefaults {
+  tabSize: number;
+  indentSize: number;
+}
 
 const useFormattingDefaults = () => {
-  const [formattingDefaults, setFormattingDefaults] = useState({});
+  const [defaults, setDefaults] = useState<FormattingDefaults>({ tabSize: 2, indentSize: 2 });
 
-  const handleFormattingDefaultsChange = (newFormattingDefaults) => {
-    setFormattingDefaults(newFormattingDefaults);
+  const updateDefaults = (newDefaults: FormattingDefaults) => {
+    setDefaults(newDefaults);
   };
 
-  return {
-    formattingDefaults,
-    handleFormattingDefaultsChange
-  };
-};
+  return { defaults, updateDefaults };
+}
 
 export default useFormattingDefaults;
