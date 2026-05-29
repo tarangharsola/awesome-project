@@ -1,11 +1,21 @@
-{"import { createReducer } from 'redux';
-import { User } from './user';
+{"import { User } from './user';
+import { usersReducer } from './users';
 
-const initialState = [];
-
-const userReducer = createReducer(initialState, {
-  ADD_USER: (state, action) => [...state, action.user],
-  REMOVE_USER: (state, action) => state.filter((user) => user.id !== action.userId),
-});
+const userReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case 'ADD_USER':
+      return {
+        ...state,
+        users: [...state.users, action.payload],
+      };
+    case 'REMOVE_USER':
+      return {
+        ...state,
+        users: state.users.filter((user) => user.id !== action.payload),
+      };
+    default:
+      return state;
+  }
+};
 
 export default userReducer;
