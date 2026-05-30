@@ -1,10 +1,18 @@
 {"import { createReducer } from 'redux';
-import { EditorState } from 'draft-js';
+import { EDITOR_STATE_CHANGED } from './actions';
 
-const initialState = EditorState.createEmpty();
+const initialState = {
+  editorState: EditorState.createEmpty(),
+  cursorPositions: {},
+};
 
 const editorReducer = createReducer(initialState, {
-  UPDATE_EDITOR_STATE: (state, action) => action.editorState,
+  [EDITOR_STATE_CHANGED]: (state, action) => {
+    return {
+      ...state,
+      editorState: action.editorState,
+    };
+  },
 });
 
 export default editorReducer;

@@ -1,45 +1,42 @@
 {"import React, { useState, useEffect } from 'react';
 import { EditorState, ContentState } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import 'draft-js/dist/draft.min.css';
 
-function EditorComponent() {
-  const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
-  const [users, setUsers] = useState([]);
+function Editor({ language, cursorPositions }) {
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const [cursorPosition, setCursorPosition] = useState({});
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'update') {
-        setEditorState(data.editorState);
-      }
-    };
-    return () => {
-      socket.close();
-    };
-  }, []);
+    const cursorPositions = cursorPositions[language];
+    if (cursorPositions) {
+      setCursorPosition(cursorPositions);
+    }
+  }, [cursorPositions, language]);
 
-  const onEditorStateChange = (editorState) => {
+  const handleEditorChange = (editorState) => {
     setEditorState(editorState);
-    const contentState = editorState.getCurrentContent();
-    const text = contentState.getPlainText();
-    const socket = new WebSocket('ws://localhost:8080');
-    socket.send(JSON.stringify({
-      type: 'update',
-      editorState,
-    }));
   };
 
   return (
-    <Editor
-      editorState={editorState}
-      onEditorStateChange={onEditorStateChange}
-      toolbarClassName='toolbar-class'
-      wrapperClassName='wrapper-class'
-      editorClassName='editor-class'
-    />
+    <div>
+      <EditorState
+        editorState={editorState}
+        onChange={handleEditorChange}
+      />
+      <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}>
+        {Object.keys(cursorPositions).map((userId) => (
+          <div key={userId} style={{
+            position: 'absolute',
+            top: cursorPositions[userId].top,
+            left: cursorPositions[userId].left,
+            width: 2,
+            height: 2,
+            backgroundColor: cursorPositions[userId].color,
+          }}/>
+        ))}
+      </div>
+    </div>
   );
 }
 
-export default EditorComponent;
+export default Editor;

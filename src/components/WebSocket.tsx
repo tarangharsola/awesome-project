@@ -1,36 +1,29 @@
 {"import React, { useState, useEffect } from 'react';
 import WebSocket from 'ws';
 
-function WebSocket({ ws, users }) {
-  const [wsState, setWsState] = useState('disconnected');
+function WebSocket({ users }) {
+  const [ws, setWs] = useState(null);
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
+    return () => ws.close();
+  }, []);
 
   useEffect(() => {
     if (ws) {
-      setWsState('connected');
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        if (data.type === 'users') {
-          setUsers(data.users);
-        } else if (data.type === 'editor') {
-          setEditor(data.editor);
+        if (data.type === 'cursorPosition') {
+          ws.send(JSON.stringify({ type: 'cursorPosition', cursorPositions: data.cursorPositions }));
+        } else if (data.type === 'users') {
+          ws.send(JSON.stringify({ type: 'users', users: data.users }));
         }
       };
-      return () => {
-        ws.close();
-      };
     }
-  }, [ws]);
+  }, [ws, users]);
 
-  return (
-    <div>
-      <span>Connection Status: {wsState}</span>
-      <ul>
-        {users.map((user, index) => (
-          <li key={index}>{user.name} ({user.color})</li>
-        ))}
-      </ul>
-    </div>
-  );
+  return null;
 }
 
 export default WebSocket;
