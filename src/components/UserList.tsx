@@ -1,6 +1,5 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
-import { useUsers } from '../useUsers';
 
 interface User {
   id: string;
@@ -14,23 +13,26 @@ interface Props {
 
 const UserList = ({ users }: Props) => {
   const [activeUsers, setActiveUsers] = useState([]);
-  const { users: allUsers, addColor } = useUsers();
+  const [colors, setColors] = useState({});
 
   useEffect(() => {
-    const activeUsers = users.filter((user) => user.id !== 'self');
-    setActiveUsers(activeUsers);
+    const userColors = users.reduce((acc, user) => ({ ...acc, [user.id]: user.color }), {});
+    setColors(userColors);
+  }, [users]);
+
+  useEffect(() => {
+    const activeUsersList = users.filter((user) => user.id === user.id);
+    setActiveUsers(activeUsersList);
   }, [users]);
 
   return (
-    <div className="active-users">
+    <div>
       {activeUsers.map((user) => (
         <div key={user.id} style={{
-          backgroundColor: user.color,
-          color: 'white',
+          backgroundColor: colors[user.id],
           padding: '5px',
           borderRadius: '5px',
-          display: 'inline-block',
-          marginRight: '10px',
+          color: 'white',
         }}>
           {user.name}
         </div>
