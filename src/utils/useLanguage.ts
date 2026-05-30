@@ -1,30 +1,22 @@
-{"import React from 'react';
-import { useReducer, useState } from 'react';
-
-const LANGUAGE_OPTIONS = [
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'python', label: 'Python' },
-  { value: 'html', label: 'HTML' }
-];
+{"import { useState, useEffect } from 'react';
+import { languages } from './languages';
 
 const useLanguage = () => {
-  const [language, setLanguage] = useState(LANGUAGE_OPTIONS[0].value);
-  const [formattingDefaults, setFormattingDefaults] = useState({});
+  const [language, setLanguage] = useState(languages[0]);
 
-  const handleLanguageChange = (newLanguage) => {
-    setLanguage(newLanguage);
-  };
+  useEffect(() => {
+    const handleLanguageChange = (event) => {
+      setLanguage(event.target.value);
+    };
 
-  const handleFormattingDefaultsChange = (newFormattingDefaults) => {
-    setFormattingDefaults(newFormattingDefaults);
-  };
+    document.addEventListener('change', handleLanguageChange);
 
-  return {
-    language,
-    formattingDefaults,
-    handleLanguageChange,
-    handleFormattingDefaultsChange
-  };
+    return () => {
+      document.removeEventListener('change', handleLanguageChange);
+    };
+  }, []);
+
+  return language;
 };
 
 export default useLanguage;

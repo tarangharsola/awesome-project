@@ -1,17 +1,22 @@
 {"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+import { users } from './users';
 
 const useUsers = () => {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-    socket.on('usersUpdate', (data) => {
-      setUsers(data.users);
-    });
+    const handleUserUpdate = (event) => {
+      setUsers(event.users);
+    };
+
+    document.addEventListener('userUpdate', handleUserUpdate);
+
+    return () => {
+      document.removeEventListener('userUpdate', handleUserUpdate);
+    };
   }, []);
 
-  return { users, setUsers };
+  return users;
 };
 
 export default useUsers;

@@ -1,25 +1,22 @@
 {"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+import { Editor } from './Editor';
 
 const useEditor = () => {
-  const [editorState, setEditorState] = useState({});
+  const [editorState, setEditorState] = useState({ text: '' });
 
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-    socket.on('editorState', (state) => {
-      setEditorState(state);
-    });
+    const handleInput = (event) => {
+      setEditorState({ text: event.target.value });
+    };
+
+    document.addEventListener('input', handleInput);
+
     return () => {
-      socket.disconnect();
+      document.removeEventListener('input', handleInput);
     };
   }, []);
 
-  const updateEditorState = (state) => {
-    const socket = io('ws://localhost:3001');
-    socket.emit('editorState', state);
-  };
-
-  return { editorState, updateEditorState };
+  return { editorState, setEditorState };
 };
 
 export default useEditor;

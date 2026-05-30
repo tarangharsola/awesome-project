@@ -1,7 +1,11 @@
-{"interface User {
-  id: string;
-  name: string;
-  color: string;
+{"import { User } from './user';
+
+interface UserState {
+  user: User;
 }
 
-export default User;
+const initialState: UserState = {
+  user: null,
+};
+
+export { initialState };
