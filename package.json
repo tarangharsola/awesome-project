@@ -1,4 +1,4 @@
 "scripts": {
-  "test": "vitest",
+  "test": "jest",
   "build": "node scripts/build.js"
 }

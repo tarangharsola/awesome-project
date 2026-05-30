@@ -1,14 +1,10 @@
 // eslint-disable-next-line
-import { test, expect } from 'vitest';
+import { describe, it, expect } from 'expect';
+import App from '../src/components/App';
 
-test('editor functionality', () => {
-  // test editor functionality
-});
-
-test('websocket connection', () => {
-  // test websocket connection
-});
-
-test('user presence', () => {
-  // test user presence
+describe('App', () => {
+  it('renders correctly', () => {
+    const wrapper = shallow(<App />);
+    expect(wrapper).toMatchSnapshot();
+  });
 });
