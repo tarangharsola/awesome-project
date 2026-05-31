@@ -1,18 +1,16 @@
 {"import { useState, useEffect } from 'react';
-import { languages } from './languages';
+import { io } from 'socket.io-client';
 
 const useLanguage = () => {
-  const [language, setLanguage] = useState(languages[0]);
+  const [language, setLanguage] = useState('javascript');
 
   useEffect(() => {
-    const handleLanguageChange = (event) => {
-      setLanguage(event.target.value);
-    };
-
-    document.addEventListener('change', handleLanguageChange);
-
+    const socket = io('ws://localhost:3001');
+    socket.on('language', (language) => {
+      setLanguage(language);
+    });
     return () => {
-      document.removeEventListener('change', handleLanguageChange);
+      socket.disconnect();
     };
   }, []);
 

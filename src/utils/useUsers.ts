@@ -1,18 +1,25 @@
 {"import { useState, useEffect } from 'react';
-import { users } from './users';
+import { io } from 'socket.io-client';
 
 const useUsers = () => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState({
+    'user1': {
+      name: 'User 1',
+      color: '#ff0000',
+    },
+    'user2': {
+      name: 'User 2',
+      color: '#00ff00',
+    },
+  });
 
   useEffect(() => {
-    const handleUserUpdate = (event) => {
-      setUsers(event.users);
-    };
-
-    document.addEventListener('userUpdate', handleUserUpdate);
-
+    const socket = io('ws://localhost:3001');
+    socket.on('users', (users) => {
+      setUsers(users);
+    });
     return () => {
-      document.removeEventListener('userUpdate', handleUserUpdate);
+      socket.disconnect();
     };
   }, []);
 

@@ -1,11 +1,9 @@
 {"import { User } from './user';
 
-interface UserState {
-  user: User;
+interface User {
+  id: string;
+  name: string;
+  color: string;
 }
 
-const initialState: UserState = {
-  user: null,
-};
-
-export { initialState };
+export type User = User;
