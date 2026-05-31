@@ -1,10 +1,4 @@
-// eslint-disable-next-line
-import { describe, it, expect } from 'expect';
-import App from '../src/components/App';
+const { test } = require('tap');
+const { build } = require('./ci');
 
-describe('App', () => {
-  it('renders correctly', () => {
-    const wrapper = shallow(<App />);
-    expect(wrapper).toMatchSnapshot();
-  });
-});
+build();

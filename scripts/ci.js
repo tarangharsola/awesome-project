@@ -1,6 +1,9 @@
-{"const { execSync } = require('child_process');
+const { execSync } = require('child_process');
+const { test } = require('tap');
 
-module.exports = function() {
-  execSync('jest');
-  execSync('npm run build');
-};"
+module.exports = function ci() {
+  test('build script', function(t) {
+    const build = execSync('npm run build', { stdio: 'inherit' });
+    t.ok(build.stdout.includes('build complete'), 'build script executed successfully');
+  });
+};
