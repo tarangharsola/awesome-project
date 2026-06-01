@@ -1,23 +1,18 @@
 {"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
 
-const useEditor = () => {
-  const [editorState, setEditorState] = useState({
-    text: '',
-    cursor: null,
-  });
+interface Props {
+  language: string;
+  value: string;
+}
+
+const useEditor = ({ language, value }) => {
+  const [editorValue, setEditorValue] = useState(value);
 
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-    socket.on('editorState', (editorState) => {
-      setEditorState(editorState);
-    });
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
+    setEditorValue(value);
+  }, [value]);
 
-  return editorState;
+  return [editorValue, setEditorValue];
 };
 
 export default useEditor;
