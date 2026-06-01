@@ -1,25 +1,45 @@
-{"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+{"import React, { useState, useEffect } from 'react';
+import WebSocket from 'ws';
 
 const useWebSocket = () => {
-  const [socket, setSocket] = useState(null);
+  const [ws, setWs] = useState(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-    setSocket(socket);
-    socket.on('connect', () => {
+    const wsUrl = 'ws://localhost:8080';
+    const wsOptions = {
+      rejectUnauthorized: false,
+    };
+
+    const ws = new WebSocket(wsUrl, wsOptions);
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'write') {
+        // Handle write operation
+      } else if (data.type === 'delete') {
+        // Handle delete operation
+      }
+    };
+
+    ws.onopen = () => {
       setConnected(true);
-    });
-    socket.on('disconnect', () => {
+    };
+
+    ws.onerror = (event) => {
+      console.error(event);
+    };
+
+    ws.onclose = () => {
       setConnected(false);
-    });
+    };
+
     return () => {
-      socket.disconnect();
+      ws.close();
     };
   }, []);
 
-  return { socket, connected };
+  return { ws, connected };
 };
 
 export default useWebSocket;

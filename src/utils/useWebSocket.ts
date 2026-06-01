@@ -1,37 +1,45 @@
 {"import { useState, useEffect } from 'react';
 import WebSocket from 'ws';
 
-interface Props {
-  url: string;
-}
-
-const useWebSocket = ({ url }) => {
+const useWebSocket = () => {
   const [ws, setWs] = useState(null);
-  const [messages, setMessages] = useState([]);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket(url);
-    setWs(ws);
+    const wsUrl = 'ws://localhost:8080';
+    const wsOptions = {
+      rejectUnauthorized: false,
+    };
+
+    const ws = new WebSocket(wsUrl, wsOptions);
+
     ws.onmessage = (event) => {
-      setMessages((prevMessages) => [...prevMessages, JSON.parse(event.data)]);
+      const data = JSON.parse(event.data);
+      if (data.type === 'write') {
+        // Handle write operation
+      } else if (data.type === 'delete') {
+        // Handle delete operation
+      }
+    };
+
+    ws.onopen = () => {
+      setConnected(true);
+    };
+
+    ws.onerror = (event) => {
+      console.error(event);
+    };
+
+    ws.onclose = () => {
+      setConnected(false);
+    };
+
+    return () => {
+      ws.close();
     };
   }, []);
 
-  const send = (message) => {
-    if (ws) {
-      ws.send(JSON.stringify(message));
-    }
-  };
-
-  const receive = (callback) => {
-    if (ws) {
-      ws.onmessage = (event) => {
-        callback(JSON.parse(event.data));
-      };
-    }
-  };
-
-  return [send, receive];
+  return { ws, connected };
 };
 
 export default useWebSocket;
