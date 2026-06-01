@@ -1,41 +1,25 @@
 {"import React from 'react';
-import { useState } from 'react';
+import { useReducer, useState } from 'react';
 
-interface Language {
-  name: string;
-  syntax: string;
-}
+const LANGUAGE_OPTIONS = [
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'python', label: 'Python' },
+  { value: 'html', label: 'HTML' }
+];
 
-interface LanguageProps {
-  languages: Language[];
-  selectedLanguage: Language;
-  onSelect: (language: Language) => void;
-}
+const useLanguage = () => {
+  const [language, setLanguage] = useState(LANGUAGE_OPTIONS[0].value);
+  const [formattingDefaults, setFormattingDefaults] = useState({});
 
-const LanguageSelector: React.FC<LanguageProps> = ({ languages, selectedLanguage, onSelect }) => {
-  const [activeLanguage, setActiveLanguage] = useState(selectedLanguage);
-
-  const handleSelect = (language: Language) => {
-    setActiveLanguage(language);
-    onSelect(language);
+  const handleLanguageChange = (newLanguage) => {
+    setLanguage(newLanguage);
   };
 
-  return (
-    <div>
-      <h2>Language:</h2>
-      <ul>
-        {languages.map((language) => (
-          <li key={language.name}>
-            <button onClick={() => handleSelect(language)}>
-              {language.name}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  return {
+    language,
+    formattingDefaults,
+    handleLanguageChange
+  };
+};
 
-  return LanguageSelector;
-}
-
-export default LanguageSelector;
+export default useLanguage;
