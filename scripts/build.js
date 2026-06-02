@@ -1,5 +1,12 @@
-// Define build script
+// Import required modules
 const { execSync } = require('child_process');
 
-// Run build process
-execSync('webpack --mode production');
+// Define build script
+module.exports = function build() {
+  // Run ESLint and Prettier
+  execSync('eslint src/**/*.{ts,tsx} --fix');
+  execSync('prettier --write src/**/*.{ts,tsx}');
+
+  // Compile TypeScript
+  execSync('tsc');
+};
