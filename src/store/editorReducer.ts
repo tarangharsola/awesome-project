@@ -1,18 +1,8 @@
-{"import { createReducer } from 'redux';
-import { EDITOR_STATE_CHANGED } from './actions';
+{"import { combineReducers } from 'redux';
+import { editorReducer } from './editorReducer';
 
-const initialState = {
-  editorState: EditorState.createEmpty(),
-  cursorPositions: {},
-};
-
-const editorReducer = createReducer(initialState, {
-  [EDITOR_STATE_CHANGED]: (state, action) => {
-    return {
-      ...state,
-      editorState: action.editorState,
-    };
-  },
+const rootReducer = combineReducers({
+  editor: editorReducer
 });
 
-export default editorReducer;
+export default rootReducer;
