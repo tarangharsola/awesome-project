@@ -4,8 +4,16 @@ interface UsersState {
   users: User[];
 }
 
-const initialState: UsersState = {
-  users: [],
+export const users = (state: UsersState = { users: [] }, action: any) => {
+  switch (action.type) {
+    case 'ADD_USER':
+      return { users: [...state.users, action.user] };
+    case 'REMOVE_USER':
+      return { users: state.users.filter((user) => user.id !== action.userId) };
+    default:
+      return state;
+  }
 };
 
-export default initialState;
+export const addUser = (user: User) => ({ type: 'ADD_USER', user });
+export const removeUser = (userId: string) => ({ type: 'REMOVE_USER', userId });
