@@ -1,8 +1,15 @@
-{"import { combineReducers } from 'redux';
-import { editorReducer } from './editorReducer';
+{"import { createReducer } from 'redux';
+import { EditorState } from 'prosemirror-state';
 
-const rootReducer = combineReducers({
-  editor: editorReducer
-});
+const editorReducer = createReducer(
+  (state = EditorState.create(), action) => {
+    switch (action.type) {
+      case 'INPUT':
+        return EditorState.applyDelta(state, action.delta);
+      default:
+        return state;
+    }
+  }
+);
 
-export default rootReducer;
+export default editorReducer;

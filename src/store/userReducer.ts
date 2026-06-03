@@ -1,8 +1,17 @@
-{"import { combineReducers } from 'redux';
-import { userReducer } from './userReducer';
+{"import { createReducer } from 'redux';
+import { User } from './types';
 
-const rootReducer = combineReducers({
-  user: userReducer
-});
+const userReducer = createReducer(
+  (state = [], action) => {
+    switch (action.type) {
+      case 'JOIN':
+        return [...state, action.user];
+      case 'LEAVE':
+        return state.filter((user) => user.id !== action.userId);
+      default:
+        return state;
+    }
+  }
+);
 
-export default rootReducer;
+export default userReducer;

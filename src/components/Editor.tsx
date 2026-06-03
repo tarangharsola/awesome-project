@@ -1,47 +1,35 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorState, convertFromRaw } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import { EditorState } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { EditorProps } from './types';
+import { useWebSocket } from './useWebSocket';
 
-const EditorComponent = () => {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  const [users, setUsers] = useState([]);
-  const [cursorPositions, setCursorPositions] = useState({});
+const Editor = ({ roomId, userId, language }) => {
+  const [editorState, setEditorState] = useState(EditorState.create());
+  const [view, setView] = useState(null);
+  const { send, receive } = useWebSocket(roomId);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'cursorPosition') {
-        setCursorPositions(data.positions);
-      } else if (data.type === 'users') {
-        setUsers(data.users);
-      }
-    };
-    return () => ws.close();
-  }, []);
+    const view = new EditorView(editor, editorState);
+    setView(view);
+    return () => view.destroy();
+  }, [editorState]);
 
-  const onEditorStateChange = (editorState) => {
-    setEditorState(editorState);
-    const contentState = editorState.getCurrentContent();
-    const rawContentState = convertFromRaw(contentState);
-    const cursorPosition = editorState.getSelection().getStart();
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.send(JSON.stringify({
-      type: 'cursorPosition',
-      positions: { [cursorPosition]: 'red' }
-    }));
+  useEffect(() => {
+    receive((delta) => {
+      setEditorState((state) => EditorState.applyDelta(state, delta));
+    });
+  }, [receive]);
+
+  const handleInput = (input) => {
+    send({ type: 'input', input });
   };
 
   return (
-    <Editor
-      editorState={editorState}
-      onEditorStateChange={onEditorStateChange}
-      toolbarClassName='toolbarClassName'
-      wrapperClassName='wrapperClassName'
-      editorClassName='editorClassName'
-    />
+    <div className='editor' onInput={handleInput}>
+      <EditorView state={editorState} dispatch={null} />
+    </div>
   );
 };
 
-export default EditorComponent;
+export default Editor;
