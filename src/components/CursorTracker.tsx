@@ -1,34 +1,15 @@
-{"import React, { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+{"import React from 'react';
+import { Editor } from './Editor';
 
-const CursorTracker = () => {
-  const { socket, connected } = useWebSocket();
-  const [cursors, setCursors] = useState({});
+interface Props {
+  cursor: { x: number; y: number; userId: string; color: string; }
+}
 
-  useEffect(() => {
-    if (connected) {
-      socket.on('cursorUpdate', (cursor) => {
-        setCursors((prevCursors) => ({ ...prevCursors, [cursor.userId]: cursor }));
-      });
-    }
-    return () => {
-      socket.off('cursorUpdate');
-    };
-  }, [connected, socket]);
-
+const CursorTracker = ({ cursor }: Props) => {
   return (
-    <div>
-      {Object.keys(cursors).map((userId) => (
-        <div key={userId} style={{
-          position: 'absolute',
-          top: cursors[userId].y,
-          left: cursors[userId].x,
-          backgroundColor: cursors[userId].color,
-          width: 2,
-          height: 2,
-        }}>
-        </div>
-      ))}
+    <div className="cursor-tracker">
+      <span className="cursor-label" style={{ backgroundColor: cursor.color }}></span>
+      <span className="cursor-position">({cursor.x}, {cursor.y})</span>
     </div>
   );
 };
