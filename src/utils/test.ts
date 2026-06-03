@@ -1,8 +1,12 @@
-import { describe, it } from 'mocha';
-import { expect } from 'chai';
+// Test utilities
+export function expectEqual(a: any, b: any) {
+  if (a !== b) {
+    throw new Error(`Expected ${a} to be equal to ${b}`);
+  }
+}
 
-describe('Utils', () => {
-  it('should export functions', () => {
-    expect(true).to.be.true;
-  });
-});
+export function expectNotEqual(a: any, b: any) {
+  if (a === b) {
+    throw new Error(`Expected ${a} to not be equal to ${b}`);
+  }
+}

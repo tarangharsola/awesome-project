@@ -1,12 +1,14 @@
-const { test, describe } = require('jest');
-const { join } = require('path');
-const { resolve } = require('path');
+// Jest configuration
+const jest = require('jest');
 
-const rootDir = resolve(__dirname, '..');
-const testDir = join(rootDir, 'src', 'tests');
-
-describe('editor tests', () => {
-  it('should render editor', () => {
-    // TODO: implement test
-  });
-});
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'jsdom',
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  transform: {
+    '\.ts$': 'ts-jest',
+    '\.tsx$': 'ts-jest',
+    '\.js$': 'babel-jest',
+    '\.jsx$': 'babel-jest'
+  }
+};
