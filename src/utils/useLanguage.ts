@@ -1,17 +1,14 @@
 {"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+import { EditorState } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
 
 const useLanguage = () => {
   const [language, setLanguage] = useState('javascript');
 
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-    socket.on('language', (language) => {
-      setLanguage(language);
-    });
-    return () => {
-      socket.disconnect();
-    };
+    const view = new EditorView({ state: EditorState.create() });
+    const language = view.state.doc.toString();
+    setLanguage(language);
   }, []);
 
   return language;

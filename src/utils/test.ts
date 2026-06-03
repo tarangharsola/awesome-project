@@ -1,12 +1,10 @@
-// Test utilities
-export function expectEqual(a: any, b: any) {
-  if (a !== b) {
-    throw new Error(`Expected ${a} to be equal to ${b}`);
-  }
-}
+{"import { expect } from 'chai';
+import { formatCode } from './formatCode';
 
-export function expectNotEqual(a: any, b: any) {
-  if (a === b) {
-    throw new Error(`Expected ${a} to not be equal to ${b}`);
-  }
-}
+describe('formatCode', () => {
+  it('should format code correctly', () => {
+    const editorState = EditorState.create();
+    const formattedCode = formatCode(editorState);
+    expect(formattedCode).to.equal('');
+  });
+});

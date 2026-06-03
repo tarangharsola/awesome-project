@@ -1,23 +1,18 @@
 {"import { useState, useEffect } from 'react';
-import WebSocket from './WebSocket';
+import { EditorState } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
 
-function useCursor() {
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
-  const [ws, setWs] = useState(null);
+const useCursor = () => {
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [editorState, setEditorState] = useState(EditorState.create());
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'cursor') {
-        setCursorPosition(data.cursorPosition);
-      }
-    };
-    return () => ws.close();
-  }, []);
+    const view = new EditorView({ state: editorState });
+    const cursorPosition = view.state.doc.pos;
+    setCursorPosition(cursorPosition);
+  }, [editorState]);
 
   return cursorPosition;
-}
+};
 
 export default useCursor;

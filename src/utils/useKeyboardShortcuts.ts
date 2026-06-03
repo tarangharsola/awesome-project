@@ -1,16 +1,17 @@
-{"import { useState } from 'react';
-
-interface KeyboardShortcuts {
-  shortcuts: { [key: string]: string };
-}
+{"import { useState, useEffect } from 'react';
+import { EditorState } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
 
 const useKeyboardShortcuts = () => {
-  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
+  const [keyboardShortcuts, setKeyboardShortcuts] = useState({});
 
-  const updateShortcuts = (newShortcuts: { [key: string]: string }) => {
-    setShortcuts({ shortcuts: newShortcuts });
-  };
+  useEffect(() => {
+    const view = new EditorView({ state: EditorState.create() });
+    const keyboardShortcuts = view.state.doc.toString();
+    setKeyboardShortcuts(keyboardShortcuts);
+  }, []);
 
-  return { shortcuts, updateShortcuts };
-}
+  return keyboardShortcuts;
+};
+
 export default useKeyboardShortcuts;

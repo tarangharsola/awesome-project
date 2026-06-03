@@ -1,32 +1,30 @@
 {"import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
-const useWebSocket = (roomId) => {
+const useWebSocket = () => {
   const [socket, setSocket] = useState(null);
-  const [send, receive] = useState(null);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const socket = io('ws://localhost:3001', {
-      query: {
-        roomId,
-      },
-    });
+    const socket = io('ws://localhost:3001');
     setSocket(socket);
-    return () => socket.disconnect();
-  }, [roomId]);
+    setConnected(true);
 
-  useEffect(() => {
-    if (socket) {
-      send = (message) => socket.emit('message', message);
-      receive = (callback) => socket.on('message', callback);
-    }
+    socket.on('connect', () => {
+      console.log('Connected to the server');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from the server');
+      setConnected(false);
+    });
+
     return () => {
-      send = null;
-      receive = null;
+      socket.disconnect();
     };
-  }, [socket]);
+  }, []);
 
-  return [send, receive];
+  return { socket, connected };
 };
 
 export default useWebSocket;

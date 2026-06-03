@@ -1,12 +1,6 @@
-{"import { createReducer } from 'redux';
-import { USERS_STATE } from './types';
+{"import { combineReducers } from 'redux';
+import { user } from './user';
 
-const initialState = [];
-
-const userReducer = createReducer(initialState, {
-  [USERS_STATE]: (state, action) => {
-    return [...state, ...action.users];
-  }
-});
+const userReducer = combineReducers({ user });
 
 export default userReducer;
