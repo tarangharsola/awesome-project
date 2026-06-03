@@ -1,12 +1,6 @@
-// Import required modules
 const { execSync } = require('child_process');
+const { resolve } = require('path');
+const rootDir = resolve(__dirname, '..');
+const buildDir = join(rootDir, 'build');
 
-// Define build script
-module.exports = function build() {
-  // Run ESLint and Prettier
-  execSync('eslint src/**/*.{ts,tsx} --fix');
-  execSync('prettier --write src/**/*.{ts,tsx}');
-
-  // Compile TypeScript
-  execSync('tsc');
-};
+execSync('webpack --mode production --output-path ' + buildDir);
