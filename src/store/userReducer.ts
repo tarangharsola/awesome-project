@@ -1,17 +1,12 @@
 {"import { createReducer } from 'redux';
-import { User } from './types';
+import { USERS_STATE } from './types';
 
-const userReducer = createReducer(
-  (state = [], action) => {
-    switch (action.type) {
-      case 'JOIN':
-        return [...state, action.user];
-      case 'LEAVE':
-        return state.filter((user) => user.id !== action.userId);
-      default:
-        return state;
-    }
+const initialState = [];
+
+const userReducer = createReducer(initialState, {
+  [USERS_STATE]: (state, action) => {
+    return [...state, ...action.users];
   }
-);
+});
 
 export default userReducer;

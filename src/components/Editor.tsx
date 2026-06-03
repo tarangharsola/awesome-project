@@ -1,35 +1,34 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorState } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import { EditorProps } from './types';
-import { useWebSocket } from './useWebSocket';
+import { EditorState, ContentState } from 'draft-js';
+import 'draft-js/dist/draft.min.css';
 
-const Editor = ({ roomId, userId, language }) => {
-  const [editorState, setEditorState] = useState(EditorState.create());
-  const [view, setView] = useState(null);
-  const { send, receive } = useWebSocket(roomId);
+function Editor({ editor }) {
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const view = new EditorView(editor, editorState);
-    setView(view);
-    return () => view.destroy();
-  }, [editorState]);
+    if (editor) {
+      setEditorState(editor);
+    }
+  }, [editor]);
 
-  useEffect(() => {
-    receive((delta) => {
-      setEditorState((state) => EditorState.applyDelta(state, delta));
-    });
-  }, [receive]);
-
-  const handleInput = (input) => {
-    send({ type: 'input', input });
+  const handleCursorChange = (position) => {
+    setCursorPosition(position);
   };
 
   return (
-    <div className='editor' onInput={handleInput}>
-      <EditorView state={editorState} dispatch={null} />
+    <div>
+      <div className='editor' contentEditable={true} suppressContentEditableWarning={true} onInput={(event) => {
+        const content = event.target.innerHTML;
+        const editorState = EditorState.push(editorState, ContentState.createFromText(content));
+        setEditorState(editorState);
+        ws.send(JSON.stringify({ type: 'editor', editor: editorState }));
+      }}>
+        {editorState.getCurrentContent().getPlainText()}
+      </div>
+      <div className='cursor' style={{ left: cursorPosition.x + 'px', top: cursorPosition.y + 'px' }} />
     </div>
   );
-};
+}
 
 export default Editor;

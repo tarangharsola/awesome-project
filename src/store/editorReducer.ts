@@ -1,15 +1,19 @@
 {"import { createReducer } from 'redux';
-import { EditorState } from 'prosemirror-state';
+import { EDITOR_STATE } from './types';
 
-const editorReducer = createReducer(
-  (state = EditorState.create(), action) => {
-    switch (action.type) {
-      case 'INPUT':
-        return EditorState.applyDelta(state, action.delta);
-      default:
-        return state;
-    }
+const initialState = {
+  editorState: EditorState.createEmpty(),
+  cursorPosition: { x: 0, y: 0 }
+};
+
+const editorReducer = createReducer(initialState, {
+  [EDITOR_STATE]: (state, action) => {
+    return {
+      ...state,
+      editorState: action.editorState,
+      cursorPosition: action.cursorPosition
+    };
   }
-);
+});
 
 export default editorReducer;
