@@ -1,14 +1,16 @@
-// Jest configuration
-const jest = require('jest');
+// eslint-disable-next-line
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
+import { join } from 'path';
+import { existsSync } from 'fs';
+import { spawnSync } from 'child_process';
 
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'jsdom',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  transform: {
-    '\.ts$': 'ts-jest',
-    '\.tsx$': 'ts-jest',
-    '\.js$': 'babel-jest',
-    '\.jsx$': 'babel-jest'
-  }
-};
+const testDir = join(__dirname, "test");
+const testFile = join(testDir, "test.js");
+
+describe('Tests', () => {
+  it('should run tests', () => {
+    const result = spawnSync('jest', [testFile], { stdio: 'inherit' });
+    expect(result.status).to.equal(0);
+  });
+});

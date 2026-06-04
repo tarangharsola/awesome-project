@@ -1,4 +1,7 @@
-"scripts": {
-  "test": "jest",
-  "build": "node scripts/build.js"
+// eslint-disable-next-line
+{
+  "scripts": {
+    "test": "node scripts/test.js",
+    "build": "node scripts/build.js"
+  }
 }

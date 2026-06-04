@@ -1,6 +1,11 @@
-// Build script for CI validation
-const { execSync } = require('child_process');
+// eslint-disable-next-line
+import { spawnSync } from 'child_process';
 
-module.exports = function build() {
-  execSync('jest --coverage');
+const build = () => {
+  const result = spawnSync('webpack', { stdio: 'inherit' });
+  if (result.status !== 0) {
+    throw new Error('Build failed');
+  }
 };
+
+export default build;
