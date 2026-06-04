@@ -1,17 +1,24 @@
 {"import { useState, useEffect } from 'react';
-import { EditorState } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
+import { io } from 'socket.io-client';
 
 const useEditor = () => {
-  const [editorState, setEditorState] = useState(EditorState.create());
+  const [content, setContent] = useState('');
 
   useEffect(() => {
-    const view = new EditorView({ state: editorState });
-    const editorState = view.state.doc.toString();
-    setEditorState(editorState);
-  }, [editorState]);
+    const socket = io();
+    socket.on('content', (content) => {
+      setContent(content);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
-  return editorState;
+  const updateContent = (content) => {
+    socket.emit('content', content);
+  };
+
+  return { content, updateContent };
 };
 
 export default useEditor;

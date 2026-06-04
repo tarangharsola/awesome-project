@@ -5,9 +5,7 @@ interface UserState {
 }
 
 const initialState: UserState = {
-  user: null
+  user: null,
 };
 
-export { initialState, UserState };
-
-export type { User } from './user';
+export { initialState };

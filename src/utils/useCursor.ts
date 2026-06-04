@@ -1,18 +1,20 @@
 {"import { useState, useEffect } from 'react';
-import { EditorState } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
+import { io } from 'socket.io-client';
 
 const useCursor = () => {
-  const [cursorPosition, setCursorPosition] = useState(0);
-  const [editorState, setEditorState] = useState(EditorState.create());
+  const [cursor, setCursor] = useState(null);
 
   useEffect(() => {
-    const view = new EditorView({ state: editorState });
-    const cursorPosition = view.state.doc.pos;
-    setCursorPosition(cursorPosition);
-  }, [editorState]);
+    const socket = io();
+    socket.on('cursor', (cursor) => {
+      setCursor(cursor);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
-  return cursorPosition;
+  return cursor;
 };
 
 export default useCursor;
