@@ -2,31 +2,25 @@
 import { EditorState, ContentState } from 'draft-js';
 import 'draft-js/dist/draft.min.css';
 
-function Editor({ editor }) {
+function Editor() {
   const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    if (editor) {
-      setEditorState(editor);
-    }
-  }, [editor]);
-
-  const handleCursorChange = (position) => {
-    setCursorPosition(position);
-  };
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'update') {
+        setEditorState(data.editorState);
+      }
+    };
+    return () => ws.close();
+  }, []);
 
   return (
     <div>
-      <div className='editor' contentEditable={true} suppressContentEditableWarning={true} onInput={(event) => {
-        const content = event.target.innerHTML;
-        const editorState = EditorState.push(editorState, ContentState.createFromText(content));
-        setEditorState(editorState);
-        ws.send(JSON.stringify({ type: 'editor', editor: editorState }));
-      }}>
-        {editorState.getCurrentContent().getPlainText()}
-      </div>
-      <div className='cursor' style={{ left: cursorPosition.x + 'px', top: cursorPosition.y + 'px' }} />
+      <EditorState editorState={editorState} />
+      <UserList users={users} />
     </div>
   );
 }
