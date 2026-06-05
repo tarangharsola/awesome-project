@@ -1,9 +1,14 @@
 const { execSync } = require('child_process');
-const { test, describe } = require('jest');
+const { test } = require('tap');
 
-describe('build script', () => {
-  it('should build the application', () => {
-    const buildOutput = execSync('npm run build');
-    expect(buildOutput).toBeTruthy();
+module.exports = function (tap) {
+  tap.test('build script', function (t) {
+    try {
+      execSync('npm run build', { stdio: 'ignore' });
+      t.pass('build script executed successfully');
+    } catch (err) {
+      t.fail('build script failed');
+    }
+    t.end();
   });
-});
+};
