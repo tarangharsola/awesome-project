@@ -1,16 +1,21 @@
 {"import React from 'react';
-import { useWebSocket } from './useWebSocket';
+import { useCursor } from '../utils/useCursor';
 
-function CursorTracker({ cursorPosition, users }) {
-  const { cursor } = useWebSocket();
+const CursorTracker = () => {
+  const { cursorPosition, user } = useCursor();
+
   return (
-    <div>
-      {users.map((user) => (
-        <div key={user.id}>{user.name}</div>
-      ))}
-      <div>Cursor Position: {cursorPosition.x}, {cursorPosition.y}</div>
+    <div className="cursor-tracker">
+      <span style={{
+        fontSize: "12px",
+        color: "#fff",
+      }}>{user.name}</span>
+      <span style={{
+        fontSize: "12px",
+        color: "#ccc",
+      }}>{cursorPosition}</span>
     </div>
   );
-}
+};
 
 export default CursorTracker;
