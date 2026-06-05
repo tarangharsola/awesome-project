@@ -1,26 +1,24 @@
 {"import React, { useState, useEffect } from 'react';
 import { EditorState, ContentState } from 'draft-js';
-import 'draft-js/dist/draft.min.css';
+import { useWebSocket } from './useWebSocket';
 
-function Editor() {
+function Editor({ connection, users, cursor }) {
   const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  const [users, setUsers] = useState([]);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'update') {
-        setEditorState(data.editorState);
-      }
+    const handleChanges = (changes) => {
+      setEditorState(EditorState.push(editorState, changes));
+      setCursorPosition(changes.get('selection').getStart());
     };
-    return () => ws.close();
-  }, []);
+    connection.on('changes', handleChanges);
+    return () => connection.off('changes', handleChanges);
+  }, [connection]);
 
   return (
     <div>
-      <EditorState editorState={editorState} />
-      <UserList users={users} />
+      <EditorState>{editorState}</EditorState>
+      <CursorTracker cursorPosition={cursorPosition} users={users} />
     </div>
   );
 }

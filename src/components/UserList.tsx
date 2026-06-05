@@ -1,21 +1,14 @@
 {"import React from 'react';
-import { User } from './User';
+import { useWebSocket } from './useWebSocket';
 
-interface UserListProps {
-  users: User[];
-}
-
-const UserList = ({ users }: UserListProps) => {
+function UserList({ users }) {
   return (
-    <div className="user-list">
-      {users.map((user, index) => (
-        <div key={index} className="user-item">
-          <span className="username">{user.username}</span>
-          <span className="color" style={{ backgroundColor: user.color }}></span>
-        </div>
+    <div>
+      {users.map((user) => (
+        <div key={user.id}>{user.name}</div>
       ))}
     </div>
   );
-};
+}
 
 export default UserList;
