@@ -8,4 +8,4 @@ const initialState: UserState = {
   user: null,
 };
 
-export { initialState };
+export default initialState;

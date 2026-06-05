@@ -5,9 +5,9 @@ const useCursor = () => {
   const [cursor, setCursor] = useState(null);
 
   useEffect(() => {
-    const socket = io();
-    socket.on('cursor', (cursor) => {
-      setCursor(cursor);
+    const socket = io('ws://localhost:3001');
+    socket.on('cursor', (data) => {
+      setCursor(data);
     });
     return () => {
       socket.disconnect();

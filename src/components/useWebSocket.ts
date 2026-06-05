@@ -1,32 +1,25 @@
 {"import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
-const socket = io();
-
 const useWebSocket = () => {
-  const [messages, setMessages] = useState([]);
+  const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
+    const socket = io('ws://localhost:3001');
+    setSocket(socket);
     socket.on('connect', () => {
       setConnected(true);
     });
     socket.on('disconnect', () => {
       setConnected(false);
     });
-    socket.on('message', (message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
-    });
     return () => {
       socket.disconnect();
     };
   }, []);
 
-  const sendMessage = (message) => {
-    socket.emit('message', message);
-  };
-
-  return { messages, connected, sendMessage };
+  return { socket, connected };
 };
 
 export default useWebSocket;

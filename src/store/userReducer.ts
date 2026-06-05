@@ -1,12 +1,6 @@
-{"import { createReducer } from 'redux';
-import { USER_JOINED, USER_LEFT } from './actions';
+{"import { combineReducers } from 'redux';
+import { user } from './user';
 
-const userReducer = createReducer(
-  {},
-  {
-    [USER_JOINED]: (state, action) => ({ ...state, [action.userId]: action.user }),
-    [USER_LEFT]: (state, action) => ({ ...state, [action.userId]: null }),
-  }
-);
+const userReducer = combineReducers({ user });
 
 export default userReducer;
