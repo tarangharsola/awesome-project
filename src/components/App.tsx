@@ -1,11 +1,14 @@
 {"import React from 'react';
-import WebSocket from './WebSocket';
+import { Provider } from 'react-redux';
+import store from './store/index';
+import Editor from './components/Editor';
 
 const App = () => {
   return (
-    <div>
-      <WebSocket />
-    </div>
+    <Provider store={store}>
+      <Editor />
+    </Provider>
   );
 };
+
 export default App;

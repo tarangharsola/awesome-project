@@ -1,26 +1,33 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorState, ContentState } from 'draft-js';
+import { useSelector, useDispatch } from 'react-redux';
+import { WebSocket } from './WebSocket';
+import { useEditor } from './useEditor';
 import { useWebSocket } from './useWebSocket';
 
-function Editor({ connection, users, cursor }) {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+const Editor = () => {
+  const dispatch = useDispatch();
+  const { code, language } = useSelector((state) => state.editor);
+  const { users, user } = useSelector((state) => state.users);
+  const { ws } = useWebSocket();
 
   useEffect(() => {
-    const handleChanges = (changes) => {
-      setEditorState(EditorState.push(editorState, changes));
-      setCursorPosition(changes.get('selection').getStart());
+    ws.onmessage = (event) => {
+      dispatch({ type: 'UPDATE_CODE', payload: event.data });
     };
-    connection.on('changes', handleChanges);
-    return () => connection.off('changes', handleChanges);
-  }, [connection]);
+  }, [ws, dispatch]);
+
+  const handleCodeChange = (newCode) => {
+    dispatch({ type: 'UPDATE_CODE', payload: newCode });
+  };
 
   return (
     <div>
-      <EditorState>{editorState}</EditorState>
-      <CursorTracker cursorPosition={cursorPosition} users={users} />
+      <WebSocket ws={ws} />
+      <textarea value={code} onChange={(e) => handleCodeChange(e.target.value)} />
+      <LanguageSelector language={language} onChange={(newLanguage) => dispatch({ type: 'UPDATE_LANGUAGE', payload: newLanguage })} />
+      <UserList users={users} user={user} />
     </div>
   );
-}
+};
 
 export default Editor;
