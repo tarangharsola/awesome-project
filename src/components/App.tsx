@@ -1,15 +1,11 @@
 {"import React from 'react';
-import { useWebSocket } from './useWebSocket';
+import WebSocket from './WebSocket';
 
-function App() {
-  const { connection, users, cursor } = useWebSocket();
+const App = () => {
   return (
     <div>
-      <h1>Collaborative Code Editor</h1>
-      <Editor connection={connection} users={users} cursor={cursor} />
-      <UserList users={users} />
+      <WebSocket />
     </div>
   );
-}
-
+};
 export default App;
