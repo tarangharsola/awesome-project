@@ -8,28 +8,22 @@ interface LanguageSelectorProps {
 }
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({ languages, selectedLanguage, onSelect }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [activeLanguage, setActiveLanguage] = useState(selectedLanguage);
 
   const handleSelect = (language: string) => {
+    setActiveLanguage(language);
     onSelect(language);
-    setIsOpen(false);
   };
 
   return (
     <div>
-      <button onClick={() => setIsOpen(true)}>Select Language</button>
-      {isOpen && (
-        <div>
-          {languages.map((language) => (
-            <button key={language} onClick={() => handleSelect(language)}>
-              {language}
-            </button>
-          ))}
-        </div>
-      )}
+      {languages.map((language, index) => (
+        <button key={index} onClick={() => handleSelect(language)}>
+          {language}
+        </button>
+      ))}
     </div>
   );
+};
 
-  return LanguageSelector;
-}
 export default LanguageSelector;
