@@ -1,11 +1,28 @@
-// eslint-disable-next-line
-import { spawnSync } from 'child_process';
+const fs = require('fs');
+const path = require('path');
+const webpack = require('webpack');
 
-const build = () => {
-  const result = spawnSync('webpack', { stdio: 'inherit' });
-  if (result.status !== 0) {
-    throw new Error('Build failed');
-  }
+const config = {
+  entry: './src/index.tsx',
+  output: {
+    path: path.resolve(__dirname, 'public'),
+    filename: 'bundle.js',
+  },
+  module: {
+    rules: [
+      {
+        test: /.tsx?$/, use: 'ts-loader', exclude: /node_modules/,
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js'],
+  },
+  devServer: {
+    contentBase: './public',
+    hot: true,
+    port: 3000,
+  },
 };
 
-export default build;
+module.exports = config;
