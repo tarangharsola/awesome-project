@@ -6,9 +6,11 @@ const useCursor = () => {
 
   useEffect(() => {
     const socket = io('ws://localhost:3001');
+
     socket.on('cursor', (data) => {
       setCursor(data);
     });
+
     return () => {
       socket.disconnect();
     };
@@ -16,5 +18,4 @@ const useCursor = () => {
 
   return cursor;
 };
-
 export default useCursor;

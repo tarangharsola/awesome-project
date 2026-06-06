@@ -6,9 +6,15 @@ const useEditor = () => {
 
   useEffect(() => {
     const socket = io('ws://localhost:3001');
-    socket.on('editor', (data) => {
+
+    socket.on('write', (data) => {
       setEditorState(data);
     });
+
+    socket.on('delete', (data) => {
+      setEditorState(data);
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -16,5 +22,4 @@ const useEditor = () => {
 
   return editorState;
 };
-
 export default useEditor;
