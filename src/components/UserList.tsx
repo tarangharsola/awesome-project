@@ -1,38 +1,17 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import { useUsers } from '../utils/useUsers';
+import { User } from './User';
 
-const UserList = () => {
-  const { users, addUser, removeUser } = useUsers();
-  const [activeUsers, setActiveUsers] = useState([]);
+interface UserListProps {
+  users: User[];
+}
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setActiveUsers(users);
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, [users]);
-
+const UserList = ({ users }: UserListProps) => {
   return (
-    <div className="active-users">
-      {activeUsers.map((user, index) => (
-        <div key={index} style={{
-          backgroundColor: user.color,
-          color: "#fff",
-          padding: "5px",
-          borderRadius: "5px",
-          display: "flex",
-          alignItems: "center",
-          gap: "5px",
-        }}>
-          <span style={{
-            fontSize: "14px",
-            fontWeight: "bold",
-          }}>{user.name}</span>
-          <span style={{
-            fontSize: "12px",
-            color: "#ccc",
-          }}>{user.cursorPosition}</span>
+    <div className="user-list">
+      {users.map((user, index) => (
+        <div key={index} className="user-item">
+          <span className="username">{user.name}</span>
+          <span className="color-circle" style={{ backgroundColor: user.color }}></span>
         </div>
       ))}
     </div>
