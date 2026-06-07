@@ -1,21 +1,19 @@
 {"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
 
-const useCursor = () => {
-  const [cursor, setCursor] = useState(null);
+interface Props {
+  cursor: { x: number; y: number; }
+}
 
+const useCursor = ({ cursor }: Props) => {
+  const [cursorState, setCursorState] = useState(cursor);
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-
-    socket.on('cursor', (data) => {
-      setCursor(data);
-    });
-
-    return () => {
-      socket.disconnect();
+    const handleMouseMove = (e) => {
+      setCursorState({ x: e.clientX, y: e.clientY });
     };
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => document.removeEventListener('mousemove', handleMouseMove);
   }, []);
+  return cursorState;
+}
 
-  return cursor;
-};
 export default useCursor;

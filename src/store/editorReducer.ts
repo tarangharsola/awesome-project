@@ -1,10 +1,10 @@
 {"import { combineReducers } from 'redux';
 
 const editorReducer = combineReducers({
-  code: (state = '', action) => {
+  cursor: (state = { x: 0, y: 0 }, action) => {
     switch (action.type) {
-      case 'UPDATE_CODE':
-        return action.payload;
+      case 'UPDATE_CURSOR':
+        return { x: action.x, y: action.y };
       default:
         return state;
     }
@@ -12,7 +12,7 @@ const editorReducer = combineReducers({
   language: (state = 'javascript', action) => {
     switch (action.type) {
       case 'UPDATE_LANGUAGE':
-        return action.payload;
+        return action.language;
       default:
         return state;
     }
