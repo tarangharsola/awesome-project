@@ -6,23 +6,24 @@ const config = {
   entry: './src/index.tsx',
   output: {
     path: path.resolve(__dirname, 'public'),
-    filename: 'bundle.js',
+    filename: 'bundle.js'
   },
   module: {
     rules: [
       {
-        test: /.tsx?$/, use: 'ts-loader', exclude: /node_modules/,
-      },
-    ],
+        test: /.tsx?$/, use: 'ts-loader', exclude: /node_modules/
+      }
+    ]
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js'],
-  },
-  devServer: {
-    contentBase: './public',
-    hot: true,
-    port: 3000,
-  },
+    extensions: ['.ts', '.tsx', '.js']
+  }
 };
 
-module.exports = config;
+webpack(config, (err, stats) => {
+  if (err) {
+    console.error(err);
+  } else {
+    console.log(stats.toString());
+  }
+});
