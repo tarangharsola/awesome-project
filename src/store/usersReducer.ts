@@ -1,14 +1,6 @@
 {"import { combineReducers } from 'redux';
+import { users } from './users';
 
-const usersReducer = combineReducers({
-  users: (state = [], action) => {
-    switch (action.type) {
-      case 'UPDATE_USERS':
-        return action.payload;
-      default:
-        return state;
-    }
-  }
-});
+const usersReducer = combineReducers({ users });
 
 export default usersReducer;

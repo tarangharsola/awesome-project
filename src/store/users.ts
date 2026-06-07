@@ -1,11 +1,6 @@
-{"import { User } from './user';
+{"import { createStore, combineReducers } from 'redux';
+import { usersReducer } from './usersReducer';
 
-interface UsersState {
-  users: User[];
-}
+const store = createStore(usersReducer);
 
-const initialState: UsersState = {
-  users: [],
-};
-
-export { initialState };
+export { store };
