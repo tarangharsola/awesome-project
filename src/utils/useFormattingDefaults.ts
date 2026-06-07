@@ -1,25 +1,24 @@
 {"import { useState, useEffect } from 'react';
 
-interface FormattingDefaults {
-  tabSize: number;
-  indentSize: number;
-}
-
-const useFormattingDefaults = (): FormattingDefaults => {
-  const [defaults, setDefaults] = useState<FormattingDefaults>({ tabSize: 2, indentSize: 2 });
+const useFormattingDefaults = () => {
+  const [formattingDefaults, setFormattingDefaults] = useState({
+    indentSize: 2,
+    tabSize: 2,
+    newline: '\n'
+  });
 
   useEffect(() => {
     const storedDefaults = localStorage.getItem('formattingDefaults');
     if (storedDefaults) {
-      setDefaults(JSON.parse(storedDefaults));
+      setFormattingDefaults(JSON.parse(storedDefaults));
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('formattingDefaults', JSON.stringify(defaults));
-  }, [defaults]);
+    localStorage.setItem('formattingDefaults', JSON.stringify(formattingDefaults));
+  }, [formattingDefaults]);
 
-  return defaults;
+  return formattingDefaults;
 };
 
 export default useFormattingDefaults;
