@@ -10,8 +10,8 @@ const UserList = ({ users }: UserListProps) => {
     <div className="user-list">
       {users.map((user, index) => (
         <div key={index} className="user-item">
-          <span className="username">{user.name}</span>
-          <span className="color-circle" style={{ backgroundColor: user.color }}></span>
+          <span className="username">{user.username}</span>
+          <span className="color-indicator" style={{ backgroundColor: user.color }}></span>
         </div>
       ))}
     </div>

@@ -10,8 +10,8 @@ const CursorTracker = ({ cursors }: CursorTrackerProps) => {
     <div className="cursor-tracker">
       {cursors.map((cursor, index) => (
         <div key={index} className="cursor-item">
-          <span className="username">{cursor.name}</span>
-          <span className="color-circle" style={{ backgroundColor: cursor.color }}></span>
+          <span className="username">{cursor.username}</span>
+          <span className="color-indicator" style={{ backgroundColor: cursor.color }}></span>
           <span className="cursor-position">{cursor.position}</span>
         </div>
       ))}
