@@ -1,30 +1,25 @@
-{"import { useState, useEffect } from 'react';
+{"import { useState } from 'react';
 
-const useKeyboardShortcuts = () => {
-  const [shortcuts, setShortcuts] = useState({
-    'Ctrl+S': () => {
-      console.log('Save');
-    },
-    'Ctrl+Shift+S': () => {
-      console.log('Save As');
-    }
-  });
+interface KeyboardShortcuts {
+  shortcuts: { [key: string]: string };
+}
 
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (shortcuts[event.key]) {
-        shortcuts[event.key]();
-      }
-    };
+interface KeyboardShortcutsState {
+  keyboardShortcuts: KeyboardShortcuts | null;
+  setKeyboardShortcuts: (keyboardShortcuts: KeyboardShortcuts) => void;
+}
 
-    document.addEventListener('keydown', handleKeyDown);
+const useKeyboardShortcuts = (): KeyboardShortcutsState => {
+  const [keyboardShortcuts, setKeyboardShortcuts] = useState<KeyboardShortcuts | null>(null);
 
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [shortcuts]);
+  const handleKeyboardShortcutsChange = (keyboardShortcuts: KeyboardShortcuts) => {
+    setKeyboardShortcuts(keyboardShortcuts);
+  };
 
-  return shortcuts;
+  return {
+    keyboardShortcuts,
+    setKeyboardShortcuts: handleKeyboardShortcutsChange,
+  };
 };
 
 export default useKeyboardShortcuts;
