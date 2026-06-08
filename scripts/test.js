@@ -1,9 +1,4 @@
-const assert = require('assert');
-const fs = require('fs');
+const { test } = require('tap');
+const { build } = require('./ci');
 
-describe('Editor', () => {
-  it('should render editor', () => {
-    const editor = require('./Editor');
-    assert.ok(editor);
-  });
-});
+build(test);
