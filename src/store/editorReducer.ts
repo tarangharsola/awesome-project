@@ -1,22 +1,15 @@
 {"import { combineReducers } from 'redux';
+import { EditorState } from 'draft-js';
 
 const editorReducer = combineReducers({
-  cursor: (state = { x: 0, y: 0 }, action) => {
+  editorState: (state = EditorState.createEmpty(), action) => {
     switch (action.type) {
-      case 'UPDATE_CURSOR':
-        return { x: action.x, y: action.y };
+      case 'UPDATE_EDITOR_STATE':
+        return action.editorState;
       default:
         return state;
     }
   },
-  language: (state = 'javascript', action) => {
-    switch (action.type) {
-      case 'UPDATE_LANGUAGE':
-        return action.language;
-      default:
-        return state;
-    }
-  }
 });
 
 export default editorReducer;

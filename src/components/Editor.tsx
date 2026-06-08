@@ -1,33 +1,42 @@
 {"import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { WebSocket } from './WebSocket';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
+import { EditorState, convertToRaw } from 'draft-js';
+import { Editor } from 'react-draft-wysiwyg';
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 
-const Editor = () => {
-  const dispatch = useDispatch();
-  const { code, language } = useSelector((state) => state.editor);
-  const { users, user } = useSelector((state) => state.users);
-  const { ws } = useWebSocket();
+const EditorComponent = () => {
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const [users, setUsers] = useState([]);
+  const [cursorPositions, setCursorPositions] = useState({});
 
   useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
     ws.onmessage = (event) => {
-      dispatch({ type: 'UPDATE_CODE', payload: event.data });
+      const data = JSON.parse(event.data);
+      if (data.type === 'cursorPosition') {
+        setCursorPositions(data.cursorPositions);
+      } else if (data.type === 'users') {
+        setUsers(data.users);
+      }
     };
-  }, [ws, dispatch]);
+    return () => ws.close();
+  }, []);
 
-  const handleCodeChange = (newCode) => {
-    dispatch({ type: 'UPDATE_CODE', payload: newCode });
+  const onEditorStateChange = (editorState) => {
+    setEditorState(editorState);
+    const contentState = editorState.getCurrentContent();
+    const rawContentState = convertToRaw(contentState);
+    // Send the updated content to the server
   };
 
   return (
-    <div>
-      <WebSocket ws={ws} />
-      <textarea value={code} onChange={(e) => handleCodeChange(e.target.value)} />
-      <LanguageSelector language={language} onChange={(newLanguage) => dispatch({ type: 'UPDATE_LANGUAGE', payload: newLanguage })} />
-      <UserList users={users} user={user} />
-    </div>
+    <Editor
+      editorState={editorState}
+      onEditorStateChange={onEditorStateChange}
+      toolbarClassName='toolbarClassName'
+      wrapperClassName='wrapperClassName'
+      editorClassName='editorClassName'
+    />
   );
 };
 
-export default Editor;
+export default EditorComponent;

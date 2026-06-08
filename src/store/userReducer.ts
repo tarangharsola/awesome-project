@@ -1,4 +1,5 @@
 {"import { combineReducers } from 'redux';
+import { User } from './user';
 
 const userReducer = combineReducers({
   users: (state = [], action) => {
@@ -10,7 +11,7 @@ const userReducer = combineReducers({
       default:
         return state;
     }
-  }
+  },
 });
 
 export default userReducer;
