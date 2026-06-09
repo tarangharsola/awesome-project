@@ -2,24 +2,19 @@
 
 interface KeyboardShortcuts {
   shortcuts: { [key: string]: string };
+  addShortcut: (key: string, shortcut: string) => void;
 }
 
-interface KeyboardShortcutsState {
-  keyboardShortcuts: KeyboardShortcuts | null;
-  setKeyboardShortcuts: (keyboardShortcuts: KeyboardShortcuts) => void;
+const useKeyboardShortcuts = (): KeyboardShortcuts => {
+  const [shortcuts, setShortcuts] = useState<{ [key: string]: string }>({ });
+
+  const addShortcut = (key: string, shortcut: string) => {
+    setShortcuts((prevShortcuts) => ({ ...prevShortcuts, [key]: shortcut }));
+  };
+
+  return { shortcuts, addShortcut };
+
+  return useKeyboardShortcuts;
 }
-
-const useKeyboardShortcuts = (): KeyboardShortcutsState => {
-  const [keyboardShortcuts, setKeyboardShortcuts] = useState<KeyboardShortcuts | null>(null);
-
-  const handleKeyboardShortcutsChange = (keyboardShortcuts: KeyboardShortcuts) => {
-    setKeyboardShortcuts(keyboardShortcuts);
-  };
-
-  return {
-    keyboardShortcuts,
-    setKeyboardShortcuts: handleKeyboardShortcutsChange,
-  };
-};
 
 export default useKeyboardShortcuts;

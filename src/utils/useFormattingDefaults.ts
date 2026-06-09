@@ -5,22 +5,16 @@ interface FormattingDefaults {
   indentSize: number;
 }
 
-interface FormattingDefaultsState {
-  formattingDefaults: FormattingDefaults | null;
-  setFormattingDefaults: (formattingDefaults: FormattingDefaults) => void;
+const useFormattingDefaults = (): FormattingDefaults => {
+  const [defaults, setDefaults] = useState<FormattingDefaults>({ tabSize: 2, indentSize: 2 });
+
+  const updateDefaults = (tabSize: number, indentSize: number) => {
+    setDefaults({ tabSize, indentSize });
+  };
+
+  return { defaults, updateDefaults };
+
+  return useFormattingDefaults;
 }
-
-const useFormattingDefaults = (): FormattingDefaultsState => {
-  const [formattingDefaults, setFormattingDefaults] = useState<FormattingDefaults | null>(null);
-
-  const handleFormattingDefaultsChange = (formattingDefaults: FormattingDefaults) => {
-    setFormattingDefaults(formattingDefaults);
-  };
-
-  return {
-    formattingDefaults,
-    setFormattingDefaults: handleFormattingDefaultsChange,
-  };
-};
 
 export default useFormattingDefaults;
