@@ -1,25 +1,45 @@
-{"import React, { useState, useEffect } from 'react';
+{"import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
 const useWebSocket = () => {
   const [socket, setSocket] = useState(null);
-  const [connected, setConnected] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
 
   useEffect(() => {
     const socket = io('ws://localhost:3001');
     setSocket(socket);
+
     socket.on('connect', () => {
-      setConnected(true);
+      console.log('Connected to WebSocket server');
     });
+
     socket.on('disconnect', () => {
-      setConnected(false);
+      console.log('Disconnected from WebSocket server');
+      setReconnecting(true);
     });
+
+    socket.on('reconnect', () => {
+      console.log('Reconnected to WebSocket server');
+      setReconnecting(false);
+    });
+
     return () => {
       socket.disconnect();
     };
   }, []);
 
-  return { socket, connected };
+  useEffect(() => {
+    if (reconnecting) {
+      console.log('Reconnecting to WebSocket server');
+      const socket = io('ws://localhost:3001');
+      setSocket(socket);
+    }
+  }, [reconnecting]);
+
+  return {
+    socket,
+    reconnecting
+  };
 };
 
 export default useWebSocket;
