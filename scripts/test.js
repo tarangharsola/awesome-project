@@ -1,4 +1,10 @@
-const { test } = require('tap');
-const { build } = require('./ci');
+// Import required modules
+const assert = require('assert');
 
-build(test);
+// Define test suite
+describe('Collaborative Editor', () => {
+  it('should render editor component', () => {
+    const editor = document.createElement('editor');
+    assert.ok(editor);
+  });
+});

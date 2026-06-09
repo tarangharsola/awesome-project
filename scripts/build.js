@@ -1,29 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const webpack = require('webpack');
-
-const config = {
-  entry: './src/index.tsx',
-  output: {
-    path: path.resolve(__dirname, 'public'),
-    filename: 'bundle.js'
-  },
-  module: {
-    rules: [
-      {
-        test: /.tsx?$/, use: 'ts-loader', exclude: /node_modules/
-      }
-    ]
-  },
-  resolve: {
-    extensions: ['.ts', '.tsx', '.js']
-  }
-};
-
-webpack(config, (err, stats) => {
-  if (err) {
-    console.error(err);
-  } else {
-    console.log(stats.toString());
-  }
+// Define build script
+const gulp = require('gulp');
+const ts = require('gulp-typescript');
+gulp.task('build', () => {
+  return gulp.src(['src/**/*.ts', 'src/**/*.tsx'])
+    .pipe(ts())
+    .pipe(gulp.dest('dist'));
 });
