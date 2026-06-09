@@ -1,28 +1,28 @@
-{"import React from 'react';
-import { useState } from 'react';
+{"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-interface Language {
-  id: string;
-  name: string;
-  syntax: string;
+interface Props {
+  languages: string[]
 }
 
-interface LanguageState {
-  language: Language | null;
-  setLanguage: (language: Language) => void;
+const useLanguage = ({ languages }) => {
+  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
+  const { connection } = useWebSocket();
+
+  useEffect(() => {
+    if (connection) {
+      connection.onmessage = (event) => {
+        const { language } = JSON.parse(event.data);
+        setSelectedLanguage(language);
+      };
+    }
+  }, [connection]);
+
+  const handleLanguageChange = (event) => {
+    setSelectedLanguage(event.target.value);
+  };
+
+  return { selectedLanguage, handleLanguageChange };
 }
-
-const useLanguage = (): LanguageState => {
-  const [language, setLanguage] = useState<Language | null>(null);
-
-  const handleLanguageChange = (language: Language) => {
-    setLanguage(language);
-  };
-
-  return {
-    language,
-    setLanguage: handleLanguageChange,
-  };
-};
 
 export default useLanguage;

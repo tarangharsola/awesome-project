@@ -1,19 +1,24 @@
 {"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
 interface Props {
-  cursor: { x: number; y: number; }
+  userId: string
 }
 
-const useCursor = ({ cursor }: Props) => {
-  const [cursorState, setCursorState] = useState(cursor);
+const useCursor = ({ userId }) => {
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const { connection } = useWebSocket();
+
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      setCursorState({ x: e.clientX, y: e.clientY });
-    };
-    document.addEventListener('mousemove', handleMouseMove);
-    return () => document.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-  return cursorState;
+    if (connection) {
+      connection.onmessage = (event) => {
+        const { x, y } = JSON.parse(event.data);
+        setCursor({ x, y });
+      };
+    }
+  }, [connection]);
+
+  return { cursor, color: connection?.color };
 }
 
 export default useCursor;
