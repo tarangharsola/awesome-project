@@ -1,10 +1,16 @@
-// Import required modules
-const assert = require('assert');
+// Jest configuration
+const jest = require('jest');
 
-// Define test suite
-describe('Collaborative Editor', () => {
-  it('should render editor component', () => {
-    const editor = document.createElement('editor');
-    assert.ok(editor);
-  });
-});
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/setupTests.js'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  moduleDirectories: ['node_modules', 'src'],
+  testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
+  transform: {
+    '^.+\.(ts|tsx)$': 'ts-jest',
+  },
+  transformIgnorePatterns: ['node_modules/(?!(jest-)?@react-)/'],
+  verbose: true,
+};
