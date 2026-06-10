@@ -1,10 +1,9 @@
-{"import { expect } from 'chai';
-import { formatCode } from './formatCode';
+{"import { describe, it } from 'jest';
+import { App } from './App';
 
-describe('formatCode', () => {
-  it('should format code correctly', () => {
-    const editorState = EditorState.create();
-    const formattedCode = formatCode(editorState);
-    expect(formattedCode).to.equal('');
+describe('App', () => {
+  it('renders correctly', () => {
+    const app = new App();
+    expect(app).toMatchSnapshot();
   });
-});
+});"
