@@ -1,30 +1,28 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { io } from 'socket.io-client';
 
-interface Props {
-  users: { id: string; name: string; color: string }[]
-}
-
-const useUsers = ({ users }) => {
-  const [activeUsers, setActiveUsers] = useState(users);
-  const { connection } = useWebSocket();
+const useUsers = () => {
+  const [users, setUsers] = useState([]);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    if (connection) {
-      connection.onmessage = (event) => {
-        const { userId, color } = JSON.parse(event.data);
-        setActiveUsers((prevUsers) => {
-          const userIndex = prevUsers.findIndex((user) => user.id === userId);
-          if (userIndex !== -1) {
-            prevUsers[userIndex].color = color;
-          }
-          return prevUsers;
-        });
-      };
-    }
-  }, [connection]);
+    const socket = io('ws://localhost:3001');
+    setSocket(socket);
+    socket.on('users', (users) => {
+      setUsers(users);
+    });
+    socket.on('connect', () => {
+      setConnected(true);
+    });
+    socket.on('disconnect', () => {
+      setConnected(false);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
-  return { activeUsers };
-}
+  return { users, connected };
+};
 
 export default useUsers;

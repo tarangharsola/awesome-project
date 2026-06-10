@@ -1,25 +1,15 @@
 {"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+import { Editor } from 'react-simple-editor';
 
 const useEditor = () => {
-  const [editorState, setEditorState] = useState({});
+  const [editor, setEditor] = useState(null);
 
   useEffect(() => {
-    const socket = io('ws://localhost:3001');
-
-    socket.on('write', (data) => {
-      setEditorState(data);
-    });
-
-    socket.on('delete', (data) => {
-      setEditorState(data);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
+    const editor = new Editor(document.getElementById('editor'));
+    setEditor(editor);
   }, []);
 
-  return editorState;
+  return { editor };
 };
+
 export default useEditor;

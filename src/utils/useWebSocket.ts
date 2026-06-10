@@ -3,43 +3,23 @@ import { io } from 'socket.io-client';
 
 const useWebSocket = () => {
   const [socket, setSocket] = useState(null);
-  const [reconnecting, setReconnecting] = useState(false);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     const socket = io('ws://localhost:3001');
     setSocket(socket);
-
     socket.on('connect', () => {
-      console.log('Connected to WebSocket server');
+      setConnected(true);
     });
-
     socket.on('disconnect', () => {
-      console.log('Disconnected from WebSocket server');
-      setReconnecting(true);
+      setConnected(false);
     });
-
-    socket.on('reconnect', () => {
-      console.log('Reconnected to WebSocket server');
-      setReconnecting(false);
-    });
-
     return () => {
       socket.disconnect();
     };
   }, []);
 
-  useEffect(() => {
-    if (reconnecting) {
-      console.log('Reconnecting to WebSocket server');
-      const socket = io('ws://localhost:3001');
-      setSocket(socket);
-    }
-  }, [reconnecting]);
-
-  return {
-    socket,
-    reconnecting
-  };
+  return { socket, connected };
 };
 
 export default useWebSocket;

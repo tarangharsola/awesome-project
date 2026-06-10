@@ -1,28 +1,17 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { languages } from 'prismjs';
 
-interface Props {
-  languages: string[]
-}
-
-const useLanguage = ({ languages }) => {
-  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
-  const { connection } = useWebSocket();
+const useLanguage = () => {
+  const [language, setLanguage] = useState('javascript');
 
   useEffect(() => {
-    if (connection) {
-      connection.onmessage = (event) => {
-        const { language } = JSON.parse(event.data);
-        setSelectedLanguage(language);
-      };
+    const language = languages[language];
+    if (language) {
+      setLanguage(language);
     }
-  }, [connection]);
+  }, [language]);
 
-  const handleLanguageChange = (event) => {
-    setSelectedLanguage(event.target.value);
-  };
-
-  return { selectedLanguage, handleLanguageChange };
-}
+  return { language };
+};
 
 export default useLanguage;

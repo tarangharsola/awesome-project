@@ -1,24 +1,14 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
 
-interface Props {
-  userId: string
-}
-
-const useCursor = ({ userId }) => {
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const { connection } = useWebSocket();
+const useCursor = () => {
+  const [cursor, setCursor] = useState(null);
 
   useEffect(() => {
-    if (connection) {
-      connection.onmessage = (event) => {
-        const { x, y } = JSON.parse(event.data);
-        setCursor({ x, y });
-      };
-    }
-  }, [connection]);
+    const cursor = document.getElementById('cursor');
+    setCursor(cursor);
+  }, []);
 
-  return { cursor, color: connection?.color };
-}
+  return { cursor };
+};
 
 export default useCursor;
