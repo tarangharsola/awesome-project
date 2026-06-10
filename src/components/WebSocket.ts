@@ -1,36 +1,24 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
+{"import WebSocket from 'ws';
 
-const WebSocket = () => {
-  const [connected, setConnected] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+const WebSocket = (props) => {
+  const dispatch = useDispatch();
+  const users = useSelector((state) => state.user.users);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => {
-      setConnected(false);
-      setRetryCount(retryCount + 1);
-      setTimeout(() => {
-        ws.reconnect();
-      }, 5000);
-    };
-    ws.onerror = () => {
-      setConnected(false);
-      setRetryCount(retryCount + 1);
-      setTimeout(() => {
-        ws.reconnect();
-      }, 5000);
+    ws.onmessage = (event) => {
+      dispatch({ type: 'UPDATE_USERS', payload: JSON.parse(event.data) });
     };
     return () => ws.close();
   }, []);
 
   return (
     <div>
-      {connected ? 'Connected' : 'Disconnected'}
-      <br />
-      Retry count: {retryCount}
+      {users.map((user, index) => (
+        <div key={index}>{user.name}</div>
+      ))}
     </div>
   );
 };
+
 export default WebSocket;

@@ -1,42 +1,26 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorState, convertToRaw } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import { useSelector, useDispatch } from 'react-redux';
+import { WebSocket } from './WebSocket';
 
-const EditorComponent = () => {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  const [users, setUsers] = useState([]);
-  const [cursorPositions, setCursorPositions] = useState({});
+const Editor = () => {
+  const dispatch = useDispatch();
+  const code = useSelector((state) => state.editor.code);
+  const users = useSelector((state) => state.user.users);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'cursorPosition') {
-        setCursorPositions(data.cursorPositions);
-      } else if (data.type === 'users') {
-        setUsers(data.users);
-      }
+      dispatch({ type: 'UPDATE_CODE', payload: event.data });
     };
     return () => ws.close();
   }, []);
 
-  const onEditorStateChange = (editorState) => {
-    setEditorState(editorState);
-    const contentState = editorState.getCurrentContent();
-    const rawContentState = convertToRaw(contentState);
-    // Send the updated content to the server
-  };
-
   return (
-    <Editor
-      editorState={editorState}
-      onEditorStateChange={onEditorStateChange}
-      toolbarClassName='toolbarClassName'
-      wrapperClassName='wrapperClassName'
-      editorClassName='editorClassName'
-    />
+    <div>
+      <WebSocket users={users} />
+      <textarea value={code} onChange={(e) => dispatch({ type: 'UPDATE_CODE', payload: e.target.value })} />
+    </div>
   );
 };
 
-export default EditorComponent;
+export default Editor;

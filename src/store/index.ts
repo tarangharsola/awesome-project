@@ -1,12 +1,10 @@
 {"import { createStore, combineReducers } from 'redux';
 import editorReducer from './editorReducer';
 import userReducer from './userReducer';
-import usersReducer from './usersReducer';
 
 const rootReducer = combineReducers({
   editor: editorReducer,
-  user: userReducer,
-  users: usersReducer
+  user: userReducer
 });
 
 const store = createStore(rootReducer);
