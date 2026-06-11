@@ -1,1 +1,15 @@
-{"import { useState, useEffect } from 'react';\n\ninterface KeyboardShortcuts {\n  shortcuts: { [key: string]: string };\n}\n\nconst useKeyboardShortcuts = () => {\n  const [keyboardShortcuts, setKeyboardShortcuts] = useState<KeyboardShortcuts>({\n    shortcuts: {},\n  });\n\n  useEffect(() => {\n    const storedShortcuts = localStorage.getItem('keyboardShortcuts');\n    if (storedShortcuts) {\n      setKeyboardShortcuts(JSON.parse(storedShortcuts));\n    }\n  }, []);\n\n  useEffect(() => {\n    localStorage.setItem('keyboardShortcuts', JSON.stringify(keyboardShortcuts));\n  }, [keyboardShortcuts]);\n\n  return keyboardShortcuts;\n};\n\nexport default useKeyboardShortcuts;
+{"import { useLanguage } from './useLanguage';
+
+const useKeyboardShortcuts = () => {
+  const { language } = useLanguage();
+
+  const handleShortcut = (shortcut) => {
+    // Handle keyboard shortcuts based on the selected language
+  };
+
+  return {
+    handleShortcut
+  };
+};
+
+export default useKeyboardShortcuts;
