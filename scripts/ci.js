@@ -1,6 +1,11 @@
-{"const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 
-module.exports = function() {
-  execSync('jest');
+const build = () => {
   execSync('npm run build');
-};"
+};
+
+const test = () => {
+  execSync('npm run test');
+};
+
+export { build, test };
