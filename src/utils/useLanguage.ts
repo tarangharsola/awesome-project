@@ -1,17 +1,1 @@
-{"import { useState, useEffect } from 'react';
-import { languages } from 'prismjs';
-
-const useLanguage = () => {
-  const [language, setLanguage] = useState('javascript');
-
-  useEffect(() => {
-    const language = languages[language];
-    if (language) {
-      setLanguage(language);
-    }
-  }, [language]);
-
-  return { language };
-};
-
-export default useLanguage;
+{"import { useState } from 'react';\nimport { languages } from 'codemirror';\n\nfunction useLanguage() {\n  const [language, setLanguage] = useState('javascript');\n\n  const handleLanguageChange = (language) => {\n    setLanguage(language);\n  };\n\n  return { language, handleLanguageChange };\n}\n\nexport default useLanguage;

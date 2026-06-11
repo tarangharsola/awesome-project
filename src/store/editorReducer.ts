@@ -1,14 +1,1 @@
-{"import { combineReducers } from 'redux';
-
-const editorReducer = combineReducers({
-  code: (state = '', action) => {
-    switch (action.type) {
-      case 'UPDATE_CODE':
-        return action.payload;
-      default:
-        return state;
-    }
-  }
-});
-
-export default editorReducer;
+{"import { combineReducers } from 'redux';\nimport { editorReducer } from './editorReducer';\n\nconst rootReducer = combineReducers({\n  editor: editorReducer,\n});\n\nexport default rootReducer;
