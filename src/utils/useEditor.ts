@@ -2,14 +2,21 @@
 import { Editor } from 'react-simple-editor';
 
 const useEditor = () => {
-  const [editor, setEditor] = useState(null);
+  const [content, setContent] = useState('');
 
   useEffect(() => {
-    const editor = new Editor(document.getElementById('editor'));
-    setEditor(editor);
+    const handleInput = (e) => {
+      setContent(e.target.value);
+    };
+
+    document.addEventListener('input', handleInput);
+
+    return () => {
+      document.removeEventListener('input', handleInput);
+    };
   }, []);
 
-  return { editor };
+  return { content, setContent };
 };
 
 export default useEditor;

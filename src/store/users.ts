@@ -1,11 +1,7 @@
 {"import { User } from './user';
 
-interface UsersState {
-  users: User[];
+interface Users {
+  [id: string]: User;
 }
 
-const initialState: UsersState = {
-  users: [],
-};
-
-export { initialState };
+export default Users;
