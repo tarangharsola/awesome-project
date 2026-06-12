@@ -1,1 +1,47 @@
-{"import React, { useState, useEffect } from 'react';\nimport { Editor as CodeMirror } from 'codemirror';\nimport 'codemirror/addon/hint/show-hint';\nimport 'codemirror/addon/hint/javascript-hint';\nimport 'codemirror/addon/edit/matchbrackets';\nimport 'codemirror/addon/edit/closebrackets';\nimport 'codemirror/addon/fold/foldcode';\nimport 'codemirror/addon/fold/foldgutter';\nimport 'codemirror/addon/fold/indent-fold';\nimport 'codemirror/addon/hint/show-hint';\nimport 'codemirror/addon/hint/javascript-hint';\nimport 'codemirror/addon/edit/matchbrackets';\nimport 'codemirror/addon/edit/closebrackets';\nimport 'codemirror/addon/fold/foldcode';\nimport 'codemirror/addon/fold/foldgutter';\nimport 'codemirror/addon/fold/indent-fold';\n\nfunction Editor({ language, code, onChange }) {\n  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });\n  const [codeMirror, setCodeMirror] = useState(null);\n\n  useEffect(() => {\n    const codeMirror = CodeMirror.fromTextArea(document.getElementById('editor'), {\n      mode: language,\n      lineNumbers: true,\n      theme: 'monokai',\n      extraKeys: {\n        'Ctrl-Space': 'autocomplete',\n        'Shift-Ctrl-Space': 'show-hint',\n      },\n    });\n    setCodeMirror(codeMirror);\n  }, [language]);\n\n  const handleCodeChange = (code) => {\n    onChange(code);\n  };\n\n  const handleCursorPositionChange = (cursorPosition) => {\n    setCursorPosition(cursorPosition);\n  };\n\n  return (\n    <div>\n      <textarea id='editor' value={code} onChange={handleCodeChange} />\n      <div>\n        <span>Line {cursorPosition.line + 1}</span>\n        <span>Column {cursorPosition.ch + 1}</span>\n      </div>\n    </div>\n  );\n}\n\nexport default Editor;
+{"import React, { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+import { useUsers } from './useUsers';
+import { useCursor } from './useCursor';
+
+const Editor = () => {
+  const { ws, connected } = useWebSocket();
+  const users = useUsers();
+  const cursor = useCursor();
+
+  useEffect(() => {
+    if (connected) {
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'cursor') {
+          cursor.update(data.cursor);
+        } else if (data.type === 'users') {
+          users.update(data.users);
+        }
+      };
+    }
+  }, [connected, ws, cursor, users]);
+
+  return (
+    <div>
+      <h1>Editor</h1>
+      <div className='editor'>
+        <pre>{cursor.code}</pre>
+      </div>
+      <div className='users'>
+        {users.map((user) => (
+          <div key={user.id} style={{
+            backgroundColor: user.color,
+            padding: '5px',
+            borderRadius: '5px',
+            display: 'inline-block',
+            marginRight: '10px'
+          }}>
+            {user.name}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Editor;

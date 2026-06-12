@@ -1,1 +1,20 @@
-{"import { useState, useEffect } from 'react';\nimport WebSocket from 'ws';\n\nfunction useUsers() {\n  const [users, setUsers] = useState([]);\n  const [ws, setWs] = useState(null);\n\n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    setWs(ws);\n  }, []);\n\n  useEffect(() => {\n    if (ws) {\n      ws.onmessage = (event) => {\n        const data = JSON.parse(event.data);\n        if (data.type === 'userListUpdate') {\n          setUsers(data.users);\n        }\n      };\n    }\n  }, [ws]);\n\n  return users;\n}\n\nexport default useUsers;
+{"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+
+const useUsers = () => {
+  const { ws, connected } = useWebSocket();
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    if (connected) {
+      ws.onmessage = (event) => {
+        const usersData = JSON.parse(event.data);
+        setUsers(usersData);
+      };
+    }
+  }, [connected, ws]);
+
+  return users;
+};
+
+export default useUsers;

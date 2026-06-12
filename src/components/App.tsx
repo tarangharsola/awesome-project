@@ -1,1 +1,14 @@
-{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport Editor from './Editor';\nimport LanguageSelector from './LanguageSelector';\nimport UserList from './UserList';\nimport WebSocket from './WebSocket';\n\nfunction App() {\n  const [users, setUsers] = useState([]);\n  const [language, setLanguage] = useState('javascript');\n  const [code, setCode] = useState('');\n  const [cursorPositions, setCursorPositions] = useState({});\n\n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onmessage = (event) => {\n      const data = JSON.parse(event.data);\n      if (data.type === 'cursorUpdate') {\n        setCursorPositions(data.cursorPositions);\n      } else if (data.type === 'userListUpdate') {\n        setUsers(data.users);\n      }\n    };\n  }, []);\n\n  const handleLanguageChange = (language) => {\n    setLanguage(language);\n  };\n\n  const handleCodeChange = (code) => {\n    setCode(code);\n  };\n\n  const handleCursorUpdate = (cursorPosition) => {\n    setCursorPositions({ ...cursorPositions, [cursorPosition.user]: cursorPosition.position });\n  };\n\n  return (\n    <div>\n      <LanguageSelector language={language} onChange={handleLanguageChange} />\n      <Editor language={language} code={code} onChange={handleCodeChange} />\n      <UserList users={users} />\n      <WebSocket onCursorUpdate={handleCursorUpdate} />\n    </div>\n  );\n}\n\nexport default App;
+{"import React from 'react';
+import { Provider } from 'react-redux';
+import store from './store/index';
+import Editor from './Editor';
+
+const App = () => {
+  return (
+    <Provider store={store}>
+      <Editor />
+    </Provider>
+  );
+};
+
+export default App;
