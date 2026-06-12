@@ -1,1 +1,18 @@
-{"import { useState, useEffect } from 'react';\n\nfunction useCursor() {\n  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      const cursorPosition = getCursorPosition();\n      setCursorPosition(cursorPosition);\n    }, 100);\n    return () => clearInterval(intervalId);\n  }, []);\n\n  return cursorPosition;\n}\n\nexport default useCursor;
+{"import { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+
+const useCursor = () => {
+  const { socket, connected } = useWebSocket();
+
+  useEffect(() => {
+    if (connected) {
+      socket.on('cursor', (data) => {
+        console.log(data);
+      });
+    }
+  }, [connected, socket]);
+
+  return <div>Cursor</div>;
+};
+
+export default useCursor;

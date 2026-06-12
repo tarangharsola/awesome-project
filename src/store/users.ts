@@ -1,7 +1,6 @@
-{"import { User } from './user';
+{"import { createStore, combineReducers } from 'redux';
+import { usersReducer } from './usersReducer';
 
-interface Users {
-  [id: string]: User;
-}
+const store = createStore(combineReducers({ users: usersReducer }));
 
-export default Users;
+export default store;
