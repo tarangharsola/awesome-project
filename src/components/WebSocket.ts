@@ -1,1 +1,34 @@
-{"import React, { useState, useEffect } from 'react';\n\nconst WebSocket = () => {\n  const [connected, setConnected] = useState(false);\n  const [retryCount, setRetryCount] = useState(0);\n\n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    ws.onopen = () => {\n      setConnected(true);\n    };\n    ws.onclose = () => {\n      setConnected(false);\n      setRetryCount(retryCount + 1);\n      setTimeout(() => {\n        setRetryCount(0);\n      }, 5000);\n    };\n  }, []);\n\n  return (\n    <div>\n      {connected ? 'Connected' : 'Disconnected'}\n      {retryCount > 0 ? ` (retrying in ${5000 * retryCount}ms)` : ''}\n    </div>\n  );\n};\nexport default WebSocket;
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+
+const WebSocket = () => {
+  const [connected, setConnected] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onopen = () => setConnected(true);
+    ws.onclose = () => {
+      setConnected(false);
+      setRetryCount(retryCount + 1);
+      setTimeout(() => {
+        ws.reconnect();
+      }, 5000);
+    };
+    ws.onerror = () => {
+      setConnected(false);
+      setRetryCount(retryCount + 1);
+      setTimeout(() => {
+        ws.reconnect();
+      }, 5000);
+    };
+  }, []);
+
+  return (
+    <div>
+      {connected ? 'Connected' : 'Disconnected'}
+      <button onClick={() => ws.send('ping')}>Send Ping</button>
+    </div>
+  );
+};
+export default WebSocket;
