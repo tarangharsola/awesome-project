@@ -1,1 +1,1 @@
-{"scripts": {"test": "node scripts/ci.js"}}
+{"scripts": {"test": "jest", "build": "npm run test && npm run build"}}

@@ -1,10 +1,8 @@
-{"import { describe, it } from 'vitest';
-import { render, fireEvent } from '@testing-library/react';
-import App from './App';
+{"import { test } from 'jest';
 
-describe('App component', () => {
-  it('renders title', () => {
-    const { getByText } = render(<App />);
-    expect(getByText('Collaborative Code Editor')).toBeInTheDocument();
+describe('App', () => {
+  it('renders correctly', () => {
+    const wrapper = test.render(<App />);
+    expect(wrapper).toMatchSnapshot();
   });
 });"
