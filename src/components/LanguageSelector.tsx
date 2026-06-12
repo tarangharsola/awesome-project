@@ -1,1 +1,35 @@
-{"import React from 'react';\nimport { useState } from 'react';\nimport { languages } from 'codemirror';\n\nfunction LanguageSelector({ language, onChange }) {\n  const [selectedLanguage, setSelectedLanguage] = useState(language);\n\n  const handleLanguageChange = (language) => {\n    setSelectedLanguage(language);\n    onChange(language);\n  };\n\n  return (\n    <select value={selectedLanguage} onChange={handleLanguageChange}>\n      {languages.map((language) => (\n        <option key={language} value={language}>{language}</option>\n      ))}\n    </select>\n  );\n}\n\nexport default LanguageSelector;
+{"import React from 'react';
+import { useState } from 'react';
+
+interface LanguageSelectorProps {
+  languages: string[];
+  selectedLanguage: string;
+  onSelect: (language: string) => void;
+}
+
+const LanguageSelector = ({ languages, selectedLanguage, onSelect }: LanguageSelectorProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = (language: string) => {
+    onSelect(language);
+    setIsOpen(false);
+  };
+
+  return (
+    <div>
+      <button onClick={() => setIsOpen(!isOpen)}>Select Language</button>
+      {isOpen && (
+        <ul>
+          {languages.map((language) => (
+            <li key={language} onClick={() => handleSelect(language)}>
+              {language}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+
+  return LanguageSelector;
+}
+export default LanguageSelector;

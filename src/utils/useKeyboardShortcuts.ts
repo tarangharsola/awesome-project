@@ -1,15 +1,16 @@
-{"import { useLanguage } from './useLanguage';
+{"import { useState } from 'react';
+
+interface KeyboardShortcuts {
+  shortcuts: { [key: string]: string };
+}
 
 const useKeyboardShortcuts = () => {
-  const { language } = useLanguage();
+  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
 
-  const handleShortcut = (shortcut) => {
-    // Handle keyboard shortcuts based on the selected language
+  const updateShortcuts = (newShortcuts: { [key: string]: string }) => {
+    setShortcuts({ shortcuts: newShortcuts });
   };
 
-  return {
-    handleShortcut
-  };
-};
-
+  return { shortcuts, updateShortcuts };
+}
 export default useKeyboardShortcuts;
