@@ -1,9 +1,20 @@
-{"import { User } from './user';
+import { Action } from 'redux';
 
-interface User {
-  id: string;
-  name: string;
-  color: string;
+interface UserState {
+   user: string;
 }
 
-export default User;
+const initialState: UserState = {
+   user: '',
+};
+
+const user = (state = initialState, action: Action) => {
+   switch (action.type) {
+      case 'UPDATE':
+         return { ...state, user: action.payload };
+      default:
+         return state;
+   }
+};
+
+export { user, initialState };

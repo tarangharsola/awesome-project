@@ -1,6 +1,23 @@
-{"import { createStore, combineReducers } from 'redux';
-import { usersReducer } from './usersReducer';
+import { Action } from 'redux';
+import { User } from './user';
 
-const store = createStore(combineReducers({ users: usersReducer }));
+interface UsersState {
+   users: User[];
+}
 
-export default store;
+const initialState: UsersState = {
+   users: [],
+};
+
+const users = (state = initialState, action: Action) => {
+   switch (action.type) {
+      case 'JOIN':
+         return { ...state, users: [...state.users, action.payload] };
+      case 'LEAVE':
+         return { ...state, users: state.users.filter((u) => u !== action.payload) };
+      default:
+         return state;
+   }
+};
+
+export { users, initialState };

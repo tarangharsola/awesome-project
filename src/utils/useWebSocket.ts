@@ -1,1 +1,19 @@
-{"import { useState, useEffect } from 'react';\nimport WebSocket from 'ws';\n\nfunction useWebSocket() {\n  const [connection, setConnection] = useState(null);\n  const [send, setSend] = useState(null);\n\n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    setConnection(ws);\n    setSend((message) => {\n      ws.send(JSON.stringify(message));\n    });\n  }, []);\n\n  return { connection, send };\n}\n\nexport default useWebSocket;
+import { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+
+const useWebSocket = () => {
+   const [socket, setSocket] = useState(null);
+
+   useEffect(() => {
+      const newSocket = io();
+      setSocket(newSocket);
+
+      return () => {
+         newSocket.disconnect();
+      };
+   }, []);
+
+   return socket;
+};
+
+export default useWebSocket;

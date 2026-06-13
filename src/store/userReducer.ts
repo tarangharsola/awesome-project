@@ -1,1 +1,8 @@
-{"import { createReducer, on } from 'redux';\nimport { UPDATE_USERS } from './actions';\n\nconst initialState = {\n  users: [],\n};\n\nconst userReducer = createReducer(initialState, {\n  [UPDATE_USERS]: (state, action) => ({\n    users: action.users,\n  }),\n});\n\nexport default userReducer;
+import { combineReducers } from 'redux';
+import { user } from './user';
+
+const userReducer = combineReducers({
+   user,
+});
+
+export default userReducer;
