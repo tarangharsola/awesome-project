@@ -1,11 +1,1 @@
-{"import React from 'react';
-import WebSocket from './WebSocket';
-
-const App = () => {
-  return (
-    <div>
-      <WebSocket />
-    </div>
-  );
-};
-export default App;
+{"import React from 'react';\nimport { Provider } from 'react-redux';\nimport store from './store';\nimport Editor from './Editor';\n\nfunction App() {\n  return (\n    <Provider store={store}>\n      <Editor />\n    </Provider>\n  );\n}\n\nexport default App;
