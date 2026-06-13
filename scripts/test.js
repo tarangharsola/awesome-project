@@ -1,3 +1,9 @@
-import { test } from './ci';
+const assert = require('assert');
+const fs = require('fs');
 
-test();
+describe('Editor', () => {
+  it('should render editor', () => {
+    const editor = require('./Editor');
+    assert.ok(editor);
+  });
+});

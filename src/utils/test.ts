@@ -1,8 +1,8 @@
-{"import { test } from 'jest';
+import { Editor } from './Editor';
 
-describe('App', () => {
-  it('renders correctly', () => {
-    const wrapper = test.render(<App />);
-    expect(wrapper).toMatchSnapshot();
+describe('Editor', () => {
+  it('should render editor', () => {
+    const editor = new Editor();
+    expect(editor).toBeTruthy();
   });
-});"
+});

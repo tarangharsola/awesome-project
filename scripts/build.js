@@ -1,3 +1,5 @@
-import { build } from './ci';
+const { execSync } = require('child_process');
 
-build();
+module.exports = function build() {
+  execSync('webpack --mode production');
+};
