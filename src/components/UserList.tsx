@@ -1,1 +1,31 @@
-{"import React from 'react';\nimport { useState, useEffect } from 'react';\nimport { useUsers } from '../useUsers';\n\ninterface UserProps {\n  name: string;\n  color: string;\n}\n\nconst UserList = () => {\n  const { users, addUser, removeUser } = useUsers();\n  const [activeUsers, setActiveUsers] = useState([]);\n\n  useEffect(() => {\n    setActiveUsers(users.filter((user) => user.isActive));\n  }, [users]);\n\n  const handleUserUpdate = (user: UserProps) => {\n    addUser(user);\n  };\n\n  const handleUserRemove = (user: UserProps) => {\n    removeUser(user);\n  };\n\n  return (\n    <div className='active-users'>\n      <h2>Active Users</h2>\n      <ul>\n        {activeUsers.map((user, index) => (\n          <li key={index} style={{\n            backgroundColor: user.color,\n            color: 'white',\n            padding: '5px',\n            borderRadius: '5px',\n            marginBottom: '5px',\n          }}\n          >\n            {user.name}\n          </li>\n        ))}\n      </ul>\n    </div>\n  );\n};\n\nexport default UserList;
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import { useUsers } from '../utils/useUsers';
+
+const UserList = () => {
+  const { users, addUser, removeUser } = useUsers();
+  const [activeUsers, setActiveUsers] = useState([]);
+
+  useEffect(() => {
+    setActiveUsers(users.filter(user => user.isActive));
+  }, [users]);
+
+  return (
+    <div className="active-users">
+      {activeUsers.map((user, index) => (
+        <div key={index} style={{
+          backgroundColor: user.color,
+          padding: '5px',
+          borderRadius: '5px',
+          color: 'white',
+          display: 'inline-block',
+          marginRight: '10px'
+        }}>
+          {user.name}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default UserList;

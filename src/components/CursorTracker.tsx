@@ -1,1 +1,23 @@
-{"import React from 'react';\nimport { useCursor } from '../useCursor';\n\ninterface CursorProps {\n  name: string;\n  color: string;\n}\n\nconst CursorTracker = () => {\n  const { cursor, updateCursor } = useCursor();\n  const { name, color } = cursor;\n\n  const handleCursorUpdate = (newCursor: CursorProps) => {\n    updateCursor(newCursor);\n  };\n\n  return (\n    <div className='cursor' style={{\n      backgroundColor: color,\n      color: 'white',\n      padding: '5px',\n      borderRadius: '5px',\n      marginBottom: '5px',\n    }}\n    >\n      {name}\n    </div>\n  );\n};\n\nexport default CursorTracker;
+{"import React from 'react';
+import { useCursor } from '../utils/useCursor';
+
+const CursorTracker = () => {
+  const { cursor, user } = useCursor();
+
+  return (
+    <div className="cursor" style={{
+      position: 'absolute',
+      top: cursor.y,
+      left: cursor.x,
+      backgroundColor: user.color,
+      width: '5px',
+      height: '5px',
+      borderRadius: '5px',
+      zIndex: 1000
+    }}>
+      {user.name}
+    </div>
+  );
+};
+
+export default CursorTracker;
