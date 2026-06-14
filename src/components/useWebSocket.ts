@@ -1,53 +1,45 @@
-import { useState, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
-import { useUsers } from './useUsers';
-import { useEditor } from './useEditor';
-import { useCursor } from './useCursor';
-
-const socket = io();
 
 const useWebSocket = () => {
-   const [users, setUsers] = useState([]);
-   const [editorState, setEditorState] = useState('');
-   const [cursorPositions, setCursorPositions] = useState({});
-   const { users: connectedUsers } = useUsers();
-   const { editorState: localEditorState } = useEditor();
-   const { cursorPosition } = useCursor();
+  const [socket, setSocket] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [cursorPositions, setCursorPositions] = useState({});
 
-   useEffect(() => {
-      socket.on('connect', () => {
-         console.log('Connected to server');
-      });
+  useEffect(() => {
+    const socket = io('ws://localhost:3001');
+    setSocket(socket);
 
-      socket.on('disconnect', () => {
-         console.log('Disconnected from server');
-      });
+    socket.on('connect', () => {
+      console.log('Connected to the server');
+    });
 
-      socket.on('join', (user) => {
-         setUsers((prevUsers) => [...prevUsers, user]);
-      });
+    socket.on('disconnect', () => {
+      console.log('Disconnected from the server');
+    });
 
-      socket.on('leave', (user) => {
-         setUsers((prevUsers) => prevUsers.filter((u) => u !== user));
-      });
+    socket.on('update-users', (users) => {
+      setUsers(users);
+    });
 
-      socket.on('update', (data) => {
-         setEditorState(data.editorState);
-         setCursorPositions(data.cursorPositions);
-      });
+    socket.on('update-cursor-positions', (cursorPositions) => {
+      setCursorPositions(cursorPositions);
+    });
 
-      return () => {
-         socket.disconnect();
-      };
-   }, []);
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
-   useEffect(() => {
-      if (localEditorState !== editorState) {
-         socket.emit('update', { editorState, cursorPositions });
-      }
-   }, [localEditorState, editorState, cursorPositions]);
+  const handleSendMessage = (message) => {
+    socket.emit('message', message);
+  };
 
-   return { users, editorState, cursorPositions };
+  return {
+    socket,
+    users,
+    cursorPositions,
+    handleSendMessage
+  };
 };
-
 export default useWebSocket;
