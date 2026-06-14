@@ -1,1 +1,15 @@
-{"import { createReducer, on } from 'redux';\nimport { UPDATE_EDITOR_STATE } from './actions';\n\nconst initialState = {\n  editorState: EditorState.createEmpty(),\n};\n\nconst editorReducer = createReducer(initialState, {\n  [UPDATE_EDITOR_STATE]: (state, action) => ({\n    editorState: action.editorState,\n  }),\n});\n\nexport default editorReducer;
+{"import { combineReducers } from 'redux';
+import { EditorState } from 'draft-js';
+
+const editorReducer = combineReducers({
+  editorState: (state = EditorState.createEmpty(), action) => {
+    switch (action.type) {
+      case 'UPDATE_EDITOR_STATE':
+        return action.editorState;
+      default:
+        return state;
+    }
+  },
+});
+
+export default editorReducer;

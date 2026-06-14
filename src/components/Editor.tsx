@@ -1,1 +1,47 @@
-{"import React, { useState, useEffect } from 'react';\nimport { EditorState, ContentState } from 'draft-js';\nimport 'draft-js/dist/draft.min.css';\nimport EditorToolbar from './EditorToolbar';\nimport { useWebSocket } from './useWebSocket';\n\nfunction Editor() {\n  const [editorState, setEditorState] = useState(\n    () => EditorState.createEmpty()\n  );\n  const [users, setUsers] = useState([]);\n  const { connection, send } = useWebSocket();\n\n  useEffect(() => {\n    if (connection) {\n      connection.onmessage = (event) => {\n        const data = JSON.parse(event.data);\n        if (data.type === 'update') {\n          setEditorState(data.editorState);\n        }\n      };\n    }\n  }, [connection]);\n\n  const handleUpdate = (editorState) => {\n    send({ type: 'update', editorState });\n  };\n\n  return (\n    <div>\n      <EditorToolbar onUpdate={handleUpdate} />\n      <div contentEditable={true} suppressContentEditableWarning={true}\n        style={{\n          border: '1px solid #ccc',\n          padding: '10px',\n          width: '100%',\n          height: '500px',\n        }}\n        dangerouslySetInnerHTML={{ __html: editorState.getHTML() }}\n      />\n    </div>\n  );\n}\n\nexport default Editor;
+{"import React, { useState, useEffect } from 'react';
+import { EditorState, ContentState } from 'draft-js';
+import { Editor } from 'react-draft-wysiwyg';
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+
+const EditorComponent = () => {
+  const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'update') {
+        setEditorState(data.editorState);
+      }
+    };
+    ws.onopen = () => {
+      console.log('Connected to WebSocket server');
+    };
+    ws.onclose = () => {
+      console.log('Disconnected from WebSocket server');
+    };
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const handleEditorChange = (editorState) => {
+    setEditorState(editorState);
+    const contentState = editorState.getCurrentContent();
+    const content = contentState.getPlainText();
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.send(JSON.stringify({ type: 'update', editorState }));
+  };
+
+  return (
+    <Editor
+      editorState={editorState}
+      onEditorStateChange={handleEditorChange}
+      toolbarClassName='toolbar-class'
+      editorClassName='editor-class'
+    />
+  );
+};
+
+export default EditorComponent;
