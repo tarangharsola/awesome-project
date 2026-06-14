@@ -1,20 +1,22 @@
 {"import { useState, useEffect } from 'react';
 
-interface Props {
-  language: string;
+interface KeyboardShortcuts {
+  [key: string]: string;
 }
 
-const useKeyboardShortcuts = ({ language }: Props) => {
-  const [shortcuts, setShortcuts] = useState({});
+const useKeyboardShortcuts = () => {
+  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ 'Ctrl+C': 'Copy', 'Ctrl+V': 'Paste' });
 
   useEffect(() => {
-    const loadShortcuts = async () => {
-      const response = await fetch(`/api/keyboard-shortcuts/${language}`);
-      const data = await response.json();
-      setShortcuts(data);
-    };
-    loadShortcuts();
-  }, [language]);
+    const storedShortcuts = localStorage.getItem('keyboardShortcuts');
+    if (storedShortcuts) {
+      setShortcuts(JSON.parse(storedShortcuts));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('keyboardShortcuts', JSON.stringify(shortcuts));
+  }, [shortcuts]);
 
   return shortcuts;
 }
