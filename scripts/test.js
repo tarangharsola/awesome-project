@@ -1,9 +1,12 @@
-const assert = require('assert');
-const fs = require('fs');
+const { test } = require('tap');
+const { startServer } = require('./main');
 
-describe('Editor', () => {
-  it('should render editor', () => {
-    const editor = require('./Editor');
-    assert.ok(editor);
+module.exports = function test() {
+  test('editor is rendered', async (t) => {
+    const { browser } = await getBrowser();
+    const page = await browser.newPage();
+    await page.goto('http://localhost:3000');
+    const editor = await page.$('#editor');
+    t.ok(editor);
   });
-});
+};

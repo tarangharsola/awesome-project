@@ -1,6 +1,7 @@
 const { execSync } = require('child_process');
+const { startServer } = require('./main');
 
 module.exports = function build() {
-  const buildScript = 'webpack --mode production';
-  execSync(buildScript, { stdio: 'inherit' });
+  startServer();
+  execSync('webpack');
 };
