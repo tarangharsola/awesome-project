@@ -1,56 +1,25 @@
 {"import { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import { io } from 'socket.io-client';
 
-interface Props {
-  onMessage: (message: string) => void;
-}
-
-const useWebSocket = ({ onMessage }: Props) => {
-  const [ws, setWs] = useState<WebSocket | null>(null);
+const useWebSocket = () => {
+  const [socket, setSocket] = useState(null);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-    return () => ws.close();
+    const socket = io('ws://localhost:3001');
+    setSocket(socket);
+    socket.on('connect', () => {
+      setConnected(true);
+    });
+    socket.on('disconnect', () => {
+      setConnected(false);
+    });
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
-  useEffect(() => {
-    if (ws) {
-      ws.onmessage = (event) => {
-        onMessage(event.data);
-      };
-    }
-  }, [ws, onMessage]);
-
-  return {
-    ws,
-    sendCode: (code: string) => {
-      if (ws) {
-        ws.send(code);
-      }
-    },
-    sendCursor: (cursor: { x: number; y: number; user: string }) => {
-      if (ws) {
-        ws.send(JSON.stringify(cursor));
-      }
-    },
-    sendLanguage: (language: string) => {
-      if (ws) {
-        ws.send(language);
-      }
-    },
-    users: [],
-    addUser: (user: string) => {
-      if (ws) {
-        ws.send(JSON.stringify({ type: 'addUser', user }));
-      }
-    },
-    removeUser: (user: string) => {
-      if (ws) {
-        ws.send(JSON.stringify({ type: 'removeUser', user }));
-      }
-    }
-  };
+  return { socket, connected };
 };
 
 export default useWebSocket;
