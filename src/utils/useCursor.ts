@@ -1,18 +1,22 @@
 {"import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+import { useWebSocket } from './useWebSocket';
 
-const useCursor = () => {
-  const { socket, connected } = useWebSocket();
+interface Props {
+  user: string;
+}
+
+const useCursor = ({ user }: Props) => {
+  const { sendCursor } = useWebSocket();
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    if (connected) {
-      socket.on('cursor', (data) => {
-        console.log(data);
-      });
-    }
-  }, [connected, socket]);
+    const interval = setInterval(() => {
+      sendCursor({ x: cursor.x, y: cursor.y, user });
+    }, 100);
+    return () => clearInterval(interval);
+  }, [cursor, user]);
 
-  return <div>Cursor</div>;
+  return { cursor, setCursor };
 };
 
 export default useCursor;

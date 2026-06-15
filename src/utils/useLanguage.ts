@@ -1,1 +1,19 @@
-{"import { useState } from 'react';\nimport { languages } from 'codemirror';\n\nfunction useLanguage() {\n  const [language, setLanguage] = useState('javascript');\n\n  const handleLanguageChange = (language) => {\n    setLanguage(language);\n  };\n\n  return { language, handleLanguageChange };\n}\n\nexport default useLanguage;
+{"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+
+interface Props {
+  language: string;
+}
+
+const useLanguage = ({ language }: Props) => {
+  const { sendLanguage } = useWebSocket();
+  const [currentLanguage, setCurrentLanguage] = useState(language);
+
+  useEffect(() => {
+    sendLanguage(language);
+  }, [language]);
+
+  return { currentLanguage, language, sendLanguage };
+};
+
+export default useLanguage;

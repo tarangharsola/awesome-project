@@ -1,1 +1,22 @@
-{"import { useState, useEffect } from 'react';\nimport { Editor } from 'codemirror';\n\nfunction useEditor() {\n  const [code, setCode] = useState('');\n  const [codeMirror, setCodeMirror] = useState(null);\n\n  useEffect(() => {\n    const codeMirror = Editor.fromTextArea(document.getElementById('editor'), {\n      mode: 'javascript',\n      lineNumbers: true,\n      theme: 'monokai',\n      extraKeys: {\n        'Ctrl-Space': 'autocomplete',\n        'Shift-Ctrl-Space': 'show-hint',\n      },\n    });\n    setCodeMirror(codeMirror);\n  }, []);\n\n  const handleCodeChange = (code) => {\n    setCode(code);\n  };\n\n  return { code, handleCodeChange };\n}\n\nexport default useEditor;
+{"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+
+interface Props {
+  onCodeChange: (code: string) => void;
+}
+
+const useEditor = ({ onCodeChange }: Props) => {
+  const { sendCode } = useWebSocket();
+  const [code, setCode] = useState('');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      sendCode(code);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [code]);
+
+  return { code, setCode, sendCode };
+};
+
+export default useEditor;

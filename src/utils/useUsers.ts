@@ -1,1 +1,28 @@
-{"import { useState, useEffect } from 'react';\nimport { useWebSocket } from './useWebSocket';\n\nfunction useUsers() {\n  const { connection } = useWebSocket();\n  const [users, setUsers] = useState([]);\n\n  useEffect(() => {\n    if (connection) {\n      connection.onmessage = (event) => {\n        const data = JSON.parse(event.data);\n        if (data.type === 'users') {\n          setUsers(data.users);\n        }\n      };\n    }\n  }, [connection]);\n\n  return users;\n}\n\nexport default useUsers;
+{"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+
+interface Props {
+  onUserJoin: (user: string) => void;
+  onUserLeave: (user: string) => void;
+}
+
+const useUsers = ({ onUserJoin, onUserLeave }: Props) => {
+  const { users, addUser, removeUser } = useWebSocket();
+  const [localUsers, setLocalUsers] = useState(users);
+
+  useEffect(() => {
+    setLocalUsers(users);
+  }, [users]);
+
+  useEffect(() => {
+    onUserJoin(users[0].name);
+  }, [users]);
+
+  useEffect(() => {
+    onUserLeave(users[0].name);
+  }, [users]);
+
+  return { users, addUser, removeUser, localUsers, setLocalUsers };
+};
+
+export default useUsers;

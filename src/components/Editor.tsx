@@ -1,47 +1,54 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorState, ContentState } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import { useEditor } from '../utils/useEditor';
+import { useWebSocket } from '../utils/useWebSocket';
+import { useUsers } from '../utils/useUsers';
+import { useLanguage } from '../utils/useLanguage';
+import { CursorTracker } from './CursorTracker';
 
-const EditorComponent = () => {
-  const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
-  const [users, setUsers] = useState([]);
+interface Props {
+  language: string;
+  onCodeChange: (code: string) => void;
+}
+
+const Editor: React.FC<Props> = ({ language, onCodeChange }) => {
+  const [code, setCode] = useState('');
+  const { users, addUser, removeUser } = useUsers();
+  const { language: currentLanguage } = useLanguage();
+  const { sendCode } = useWebSocket();
+  const { cursor } = useEditor();
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'update') {
-        setEditorState(data.editorState);
-      }
-    };
-    ws.onopen = () => {
-      console.log('Connected to WebSocket server');
-    };
-    ws.onclose = () => {
-      console.log('Disconnected from WebSocket server');
-    };
-    return () => {
-      ws.close();
-    };
-  }, []);
+    if (currentLanguage === language) {
+      setCode(code);
+    }
+  }, [currentLanguage, language, code]);
 
-  const handleEditorChange = (editorState) => {
-    setEditorState(editorState);
-    const contentState = editorState.getCurrentContent();
-    const content = contentState.getPlainText();
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.send(JSON.stringify({ type: 'update', editorState }));
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    onCodeChange(newCode);
+    sendCode(newCode);
   };
 
   return (
-    <Editor
-      editorState={editorState}
-      onEditorStateChange={handleEditorChange}
-      toolbarClassName='toolbar-class'
-      editorClassName='editor-class'
-    />
+    <div style={{
+      position: 'relative',
+      height: '100vh',
+      overflow: 'auto'
+    }}>
+      <CursorTracker cursor={cursor} user={users[0].name} />
+      <textarea
+        value={code}
+        onChange={(e) => handleCodeChange(e.target.value)}
+        style={{
+          width: '100%',
+          height: '100%',
+          padding: 10,
+          fontSize: 14,
+          fontFamily: 'monospace'
+        }}
+      />
+    </div>
   );
-};
+}
 
-export default EditorComponent;
+export default Editor;
