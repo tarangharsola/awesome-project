@@ -5,7 +5,7 @@ interface FormattingDefaults {
   indentSize: number;
 }
 
-const useFormattingDefaults = () => {
+const useFormattingDefaults = (): FormattingDefaults => {
   const [defaults, setDefaults] = useState<FormattingDefaults>({ tabSize: 2, indentSize: 2 });
 
   useEffect(() => {
@@ -21,4 +21,5 @@ const useFormattingDefaults = () => {
 
   return defaults;
 }
+
 export default useFormattingDefaults;
