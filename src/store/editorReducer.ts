@@ -1,15 +1,14 @@
-{"import { combineReducers } from 'redux';
-import { EditorState } from 'draft-js';
+import { createReducer } from '@reduxjs/toolkit';
+import { EditorActions } from './editorActions';
 
-const editorReducer = combineReducers({
-  editorState: (state = EditorState.createEmpty(), action) => {
-    switch (action.type) {
-      case 'UPDATE_EDITOR_STATE':
-        return action.editorState;
-      default:
-        return state;
-    }
-  },
+const initialState = {
+  code: '',
+  language: 'javascript',
+};
+
+const editorReducer = createReducer(initialState, {
+  [EditorActions.setCode]: (state, action) => ({ ...state, code: action.payload }),
+  [EditorActions.setLanguage]: (state, action) => ({ ...state, language: action.payload }),
 });
 
 export default editorReducer;
