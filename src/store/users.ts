@@ -1,11 +1,7 @@
-{"import { User } from './user';
+{"import { createStore, applyMiddleware } from 'redux';
+import { usersReducer } from './usersReducer';
+import { WebSocket } from 'ws';
 
-interface UsersState {
-  users: User[];
-}
+const store = createStore(usersReducer, applyMiddleware(WebSocket));
 
-const initialState: UsersState = {
-  users: [],
-};
-
-export default initialState;
+export default store;
