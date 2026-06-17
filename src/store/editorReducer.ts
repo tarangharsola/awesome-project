@@ -1,12 +1,34 @@
-import { createReducer } from '@reduxjs/toolkit';
-import { EditorAction } from './editorActions';
+{"import { createReducer } from 'redux';
 
-const editorReducer = createReducer({
+interface State {
+  code: string;
+  cursorPosition: number;
+}
+
+const initialState: State = {
   code: '',
-  language: 'javascript'
-}, {
-  [EditorAction.setCode]: (state, action) => ({ ...state, code: action.payload }),
-  [EditorAction.setLanguage]: (state, action) => ({ ...state, language: action.payload })
+  cursorPosition: 0,
+};
+
+const editorReducer = createReducer(initialState, {
+  SEND_CODE: (state, action) => {
+    return {
+      ...state,
+      code: action.payload,
+    };
+  },
+  RECEIVE_CODE: (state, action) => {
+    return {
+      ...state,
+      code: action.payload,
+    };
+  },
+  UPDATE_CURSOR_POSITION: (state, action) => {
+    return {
+      ...state,
+      cursorPosition: action.payload,
+    };
+  },
 });
 
 export default editorReducer;

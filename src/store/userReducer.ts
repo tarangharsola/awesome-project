@@ -1,12 +1,34 @@
-import { createReducer } from '@reduxjs/toolkit';
-import { UserAction } from './userActions';
+{"import { createReducer } from 'redux';
 
-const userReducer = createReducer({
-  username: '',
-  color: '#ff0000'
-}, {
-  [UserAction.setUsername]: (state, action) => ({ ...state, username: action.payload }),
-  [UserAction.setColor]: (state, action) => ({ ...state, color: action.payload })
+interface State {
+  users: { [userId: string]: { color: string } };
+}
+
+const initialState: State = {
+  users: {} as any,
+};
+
+const userReducer = createReducer(initialState, {
+  JOIN_ROOM: (state, action) => {
+    return {
+      ...state,
+      users: {
+        ...state.users,
+        [action.payload.userId]: {
+          color: action.payload.color,
+        },
+      },
+    };
+  },
+  LEAVE_ROOM: (state, action) => {
+    return {
+      ...state,
+      users: {
+        ...state.users,
+        [action.payload.userId]: null,
+      },
+    };
+  },
 });
 
 export default userReducer;

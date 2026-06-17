@@ -1,22 +1,34 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
 
 interface Props {
-  onCodeChange: (code: string) => void;
+  roomId: string;
 }
 
-const useEditor = ({ onCodeChange }: Props) => {
-  const { sendCode } = useWebSocket();
+const useEditor = ({ roomId }: Props) => {
   const [code, setCode] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(0);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      sendCode(code);
-    }, 100);
-    return () => clearInterval(interval);
-  }, [code]);
+  const sendCode = (newCode: string) => {
+    const ws = new WebSocket(`ws://localhost:8080/${roomId}`);
 
-  return { code, setCode, sendCode };
-};
+    ws.send(JSON.stringify({ type: 'code', data: newCode }));
+
+    ws.onmessage = (event) => {
+      if (event.data.type === 'code') {
+        setCode(event.data.data);
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
+  };
+
+  const receiveCode = (newCode: string) => {
+    setCode(newCode);
+  };
+
+  return { sendCode, receiveCode };
+}
 
 export default useEditor;

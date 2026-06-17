@@ -1,22 +1,26 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
 
 interface Props {
-  user: string;
+  roomId: string;
 }
 
-const useCursor = ({ user }: Props) => {
-  const { sendCursor } = useWebSocket();
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+const useCursor = ({ roomId }: Props) => {
+  const [cursors, setCursors] = useState({} as any);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      sendCursor({ x: cursor.x, y: cursor.y, user });
-    }, 100);
-    return () => clearInterval(interval);
-  }, [cursor, user]);
+    const ws = new WebSocket(`ws://localhost:8080/${roomId}`);
 
-  return { cursor, setCursor };
-};
+    ws.onmessage = (event) => {
+      const cursor = JSON.parse(event.data);
+      setCursors((prevCursors) => ({ ...prevCursors, [cursor.userId]: cursor }));
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  return { cursors };
+}
 
 export default useCursor;

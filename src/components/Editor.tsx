@@ -2,51 +2,61 @@
 import { useEditor } from '../utils/useEditor';
 import { useWebSocket } from '../utils/useWebSocket';
 import { useUsers } from '../utils/useUsers';
-import { useLanguage } from '../utils/useLanguage';
-import { CursorTracker } from './CursorTracker';
+import { useCursor } from '../utils/useCursor';
 
 interface Props {
+  roomId: string;
   language: string;
-  onCodeChange: (code: string) => void;
 }
 
-const Editor: React.FC<Props> = ({ language, onCodeChange }) => {
+const Editor: React.FC<Props> = ({ roomId, language }) => {
   const [code, setCode] = useState('');
-  const { users, addUser, removeUser } = useUsers();
-  const { language: currentLanguage } = useLanguage();
-  const { sendCode } = useWebSocket();
-  const { cursor } = useEditor();
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [users, setUsers] = useState({} as any);
+  const [cursors, setCursors] = useState({} as any);
+
+  const { sendCode, receiveCode } = useEditor(roomId);
+  const { joinRoom, leaveRoom } = useWebSocket(roomId);
+  const { users: userUsers } = useUsers(roomId);
+  const { cursors: cursorCursors } = useCursor(roomId);
 
   useEffect(() => {
-    if (currentLanguage === language) {
-      setCode(code);
-    }
-  }, [currentLanguage, language, code]);
+    joinRoom();
+  }, []);
+
+  useEffect(() => {
+    if (userUsers) setUsers(userUsers);
+  }, [userUsers]);
+
+  useEffect(() => {
+    if (cursorCursors) setCursors(cursorCursors);
+  }, [cursorCursors]);
 
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
-    onCodeChange(newCode);
     sendCode(newCode);
+ );
+
+  const handleCursorPositionChange = (newCursorPosition: number) => {
+    setCursorPosition(newCursorPosition);
   };
 
   return (
-    <div style={{
-      position: 'relative',
-      height: '100vh',
-      overflow: 'auto'
-    }}>
-      <CursorTracker cursor={cursor} user={users[0].name} />
+    <div>
       <textarea
         value={code}
         onChange={(e) => handleCodeChange(e.target.value)}
-        style={{
-          width: '100%',
-          height: '100%',
-          padding: 10,
-          fontSize: 14,
-          fontFamily: 'monospace'
-        }}
       />
+      <div>
+        {Object.keys(users).map((userId) => (
+          <CursorTracker
+            key={userId}
+            userId={userId}
+            cursorPosition={cursors[userId].position}
+            color={users[userId].color}
+          />
+        ))}
+      </div>
     </div>
   );
 }
