@@ -1,15 +1,15 @@
 {"import React from 'react';
 import { User } from './User';
 
-interface UserListProps {
+interface Props {
   users: User[];
 }
 
-const UserList = ({ users }: UserListProps) => {
+const UserList = ({ users }: Props) => {
   return (
     <div className="user-list">
       {users.map((user, index) => (
-        <div key={index} className="user">
+        <div key={index} className="user-item">
           <span className="username">{user.username}</span>
           <span className="color" style={{ backgroundColor: user.color }}></span>
         </div>
