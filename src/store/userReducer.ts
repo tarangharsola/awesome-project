@@ -1,15 +1,12 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { UserActions } from './userActions';
+import { UserAction } from './userActions';
 
-const initialState = {
-  users: [],
-  currentUser: null,
-};
-
-const userReducer = createReducer(initialState, {
-  [UserActions.addUser]: (state, action) => ({ ...state, users: [...state.users, action.payload] }),
-  [UserActions.removeUser]: (state, action) => ({ ...state, users: state.users.filter((user) => user.id !== action.payload.id) }),
-  [UserActions.setCurrentUser]: (state, action) => ({ ...state, currentUser: action.payload }),
+const userReducer = createReducer({
+  username: '',
+  color: '#ff0000'
+}, {
+  [UserAction.setUsername]: (state, action) => ({ ...state, username: action.payload }),
+  [UserAction.setColor]: (state, action) => ({ ...state, color: action.payload })
 });
 
 export default userReducer;

@@ -1,4 +1,3 @@
-const { test } = require('jest');
-test('basic test', () => {
-  expect(true).toBe(true);
-});
+const { execSync } = require('child_process');
+const testScript = 'jest';
+execSync(testScript, { stdio: 'inherit' });

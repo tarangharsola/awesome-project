@@ -1,14 +1,12 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { EditorActions } from './editorActions';
+import { EditorAction } from './editorActions';
 
-const initialState = {
+const editorReducer = createReducer({
   code: '',
-  language: 'javascript',
-};
-
-const editorReducer = createReducer(initialState, {
-  [EditorActions.setCode]: (state, action) => ({ ...state, code: action.payload }),
-  [EditorActions.setLanguage]: (state, action) => ({ ...state, language: action.payload }),
+  language: 'javascript'
+}, {
+  [EditorAction.setCode]: (state, action) => ({ ...state, code: action.payload }),
+  [EditorAction.setLanguage]: (state, action) => ({ ...state, language: action.payload })
 });
 
 export default editorReducer;
