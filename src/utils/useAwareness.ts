@@ -1,29 +1,32 @@
 {"import { useState, useEffect } from 'react';
-import { useUsers } from './useUsers';
+import { WebSocket } from 'ws';
 
 const useAwareness = () => {
   const [users, setUsers] = useState([]);
-  const usersHook = useUsers();
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const handleUserUpdate = (user) => {
-      setUsers((prevUsers) => {
-        const updatedUsers = [...prevUsers];
-        const index = updatedUsers.findIndex((u) => u.id === user.id);
-        if (index !== -1) {
-          updatedUsers[index] = user;
-        } else {
-          updatedUsers.push(user);
-        }
-        return updatedUsers;
-      });
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    usersHook.on('userUpdate', handleUserUpdate);
-    return () => usersHook.off('userUpdate', handleUserUpdate);
-  }, [usersHook]);
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u !== user));
+    };
 
-  return users;
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
+    ws.on('message', (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'userJoin') {
+        handleUserJoin(message.user);
+      } else if (message.type === 'userLeave') {
+        handleUserLeave(message.user);
+      }
+    });
+  }, []);
+
+  return { users, ws };
 };
 
 export default useAwareness;
