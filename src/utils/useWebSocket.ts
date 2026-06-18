@@ -1,41 +1,27 @@
 {"import { useState, useEffect } from 'react';
+import WebSocket from 'ws';
 
-interface Props {
-  roomId: string;
-}
+function useWebSocket(url) {
+  const [ws, setWs] = useState(null);
 
-const useWebSocket = ({ roomId }: Props) => {
-  const [connected, setConnected] = useState(false);
-
-  const joinRoom = () => {
-    const ws = new WebSocket(`ws://localhost:8080/${roomId}`);
-
-    ws.onopen = () => {
-      setConnected(true);
+  useEffect(() => {
+    const ws = new WebSocket(url);
+    setWs(ws);
+    ws.onmessage = (event) => {
+      // Handle incoming messages
     };
-
-    ws.onclose = () => {
-      setConnected(false);
-    };
-
     return () => {
       ws.close();
     };
+  }, []);
+
+  const sendMessage = (message) => {
+    if (ws) {
+      ws.send(message);
+    }
   };
 
-  const leaveRoom = () => {
-    const ws = new WebSocket(`ws://localhost:8080/${roomId}`);
-
-    ws.onclose = () => {
-      setConnected(false);
-    };
-
-    return () => {
-      ws.close();
-    };
-  };
-
-  return { joinRoom, leaveRoom };
+  return [ws, sendMessage];
 }
 
 export default useWebSocket;

@@ -1,1 +1,32 @@
-{"import React, { useState, useEffect } from 'react';\nimport WebSocket from 'ws';\n\nfunction WebSocket({ onCursorUpdate }) {\n  const [ws, setWs] = useState(null);\n  const [cursorPositions, setCursorPositions] = useState({});\n\n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8080');\n    setWs(ws);\n  }, []);\n\n  useEffect(() => {\n    if (ws) {\n      ws.onmessage = (event) => {\n        const data = JSON.parse(event.data);\n        if (data.type === 'cursorUpdate') {\n          onCursorUpdate(data.cursorPositions);\n        }\n      };\n    }\n  }, [ws]);\n\n  return null;\n}\n\nexport default WebSocket;
+{"import React, { useState, useEffect } from 'react';
+import WebSocket from 'ws';
+
+function WebSocket({ onMessage }) {
+  const [ws, setWs] = useState(null);
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
+    ws.onmessage = (event) => {
+      onMessage(event);
+    };
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const sendMessage = (message) => {
+    if (ws) {
+      ws.send(message);
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={() => sendMessage('updateUsers')}>Update Users</button>
+      <button onClick={() => sendMessage('updateEditorContent')}>Update Editor Content</button>
+    </div>
+  );
+}
+
+export default WebSocket;

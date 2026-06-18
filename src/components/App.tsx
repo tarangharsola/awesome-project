@@ -1,1 +1,57 @@
-{"import React from 'react';\nimport { useState, useEffect } from 'react';\n\nconst App = () => {\n  const [connectionStatus, setConnectionStatus] = useState('');\n  const [retryCount, setRetryCount] = useState(0);\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      // Simulate connection status updates\n      setConnectionStatus(Math.random() < 0.5 ? 'Connected' : 'Disconnected');\n    }, 1000);\n    return () => clearInterval(intervalId);\n  }, []);\n\n  const handleRetry = () => {\n    setRetryCount(retryCount + 1);\n  };\n\n  return (\n    <div>\n      <h1>Connection Status: {connectionStatus}</h1>\n      <button onClick={handleRetry}>Retry ({retryCount})</button>\n    </div>\n  );\n};\n\nexport default App;
+{"import React from 'react';
+import { useState, useEffect } from 'react';
+import Editor from './Editor';
+import WebSocket from './WebSocket';
+import UserList from './UserList';
+
+function App() {
+  const [users, setUsers] = useState([]);
+  const [editorContent, setEditorContent] = useState('');
+  const [language, setLanguage] = useState('javascript');
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'updateUsers') {
+        setUsers(data.users);
+      } else if (data.type === 'updateEditorContent') {
+        setEditorContent(data.content);
+      }
+    };
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const handleLanguageChange = (language) => {
+    setLanguage(language);
+  };
+
+  const handleUserJoin = (user) => {
+    setUsers([...users, user]);
+  };
+
+  const handleUserLeave = (user) => {
+    setUsers(users.filter((u) => u !== user));
+  };
+
+  return (
+    <div>
+      <h1>Collaborative Code Editor</h1>
+      <Editor content={editorContent} language={language} />
+      <WebSocket onMessage={(event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'updateUsers') {
+          setUsers(data.users);
+        } else if (data.type === 'updateEditorContent') {
+          setEditorContent(data.content);
+        }
+      }} />
+      <UserList users={users} onUserJoin={handleUserJoin} onUserLeave={handleUserLeave} />
+      <LanguageSelector language={language} onChange={handleLanguageChange} />
+    </div>
+  );
+}
+
+export default App;

@@ -1,61 +1,52 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from '../utils/useEditor';
-import { useWebSocket } from '../utils/useWebSocket';
-import { useUsers } from '../utils/useUsers';
-import { useCursor } from '../utils/useCursor';
+import { Editor as CodeMirror } from 'codemirror';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
 
-interface Props {
-  roomId: string;
-  language: string;
-}
-
-const Editor: React.FC<Props> = ({ roomId, language }) => {
-  const [code, setCode] = useState('');
-  const [cursorPosition, setCursorPosition] = useState(0);
-  const [users, setUsers] = useState({} as any);
-  const [cursors, setCursors] = useState({} as any);
-
-  const { sendCode, receiveCode } = useEditor(roomId);
-  const { joinRoom, leaveRoom } = useWebSocket(roomId);
-  const { users: userUsers } = useUsers(roomId);
-  const { cursors: cursorCursors } = useCursor(roomId);
+function Editor({ content, language }) {
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
+  const [editorContent, setEditorContent] = useState(content);
 
   useEffect(() => {
-    joinRoom();
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      foldGutter: true,
+      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+      hint: true,
+      extraKeys: {
+        'Ctrl-Space': 'autocomplete'
+      }
+    });
+    editor.on('cursorActivity', () => {
+      setCursorPosition(editor.getCursor());
+    });
+    return () => {
+      editor.toTextArea();
+    };
   }, []);
 
-  useEffect(() => {
-    if (userUsers) setUsers(userUsers);
-  }, [userUsers]);
-
-  useEffect(() => {
-    if (cursorCursors) setCursors(cursorCursors);
-  }, [cursorCursors]);
-
-  const handleCodeChange = (newCode: string) => {
-    setCode(newCode);
-    sendCode(newCode);
- );
-
-  const handleCursorPositionChange = (newCursorPosition: number) => {
-    setCursorPosition(newCursorPosition);
+  const handleEditorChange = (editor) => {
+    setEditorContent(editor.getValue());
   };
 
   return (
     <div>
-      <textarea
-        value={code}
-        onChange={(e) => handleCodeChange(e.target.value)}
-      />
+      <textarea id='editor' value={editorContent} onChange={handleEditorChange} />
       <div>
-        {Object.keys(users).map((userId) => (
-          <CursorTracker
-            key={userId}
-            userId={userId}
-            cursorPosition={cursors[userId].position}
-            color={users[userId].color}
-          />
-        ))}
+        <span>Line {cursorPosition.line + 1}, Column {cursorPosition.ch + 1}</span>
       </div>
     </div>
   );

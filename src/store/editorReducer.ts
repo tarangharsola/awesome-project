@@ -1,34 +1,23 @@
 {"import { createReducer } from 'redux';
 
-interface State {
-  code: string;
-  cursorPosition: number;
-}
-
-const initialState: State = {
-  code: '',
-  cursorPosition: 0,
+const initialState = {
+  content: '',
+  language: 'javascript'
 };
 
 const editorReducer = createReducer(initialState, {
-  SEND_CODE: (state, action) => {
+  UPDATE_EDITOR_CONTENT: (state, action) => {
     return {
       ...state,
-      code: action.payload,
+      content: action.content
     };
   },
-  RECEIVE_CODE: (state, action) => {
+  UPDATE_LANGUAGE: (state, action) => {
     return {
       ...state,
-      code: action.payload,
+      language: action.language
     };
-  },
-  UPDATE_CURSOR_POSITION: (state, action) => {
-    return {
-      ...state,
-      cursorPosition: action.payload,
-    };
-  },
+  }
 });
 
 export default editorReducer;
