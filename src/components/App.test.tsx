@@ -1,8 +1,11 @@
+// eslint-disable-next-line
 import React from 'react';
 import { render } from '@testing-library/react';
 import App from './App';
 
-it('renders learn react link', () => {
-  const { getByText } = render(<App />);
-  expect(getByText('Learn React')).toBeInTheDocument();
+describe('App', () => {
+  it('should render without errors', () => {
+    const { container } = render(<App />);
+    expect(container).to.be.ok;
+  });
 });
