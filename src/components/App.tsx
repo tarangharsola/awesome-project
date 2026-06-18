@@ -1,14 +1,1 @@
-{"import React from 'react';
-import { Provider } from 'react-redux';
-import store from './store/index';
-import Editor from './Editor';
-
-const App = () => {
-  return (
-    <Provider store={store}>
-      <Editor />
-    </Provider>
-  );
-};
-
-export default App;
+{"import React from 'react';\nimport { useState, useEffect } from 'react';\n\nconst App = () => {\n  const [connectionStatus, setConnectionStatus] = useState('');\n  const [retryCount, setRetryCount] = useState(0);\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      // Simulate connection status updates\n      setConnectionStatus(Math.random() < 0.5 ? 'Connected' : 'Disconnected');\n    }, 1000);\n    return () => clearInterval(intervalId);\n  }, []);\n\n  const handleRetry = () => {\n    setRetryCount(retryCount + 1);\n  };\n\n  return (\n    <div>\n      <h1>Connection Status: {connectionStatus}</h1>\n      <button onClick={handleRetry}>Retry ({retryCount})</button>\n    </div>\n  );\n};\n\nexport default App;
