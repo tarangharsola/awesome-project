@@ -1,11 +1,11 @@
 {"import React from 'react';
 import { User } from './User';
 
-interface Props {
+interface UserListProps {
   users: User[];
 }
 
-const UserList = ({ users }: Props) => {
+const UserList = ({ users }: UserListProps) => {
   return (
     <div className="user-list">
       {users.map((user, index) => (
@@ -16,6 +16,6 @@ const UserList = ({ users }: Props) => {
       ))}
     </div>
   );
-};
+}
 
 export default UserList;
