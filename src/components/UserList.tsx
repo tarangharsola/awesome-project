@@ -1,30 +1,14 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import { useUsers } from '../utils/useUsers';
+import User from './User';
 
-const UserList = () => {
-  const { users, addUser, removeUser } = useUsers();
-  const [activeUsers, setActiveUsers] = useState([]);
-
-  useEffect(() => {
-    setActiveUsers(users.filter((user) => user.isActive));
-  }, [users]);
-
+function UserList({ users }) {
   return (
-    <div className="active-users">
-      {activeUsers.map((user, index) => (
-        <div key={index} style={{
-          backgroundColor: user.color,
-          color: 'white',
-          padding: '5px',
-          borderRadius: '5px',
-          margin: '5px',
-        }}>
-          {user.name}
-        </div>
+    <div>
+      {users.map((user) => (
+        <User key={user.username} user={user} />
       ))}
     </div>
   );
-};
+}
 
 export default UserList;
