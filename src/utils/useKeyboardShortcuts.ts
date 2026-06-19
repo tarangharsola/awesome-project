@@ -1,13 +1,1 @@
-{"import { useState } from 'react';
-
-const useKeyboardShortcuts = () => {
-  const [shortcuts, setShortcuts] = useState({
-    'Ctrl+S': () => console.log('Save'),
-    'Ctrl+C': () => console.log('Copy'),
-    'Ctrl+V': () => console.log('Paste')
-  });
-
-  return shortcuts;
-};
-
-export default useKeyboardShortcuts;
+{"import { useState } from 'react';\n\ninterface Props {\n  language: string;\n}\n\nconst useKeyboardShortcuts = ({ language }: Props) => {\n  const [shortcuts, setShortcuts] = useState({\n    'Ctrl+S': 'Save',\n    'Ctrl+C': 'Copy',\n    'Ctrl+V': 'Paste',\n  });\n\n  const handleShortcutChange = (key: string, value: any) => {\n    setShortcuts((prevShortcuts) => ({ ...prevShortcuts, [key]: value }));\n  };\n\n  return { shortcuts, handleShortcutChange };\n};\n\nexport default useKeyboardShortcuts;
