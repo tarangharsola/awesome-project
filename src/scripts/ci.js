@@ -1,10 +1,9 @@
-// Import required modules
-const { execSync } = require('child_process');
+const childProcess = require('child_process');
+const fs = require('fs');
 
-// Define the build script
-module.exports = {
-  build: () => {
-    // Run the build command
-    execSync('npm run build');
+module.exports = function runTests() {
+  const testResults = childProcess.execSync('jest', { stdio: 'inherit' });
+  if (testResults.status !== 0) {
+    process.exit(1);
   }
 };
