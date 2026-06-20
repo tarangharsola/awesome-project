@@ -1,11 +1,1 @@
-{"import React from 'react';
-
-function User({ user }) {
-  return (
-    <div>
-      <span style={{ color: user.color }}>{user.username}</span>
-    </div>
-  );
-}
-
-export default User;
+{"import React from 'react';\nimport { User } from './User';\n\ninterface Props {\n  name: string;\n  color: string;\n}\n\nconst UserComponent: React.FC<Props> = ({ name, color }) => {\n  return (\n    <div style={{\n      backgroundColor: color,\n      color: '#fff',\n      padding: '4px 8px',\n      borderRadius: '4px',\n      display: 'inline-block',\n      marginRight: '8px',\n    }}\n    >\n      {name}\n    </div>\n  );\n};\n\nexport default UserComponent;
