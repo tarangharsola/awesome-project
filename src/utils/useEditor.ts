@@ -1,34 +1,19 @@
 {"import { useState, useEffect } from 'react';
 
 interface Props {
-  roomId: string;
+  language: string;
+  document: string;
 }
 
-const useEditor = ({ roomId }: Props) => {
-  const [code, setCode] = useState('');
-  const [cursorPosition, setCursorPosition] = useState(0);
+const useEditor = ({ language, document }: Props) => {
+  const [value, setValue] = useState(document);
+  const { send } = useWebSocket();
 
-  const sendCode = (newCode: string) => {
-    const ws = new WebSocket(`ws://localhost:8080/${roomId}`);
+  useEffect(() => {
+    send({ type: 'update', data: value });
+  }, [value]);
 
-    ws.send(JSON.stringify({ type: 'code', data: newCode }));
-
-    ws.onmessage = (event) => {
-      if (event.data.type === 'code') {
-        setCode(event.data.data);
-      }
-    };
-
-    return () => {
-      ws.close();
-    };
-  };
-
-  const receiveCode = (newCode: string) => {
-    setCode(newCode);
-  };
-
-  return { sendCode, receiveCode };
-}
+  return [value, setValue];
+};
 
 export default useEditor;

@@ -1,51 +1,39 @@
 {"import React, { useState, useEffect } from 'react';
-import CodeMirror from 'codemirror';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
+import { useEditor } from '../utils/useEditor';
+import { useWebSocket } from '../utils/useWebSocket';
+import { useUsers } from '../utils/useUsers';
+import { useCursor } from '../utils/useCursor';
 
-function Editor({ value, onChange, language }) {
-  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
+interface Props {
+  language: string;
+  document: string;
+}
+
+const Editor = ({ language, document }: Props) => {
+  const [value, setValue] = useState(document);
+  const { send } = useWebSocket();
+  const { users } = useUsers();
+  const { cursor } = useCursor();
 
   useEffect(() => {
-    const cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-      theme: 'monokai',
-      extraKeys: {
-        'Ctrl-Space': 'autocomplete'
-      }
-    });
-    cm.on('change', (instance, change) => {
-      onChange(instance.getValue());
-    });
-    return () => {
-      cm.toTextArea();
-    };
-  }, []);
-
-  const handleCursorChange = (position) => {
-    setCursorPosition(position);
-  };
+    send({ type: 'update', data: value });
+  }, [value]);
 
   return (
-    <div>
-      <textarea id='editor' value={value} onChange={(e) => onChange(e.target.value)} />
-      <div>
-        <button onClick={() => handleCursorChange({ line: 0, ch: 0 })}>Move cursor to start</button>
-        <button onClick={() => handleCursorChange({ line: 10, ch: 10 })}>Move cursor to middle</button>
-      </div>
+    <div style={{
+      padding: 10,
+      border: '1px solid #ccc',
+      width: '100%',
+      height: '100vh',
+    }}>
+      <pre style={{
+        padding: 10,
+        fontSize: 12,
+        backgroundColor: '#f0f0f0',
+      }}>{
+        value
+      }</pre>
+      <CursorTracker cursor={cursor} />
     </div>
   );
 }
