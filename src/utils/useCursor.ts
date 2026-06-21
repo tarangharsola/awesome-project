@@ -1,18 +1,15 @@
 {"import { useState, useEffect } from 'react';
 
-interface Props {
-  userId: string;
+interface CursorProps {
+  cursor: { x: number; y: number; }
 }
 
-const useCursor = ({ userId }: Props) => {
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const { send } = useWebSocket();
-
+const useCursor = (cursor: CursorProps) => {
+  const [cursorState, setCursorState] = useState({ x: 0, y: 0 } as { x: number; y: number; });
   useEffect(() => {
-    send({ type: 'cursor', data: { userId, x: cursor.x, y: cursor.y } });
+    setCursorState(cursor);
   }, [cursor]);
-
-  return [cursor, setCursor];
+  return cursorState;
 };
 
 export default useCursor;

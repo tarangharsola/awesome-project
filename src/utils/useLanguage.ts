@@ -1,19 +1,15 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
 
-interface Props {
+interface LanguageProps {
   language: string;
 }
 
-const useLanguage = ({ language }: Props) => {
-  const { sendLanguage } = useWebSocket();
-  const [currentLanguage, setCurrentLanguage] = useState(language);
-
+const useLanguage = (props: LanguageProps) => {
+  const [language, setLanguage] = useState(props.language);
   useEffect(() => {
-    sendLanguage(language);
-  }, [language]);
-
-  return { currentLanguage, language, sendLanguage };
+    setLanguage(props.language);
+  }, [props.language]);
+  return language;
 };
 
 export default useLanguage;

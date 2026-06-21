@@ -1,19 +1,32 @@
 {"import { useState, useEffect } from 'react';
 
-interface Props {
+interface EditorProps {
+  documentId: string;
   language: string;
-  document: string;
 }
 
-const useEditor = ({ language, document }: Props) => {
-  const [value, setValue] = useState(document);
+const useEditor = (props: EditorProps) => {
+  const [code, setCode] = useState('');
+  const [cursor, setCursor] = useState({ x: 0, y: 0 } as { x: number; y: number; });
   const { send } = useWebSocket();
 
   useEffect(() => {
-    send({ type: 'update', data: value });
-  }, [value]);
+    const handleUpdate = (data) => {
+      setCode(data.code);
+      setCursor(data.cursor);
+    };
+    send({ type: 'UPDATE', data: { code, cursor } });
+    return () => {
+      send({ type: 'DISCONNECT' });
+    };
+  }, []);
 
-  return [value, setValue];
+  const handleCodeChange = (newCode) => {
+    setCode(newCode);
+    // Update code in storage
+  };
+
+  return { code, cursor, handleCodeChange };
 };
 
 export default useEditor;

@@ -1,21 +1,19 @@
 {"import { useState, useEffect } from 'react';
 
-interface Props {
+interface WebSocketProps {
   url: string;
 }
 
-const useWebSocket = ({ url }: Props) => {
-  const [ws, setWs] = useState(null);
-
+const useWebSocket = (props: WebSocketProps) => {
+  const [socket, setSocket] = useState(null);
   useEffect(() => {
-    const ws = new WebSocket(url);
-    setWs(ws);
+    const ws = new WebSocket(props.url);
+    setSocket(ws);
     return () => {
       ws.close();
     };
   }, []);
-
-  return [ws, send];
+  return { send: (data) => socket.send(JSON.stringify(data)) };
 };
 
 export default useWebSocket;

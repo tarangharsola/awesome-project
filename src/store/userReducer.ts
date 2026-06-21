@@ -1,11 +1,12 @@
 {"import { createReducer } from 'redux';
 
-const initialState = [];
+interface UserState {
+  users: { [name: string]: { color: string } }
+}
 
-const userReducer = createReducer(initialState, {
-  UPDATE_USERS: (state, action) => {
-    return action.users;
-  }
+const userReducer = createReducer<UserState>({}, {
+  ADD_USER: (state, action) => ({ users: { ...state.users, [action.payload.name]: action.payload.user } }),
+  REMOVE_USER: (state, action) => ({ users: { ...state.users, [action.payload.name]: undefined } })
 });
 
 export default userReducer;
