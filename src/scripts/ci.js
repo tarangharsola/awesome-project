@@ -1,9 +1,8 @@
-const childProcess = require('child_process');
-const fs = require('fs');
+// This is a basic CI script to validate the app
+const { execSync } = require('child_process');
 
-module.exports = function runTests() {
-  const testResults = childProcess.execSync('jest', { stdio: 'inherit' });
-  if (testResults.status !== 0) {
-    process.exit(1);
-  }
+module.exports = function ci() {
+  // Run tests and build script
+  execSync('npm run test');
+  execSync('npm run build');
 };

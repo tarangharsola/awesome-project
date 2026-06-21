@@ -1,6 +1,7 @@
-const childProcess = require('child_process');
-const fs = require('fs');
+// This is a basic build script to validate the app
+const { build } = require('webpack');
 
-module.exports = function buildApp() {
-  childProcess.execSync('webpack', { stdio: 'inherit' });
+module.exports = function build() {
+  // Add build configurations here
+  return build();
 };
