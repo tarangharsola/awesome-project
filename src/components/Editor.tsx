@@ -1,52 +1,40 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
+import { Editor as CodeEditor } from 'react-simple-code-editor';
+import { highlight, languages } from 'prismjs';
 
-interface EditorProps {
-  documentId: string;
-  language: string;
-}
-
-const Editor = ({ documentId, language }) => {
-  const [code, setCode] = useState('');
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const { send } = useWebSocket();
-  const { updateCode } = useEditor();
+function Editor({ language, code, onChange }) {
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   useEffect(() => {
-    const handleUpdate = (data) => {
-      setCode(data.code);
-      setCursor(data.cursor);
-    };
-    send({ type: 'UPDATE', data: { code, cursor } });
+    const editor = new CodeEditor(document.getElementById('editor'));
+    editor.on('change', (code) => {
+      onChange(code);
+    });
     return () => {
-      send({ type: 'DISCONNECT' });
+      editor.destroy();
     };
   }, []);
 
-  const handleCodeChange = (newCode) => {
-    setCode(newCode);
-    updateCode(documentId, language, newCode);
+  const handleCursorPositionChange = (position) => {
+    setCursorPosition(position);
   };
 
   return (
-    <div style={{
-      width: '100%',
-      height: '100vh',
-      overflow: 'auto'
-    }}>
-      <textarea
+    <div>
+      <CodeEditor
+        id='editor'
         value={code}
-        onChange={(e) => handleCodeChange(e.target.value)}
+        onValueChange={onChange}
+        highlight={languages[language]}
+        padding={10}
         style={{
-          width: '100%',
-          height: '100%',
-          padding: 10,
           fontSize: 12,
-          fontFamily: 'monospace'
+          fontFamily: 'Menlo, Monaco, monospace,
         }}
       />
-      <CursorTracker cursor={cursor} user={{ name: 'John Doe', color: '#ff0000' }} />
+      <div>
+        <span>Cursor position: {cursorPosition}</span>
+      </div>
     </div>
   );
 }
