@@ -1,22 +1,35 @@
 {"import React from 'react';
 import { useState } from 'react';
-import { languages } from 'prismjs';
 
-function LanguageSelector({ language, onChange }) {
-  const [selectedLanguage, setSelectedLanguage] = useState(language);
+interface LanguageSelectorProps {
+  languages: string[];
+  selectedLanguage: string;
+  onSelect: (language: string) => void;
+}
 
-  const handleLanguageChange = (language) => {
-    setSelectedLanguage(language);
-    onChange(language);
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({ languages, selectedLanguage, onSelect }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = (language: string) => {
+    onSelect(language);
+    setIsOpen(false);
   };
 
   return (
-    <select value={selectedLanguage} onChange={(event) => handleLanguageChange(event.target.value)}>
-      {Object.keys(languages).map((language) => (
-        <option key={language} value={language}>{language}</option>
-      ))}
-    </select>
+    <div>
+      <button onClick={() => setIsOpen(true)}>Select Language</button>
+      {isOpen && (
+        <div>
+          {languages.map((language) => (
+            <button key={language} onClick={() => handleSelect(language)}>
+              {language}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
-}
 
+  return LanguageSelector;
+}
 export default LanguageSelector;
