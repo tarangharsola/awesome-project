@@ -1,7 +1,11 @@
-// This is a basic build script to validate the app
-const { build } = require('webpack');
+// eslint-disable-next-line
+import { build } from 'esbuild';
 
-module.exports = function build() {
-  // Add build configurations here
-  return build();
-};
+export default function build() {
+  return build({
+    entryPoints: ['src/index.tsx'],
+    outdir: 'public',
+    bundle: true,
+    minify: true,
+  });
+}

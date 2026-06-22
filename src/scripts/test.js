@@ -1,10 +1,10 @@
-// This is a basic test script to validate the app
-const { test } = require('tape');
+// eslint-disable-next-line
+import { test } from 'tape';
 
-module.exports = function test() {
-  // Add test cases here
-  test('Test case 1', (t) => {
-    t.pass('Test case 1 passed');
+export default function test() {
+  test('editor', t => {
+    const editor = new Editor();
+    t.ok(editor instanceof Editor);
     t.end();
   });
-};
+}
