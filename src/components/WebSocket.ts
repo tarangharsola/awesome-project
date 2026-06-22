@@ -7,7 +7,7 @@ const WebSocket = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      // Simulate connection status changes
+      // Simulate connection status updates
       const newStatus = Math.random() < 0.5 ? 'connected' : 'disconnected';
       setConnectionStatus(newStatus);
       if (newStatus === 'disconnected') {
