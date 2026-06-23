@@ -1,1 +1,6 @@
-{"scripts": {"test": "jest", "build": "npm run test && npm run build"}}
+...
+"scripts": {
+  "build": "webpack --mode production",
+  "test": "jest"
+},
+...
