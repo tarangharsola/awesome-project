@@ -679,3 +679,4 @@
 2026-06-23T10:09:03.762075+00:00 | Harden realtime collaboration: conflict handling, reconnection, and awareness consistency.
 2026-06-23T10:09:52.812517+00:00 | Improve editor UX: language switching, formatting defaults, and better keyboard shortcuts.
 2026-06-23T10:10:44.527763+00:00 | Add connection status indicator and retry/backoff behavior.
+2026-06-23T10:10:45.328122+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).

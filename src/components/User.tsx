@@ -1,24 +1,13 @@
 {"import React from 'react';
-import { useUsers } from './useUsers';
+import { useColor } from './useColor';
 
-interface UserProps {
-  user: { name: string; color: string }
-}
-
-const User = ({ user }) => {
-  const { name, color } = user;
+const User = ({ user, onClick }) => {
+  const color = useColor(user.id);
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      padding: 10,
-      backgroundColor: color,
-      borderRadius: 10,
-      border: '1px solid black'
-    }}>
-      {name}
+    <div className="user" style={{ backgroundColor: color }} onClick={onClick}>
+      <span>{user.name}</span>
     </div>
   );
-}
+};
 
 export default User;

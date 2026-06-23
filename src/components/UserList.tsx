@@ -1,21 +1,18 @@
 {"import React from 'react';
-import { useState } from 'react';
-import User from './User';
+import { User } from './User';
 
-function UserList({ users }) {
-  const [selectedUser, setSelectedUser] = useState(null);
-
-  const handleUserSelect = (user) => {
-    setSelectedUser(user);
-  };
-
+const UserList = ({ users, onUserClick }) => {
   return (
-    <div>
-      {users.map((user) => (
-        <User key={user.id} user={user} onSelect={handleUserSelect} />
+    <div className="user-list">
+      {users.map((user, index) => (
+        <User
+          key={user.id}
+          user={user}
+          onClick={() => onUserClick(user.id)}
+        />
       ))}
     </div>
   );
-}
+};
 
 export default UserList;
