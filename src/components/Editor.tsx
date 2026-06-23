@@ -1,40 +1,54 @@
 {"import React, { useState, useEffect } from 'react';
-import { Editor as CodeEditor } from 'react-simple-code-editor';
-import { highlight, languages } from 'prismjs';
+import { useEditor } from './useEditor';
+import { useWebSocket } from './useWebSocket';
+import { useUsers } from './useUsers';
+import { useCursor } from './useCursor';
+import CursorTracker from './CursorTracker';
 
-function Editor({ language, code, onChange }) {
-  const [cursorPosition, setCursorPosition] = useState(0);
+interface Props {
+  roomId: string;
+  initialCode: string;
+}
+
+const Editor = ({ roomId, initialCode }: Props) => {
+  const [code, setCode] = useState(initialCode);
+  const { sendOperation } = useWebSocket(roomId);
+  const { users } = useUsers(roomId);
+  const { cursorPosition, cursorColor } = useCursor(roomId);
 
   useEffect(() => {
-    const editor = new CodeEditor(document.getElementById('editor'));
-    editor.on('change', (code) => {
-      onChange(code);
-    });
-    return () => {
-      editor.destroy();
+    const handleCodeChange = (newCode: string) => {
+      setCode(newCode);
     };
-  }, []);
-
-  const handleCursorPositionChange = (position) => {
-    setCursorPosition(position);
-  };
+    sendOperation({ type: 'UPDATE_CODE', code: newCode });
+  }, [code, sendOperation]);
 
   return (
-    <div>
-      <CodeEditor
-        id='editor'
-        value={code}
-        onValueChange={onChange}
-        highlight={languages[language]}
-        padding={10}
-        style={{
-          fontSize: 12,
-          fontFamily: 'Menlo, Monaco, monospace,
-        }}
-      />
-      <div>
-        <span>Cursor position: {cursorPosition}</span>
+    <div style={{
+      position: 'relative',
+      height: '100vh',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        padding: 10,
+        backgroundColor: '#f0f0f0',
+        fontSize: 14,
+        fontFamily: 'monospace',
+        overflow: 'auto',
+      }}>
+        <pre style={{
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+        }}>{code}</pre>
       </div>
+      {users.map((user, index) => (
+        <CursorTracker key={index} userId={user.id} cursorPosition={user.cursorPosition} />
+      ))}
     </div>
   );
 }
