@@ -7,6 +7,11 @@ interface KeyboardShortcuts {
 const useKeyboardShortcuts = () => {
   const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
 
-  return shortcuts;
+  const updateShortcuts = (newShortcuts: { [key: string]: string }) => {
+    setShortcuts({ shortcuts: newShortcuts });
+  };
+
+  return { shortcuts, updateShortcuts };
 }
+
 export default useKeyboardShortcuts;

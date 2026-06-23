@@ -8,6 +8,11 @@ interface FormattingDefaults {
 const useFormattingDefaults = () => {
   const [defaults, setDefaults] = useState<FormattingDefaults>({ tabSize: 2, indentSize: 2 });
 
-  return defaults;
+  const updateDefaults = (newDefaults: FormattingDefaults) => {
+    setDefaults(newDefaults);
+  };
+
+  return { defaults, updateDefaults };
 }
+
 export default useFormattingDefaults;
