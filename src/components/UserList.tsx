@@ -1,15 +1,15 @@
 {"import React from 'react';
-import { User } from './User';
+import User from './User';
 
-const UserList = ({ users, onUserClick }) => {
+interface UserListProps {
+  users: { name: string; color: string }[];
+}
+
+const UserList = ({ users }: UserListProps) => {
   return (
-    <div className="user-list">
+    <div>
       {users.map((user, index) => (
-        <User
-          key={user.id}
-          user={user}
-          onClick={() => onUserClick(user.id)}
-        />
+        <User key={index} name={user.name} color={user.color} />
       ))}
     </div>
   );

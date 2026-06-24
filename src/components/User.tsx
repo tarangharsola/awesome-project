@@ -1,12 +1,22 @@
 {"import React from 'react';
-import { useColor } from './useColor';
+import { useTheme } from '@mui/material/styles';
 
-const User = ({ user, onClick }) => {
-  const color = useColor(user.id);
+interface UserProps {
+  name: string;
+  color: string;
+}
+
+const User = ({ name, color }: UserProps) => {
+  const theme = useTheme();
+  const styles = {
+    backgroundColor: color,
+    color: theme.palette.text.primary,
+    padding: theme.spacing(0.5),
+    borderRadius: theme.shape.borderRadius,
+  };
+
   return (
-    <div className="user" style={{ backgroundColor: color }} onClick={onClick}>
-      <span>{user.name}</span>
-    </div>
+    <div style={styles}>{name}</div>
   );
 };
 
