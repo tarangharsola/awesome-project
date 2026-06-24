@@ -1,48 +1,21 @@
 {"import { useState, useEffect } from 'react';
 import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
 
 const useConflictResolver = () => {
-  const [editorState, setEditorState] = useState({}
-  const { editor } = useEditor();
-  const { socket } = useWebSocket();
+  const [conflicts, setConflicts] = useState([]);
+  const editor = useEditor();
 
   useEffect(() => {
-    const handleEditorChange = (delta) => {
-      const { ops } = delta;
-      const resolvedOps = resolveConflicts(ops);
-      setEditorState((prev) => ({ ...prev, ...resolvedOps }));
+    const handleConflict = (conflict) => {
+      setConflicts((prevConflicts) => [...prevConflicts, conflict]);
     };
 
-    editor.on('change', handleEditorChange);
+    editor.on('conflict', handleConflict);
 
-    return () => {
-      editor.off('change', handleEditorChange);
-    };
-  }, []);
+    return () => editor.off('conflict', handleConflict);
+  }, [editor]);
 
-  useEffect(() => {
-    const handleSocketMessage = (message) => {
-      if (message.type === 'update') {
-        const { ops } = message.data;
-        const resolvedOps = resolveConflicts(ops);
-        setEditorState((prev) => ({ ...prev, ...resolvedOps }));
-      }
-    };
-
-    socket.on('message', handleSocketMessage);
-
-    return () => {
-      socket.off('message', handleSocketMessage);
-    };
-  }, []);
-
-  return editorState;
-};
-
-const resolveConflicts = (ops) => {
-  // Implement conflict resolution logic here
-  return ops;
+  return conflicts;
 };
 
 export default useConflictResolver;
