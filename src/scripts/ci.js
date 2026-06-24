@@ -1,4 +1,10 @@
-// This script will be executed by CI to validate the app
+// Import required modules
 const { execSync } = require('child_process');
-const buildScript = require('./build.js');
-execSync(buildScript);
+
+// Run tests and build script
+module.exports = function() {
+  console.log('Running tests...');
+  execSync('jest');
+  console.log('Building script...');
+  execSync('npm run build');
+};

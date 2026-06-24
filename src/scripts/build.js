@@ -1,11 +1,8 @@
-// eslint-disable-next-line
-import { build } from 'esbuild';
+// Import required modules
+const { build } = require('webpack');
 
-export default function build() {
-  return build({
-    entryPoints: ['src/index.tsx'],
-    outdir: 'public',
-    bundle: true,
-    minify: true,
-  });
-}
+// Build script
+module.exports = function() {
+  console.log('Building script...');
+  build();
+};

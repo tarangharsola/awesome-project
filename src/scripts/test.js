@@ -1,5 +1,8 @@
-// This script will run tests for the app
-const { test } = require('jest');
-test('Editor functionality', () => {
-  // Test editor functionality here
+// Import required modules
+const { test, expect } = require('jest');
+
+// Test App component
+test('renders App component', () => {
+  const { getByText } = render(<App />);
+  expect(getByText('Collaborative Code Editor')).toBeInTheDocument();
 });
