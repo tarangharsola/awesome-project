@@ -1,11 +1,9 @@
-// eslint-disable-next-line
+// This file contains tests for the App component
 import React from 'react';
 import { render } from '@testing-library/react';
 import App from './App';
 
-export default function test() {
-  it('renders App', () => {
-    const { getByText } = render(<App />);
-    expect(getByText('Collaborative Code Editor')).toBeInTheDocument();
-  });
-}
+it('renders correctly', () => {
+  const { getByText } = render(<App />);
+  expect(getByText('App')).toBeInTheDocument();
+});

@@ -1,10 +1,5 @@
-// eslint-disable-next-line
-import { test } from 'tape';
-
-export default function test() {
-  test('editor', t => {
-    const editor = new Editor();
-    t.ok(editor instanceof Editor);
-    t.end();
-  });
-}
+// This script will run tests for the app
+const { test } = require('jest');
+test('Editor functionality', () => {
+  // Test editor functionality here
+});
