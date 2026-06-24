@@ -1,17 +1,32 @@
 {"import { useState } from 'react';
 
 interface KeyboardShortcuts {
-  shortcuts: { [key: string]: string };
+  indent: string;
+  outdent: string;
+  toggleBold: string;
 }
 
 const useKeyboardShortcuts = () => {
-  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
+  const [keyboardShortcuts, setKeyboardShortcuts] = useState<KeyboardShortcuts>({ indent: 'tab', outdent: 'shift+tab', toggleBold: 'ctrl+b' });
 
-  const updateShortcuts = (newShortcuts: { [key: string]: string }) => {
-    setShortcuts({ shortcuts: newShortcuts });
+  const handleIndentChange = (indent: string) => {
+    setKeyboardShortcuts({ ...keyboardShortcuts, indent });
   };
 
-  return { shortcuts, updateShortcuts };
-}
+  const handleOutdentChange = (outdent: string) => {
+    setKeyboardShortcuts({ ...keyboardShortcuts, outdent });
+  };
+
+  const handleToggleBoldChange = (toggleBold: string) => {
+    setKeyboardShortcuts({ ...keyboardShortcuts, toggleBold });
+  };
+
+  return {
+    keyboardShortcuts,
+    handleIndentChange,
+    handleOutdentChange,
+    handleToggleBoldChange
+  };
+};
 
 export default useKeyboardShortcuts;
