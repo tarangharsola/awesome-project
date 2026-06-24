@@ -1,54 +1,46 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useWebSocket } from './useWebSocket';
-import { useUsers } from './useUsers';
-import { useCursor } from './useCursor';
-import CursorTracker from './CursorTracker';
+import { useEditor } from '../utils/useEditor';
+import { useWebSocket } from '../utils/useWebSocket';
+import { useUsers } from '../utils/useUsers';
 
 interface Props {
-  roomId: string;
-  initialCode: string;
+  language: string;
+  onChanges: (changes: { user: string; changes: string[] }) => void;
 }
 
-const Editor = ({ roomId, initialCode }: Props) => {
-  const [code, setCode] = useState(initialCode);
-  const { sendOperation } = useWebSocket(roomId);
-  const { users } = useUsers(roomId);
-  const { cursorPosition, cursorColor } = useCursor(roomId);
+const Editor = ({ language, onChanges }) => {
+  const [code, setCode] = useState('');
+  const [users, setUsers] = useState([]);
+  const { sendChanges } = useWebSocket();
+  const { users: connectedUsers } = useUsers();
 
   useEffect(() => {
-    const handleCodeChange = (newCode: string) => {
-      setCode(newCode);
+    const handleChanges = (changes) => {
+      onChanges(changes);
     };
-    sendOperation({ type: 'UPDATE_CODE', code: newCode });
-  }, [code, sendOperation]);
+
+    sendChanges(handleChanges);
+    return () => {
+      sendChanges(null);
+    };
+  }, [sendChanges]);
+
+  const handleCodeChange = (newCode) => {
+    setCode(newCode);
+    sendChanges({ user: 'self', changes: [newCode] });
+  };
 
   return (
-    <div style={{
-      position: 'relative',
-      height: '100vh',
-      overflow: 'hidden',
-    }}>
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        padding: 10,
-        backgroundColor: '#f0f0f0',
-        fontSize: 14,
-        fontFamily: 'monospace',
-        overflow: 'auto',
-      }}>
-        <pre style={{
-          whiteSpace: 'pre-wrap',
-          wordWrap: 'break-word',
-        }}>{code}</pre>
+    <div>
+      <textarea
+        value={code}
+        onChange={(e) => handleCodeChange(e.target.value)}
+      />
+      <div>
+        {users.map((user) => (
+          <div key={user.id}>{user.name}</div>
+        ))}
       </div>
-      {users.map((user, index) => (
-        <CursorTracker key={index} userId={user.id} cursorPosition={user.cursorPosition} />
-      ))}
     </div>
   );
 }

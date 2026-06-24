@@ -1,31 +1,24 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
 
 interface Props {
-  roomId: string;
+  userId: string;
+  cursor: { x: number; y: number; }
 }
 
-const useCursor = ({ roomId }: Props) => {
-  const { users } = useWebSocket(roomId);
-  const [cursorPosition, setCursorPosition] = useState(0);
-  const [cursorColor, setCursorColor] = useState('#000000');
+const useCursor = ({ userId, cursor }) => {
+  const [cursorPosition, setCursorPosition] = useState(cursor);
 
   useEffect(() => {
-    const handleUserUpdate = (user: any) => {
-      if (user.cursorPosition !== undefined) {
-        setCursorPosition(user.cursorPosition);
-      }
-      if (user.cursorColor !== undefined) {
-        setCursorColor(user.cursorColor);
-      }
+    const handleCursorChange = (newCursor) => {
+      setCursorPosition(newCursor);
     };
-    users.forEach(handleUserUpdate);
-  }, [users]);
 
-  return {
-    cursorPosition,
-    cursorColor,
-  };
+    return () => {
+      // Clean up
+    };
+  }, []);
+
+  return cursorPosition;
 };
 
 export default useCursor;
