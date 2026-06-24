@@ -1,49 +1,20 @@
 {"import { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import { io } from 'socket.io-client';
 
-interface Props {
-  roomId: string;
-}
-
-const useWebSocket = ({ roomId }: Props) => {
-  const [ws, setWs] = useState<WebSocket | null>(null);
-  const [users, setUsers] = useState([]);
+const useWebSocket = () => {
+  const [connection, setConnection] = useState(null);
+  const [send, setSend] = useState(null);
+  const [close, setClose] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://localhost:8080/${roomId}`);
-    setWs(ws);
-
-    ws.onmessage = (event) => {
-      const operation = JSON.parse(event.data);
-      switch (operation.type) {
-        case 'UPDATE_CODE':
-          setCode(operation.code);
-          break;
-        case 'JOIN':
-          setUsers((prevUsers) => [...prevUsers, operation.user]);
-          break;
-        case 'LEAVE':
-          setUsers((prevUsers) => prevUsers.filter((user) => user.id !== operation.userId));
-          break;
-        default:
-          break;
-      }
-    };
-
-    return () => {
-      ws.close();
-    };
+    const socket = io('ws://localhost:3001');
+    setConnection(socket);
+    setSend(socket.emit);
+    setClose(socket.close);
+    return () => socket.disconnect();
   }, []);
 
-  return {
-    ws,
-    users,
-    sendOperation: (operation: any) => {
-      if (ws !== null) {
-        ws.send(JSON.stringify(operation));
-      }
-    },
-  };
+  return { connection, send, close };
 };
 
 export default useWebSocket;
