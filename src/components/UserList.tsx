@@ -1,18 +1,1 @@
-{"import React from 'react';
-import User from './User';
-
-interface UserListProps {
-  users: { name: string; color: string }[];
-}
-
-const UserList = ({ users }: UserListProps) => {
-  return (
-    <div>
-      {users.map((user, index) => (
-        <User key={index} name={user.name} color={user.color} />
-      ))}
-    </div>
-  );
-};
-
-export default UserList;
+{"import React from 'react';\nimport User from './User';\n\ninterface UserListProps {\n  users: { name: string; color: string }[];\n}\n\nconst UserList = ({ users }: UserListProps) => {\n  return (\n    <div\n      style={{\n        display: 'flex',\n        flexDirection: 'column',\n        padding: '1rem',\n        backgroundColor: '#333',\n        color: '#fff',\n      }}\n    >\n      {users.map((user, index) => (\n        <User key={index} name={user.name} color={user.color} />\n      ))}\n    </div>\n  );\n};\n\nexport default UserList;
