@@ -1,8 +1,9 @@
-// Import required modules
-const { test, expect } = require('jest');
+// eslint-disable-next-line
+import { test } from 'jest';
 
-// Test App component
-test('renders App component', () => {
-  const { getByText } = render(<App />);
-  expect(getByText('Collaborative Code Editor')).toBeInTheDocument();
-});
+export default function test() {
+  test('editor renders', () => {
+    const editor = document.getElementById('editor');
+    expect(editor).toBeInTheDocument();
+  });
+}
