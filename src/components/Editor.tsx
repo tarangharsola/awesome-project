@@ -1,45 +1,87 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from '../utils/useEditor';
-import { useWebSocket } from '../utils/useWebSocket';
-import { useUsers } from '../utils/useUsers';
+import { Editor as CodeMirror } from 'codemirror';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
 
-interface Props {
-  language: string;
-  onChanges: (changes: { user: string; changes: string[] }) => void;
-}
-
-const Editor = ({ language, onChanges }) => {
-  const [code, setCode] = useState('');
+function Editor({ language, code, onChange }) {
+  const [cursor, setCursor] = useState({ line: 0, ch: 0 });
   const [users, setUsers] = useState([]);
-  const { sendChanges } = useWebSocket();
-  const { users: connectedUsers } = useUsers();
 
   useEffect(() => {
-    const handleChanges = (changes) => {
-      onChanges(changes);
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'cursor') {
+        setCursor(data.cursor);
+      }
+      if (data.type === 'users') {
+        setUsers(data.users);
+      }
     };
+    return () => ws.close();
+  }, []);
 
-    sendChanges(handleChanges);
-    return () => {
-      sendChanges(null);
-    };
-  }, [sendChanges]);
+  const handleCodeChange = (code) => {
+    onChange(code);
+  };
 
-  const handleCodeChange = (newCode) => {
-    setCode(newCode);
-    sendChanges({ user: 'self', changes: [newCode] });
+  const handleCursorChange = (cursor) => {
+    setCursor(cursor);
   };
 
   return (
     <div>
-      <textarea
+      <CodeMirror
         value={code}
-        onChange={(e) => handleCodeChange(e.target.value)}
+        onChange={handleCodeChange}
+        options={{
+          mode: language,
+          lineNumbers: true,
+          foldGutter: true,
+          gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+          extraKeys: {
+            'Ctrl-Space': 'autocomplete',
+          },
+        }}
       />
       <div>
-        {users.map((user) => (
-          <div key={user.id}>{user.name}</div>
+        {users.map((user, index) => (
+          <span key={index} style={{
+            backgroundColor: user.color,
+            padding: '2px 4px',
+            borderRadius: '4px',
+            fontSize: '12px',
+          }}>{user.name}</span>
         ))}
+      </div>
+      <div>
+        <span style={{
+          backgroundColor: cursor.color,
+          padding: '2px 4px',
+          borderRadius: '4px',
+          fontSize: '12px',
+        }}>{cursor.name}</span>
+        <span style={{
+          position: 'absolute',
+          top: cursor.line * 20 + 10,
+          left: cursor.ch * 20 + 10,
+          backgroundColor: cursor.color,
+          padding: '2px 4px',
+          borderRadius: '4px',
+          fontSize: '12px',
+        }}>■</span>
       </div>
     </div>
   );

@@ -1,24 +1,21 @@
 {"import { useState, useEffect } from 'react';
+import { WebSocket } from 'ws';
 
-interface Props {
-  userId: string;
-  cursor: { x: number; y: number; }
-}
-
-const useCursor = ({ userId, cursor }) => {
-  const [cursorPosition, setCursorPosition] = useState(cursor);
+function useCursor() {
+  const [cursor, setCursor] = useState({ line: 0, ch: 0 });
 
   useEffect(() => {
-    const handleCursorChange = (newCursor) => {
-      setCursorPosition(newCursor);
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'cursor') {
+        setCursor(data.cursor);
+      }
     };
-
-    return () => {
-      // Clean up
-    };
+    return () => ws.close();
   }, []);
 
-  return cursorPosition;
-};
+  return cursor;
+}
 
 export default useCursor;

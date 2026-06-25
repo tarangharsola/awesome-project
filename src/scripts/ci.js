@@ -1,8 +1,10 @@
-// eslint-disable-next-line
-import { execSync } from 'child_process';
+{"import { build } from 'esbuild';
 
-export default function ci() {
-  const build = execSync('npm run build', { stdio: 'inherit' });
-  const test = execSync('npm run test', { stdio: 'inherit' });
-  console.log('Build and test successful');
+build({
+  entryPoints: ['src/index.tsx'],
+  outdir: 'public',
+  bundle: true,
+  minify: true,
+  sourcemap: true,
+});
 }

@@ -1,32 +1,23 @@
-{"import { useState } from 'react';
+{"import { useState, useEffect } from 'react';
+import { WebSocket } from 'ws';
 
-interface KeyboardShortcuts {
-  indent: string;
-  outdent: string;
-  toggleBold: string;
+function useKeyboardShortcuts() {
+  const [shortcuts, setShortcuts] = useState({
+    'Ctrl-Space': 'autocomplete',
+  });
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'shortcuts') {
+        setShortcuts(data.shortcuts);
+      }
+    };
+    return () => ws.close();
+  }, []);
+
+  return shortcuts;
 }
-
-const useKeyboardShortcuts = () => {
-  const [keyboardShortcuts, setKeyboardShortcuts] = useState<KeyboardShortcuts>({ indent: 'tab', outdent: 'shift+tab', toggleBold: 'ctrl+b' });
-
-  const handleIndentChange = (indent: string) => {
-    setKeyboardShortcuts({ ...keyboardShortcuts, indent });
-  };
-
-  const handleOutdentChange = (outdent: string) => {
-    setKeyboardShortcuts({ ...keyboardShortcuts, outdent });
-  };
-
-  const handleToggleBoldChange = (toggleBold: string) => {
-    setKeyboardShortcuts({ ...keyboardShortcuts, toggleBold });
-  };
-
-  return {
-    keyboardShortcuts,
-    handleIndentChange,
-    handleOutdentChange,
-    handleToggleBoldChange
-  };
-};
 
 export default useKeyboardShortcuts;

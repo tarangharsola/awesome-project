@@ -1,28 +1,21 @@
 {"import { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import { WebSocket } from 'ws';
 
-interface Props {
-  onUsersUpdate: (users: { id: string; name: string; color: string }[]) => void;
-}
-
-const useUsers = ({ onUsersUpdate }) => {
+function useUsers() {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
-
     ws.onmessage = (event) => {
-      const usersUpdate = JSON.parse(event.data);
-      setUsers(usersUpdate);
-      onUsersUpdate(usersUpdate);
+      const data = JSON.parse(event.data);
+      if (data.type === 'users') {
+        setUsers(data.users);
+      }
     };
-
-    return () => {
-      ws.close();
-    };
+    return () => ws.close();
   }, []);
 
   return users;
-};
+}
 
 export default useUsers;

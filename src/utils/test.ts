@@ -1,8 +1,7 @@
-import { Editor } from './Editor';
+{"import { test } from 'jest';
 
-describe('Editor', () => {
-  it('should render editor', () => {
-    const editor = new Editor();
-    expect(editor).toBeTruthy();
-  });
+test('editor works', () => {
+  const editor = new Editor();
+  expect(editor.getValue()).toBe('');
 });
+}

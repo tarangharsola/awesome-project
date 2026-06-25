@@ -1,9 +1,7 @@
-// eslint-disable-next-line
-import { test } from 'jest';
+{"import { test } from 'jest';
 
-export default function test() {
-  test('editor renders', () => {
-    const editor = document.getElementById('editor');
-    expect(editor).toBeInTheDocument();
-  });
+test('editor works', () => {
+  const editor = new Editor();
+  expect(editor.getValue()).toBe('');
+});
 }

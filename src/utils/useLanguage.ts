@@ -1,15 +1,21 @@
 {"import { useState, useEffect } from 'react';
+import { languages } from 'codemirror';
 
-interface LanguageProps {
-  language: string;
-}
+function useLanguage() {
+  const [language, setLanguage] = useState('javascript');
 
-const useLanguage = (props: LanguageProps) => {
-  const [language, setLanguage] = useState(props.language);
   useEffect(() => {
-    setLanguage(props.language);
-  }, [props.language]);
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'language') {
+        setLanguage(data.language);
+      }
+    };
+    return () => ws.close();
+  }, []);
+
   return language;
-};
+}
 
 export default useLanguage;

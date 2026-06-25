@@ -1,31 +1,21 @@
-{"import React from 'react';
-import { useState } from 'react';
+{"import React, { useState } from 'react';
+import { languages } from 'codemirror';
 
-interface Language {
-  name: string;
-  syntax: string;
-}
+function LanguageSelector({ language, onChange }) {
+  const [selectedLanguage, setSelectedLanguage] = useState(language);
 
-const languages: Language[] = [
-  { name: 'JavaScript', syntax: 'javascript' },
-  { name: 'Python', syntax: 'python' },
-  { name: 'HTML', syntax: 'html' }
-];
-
-const LanguageSelector: React.FC = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
-
-  const handleLanguageChange = (language: Language) => {
+  const handleLanguageChange = (language) => {
     setSelectedLanguage(language);
+    onChange(language);
   };
 
   return (
-    <select value={selectedLanguage.name} onChange={(e) => handleLanguageChange(languages.find((lang) => lang.name === e.target.value))}>
-      {languages.map((language) => (
-        <option key={language.name} value={language.name}>{language.name}</option>
+    <select value={selectedLanguage} onChange={(event) => handleLanguageChange(event.target.value)}>
+      {languages.map((language, index) => (
+        <option key={index} value={language}>{language}</option>
       ))}
     </select>
   );
-};
+}
 
 export default LanguageSelector;

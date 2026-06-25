@@ -1,8 +1,10 @@
-// Import required modules
-const { build } = require('webpack');
+{"import { build } from 'esbuild';
 
-// Build script
-module.exports = function() {
-  console.log('Building script...');
-  build();
-};
+build({
+  entryPoints: ['src/index.tsx'],
+  outdir: 'public',
+  bundle: true,
+  minify: true,
+  sourcemap: true,
+});
+}

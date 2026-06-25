@@ -1,15 +1,8 @@
-{"interface User {
-  id: string;
-  name: string;
-  color: string;
-}
+{"import { combineReducers } from 'redux';
+import { usersReducer } from './usersReducer';
 
-interface UsersState {
-  users: User[];
-}
+const rootReducer = combineReducers({
+  users: usersReducer,
+});
 
-const initialState: UsersState = {
-  users: [],
-};
-
-export default initialState;
+export default rootReducer;
