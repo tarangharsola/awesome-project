@@ -1,24 +1,29 @@
 {"import { useState, useEffect } from 'react';
-import { format } from 'prettier';
 
-function useFormattingDefaults() {
-  const [defaults, setDefaults] = useState({
-    tabSize: 2,
-    useTabs: false,
-  });
-
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'defaults') {
-        setDefaults(data.defaults);
-      }
-    };
-    return () => ws.close();
-  }, []);
-
-  return defaults;
+interface FormattingDefaults {
+  tabSize: number;
+  indentSize: number;
 }
 
+interface UseFormattingDefaultsProps {
+  defaults: FormattingDefaults;
+}
+
+const useFormattingDefaults = ({ defaults }: UseFormattingDefaultsProps) => {
+  const [tabSize, setTabSize] = useState(defaults.tabSize);
+  const [indentSize, setIndentSize] = useState(defaults.indentSize);
+
+  useEffect(() => {
+    const handleDefaultsChange = (defaults: FormattingDefaults) => {
+      setTabSize(defaults.tabSize);
+      setIndentSize(defaults.indentSize);
+    };
+
+    return () => {
+      // Clean up
+    };
+  }, []);
+
+  return { tabSize, indentSize, setTabSize, setIndentSize };
+}
 export default useFormattingDefaults;
