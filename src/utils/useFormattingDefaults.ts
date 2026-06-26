@@ -5,25 +5,20 @@ interface FormattingDefaults {
   indentSize: number;
 }
 
-interface UseFormattingDefaultsProps {
-  defaults: FormattingDefaults;
-}
-
-const useFormattingDefaults = ({ defaults }: UseFormattingDefaultsProps) => {
-  const [tabSize, setTabSize] = useState(defaults.tabSize);
-  const [indentSize, setIndentSize] = useState(defaults.indentSize);
+const useFormattingDefaults = (): FormattingDefaults => {
+  const [defaults, setDefaults] = useState<FormattingDefaults>({ tabSize: 2, indentSize: 2 });
 
   useEffect(() => {
-    const handleDefaultsChange = (defaults: FormattingDefaults) => {
-      setTabSize(defaults.tabSize);
-      setIndentSize(defaults.indentSize);
-    };
-
-    return () => {
-      // Clean up
-    };
+    const storedDefaults = localStorage.getItem('formattingDefaults');
+    if (storedDefaults) {
+      setDefaults(JSON.parse(storedDefaults));
+    }
   }, []);
 
-  return { tabSize, indentSize, setTabSize, setIndentSize };
+  useEffect(() => {
+    localStorage.setItem('formattingDefaults', JSON.stringify(defaults));
+  }, [defaults]);
+
+  return defaults;
 }
 export default useFormattingDefaults;

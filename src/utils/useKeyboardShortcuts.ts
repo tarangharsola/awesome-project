@@ -4,23 +4,20 @@ interface KeyboardShortcuts {
   shortcuts: { [key: string]: string };
 }
 
-interface UseKeyboardShortcutsProps {
-  shortcuts: KeyboardShortcuts;
-}
-
-const useKeyboardShortcuts = ({ shortcuts }: UseKeyboardShortcutsProps) => {
-  const [activeShortcut, setActiveShortcut] = useState(null);
+const useKeyboardShortcuts = (): KeyboardShortcuts => {
+  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
 
   useEffect(() => {
-    const handleShortcutChange = (shortcut: string) => {
-      setActiveShortcut(shortcut);
-    };
-
-    return () => {
-      // Clean up
-    };
+    const storedShortcuts = localStorage.getItem('keyboardShortcuts');
+    if (storedShortcuts) {
+      setShortcuts(JSON.parse(storedShortcuts));
+    }
   }, []);
 
-  return { activeShortcut, setActiveShortcut };
+  useEffect(() => {
+    localStorage.setItem('keyboardShortcuts', JSON.stringify(shortcuts));
+  }, [shortcuts]);
+
+  return shortcuts;
 }
 export default useKeyboardShortcuts;
