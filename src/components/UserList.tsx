@@ -1,14 +1,12 @@
 {"import React from 'react';
 import User from './User';
 
-function UserList({ users }) {
+const UserList = ({ users }) => {
   return (
     <div>
-      {users.map((user, index) => (
-        <User key={index} user={user} />
+      {users.map(user => (
+        <User key={user.id} name={user.name} color={user.color} />
       ))}
     </div>
   );
-}
-
-export default UserList;
+}; export default UserList;

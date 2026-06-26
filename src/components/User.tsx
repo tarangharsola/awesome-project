@@ -1,17 +1,19 @@
 {"import React from 'react';
-import { useState } from 'react';
+import { styled } from 'styled-components';
 
-function User({ user }) {
-  const [color, setColor] = useState(user.color);
-
+const User = ({ name, color }) => {
   return (
-    <span style={{
-      backgroundColor: color,
-      padding: '2px 4px',
-      borderRadius: '4px',
-      fontSize: '12px',
-    }}>{user.name}</span>
+    <StyledUser color={color}>{name}</StyledUser>
   );
-}
+};
 
-export default User;
+const StyledUser = styled.div`
+  background-color: ${props => props.color};
+  border-radius: 50%;
+  color: #fff;
+  display: inline-block;
+  font-size: 12px;
+  margin: 2px;
+  padding: 4px;
+  text-align: center;
+`; export default User;
