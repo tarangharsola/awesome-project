@@ -1,6 +1,7 @@
 ...
 "scripts": {
-  "build": "webpack --mode production",
-  "test": "jest"
+  "build": "node scripts/build.js",
+  "test": "node scripts/test.js",
+  "ci": "node scripts/ci.js"
 },
 ...
