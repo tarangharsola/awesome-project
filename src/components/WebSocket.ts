@@ -1,25 +1,37 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
 const WebSocket = () => {
-  const [connected, setConnected] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
   const [retryCount, setRetryCount] = useState(0);
+  const { send, close } = useWebSocket('ws://localhost:8080');
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (!connected) {
+    const interval = setInterval(() => {
+      if (connectionStatus === 'connecting' && retryCount < 3) {
         setRetryCount(retryCount + 1);
+        setConnectionStatus('retrying');
+      } else if (connectionStatus === 'retrying' && retryCount >= 3) {
+        setConnectionStatus('connected');
       }
-    }, 5000);
-    return () => clearInterval(intervalId);
-  }, [connected, retryCount]);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [connectionStatus, retryCount]);
+
+  const handleConnectionStatus = (status) => {
+    setConnectionStatus(status);
+  };
+
+  const handleRetry = () => {
+    setRetryCount(0);
+    setConnectionStatus('retrying');
+  };
 
   return (
     <div>
-      <p>Connection Status: {connected ? 'Connected' : 'Disconnected'}</p>
-      <p>Retry Count: {retryCount}</p>
+      <p>Connection Status: {connectionStatus}</p>
+      <button onClick={handleRetry}>Retry</button>
     </div>
   );
 };
-
 export default WebSocket;
