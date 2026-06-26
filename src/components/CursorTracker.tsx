@@ -1,19 +1,23 @@
 {"import React from 'react';
-import { styled } from 'styled-components';
+import { useCursor } from '../utils/useCursor';
 
-const CursorTracker = ({ cursor }) => {
+interface Props {
+  cursor: { x: number; y: number; }
+}
+
+const CursorTracker = ({ cursor }: Props) => {
+  const { color, name } = useCursor();
   return (
-    <StyledCursor color={cursor.color}>{cursor.name}</StyledCursor>
+    <div style={{
+      position: 'absolute',
+      left: cursor.x,
+      top: cursor.y,
+      width: 2,
+      height: 20,
+      backgroundColor: color,
+      zIndex: 1
+    }}/>
   );
-};
+}
 
-const StyledCursor = styled.div`
-  background-color: ${props => props.color};
-  border-radius: 50%;
-  color: #fff;
-  display: inline-block;
-  font-size: 12px;
-  margin: 2px;
-  padding: 4px;
-  text-align: center;
-`; export default CursorTracker;
+export default CursorTracker;
