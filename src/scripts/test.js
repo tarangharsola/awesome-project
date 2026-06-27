@@ -1,13 +1,8 @@
-const { spawnSync } = require('child_process');
-const { execSync } = require('child_process');
+const { test } = require('tape');
+const App = require('./App');
 
-module.exports = function test() {
-  const testCommand = 'jest';
-
-  try {
-    spawnSync(testCommand, { shell: true });
-    console.log('Tests successful');
-  } catch (error) {
-    console.error('Tests failed:', error);
-  }
-};
+test('App renders correctly', function(t) {
+  const app = new App();
+  t.ok(app.render(), 'App renders correctly');
+  t.end();
+});
