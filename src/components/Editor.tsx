@@ -1,59 +1,27 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from '../utils/useEditor';
-import { useWebSocket } from '../utils/useWebSocket';
-import { useUsers } from '../utils/useUsers';
-import { useCursor } from '../utils/useCursor';
+import { EditorState, ContentState } from 'draft-js';
+import 'draft-js/dist/draft.min.css';
 
-interface Props {
-  language: string;
-}
-
-const Editor = ({ language }: Props) => {
-  const [code, setCode] = useState('');
-  const { send, receive } = useWebSocket();
-  const { users } = useUsers();
-  const { cursor } = useCursor();
-  const { language: lang } = useLanguage();
+function Editor({ users, cursorPositions }) {
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const [cursorPosition, setCursorPosition] = useState({});
 
   useEffect(() => {
-    if (lang === language) {
-      setCode(receive);
+    const cursorPosition = cursorPositions[users[0].id];
+    if (cursorPosition) {
+      setCursorPosition(cursorPosition);
     }
-  }, [lang, language, receive]);
+  }, [users, cursorPositions]);
 
-  const handleCodeChange = (newCode: string) => {
-    setCode(newCode);
-    send(newCode);
-  }
+  const handleEditorChange = (editorState) => {
+    setEditorState(editorState);
+  };
 
   return (
-    <div style={{
-      position: 'relative',
-      height: 500,
-      overflow: 'auto'
-    }}>
-      <div style={{
-        position: 'absolute',
-        left: cursor.x,
-        top: cursor.y,
-        width: 2,
-        height: 20,
-        backgroundColor: cursor.color,
-        zIndex: 1
-      }}/>
-      <textarea
-        value={code}
-        onChange={(e) => handleCodeChange(e.target.value)}
-        style={{
-          width: '100%',
-          height: '100%',
-          padding: 10,
-          fontSize: 12,
-          fontFamily: 'monospace'
-        }}
-      />
+    <div>
+      <EditorState editorState={editorState} onEditorChange={handleEditorChange} />
+      <div style={{ position: 'absolute', top: cursorPosition.top, left: cursorPosition.left, backgroundColor: users[0].color, width: 2, height: 2 }} />
     </div>
   );
 }
-
 export default Editor;
