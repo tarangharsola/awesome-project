@@ -1,19 +1,36 @@
 {"import React from 'react';
-import { styled } from 'styled-components';
+import { useTheme } from '@mui/material/styles';
 
-const User = ({ name, color }) => {
+interface UserProps {
+  name: string;
+  color: string;
+}
+
+const User = ({ name, color }: UserProps) => {
+  const theme = useTheme();
+  const backgroundColor = theme.palette.background.default;
+  const textColor = theme.palette.text.primary;
+
   return (
-    <StyledUser color={color}>{name}</StyledUser>
+    <div style={{
+      backgroundColor: backgroundColor,
+      color: textColor,
+      padding: '8px',
+      borderRadius: '4px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+    }}>
+      <span style={{
+        fontSize: '14px',
+        fontWeight: 'bold',
+      }}>{name}</span>
+      <span style={{
+        fontSize: '14px',
+        color: color,
+      }}>&#x25A1;</span>
+    </div>
   );
-};
+}
 
-const StyledUser = styled.div`
-  background-color: ${props => props.color};
-  border-radius: 50%;
-  color: #fff;
-  display: inline-block;
-  font-size: 12px;
-  margin: 2px;
-  padding: 4px;
-  text-align: center;
-`; export default User;
+export default User;
