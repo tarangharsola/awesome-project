@@ -1,29 +1,28 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+import { useWebSocket } from './useWebSocket';
+
+interface Awareness {
+  updateAwareness: (awareness: any) => void;
+}
 
 const useAwareness = () => {
-  const [users, setUsers] = useState([]);
-  const [cursorPositions, setCursorPositions] = useState({});
+  const { send } = useWebSocket();
+  const [awareness, setAwareness] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
+    const handleAwareness = (awareness: any) => {
+      setAwareness((prevAwareness) => ({ ...prevAwareness, ...awareness }));
+    };
 
-    ws.on('message', (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'userJoin') {
-        setUsers((prevUsers) => [...prevUsers, data.user]);
-      } else if (data.type === 'userLeave') {
-        setUsers((prevUsers) => prevUsers.filter((user) => user.id !== data.userId));
-      } else if (data.type === 'cursorPosition') {
-        setCursorPositions((prevPositions) => {
-          const newPosition = { ...prevPositions, [data.userId]: data.position };
-          return newPosition;
-        });
-      }
-    });
+    send({ type: 'UPDATE_AWARENESS', payload: handleAwareness });
   }, []);
 
-  return { users, cursorPositions };
+  const updateAwareness = (awareness: any) => {
+    setAwareness((prevAwareness) => ({ ...prevAwareness, ...awareness }));
+    send({ type: 'UPDATE_AWARENESS', payload: awareness });
+  };
+
+  return { updateAwareness, awareness };
 };
 
 export default useAwareness;

@@ -1,17 +1,31 @@
 {"import { useState, useEffect } from 'react';
-import { OperationalTransformation } from 'operational-transformation';
+import { useWebSocket } from './useWebSocket';
+
+interface ConflictResolver {
+  resolveConflict: (conflict: any) => void;
+}
 
 const useConflictResolver = () => {
-  const [conflict, setConflict] = useState(null);
-  const [resolved, setResolved] = useState(false);
+  const { send } = useWebSocket();
+  const [conflicts, setConflicts] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    const ot = new OperationalTransformation();
-    ot.on('conflict', (conflict) => setConflict(conflict));
-    ot.on('resolved', () => setResolved(true));
+    const handleConflict = (conflict: any) => {
+      setConflicts((prevConflicts) => ({ ...prevConflicts, [conflict.id]: conflict }));
+    };
+
+    send({ type: 'RESOLVE_CONFLICT', payload: handleConflict });
   }, []);
 
-  return { conflict, resolved };
+  const resolveConflict = (conflict: any) => {
+    setConflicts((prevConflicts) => {
+      delete prevConflicts[conflict.id];
+      return prevConflicts;
+    });
+    send({ type: 'RESOLVE_CONFLICT', payload: conflict });
+  };
+
+  return { resolveConflict, conflicts };
 };
 
 export default useConflictResolver;
