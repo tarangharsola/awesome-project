@@ -1,8 +1,8 @@
+// This is a basic CI script to validate the app
 const { execSync } = require('child_process');
-const buildScript = require('./build.js');
 
 module.exports = function ci() {
-  console.log('Running CI script...');
-  buildScript();
-  console.log('CI script complete.');
+  // Run tests and build script
+  execSync('npm run test');
+  execSync('npm run build');
 };
