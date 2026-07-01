@@ -1,31 +1,27 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
-
-interface ConflictResolver {
-  resolveConflict: (conflict: any) => void;
-}
+import { useEditor } from './useEditor';
+import { useUsers } from './useUsers';
 
 const useConflictResolver = () => {
-  const { send } = useWebSocket();
-  const [conflicts, setConflicts] = useState<Record<string, any>>({});
+  const [editorState, setEditorState] = useState({});
+  const { editor } = useEditor();
+  const { users } = useUsers();
 
   useEffect(() => {
-    const handleConflict = (conflict: any) => {
-      setConflicts((prevConflicts) => ({ ...prevConflicts, [conflict.id]: conflict }));
+    const handleEditorChange = (newState) => {
+      // Handle conflicts by merging user changes
+      const mergedState = mergeConflicts(editorState, newState);
+      setEditorState(mergedState);
     };
 
-    send({ type: 'RESOLVE_CONFLICT', payload: handleConflict });
-  }, []);
+    editor.on('change', handleEditorChange);
 
-  const resolveConflict = (conflict: any) => {
-    setConflicts((prevConflicts) => {
-      delete prevConflicts[conflict.id];
-      return prevConflicts;
-    });
-    send({ type: 'RESOLVE_CONFLICT', payload: conflict });
-  };
+    return () => {
+      editor.off('change', handleEditorChange);
+    };
+  }, [editorState, editor]);
 
-  return { resolveConflict, conflicts };
+  return [editorState, setEditorState];
 };
 
 export default useConflictResolver;

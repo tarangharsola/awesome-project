@@ -1,28 +1,28 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
-
-interface Awareness {
-  updateAwareness: (awareness: any) => void;
-}
+import { useUsers } from './useUsers';
 
 const useAwareness = () => {
-  const { send } = useWebSocket();
-  const [awareness, setAwareness] = useState<Record<string, any>>({});
+  const [awareness, setAwareness] = useState({});
+  const { users } = useUsers();
 
   useEffect(() => {
-    const handleAwareness = (awareness: any) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, ...awareness }));
+    const handleUserUpdate = (newUser) => {
+      // Update awareness state with new user information
+      const updatedAwareness = {
+        ...awareness,
+        [newUser.id]: newUser,
+      };
+      setAwareness(updatedAwareness);
     };
 
-    send({ type: 'UPDATE_AWARENESS', payload: handleAwareness });
-  }, []);
+    users.on('update', handleUserUpdate);
 
-  const updateAwareness = (awareness: any) => {
-    setAwareness((prevAwareness) => ({ ...prevAwareness, ...awareness }));
-    send({ type: 'UPDATE_AWARENESS', payload: awareness });
-  };
+    return () => {
+      users.off('update', handleUserUpdate);
+    };
+  }, [awareness, users]);
 
-  return { updateAwareness, awareness };
+  return awareness;
 };
 
 export default useAwareness;
