@@ -1,14 +1,18 @@
 {"import { useState } from 'react';
 
-interface Props {
-  language: string;
-  defaults: { [key: string]: any };
+interface FormattingDefaults {
+  tabSize: number;
+  indentSize: number;
 }
 
-const useFormattingDefaults = ({ language, defaults }: Props) => {
-  const [formattedDefaults, setFormattedDefaults] = useState(defaults);
+const useFormattingDefaults = () => {
+  const [defaults, setDefaults] = useState<FormattingDefaults>({ tabSize: 2, indentSize: 2 });
 
-  return [formattedDefaults, setFormattedDefaults];
-};
+  const updateDefaults = (newDefaults: FormattingDefaults) => {
+    setDefaults(newDefaults);
+  };
+
+  return { defaults, updateDefaults };
+}
 
 export default useFormattingDefaults;
