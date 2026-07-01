@@ -1,22 +1,12 @@
-{"import { combineReducers } from 'redux';
-import { User } from './user';
+{"import { createReducer } from 'redux';
+import { UserAction } from './types';
 
-const userReducer = combineReducers({
-  users: (state = [], action) => {
-    switch (action.type) {
-      case 'USERS_UPDATED':
-        return action.users;
-      default:
-        return state;
-    }
-  },
-  user: (state = null, action) => {
-    switch (action.type) {
-      case 'USER_UPDATED':
-        return action.user;
-      default:
-        return state;
-    }
+const userReducer = createReducer(
+  {},
+  {
+    [UserAction.JOIN]: (state, action) => ({ users: [...state.users, action.payload] }),
+    [UserAction.LEAVE]: (state, action) => ({ users: state.users.filter((user) => user !== action.payload) }),
   }
-});
+);
+
 export default userReducer;

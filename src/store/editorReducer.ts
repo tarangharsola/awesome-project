@@ -1,22 +1,11 @@
-{"import { combineReducers } from 'redux';
-import { EditorState } from 'draft-js';
+{"import { createReducer } from 'redux';
+import { EditorAction } from './types';
 
-const editorReducer = combineReducers({
-  editorState: (state = EditorState.createEmpty(), action) => {
-    switch (action.type) {
-      case 'EDITOR_STATE_CHANGED':
-        return action.editorState;
-      default:
-        return state;
-    }
-  },
-  cursorPosition: (state = {}, action) => {
-    switch (action.type) {
-      case 'CURSOR_POSITION_CHANGED':
-        return action.cursorPosition;
-      default:
-        return state;
-    }
+const editorReducer = createReducer(
+  {},
+  {
+    [EditorAction.CHANGE_CODE]: (state, action) => ({ code: action.payload }),
   }
-});
+);
+
 export default editorReducer;

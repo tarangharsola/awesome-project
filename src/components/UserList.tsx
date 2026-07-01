@@ -1,35 +1,37 @@
 {"import React from 'react';
-import User from './User';
+import { useState, useEffect } from 'react';
+import { WebSocket } from 'ws';
 
-interface UserListProps {
-  users: { name: string; color: string }[];
-}
+const UserList = ({ users }) => {
+  const [ws, setWs] = useState(new WebSocket('ws://localhost:8080'));
 
-const UserList = ({ users }: UserListProps) => {
+  useEffect(() => {
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'users') {
+        setUsers(data.users);
+      }
+    };
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const handleUserJoin = (user) => {
+    console.log(`User ${user} joined`);
+  };
+
+  const handleUserLeave = (user) => {
+    console.log(`User ${user} left`);
+  };
+
   return (
-    <div style={{
-      padding: '16px',
-      backgroundColor: '#333',
-      color: '#fff',
-    }}>
-      <h2 style={{
-        marginBottom: '8px',
-      }}>Active Users:</h2>
-      <ul style={{
-        listStyle: 'none',
-        padding: '0',
-        margin: '0',
-      }}>
-        {users.map((user, index) => (
-          <li key={index} style={{
-            marginBottom: '8px',
-          }}>
-            <User name={user.name} color={user.color} />
-          </li>
-        ))}
-      </ul>
+    <div>
+      {users.map((user) => (
+        <div key={user}>{user}</div>
+      ))}
     </div>
   );
-}
+};
 
 export default UserList;
