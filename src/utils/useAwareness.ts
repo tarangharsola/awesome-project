@@ -1,28 +1,24 @@
 {"import { useState, useEffect } from 'react';
-import { useUsers } from './useUsers';
+import { WebSocket } from 'ws';
+
+interface Awareness {
+  updateAwareness: (users: { id: string; name: string }[]) => void;
+}
 
 const useAwareness = () => {
-  const [awareness, setAwareness] = useState({});
-  const { users } = useUsers();
+  const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
+  const [ws, setWs] = useState<WebSocket | null>(null);
 
   useEffect(() => {
-    const handleUserUpdate = (newUser) => {
-      // Update awareness state with new user information
-      const updatedAwareness = {
-        ...awareness,
-        [newUser.id]: newUser,
-      };
-      setAwareness(updatedAwareness);
+    const updateAwareness = (users: { id: string; name: string }[]) => {
+      setUsers(users);
     };
-
-    users.on('update', handleUserUpdate);
-
-    return () => {
-      users.off('update', handleUserUpdate);
+    ws?.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      updateAwareness(data.users);
     };
-  }, [awareness, users]);
+  }, [ws, users]);
 
-  return awareness;
+  return { updateAwareness, users };
 };
-
 export default useAwareness;

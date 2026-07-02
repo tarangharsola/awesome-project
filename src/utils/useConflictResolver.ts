@@ -1,27 +1,24 @@
 {"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useUsers } from './useUsers';
+import { EditorState, EditorChange } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+
+interface ConflictResolver {
+  resolveConflict: (state: EditorState, change: EditorChange) => EditorState;
+}
 
 const useConflictResolver = () => {
-  const [editorState, setEditorState] = useState({});
-  const { editor } = useEditor();
-  const { users } = useUsers();
+  const [state, setState] = useState(EditorState.create());
+  const [change, setChange] = useState(EditorChange.create());
+  const view = new EditorView(state, { dispatchTransaction: (transaction) => {} });
 
   useEffect(() => {
-    const handleEditorChange = (newState) => {
-      // Handle conflicts by merging user changes
-      const mergedState = mergeConflicts(editorState, newState);
-      setEditorState(mergedState);
+    const resolveConflict = (state: EditorState, change: EditorChange) => {
+      // Implement conflict resolution logic here
+      return state; // Return the resolved state
     };
+    setState(resolveConflict(state, change));
+  }, [state, change]);
 
-    editor.on('change', handleEditorChange);
-
-    return () => {
-      editor.off('change', handleEditorChange);
-    };
-  }, [editorState, editor]);
-
-  return [editorState, setEditorState];
+  return { state, change, view };
 };
-
 export default useConflictResolver;
