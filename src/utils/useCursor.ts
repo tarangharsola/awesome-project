@@ -1,25 +1,26 @@
 {"import { useState, useEffect } from 'react';
 
 interface Props {
-  users: { id: string; name: string; color: string }[];
+  userId: string;
 }
 
-const useCursor = ({ users }: Props) => {
+const useCursor = ({ userId }) => {
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const [color, setColor] = useState('');
+  const [color, setColor] = useState(`#${Math.floor(Math.random() * 16777215).toString(16)}`);
+  const [name, setName] = useState('');
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      const user = users.find((user) => user.id === 'current');
-      if (user) {
-        setCursor({ x: user.x, y: user.y });
-        setColor(user.color);
+    const handleReceive = (data) => {
+      if (data.type === 'cursor') {
+        setCursor(data.cursor);
       }
-    }, 100);
-    return () => clearInterval(intervalId);
-  }, [users]);
+    };
+    return () => {
+      // cleanup
+    };
+  }, []);
 
-  return { cursor, color };
-}
+  return { color, name, cursor };
+};
 
 export default useCursor;
