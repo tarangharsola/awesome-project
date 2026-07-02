@@ -14,5 +14,4 @@ const useFormattingDefaults = () => {
 
   return { defaults, updateDefaults };
 }
-
 export default useFormattingDefaults;
