@@ -13,12 +13,12 @@ const User = ({ name, color }: UserProps) => {
 
   return (
     <div style={{
-      backgroundColor,
+      backgroundColor: backgroundColor,
       color: textColor,
-      padding: '4px 8px',
-      borderRadius: '4px',
+      padding: '5px',
+      borderRadius: '5px',
       display: 'inline-block',
-      marginRight: '8px',
+      marginRight: '10px',
     }}>
       {name}
     </div>
