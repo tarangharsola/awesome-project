@@ -718,3 +718,4 @@
 2026-07-01T13:33:56.658835+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
 2026-07-02T09:44:09.000379+00:00 | Harden realtime collaboration: conflict handling, reconnection, and awareness consistency.
 2026-07-02T09:44:57.037266+00:00 | Improve editor UX: language switching, formatting defaults, and better keyboard shortcuts.
+2026-07-02T09:45:49.040405+00:00 | Add connection status indicator and retry/backoff behavior.
