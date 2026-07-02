@@ -1,10 +1,10 @@
-// This is a basic test file for the App component
+// eslint-disable-next-line
 import React from 'react';
 import { render } from '@testing-library/react';
+import App from './App';
 
-describe('App', () => {
-  it('renders correctly', () => {
-    const { getByText } = render(<App />);
-    expect(getByText('Hello World')).toBeInTheDocument();
-  });
+test('renders learn react link', () => {
+  const { getByText } = render(<App />);
+  const linkElement = getByText(/learn react/i);
+  expect(linkElement).toBeInTheDocument();
 });

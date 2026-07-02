@@ -1,7 +1,9 @@
-// This is a basic build script to compile the app
-const { execSync } = require('child_process');
+// eslint-disable-next-line
+import { execSync } from 'child_process';
 
-module.exports = function build() {
-  // Run build tasks here
-  execSync('webpack');
-};
+export default function build() {
+  console.log('Building application...');
+  const buildResults = execSync('webpack', { stdio: 'inherit' });
+  console.log('Build completed.');
+  process.exit(buildResults.status);
+}
