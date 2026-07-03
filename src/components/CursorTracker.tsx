@@ -1,25 +1,32 @@
 {"import React from 'react';
-import { useCursor } from '../utils/useCursor';
+import { useTheme } from '@mui/material/styles';
 
-interface Props {
-  cursor: { x: number; y: number; }
+interface CursorTrackerProps {
+  name: string;
+  color: string;
+  x: number;
+  y: number;
 }
 
-const CursorTracker = ({ cursor }) => {
-  const { color, name } = useCursor();
+const CursorTracker = ({ name, color, x, y }: CursorTrackerProps) => {
+  const theme = useTheme();
+  const textColor = theme.palette.text.primary;
+  const backgroundColor = color;
+
   return (
     <div style={{
       position: 'absolute',
-      left: cursor.x,
-      top: cursor.y,
-      width: 2,
-      height: 2,
-      backgroundColor: color,
-      borderRadius: '50%',
+      left: x,
+      top: y,
+      backgroundColor,
+      color: textColor,
+      padding: '4px 8px',
+      borderRadius: '4px',
+      display: 'inline-block',
     }}>
       {name}
     </div>
   );
-};
+}
 
 export default CursorTracker;
