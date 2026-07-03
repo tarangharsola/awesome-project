@@ -1,24 +1,23 @@
 {"import { useState, useEffect } from 'react';
-import { EditorState, EditorChange } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-
-interface ConflictResolver {
-  resolveConflict: (state: EditorState, change: EditorChange) => EditorState;
-}
+import { useEditor } from './useEditor';
 
 const useConflictResolver = () => {
-  const [state, setState] = useState(EditorState.create());
-  const [change, setChange] = useState(EditorChange.create());
-  const view = new EditorView(state, { dispatchTransaction: (transaction) => {} });
+  const [conflicts, setConflicts] = useState([]);
+  const editor = useEditor();
 
   useEffect(() => {
-    const resolveConflict = (state: EditorState, change: EditorChange) => {
-      // Implement conflict resolution logic here
-      return state; // Return the resolved state
+    const handleConflict = (conflict) => {
+      setConflicts((prevConflicts) => [...prevConflicts, conflict]);
     };
-    setState(resolveConflict(state, change));
-  }, [state, change]);
 
-  return { state, change, view };
+    editor.on('conflict', handleConflict);
+
+    return () => {
+      editor.off('conflict', handleConflict);
+    };
+  }, [editor]);
+
+  return conflicts;
 };
+
 export default useConflictResolver;
