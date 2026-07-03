@@ -1,26 +1,18 @@
 {"import { useState, useEffect } from 'react';
 
-interface Props {
-  userId: string;
+interface CursorState {
+  x: number;
+  y: number;
 }
 
-const useCursor = ({ userId }) => {
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const [color, setColor] = useState(`#${Math.floor(Math.random() * 16777215).toString(16)}`);
-  const [name, setName] = useState('');
+const useCursor = () => {
+  const [cursor, setCursor] = useState<CursorState>({ x: 0, y: 0 });
 
   useEffect(() => {
-    const handleReceive = (data) => {
-      if (data.type === 'cursor') {
-        setCursor(data.cursor);
-      }
-    };
-    return () => {
-      // cleanup
-    };
+    // implement cursor tracking logic here
   }, []);
 
-  return { color, name, cursor };
-};
+  return cursor;
+}
 
 export default useCursor;
