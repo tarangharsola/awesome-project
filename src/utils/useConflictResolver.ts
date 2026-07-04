@@ -20,4 +20,4 @@ const useConflictResolver = () => {
   return conflicts;
 };
 
-export default useConflictResolver;
+export default useConflictResolver;"
