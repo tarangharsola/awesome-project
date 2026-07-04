@@ -1,28 +1,25 @@
 {"import React from 'react';
 import { useTheme } from '@mui/material/styles';
 
-interface UserProps {
-  name: string;
+interface Props {
+  username: string;
   color: string;
 }
 
-const User = ({ name, color }: UserProps) => {
+const User = ({ username, color }: Props) => {
   const theme = useTheme();
-  const textColor = theme.palette.text.primary;
-  const backgroundColor = color;
+  const styles = {
+    backgroundColor: color,
+    color: theme.palette.text.primary,
+    padding: '4px 8px',
+    borderRadius: '4px',
+    display: 'inline-block',
+    marginRight: '8px',
+  };
 
   return (
-    <div style={{
-      backgroundColor,
-      color: textColor,
-      padding: '4px 8px',
-      borderRadius: '4px',
-      display: 'inline-block',
-      marginRight: '8px',
-    }}>
-      {name}
-    </div>
+    <div style={styles}>{username}</div>
   );
-}
+};
 
 export default User;
