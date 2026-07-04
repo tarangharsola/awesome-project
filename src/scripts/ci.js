@@ -1,11 +1,9 @@
-const { spawnSync } = require('child_process');
-const { test } = require('ava');
+// eslint-disable-next-line
+import { execSync } from 'child_process';
 
-const build = spawnSync('npm', ['run', 'build']);
-if (build.status !== 0) {
-  process.exit(build.status);
+export default function ci() {
+  console.log('Running tests...');
+  const testResults = execSync('jest', { stdio: 'inherit' });
+  console.log('Tests completed.');
+  return testResults;
 }
-
-test('build script runs without errors', t => {
-  t.pass();
-});
