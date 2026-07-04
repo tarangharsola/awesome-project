@@ -1,22 +1,22 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
 import WebSocket from 'ws';
 
-function WebSocket({ socket }) {
-  const [message, setMessage] = useState('');
+function WebSocket({ ws }) {
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    socket.onmessage = (event) => {
-      setMessage(event.data);
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      setMessages((prevMessages) => [...prevMessages, event.data]);
     };
-    return () => {
-      socket.close();
-    };
+    return () => ws.close();
   }, []);
 
   return (
     <div>
-      <span>Message: {message}</span>
+      {messages.map((message, index) => (
+        <div key={index}>{message}</div>
+      ))}
     </div>
   );
 }

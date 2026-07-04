@@ -1,48 +1,51 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from '../utils/useEditor';
-import { useWebSocket } from '../utils/useWebSocket';
+import { Editor as CodeMirror } from 'codemirror';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
 
-interface Props {
-  language: string;
-}
-
-const Editor = ({ language }) => {
-  const [code, setCode] = useState('');
-  const { send, receive } = useWebSocket();
-  const { cursor, users } = useEditor();
+function Editor({ code, language, onChange }) {
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
 
   useEffect(() => {
-    const handleReceive = (data) => {
-      setCode(data.code);
-    };
-    receive(handleReceive);
-    return () => {
-      receive(null);
-    };
-  }, []);
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      foldGutter: true,
+      extraKeys: {
+        'Ctrl-Space': 'autocomplete'
+      }
+    });
+    editor.on('change', (instance, change) => {
+      onChange(instance.getValue());
+    });
+    return () => editor.toTextArea();
+  }, [language, onChange]);
 
-  const handleCodeChange = (newCode) => {
-    setCode(newCode);
-    send({ type: 'code', code: newCode });
+  const handleCursorChange = (newCursorPosition) => {
+    setCursorPosition(newCursorPosition);
   };
 
   return (
-    <div style={{
-      position: 'relative',
-      width: '100%',
-      height: '100vh',
-      overflow: 'auto',
-    }}>
-      <pre style={{
-        padding: 10,
-        fontSize: 12,
-        backgroundColor: '#f0f0f0',
-        border: '1px solid #ccc',
-      }}>{code}</pre>
-      <CursorTracker cursor={cursor} />
-      <UserList users={users} />
+    <div>
+      <textarea id='editor' value={code} onChange={(e) => onChange(e.target.value)} />
+      <div>
+        <span>Cursor position: {cursorPosition.line},{cursorPosition.ch}</span>
+        <button onClick={() => handleCursorChange({ line: 10, ch: 20 })}>Move cursor</button>
+      </div>
     </div>
   );
-};
+}
 
 export default Editor;
