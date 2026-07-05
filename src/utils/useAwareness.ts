@@ -6,18 +6,29 @@ const useAwareness = () => {
   const users = useUsers();
 
   useEffect(() => {
-    const handleUserUpdate = (user) => {
+    const handleUserJoin = (user) => {
       setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
     };
 
-    users.on('update', handleUserUpdate);
+    const handleUserLeave = (userId) => {
+      setAwareness((prevAwareness) => {
+        const awareness = { ...prevAwareness };
+        delete awareness[userId];
+        return awareness;
+      });
+    };
+
+    users.on('join', handleUserJoin);
+
+    users.on('leave', handleUserLeave);
 
     return () => {
-      users.off('update', handleUserUpdate);
+      users.off('join', handleUserJoin);
+      users.off('leave', handleUserLeave);
     };
   }, [users]);
 
   return awareness;
 };
 
-export default useAwareness;"
+export default useAwareness;
