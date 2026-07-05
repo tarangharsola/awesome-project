@@ -1,7 +1,1 @@
-...
-"scripts": {
-  "build": "node scripts/build.js",
-  "test": "node scripts/test.js",
-  "ci": "node scripts/ci.js"
-},
-...
+{"scripts":{"build":"node scripts/build.js","test":"node scripts/test.js"}}

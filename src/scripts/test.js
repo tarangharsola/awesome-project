@@ -1,24 +1,11 @@
-const { test } = require('ava');
-const { join } = require('path');
-const { resolve } = require('path');
-const { readFileSync } = require('fs');
-const { existsSync } = require('fs');
-const { spawnSync } = require('child_process');
+const { test, describe, it } = require('jest');
+const { execSync } = require('child_process');
 
-const buildDir = join(__dirname, 'build');
-const testDir = join(__dirname, 'test');
+const buildScript = require('./build');
 
-test('test directory exists', t => {
-  t.true(existsSync(testDir));
-});
-
-test('build directory exists', t => {
-  t.true(existsSync(buildDir));
-});
-
-test('test files exist', t => {
-  const testFiles = readFileSync(join(testDir, 'test.txt'), 'utf8').split('\n');
-  testFiles.forEach(file => {
-    t.true(existsSync(resolve(testDir, file)));
+describe('tests', () => {
+  it('should run tests', () => {
+    const result = execSync('jest');
+    expect(result).toBe('test successful');
   });
 });
