@@ -1,29 +1,29 @@
 {"import React from 'react';
-import { useState } from 'react';
+import { User } from './User';
 
-function UserList({ users, onUserJoin, onUserLeave }) {
-  const [selectedUser, setSelectedUser] = useState(null);
+interface Props {
+  users: User[];
+}
 
-  const handleUserClick = (user) => {
-    setSelectedUser(user);
-  };
-
+const UserList = ({ users }: Props) => {
   return (
-    <div>
-      {users.map((user) => (
-        <div key={user.id} onClick={() => handleUserClick(user)}>
-          <span>{user.name}</span>
-          <span>{user.color}</span>
+    <div className="user-list">
+      {users.map((user, index) => (
+        <div key={index} className="user-item">
+          <span className="username">{user.username}</span>
+          <span className="cursor-label" style={{
+            backgroundColor: user.color,
+            color: "#fff",
+            padding: "2px 4px",
+            borderRadius: "4px",
+            fontSize: "12px",
+          }}>
+            {user.cursorPosition}
+          </span>
         </div>
       ))}
-      {selectedUser && (
-        <div>
-          <span>{selectedUser.name}</span>
-          <span>{selectedUser.color}</span>
-        </div>
-      )}
     </div>
   );
-}
+};
 
 export default UserList;
