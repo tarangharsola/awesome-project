@@ -15,34 +15,31 @@ import 'codemirror/addon/fold/foldcode';
 import 'codemirror/addon/fold/foldgutter';
 import 'codemirror/addon/fold/indent-fold';
 
-function Editor({ code, language, onChange }) {
+function Editor({ language, value, setValue }) {
   const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
 
   useEffect(() => {
     const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
       mode: language,
       lineNumbers: true,
-      foldGutter: true,
+      theme: 'monokai',
       extraKeys: {
         'Ctrl-Space': 'autocomplete'
       }
     });
-    editor.on('change', (instance, change) => {
-      onChange(instance.getValue());
+    editor.on('cursorActivity', () => {
+      setCursorPosition(editor.getCursor());
     });
-    return () => editor.toTextArea();
-  }, [language, onChange]);
-
-  const handleCursorChange = (newCursorPosition) => {
-    setCursorPosition(newCursorPosition);
-  };
+    return () => {
+      editor.toTextArea();
+    };
+  }, [language]);
 
   return (
     <div>
-      <textarea id='editor' value={code} onChange={(e) => onChange(e.target.value)} />
+      <textarea id='editor' value={value} onChange={(e) => setValue(e.target.value)} />
       <div>
-        <span>Cursor position: {cursorPosition.line},{cursorPosition.ch}</span>
-        <button onClick={() => handleCursorChange({ line: 10, ch: 20 })}>Move cursor</button>
+        <span>Cursor Position: {cursorPosition.line},{cursorPosition.ch}</span>
       </div>
     </div>
   );

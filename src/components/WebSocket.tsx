@@ -2,21 +2,20 @@
 import WebSocket from 'ws';
 
 function WebSocket({ ws }) {
-  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
     ws.onmessage = (event) => {
-      setMessages((prevMessages) => [...prevMessages, event.data]);
+      setMessage(event.data);
     };
-    return () => ws.close();
+    return () => {
+      ws.close();
+    };
   }, []);
 
   return (
     <div>
-      {messages.map((message, index) => (
-        <div key={index}>{message}</div>
-      ))}
+      <span>Message: {message}</span>
     </div>
   );
 }
