@@ -1,32 +1,36 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
 
-interface Props {
-  children: React.ReactNode;
-}
-
-const WebSocket = ({ children }: Props) => {
+const WebSocket = () => {
   const [connected, setConnected] = useState(false);
-  const [retries, setRetries] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
     ws.onopen = () => setConnected(true);
-    ws.onclose = () => setConnected(false);
-    ws.onerror = () => setRetries(retries + 1);
+    ws.onclose = () => {
+      setConnected(false);
+      setRetryCount(retryCount + 1);
+    };
+    ws.onerror = () => {
+      setConnected(false);
+      setRetryCount(retryCount + 1);
+    };
     return () => ws.close();
   }, []);
 
-  const retry = () => {
-    setRetries(0);
-    setConnected(false);
-  };
+  useEffect(() => {
+    if (!connected && retryCount < 5) {
+      setTimeout(() => {
+        setRetryCount(retryCount + 1);
+      }, 500);
+    }
+  }, [connected, retryCount]);
 
   return (
     <div>
-      {children}
-      <button onClick={retry}>Retry ({retries})</button>
-      <span style={{ color: connected ? 'green' : 'red' }}>{connected ? 'Connected' : 'Disconnected'}</span>
+      {connected ? 'Connected' : 'Disconnected'}
+      <button onClick={() => ws.send('ping')}>Ping</button>
     </div>
   );
 };
