@@ -1,17 +1,21 @@
 {"import { useState } from 'react';
 
-interface KeyboardShortcuts {
-  shortcuts: { [key: string]: string };
-}
-
 const useKeyboardShortcuts = () => {
-  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
+  const [keyboardShortcuts, setKeyboardShortcuts] = useState({
+    'Ctrl+Shift+E': 'toggle-fullscreen'
+  });
 
-  const updateShortcuts = (newShortcuts: { [key: string]: string }) => {
-    setShortcuts({ shortcuts: newShortcuts });
+  const handleShortcutChange = (event) => {
+    setKeyboardShortcuts({
+      ...keyboardShortcuts,
+      [event.target.name]: event.target.value
+    });
   };
 
-  return { shortcuts, updateShortcuts };
-}
+  return {
+    keyboardShortcuts,
+    handleShortcutChange
+  };
+};
 
 export default useKeyboardShortcuts;
