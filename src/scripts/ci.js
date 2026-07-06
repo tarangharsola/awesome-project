@@ -1,12 +1,9 @@
-const { spawnSync } = require('child_process');
 const { execSync } = require('child_process');
-const { test, describe, it } = require('jest');
+const { test } = require('tap');
 
-const buildScript = require('./build');
-
-describe('build script', () => {
-  it('should build the application', () => {
-    const result = buildScript();
-    expect(result).toBe('build successful');
+module.exports = function ci() {
+  test('build script', function(t) {
+    const build = execSync('npm run build', { stdio: 'inherit' });
+    t.ok(build);
   });
-});
+};
