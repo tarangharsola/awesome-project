@@ -1,32 +1,26 @@
-{"import { useState, useEffect } from 'react';
+{"import React from 'react';
+import { useTheme } from '@mui/material/styles';
 
 interface UserProps {
-  id: string;
   name: string;
   color: string;
 }
 
-const User = ({ id, name, color }: UserProps) => {
-  const [isConnected, setIsConnected] = useState(false);
-
-  useEffect(() => {
-    // implement reconnection logic here
-  }, []);
+const User = ({ name, color }: UserProps) => {
+  const theme = useTheme();
+  const textColor = theme.palette.text.primary;
+  const backgroundColor = color;
 
   return (
     <div style={{
-      backgroundColor: color,
-      padding: 10,
-      borderRadius: 10,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between'
+      backgroundColor,
+      color: textColor,
+      padding: '4px 8px',
+      borderRadius: '4px',
+      display: 'inline-block',
+      marginRight: '8px'
     }}>
-      <span>{name}</span>
-      <span style={{
-        fontSize: 12,
-        color: isConnected ? 'green' : 'red'
-      }}>{isConnected ? 'Connected' : 'Disconnected'}</span>
+      {name}
     </div>
   );
 }
