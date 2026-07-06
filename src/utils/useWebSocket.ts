@@ -1,34 +1,26 @@
 {"import { useState, useEffect } from 'react';
 import WebSocket from 'ws';
 
-interface Props {
-  url: string;
-}
-
-const useWebSocket = ({ url }) => {
+function useWebSocket(url) {
   const [ws, setWs] = useState(null);
-  const [send, setSend] = useState(() => () => {});
-  const [receive, setReceive] = useState(() => () => {});
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const ws = new WebSocket(url);
     setWs(ws);
-    setSend((message) => {
-      ws.send(JSON.stringify(message));
-      return message;
-    });
-    setReceive((callback) => {
-      ws.onmessage = (event) => {
-        callback(JSON.parse(event.data));
-      };
-      return callback;
-    });
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      // Handle incoming data
+    };
+    ws.onerror = (event) => {
+      setError(event);
+    };
     return () => {
       ws.close();
     };
   }, [url]);
 
-  return { send, receive };
-};
+  return [ws, error];
+}
 
 export default useWebSocket;

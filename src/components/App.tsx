@@ -1,14 +1,11 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
 import Editor from './Editor';
-import LanguageSelector from './LanguageSelector';
 import UserList from './UserList';
-import WebSocket from './WebSocket';
 
 function App() {
   const [users, setUsers] = useState([]);
-  const [language, setLanguage] = useState('javascript');
-  const [editorValue, setEditorValue] = useState('');
+  const [editorContent, setEditorContent] = useState('');
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
@@ -16,10 +13,8 @@ function App() {
       const data = JSON.parse(event.data);
       if (data.type === 'users') {
         setUsers(data.users);
-      } else if (data.type === 'language') {
-        setLanguage(data.language);
-      } else if (data.type === 'editorValue') {
-        setEditorValue(data.editorValue);
+      } else if (data.type === 'editorContent') {
+        setEditorContent(data.content);
       }
     };
     return () => {
@@ -29,10 +24,8 @@ function App() {
 
   return (
     <div>
-      <LanguageSelector language={language} setLanguage={setLanguage} />
-      <Editor language={language} value={editorValue} setValue={setEditorValue} />
+      <Editor content={editorContent} />
       <UserList users={users} />
-      <WebSocket ws={ws} />
     </div>
   );
 }
