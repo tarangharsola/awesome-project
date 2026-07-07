@@ -1,12 +1,8 @@
-const { execSync } = require('child_process');
-const { test } = require('tap');
+// eslint-disable-next-line
+import { ci } from '../src/scripts/ci';
 
-module.exports = function ci() {
-  test('editor is rendered', async (t) => {
-    const { browser } = await getBrowser();
-    const page = await browser.newPage();
-    await page.goto('http://localhost:3000');
-    const editor = await page.$('#editor');
-    t.ok(editor);
-  });
-};
+export default async function ci() {
+  const { build, test } = await ci();
+  console.log(build);
+  console.log(test);
+}

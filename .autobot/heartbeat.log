@@ -751,3 +751,4 @@
 2026-07-07T10:09:23.011447+00:00 | Improve editor UX: language switching, formatting defaults, and better keyboard shortcuts.
 2026-07-07T10:10:14.967421+00:00 | Add connection status indicator and retry/backoff behavior.
 2026-07-07T10:10:27.708815+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
+2026-07-07T10:11:19.889966+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
