@@ -1,21 +1,26 @@
-{"import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-const useKeyboardShortcuts = () => {
-  const [keyboardShortcuts, setKeyboardShortcuts] = useState({
-    'Ctrl+Shift+E': 'toggle-fullscreen'
-  });
+interface KeyboardShortcuts {
+  [key: string]: string;
+}
 
-  const handleShortcutChange = (event) => {
-    setKeyboardShortcuts({
-      ...keyboardShortcuts,
-      [event.target.name]: event.target.value
-    });
-  };
+const useKeyboardShortcuts = (): KeyboardShortcuts => {
+  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({});
 
-  return {
-    keyboardShortcuts,
-    handleShortcutChange
-  };
-};
+  useEffect(() => {
+    // Load keyboard shortcuts from local storage
+    const storedShortcuts = localStorage.getItem('keyboardShortcuts');
+    if (storedShortcuts) {
+      setShortcuts(JSON.parse(storedShortcuts));
+    }
+  }, []);
+
+  useEffect(() => {
+    // Save keyboard shortcuts to local storage
+    localStorage.setItem('keyboardShortcuts', JSON.stringify(shortcuts));
+  }, [shortcuts]);
+
+  return shortcuts;
+}
 
 export default useKeyboardShortcuts;
