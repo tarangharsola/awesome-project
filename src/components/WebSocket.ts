@@ -7,7 +7,9 @@ const WebSocket = () => {
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => setConnected(true);
+    ws.onopen = () => {
+      setConnected(true);
+    };
     ws.onclose = () => {
       setConnected(false);
       setRetryCount(retryCount + 1);
@@ -16,21 +18,23 @@ const WebSocket = () => {
       setConnected(false);
       setRetryCount(retryCount + 1);
     };
-    return () => ws.close();
+    return () => {
+      ws.close();
+    };
   }, []);
 
-  useEffect(() => {
-    if (!connected && retryCount < 5) {
+  const retry = () => {
+    if (retryCount < 5) {
       setTimeout(() => {
-        setRetryCount(retryCount + 1);
-      }, 500);
+        setRetryCount(0);
+      }, 5000);
     }
-  }, [connected, retryCount]);
+  };
 
   return (
     <div>
       {connected ? 'Connected' : 'Disconnected'}
-      <button onClick={() => ws.send('ping')}>Ping</button>
+      <button onClick={retry}>Retry</button>
     </div>
   );
 };
