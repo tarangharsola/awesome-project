@@ -1,26 +1,19 @@
 {"import { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import { editorReducer } from '../store/editorReducer';
+import { userReducer } from '../store/userReducer';
 
-function useWebSocket(url) {
-  const [ws, setWs] = useState(null);
-  const [error, setError] = useState(null);
+function useWebSocket() {
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket(url);
-    setWs(ws);
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      // Handle incoming data
-    };
-    ws.onerror = (event) => {
-      setError(event);
-    };
+    const socket = new WebSocket('ws://localhost:8080');
+    setSocket(socket);
     return () => {
-      ws.close();
+      socket.close();
     };
-  }, [url]);
+  }, []);
 
-  return [ws, error];
+  return socket;
 }
 
 export default useWebSocket;

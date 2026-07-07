@@ -1,12 +1,8 @@
-{"import { createReducer } from 'redux';
-import { UserAction } from './types';
+{"import { combineReducers } from 'redux';
+import { userReducer } from './userReducer';
 
-const userReducer = createReducer(
-  {},
-  {
-    [UserAction.JOIN]: (state, action) => ({ users: [...state.users, action.payload] }),
-    [UserAction.LEAVE]: (state, action) => ({ users: state.users.filter((user) => user !== action.payload) }),
-  }
-);
+const rootReducer = combineReducers({
+  user: userReducer,
+});
 
-export default userReducer;
+export default rootReducer;

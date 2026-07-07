@@ -1,18 +1,23 @@
 {"import { useState, useEffect } from 'react';
+import { editorReducer } from '../store/editorReducer';
 
-interface CursorState {
-  x: number;
-  y: number;
-}
-
-const useCursor = () => {
-  const [cursor, setCursor] = useState<CursorState>({ x: 0, y: 0 });
+function useCursor() {
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
 
   useEffect(() => {
-    // implement cursor tracking logic here
+    const socket = new WebSocket('ws://localhost:8080');
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'cursorUpdate') {
+        setCursorPosition(data.cursorPosition);
+      }
+    };
+    return () => {
+      socket.close();
+    };
   }, []);
 
-  return cursor;
+  return cursorPosition;
 }
 
 export default useCursor;

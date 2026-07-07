@@ -1,23 +1,25 @@
 {"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
+import { editorReducer } from '../store/editorReducer';
 
-const useConflictResolver = () => {
-  const [conflicts, setConflicts] = useState([]);
-  const editor = useEditor();
+function useConflictResolver() {
+  const [conflict, setConflict] = useState(false);
 
   useEffect(() => {
-    const handleConflict = (conflict) => {
-      setConflicts((prevConflicts) => [...prevConflicts, conflict]);
+    const socket = new WebSocket('ws://localhost:8080');
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'conflict') {
+        setConflict(true);
+      } else if (data.type === 'resolved') {
+        setConflict(false);
+      }
     };
-
-    editor.on('conflict', handleConflict);
-
     return () => {
-      editor.off('conflict', handleConflict);
+      socket.close();
     };
-  }, [editor]);
+  }, []);
 
-  return conflicts;
-};
+  return conflict;
+}
 
 export default useConflictResolver;

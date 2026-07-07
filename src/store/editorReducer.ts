@@ -1,11 +1,8 @@
-{"import { createReducer } from 'redux';
-import { EditorAction } from './types';
+{"import { combineReducers } from 'redux';
+import { editorReducer } from './editorReducer';
 
-const editorReducer = createReducer(
-  {},
-  {
-    [EditorAction.CHANGE_CODE]: (state, action) => ({ code: action.payload }),
-  }
-);
+const rootReducer = combineReducers({
+  editor: editorReducer,
+});
 
-export default editorReducer;
+export default rootReducer;

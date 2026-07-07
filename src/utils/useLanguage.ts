@@ -1,28 +1,23 @@
 {"import { useState, useEffect } from 'react';
+import { editorReducer } from '../store/editorReducer';
 
-interface Language {
-  id: string;
-  name: string;
-}
-
-interface UseLanguageProps {
-  languages: Language[];
-  defaultLanguage: string;
-}
-
-const useLanguage = ({ languages, defaultLanguage }: UseLanguageProps) => {
-  const [selectedLanguage, setSelectedLanguage] = useState(defaultLanguage);
+function useLanguage() {
+  const [language, setLanguage] = useState('javascript');
 
   useEffect(() => {
-    const handleLanguageChange = (language: string) => {
-      setSelectedLanguage(language);
+    const socket = new WebSocket('ws://localhost:8080');
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'languageUpdate') {
+        setLanguage(data.language);
+      }
     };
-
     return () => {
-      // Clean up
+      socket.close();
     };
   }, []);
 
-  return { selectedLanguage, setSelectedLanguage };
+  return language;
 }
+
 export default useLanguage;

@@ -1,16 +1,22 @@
 {"import { useState, useEffect } from 'react';
+import { userReducer } from '../store/userReducer';
 
-interface UserState {
-  id: string;
-  name: string;
-  color: string;
-}
-
-const useUsers = () => {
-  const [users, setUsers] = useState<UserState[]>([]);
+function useUsers() {
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    // implement user tracking logic here
+    const socket = new WebSocket('ws://localhost:8080');
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'userJoin') {
+        setUsers((prevUsers) => [...prevUsers, data.user]);
+      } else if (data.type === 'userLeave') {
+        setUsers((prevUsers) => prevUsers.filter((user) => user.id !== data.userId));
+      }
+    };
+    return () => {
+      socket.close();
+    };
   }, []);
 
   return users;
