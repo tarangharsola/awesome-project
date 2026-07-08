@@ -1,19 +1,16 @@
 {"import { useState, useEffect } from 'react';
-import { editorReducer } from '../store/editorReducer';
-import { userReducer } from '../store/userReducer';
+import WebSocket from 'ws';
 
-function useWebSocket() {
-  const [socket, setSocket] = useState(null);
+function useWebSocket(url) {
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
-    setSocket(socket);
-    return () => {
-      socket.close();
-    };
+    const ws = new WebSocket(url);
+    setWs(ws);
+    return () => ws.close();
   }, []);
 
-  return socket;
+  return ws;
 }
 
 export default useWebSocket;

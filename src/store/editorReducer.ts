@@ -1,8 +1,10 @@
-{"import { combineReducers } from 'redux';
-import { editorReducer } from './editorReducer';
+{"import { createReducer } from 'redux';
+import { EDITOR_STATE_CHANGED } from './actions';
 
-const rootReducer = combineReducers({
-  editor: editorReducer,
+const initialState = {};
+
+const editorReducer = createReducer(initialState, {
+  [EDITOR_STATE_CHANGED]: (state, action) => action.editorState,
 });
 
-export default rootReducer;
+export default editorReducer;

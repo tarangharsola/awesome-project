@@ -5,7 +5,7 @@ function UserList({ users }) {
   return (
     <ul>
       {users.map((user) => (
-        <li key={user.id}>{user.name} ({user.color})</li>
+        <li key={user.id}>{user.name}</li>
       ))}
     </ul>
   );
