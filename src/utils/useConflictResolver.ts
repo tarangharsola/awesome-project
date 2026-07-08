@@ -1,11 +1,9 @@
 {"import { useState, useEffect } from 'react';
 import { useEditor } from './useEditor';
-import { useUsers } from './useUsers';
 
 const useConflictResolver = () => {
   const [conflicts, setConflicts] = useState([]);
   const editor = useEditor();
-  const users = useUsers();
 
   useEffect(() => {
     const handleConflict = (conflict) => {
@@ -13,8 +11,9 @@ const useConflictResolver = () => {
     };
 
     editor.on('conflict', handleConflict);
+
     return () => editor.off('conflict', handleConflict);
-  }, [editor, users]);
+  }, [editor]);
 
   return conflicts;
 };

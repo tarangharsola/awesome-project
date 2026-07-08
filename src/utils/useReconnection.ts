@@ -13,16 +13,8 @@ const useReconnection = () => {
     };
 
     webSocket.on('reconnect', handleReconnect);
+
     return () => webSocket.off('reconnect', handleReconnect);
-  }, [webSocket]);
-
-  useEffect(() => {
-    const handleReconnectError = (error) => {
-      setError(error);
-    };
-
-    webSocket.on('reconnectError', handleReconnectError);
-    return () => webSocket.off('reconnectError', handleReconnectError);
   }, [webSocket]);
 
   return { reconnecting, error };

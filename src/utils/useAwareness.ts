@@ -1,32 +1,41 @@
 {"import { useState, useEffect } from 'react';
+import { useEditor } from './useEditor';
 import { useUsers } from './useUsers';
-import { useWebSocket } from './useWebSocket';
 
 const useAwareness = () => {
   const [awareness, setAwareness] = useState({});
+  const editor = useEditor();
   const users = useUsers();
-  const webSocket = useWebSocket();
+
+  useEffect(() => {
+    const handleCursorChange = (cursor) => {
+      setAwareness((prevAwareness) => ({ ...prevAwareness, [cursor.userId]: cursor }));
+    };
+
+    editor.on('cursorChange', handleCursorChange);
+
+    return () => editor.off('cursorChange', handleCursorChange);
+  }, [editor]);
 
   useEffect(() => {
     const handleUserJoin = (user) => {
       setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
     };
 
-    webSocket.on('userJoin', handleUserJoin);
-    return () => webSocket.off('userJoin', handleUserJoin);
-  }, [webSocket]);
+    users.on('join', handleUserJoin);
+
+    return () => users.off('join', handleUserJoin);
+  }, [users]);
 
   useEffect(() => {
     const handleUserLeave = (userId) => {
-      setAwareness((prevAwareness) => {
-        delete prevAwareness[userId];
-        return prevAwareness;
-      });
+      setAwareness((prevAwareness) => ({ ...prevAwareness, [userId]: null }));
     };
 
-    webSocket.on('userLeave', handleUserLeave);
-    return () => webSocket.off('userLeave', handleUserLeave);
-  }, [webSocket]);
+    users.on('leave', handleUserLeave);
+
+    return () => users.off('leave', handleUserLeave);
+  }, [users]);
 
   return awareness;
 };
