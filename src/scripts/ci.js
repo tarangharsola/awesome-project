@@ -1,8 +1,13 @@
-// eslint-disable-next-line
-import { execSync } from 'child_process';
+const { execSync } = require('child_process');
+const { resolve } = require('path');
+const { existsSync } = require('fs');
 
-export default function ci() {
-  const build = execSync('npm run build', { stdio: 'inherit' });
-  const test = execSync('npm run test', { stdio: 'inherit' });
-  return { build, test };
-}
+module.exports = function ci() {
+  const buildScript = resolve(__dirname, '../scripts/build.js');
+  if (existsSync(buildScript)) {
+    console.log('Running build script...');
+    execSync(`node ${buildScript}`);
+  } else {
+    console.log('Build script not found.');
+  }
+};

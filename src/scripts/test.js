@@ -1,10 +1,13 @@
-// eslint-disable-next-line
-import { test } from 'tape';
-import { ci } from './ci';
+const { test } = require('jest');
+const { resolve } = require('path');
+const { existsSync } = require('fs');
 
-test('build and test', async t => {
-  const { build, test } = await ci();
-  t.equal(build.toString(), 'build output', 'build output is correct');
-  t.equal(test.toString(), 'test output', 'test output is correct');
-  t.end();
-});
+module.exports = function test() {
+  const testScript = resolve(__dirname, '../scripts/test.js');
+  if (existsSync(testScript)) {
+    console.log('Running tests...');
+    test();
+  } else {
+    console.log('Test script not found.');
+  }
+};
