@@ -1,13 +1,10 @@
-const { test } = require('jest');
-const { resolve } = require('path');
-const { existsSync } = require('fs');
+// Import required modules
+const { test, expect } = require('jest');
 
-module.exports = function test() {
-  const testScript = resolve(__dirname, '../scripts/test.js');
-  if (existsSync(testScript)) {
-    console.log('Running tests...');
-    test();
-  } else {
-    console.log('Test script not found.');
-  }
-};
+// Define test suite
+describe('App', () => {
+  it('renders correctly', () => {
+    const app = new App();
+    expect(app.render()).toMatchSnapshot();
+  });
+});
