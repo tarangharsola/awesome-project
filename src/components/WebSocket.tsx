@@ -1,21 +1,22 @@
-{"import React, { useState, useEffect } from 'react';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
 import WebSocket from 'ws';
 
-function WebSocket({ ws }) {
-  const [message, setMessage] = useState(null);
+function WebSocket({ socket }) {
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
-    ws.onmessage = (event) => {
+    socket.onmessage = (event) => {
       setMessage(event.data);
     };
     return () => {
-      ws.close();
+      socket.close();
     };
   }, []);
 
   return (
     <div>
-      <span>Message: {message}</span>
+      <p>Message: {message}</p>
     </div>
   );
 }

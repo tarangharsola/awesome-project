@@ -1,1 +1,22 @@
-{"import React from 'react';\nimport { useState } from 'react';\n\ninterface LanguageSelectorProps {\n  languages: string[];\n  selectedLanguage: string;\n  onChange: (language: string) => void;\n}\n\nconst LanguageSelector = ({ languages, selectedLanguage, onChange }: LanguageSelectorProps) => {\n  const [isOpen, setIsOpen] = useState(false);\n\n  const handleLanguageChange = (language: string) => {\n    onChange(language);\n    setIsOpen(false);\n  };\n\n  return (\n    <div>\n      <button onClick={() => setIsOpen(true)}>Select Language</button>\n      {isOpen && (\n        <ul>\n          {languages.map((language) => (\n            <li key={language}>\n              <button onClick={() => handleLanguageChange(language)}>{language}</button>\n            </li>\n          ))}\n        </ul>\n      )}\n    </div>\n  );\n};\n\nexport default LanguageSelector;
+{"import React from 'react';
+import { useState } from 'react';
+import { Language } from './types';
+
+function LanguageSelector({ language, onChange }) {
+  const [selectedLanguage, setSelectedLanguage] = useState(language);
+
+  const handleLanguageChange = (language) => {
+    setSelectedLanguage(language);
+    onChange(language);
+  };
+
+  return (
+    <select value={selectedLanguage} onChange={(event) => handleLanguageChange(event.target.value)}>
+      <option value='javascript'>JavaScript</option>
+      <option value='python'>Python</option>
+      <option value='html'>HTML</option>
+    </select>
+  );
+}
+
+export default LanguageSelector;

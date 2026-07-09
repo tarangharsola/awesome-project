@@ -1,13 +1,20 @@
 {"import React from 'react';
+import { useState } from 'react';
 import User from './User';
 
 function UserList({ users }) {
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+  };
+
   return (
-    <ul>
+    <div>
       {users.map((user) => (
-        <li key={user.id}>{user.name}</li>
+        <User key={user.id} user={user} onSelect={handleUserSelect} />
       ))}
-    </ul>
+    </div>
   );
 }
 
