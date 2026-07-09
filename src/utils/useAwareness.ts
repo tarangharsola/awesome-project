@@ -1,43 +1,32 @@
 {"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
 import { useUsers } from './useUsers';
 
+interface Awareness {
+  updateAwareness: (user: any) => void;
+}
+
 const useAwareness = () => {
-  const [awareness, setAwareness] = useState({});
-  const editor = useEditor();
   const users = useUsers();
+  const [awareness, setAwareness] = useState({} as any);
 
   useEffect(() => {
-    const handleCursorChange = (cursor) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, [cursor.userId]: cursor }));
-    };
-
-    editor.on('cursorChange', handleCursorChange);
-
-    return () => editor.off('cursorChange', handleCursorChange);
-  }, [editor]);
-
-  useEffect(() => {
-    const handleUserJoin = (user) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
-    };
-
-    users.on('join', handleUserJoin);
-
-    return () => users.off('join', handleUserJoin);
+    if (users) {
+      const awareness = users.reduce((acc, user) => {
+        acc[user.id] = user;
+        return acc;
+      }, {});
+      setAwareness(awareness);
+    }
   }, [users]);
 
-  useEffect(() => {
-    const handleUserLeave = (userId) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, [userId]: null }));
-    };
+  const updateAwareness = (user: any) => {
+    setAwareness((prevAwareness) => {
+      const newAwareness = { ...prevAwareness, [user.id]: user);
+      return newAwareness;
+    });
+  };
 
-    users.on('leave', handleUserLeave);
-
-    return () => users.off('leave', handleUserLeave);
-  }, [users]);
-
-  return awareness;
+  return { awareness, updateAwareness };
 };
 
 export default useAwareness;

@@ -1,23 +1,29 @@
 {"import { useState, useEffect } from 'react';
 import { useWebSocket } from './useWebSocket';
 
+interface Reconnection {
+  reconnect: () => void;
+}
+
 const useReconnection = () => {
-  const [reconnecting, setReconnecting] = useState(false);
-  const [error, setError] = useState(null);
   const webSocket = useWebSocket();
+  const [reconnecting, setReconnecting] = useState(false);
 
   useEffect(() => {
-    const handleReconnect = () => {
-      setReconnecting(true);
-      setError(null);
-    };
-
-    webSocket.on('reconnect', handleReconnect);
-
-    return () => webSocket.off('reconnect', handleReconnect);
+    if (webSocket) {
+      webSocket.on('close', () => {
+        setReconnecting(true);
+      });
+    }
   }, [webSocket]);
 
-  return { reconnecting, error };
+  const reconnect = () => {
+    if (webSocket) {
+      webSocket.reconnect();
+    }
+  };
+
+  return { reconnecting, reconnect };
 };
 
 export default useReconnection;
