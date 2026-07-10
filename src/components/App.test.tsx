@@ -1,11 +1,8 @@
-// Import required modules
 import React from 'react';
 import { render } from '@testing-library/react';
+import App from './App';
 
-// Define test suite
-describe('App', () => {
-  it('renders correctly', () => {
-    const app = new App();
-    expect(app.render()).toMatchSnapshot();
-  });
+it('renders correctly', () => {
+  const { getByText } = render(<App />);
+  expect(getByText('Collaborative Code Editor')).toBeInTheDocument();
 });
