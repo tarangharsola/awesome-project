@@ -1,32 +1,25 @@
 {"import { useState, useEffect } from 'react';
 import { useUsers } from './useUsers';
-
-interface Awareness {
-  updateAwareness: (user: any) => void;
-}
+import { useEditor } from './useEditor';
 
 const useAwareness = () => {
-  const users = useUsers();
-  const [awareness, setAwareness] = useState({} as any);
+  const [awareness, setAwareness] = useState({});
+  const { users, dispatch } = useUsers();
+  const { editorState } = useEditor();
 
   useEffect(() => {
-    if (users) {
-      const awareness = users.reduce((acc, user) => {
-        acc[user.id] = user;
-        return acc;
-      }, {});
-      setAwareness(awareness);
-    }
-  }, [users]);
+    const handleUserUpdate = (user) => {
+      setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
+    };
 
-  const updateAwareness = (user: any) => {
-    setAwareness((prevAwareness) => {
-      const newAwareness = { ...prevAwareness, [user.id]: user);
-      return newAwareness;
-    });
-  };
+    users.on('update', handleUserUpdate);
 
-  return { awareness, updateAwareness };
+    return () => {
+      users.off('update', handleUserUpdate);
+    };
+  }, [users, dispatch, editorState]);
+
+  return awareness;
 };
 
 export default useAwareness;
