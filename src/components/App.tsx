@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import Editor from './Editor';
 import LanguageSelector from './LanguageSelector';
 import UserList from './UserList';
-import WebSocket from './WebSocket';
 
 function App() {
   const [users, setUsers] = useState([]);
@@ -14,8 +13,10 @@ function App() {
     const socket = new WebSocket('ws://localhost:8080');
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'updateUsers') {
+      if (data.type === 'users') {
         setUsers(data.users);
+      } else if (data.type === 'editorValue') {
+        setEditorValue(data.editorValue);
       }
     };
     return () => {
@@ -34,9 +35,8 @@ function App() {
   return (
     <div>
       <LanguageSelector language={language} onChange={handleLanguageChange} />
-      <Editor language={language} value={editorValue} onChange={handleEditorChange} />
+      <Editor value={editorValue} onChange={handleEditorChange} language={language} />
       <UserList users={users} />
-      <WebSocket socket={socket} />
     </div>
   );
 }
