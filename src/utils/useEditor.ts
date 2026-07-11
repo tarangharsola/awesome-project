@@ -1,23 +1,15 @@
 {"import { useState, useEffect } from 'react';
-import { editorReducer } from '../store/editorReducer';
 
-function useEditor() {
-  const [editorValue, setEditorValue] = useState('');
-
+const useEditor = () => {
+  const [editor, setEditor] = useState({ children: '' });
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'editorUpdate') {
-        setEditorValue(data.editorValue);
-      }
+    const handleInput = (e) => {
+      setEditor({ children: e.target.value });
     };
-    return () => {
-      socket.close();
-    };
+    document.addEventListener('input', handleInput);
+    return () => document.removeEventListener('input', handleInput);
   }, []);
-
-  return editorValue;
-}
+  return editor;
+};
 
 export default useEditor;

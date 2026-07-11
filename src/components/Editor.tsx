@@ -1,51 +1,13 @@
-{"import React, { useState, useEffect } from 'react';
-import { Editor as CodeMirror } from 'codemirror';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
+{"import React from 'react';
+import { useEditor } from '../utils/useEditor';
 
-function Editor({ value, onChange, language }) {
-  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
-  const [editorValue, setEditorValue] = useState(value);
-
-  useEffect(() => {
-    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-      theme: 'monokai',
-      extraKeys: {
-        'Ctrl-Space': 'autocomplete'
-      }
-    });
-    editor.on('change', (instance, change) => {
-      onChange(instance.getValue());
-    });
-    return () => {
-      editor.toTextArea();
-    };
-  }, []);
-
-  const handleCursorPositionChange = (position) => {
-    setCursorPosition(position);
-  };
-
+const Editor = () => {
+  const editor = useEditor();
   return (
-    <div>
-      <textarea id='editor' value={editorValue} onChange={(event) => setEditorValue(event.target.value)} />
-      <div>Cursor position: {cursorPosition.line},{cursorPosition.ch}</div>
+    <div style={{ height: 500, width: 800, border: '1px solid black' }}>
+      {editor.children}
     </div>
   );
-}
+};
 
 export default Editor;

@@ -1,23 +1,15 @@
 {"import { useState, useEffect } from 'react';
-import { editorReducer } from '../store/editorReducer';
 
-function useCursor() {
-  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
-
+const useCursor = () => {
+  const [cursor, setCursor] = useState({ x: 0, y: 0, color: '' });
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'cursorUpdate') {
-        setCursorPosition(data.cursorPosition);
-      }
+    const handleMouseMove = (e) => {
+      setCursor({ x: e.clientX, y: e.clientY, color: e.target.dataset.color });
     };
-    return () => {
-      socket.close();
-    };
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => document.removeEventListener('mousemove', handleMouseMove);
   }, []);
-
-  return cursorPosition;
-}
+  return cursor;
+};
 
 export default useCursor;

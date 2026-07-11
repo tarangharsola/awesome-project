@@ -1,23 +1,15 @@
 {"import { useState, useEffect } from 'react';
-import { editorReducer } from '../store/editorReducer';
 
-function useLanguage() {
+const useLanguage = () => {
   const [language, setLanguage] = useState('javascript');
-
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'languageUpdate') {
-        setLanguage(data.language);
-      }
+    const handleSelect = (e) => {
+      setLanguage(e.target.value);
     };
-    return () => {
-      socket.close();
-    };
+    document.addEventListener('change', handleSelect);
+    return () => document.removeEventListener('change', handleSelect);
   }, []);
-
   return language;
-}
+};
 
 export default useLanguage;

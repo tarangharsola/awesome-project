@@ -1,23 +1,23 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
 
-function useUsers() {
+const useUsers = () => {
   const [users, setUsers] = useState([]);
-
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'users') {
-        setUsers(data.users);
-      }
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
+    };
+    const socket = useWebSocket();
+    socket.on('userJoin', handleUserJoin);
+    socket.on('userLeave', handleUserLeave);
     return () => {
-      socket.close();
+      socket.off('userJoin', handleUserJoin);
+      socket.off('userLeave', handleUserLeave);
     };
   }, []);
-
   return users;
-}
+};
 
 export default useUsers;

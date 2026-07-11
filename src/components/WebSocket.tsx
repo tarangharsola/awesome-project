@@ -1,24 +1,14 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import { useWebSocket } from '../utils/useWebSocket';
 
-function WebSocket({ socket }) {
-  const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    socket.onmessage = (event) => {
-      setMessage(event.data);
-    };
-    return () => {
-      socket.close();
-    };
-  }, []);
-
+const WebSocket = () => {
+  const socket = useWebSocket();
   return (
     <div>
-      <p>Message: {message}</p>
+      <h1>WebSocket</h1>
+      <UserList />
     </div>
   );
-}
+};
 
 export default WebSocket;
