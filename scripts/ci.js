@@ -1,8 +1,6 @@
-// eslint-disable-next-line
-import { ci } from '../src/scripts/ci';
+const { spawnSync } = require('child_process');
+const { build } = require('./scripts/test);
 
-export default async function ci() {
-  const { build, test } = await ci();
-  console.log(build);
-  console.log(test);
-}
+module.exports = function() {
+  build();
+};

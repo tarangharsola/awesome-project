@@ -1,4 +1,4 @@
-const { test, expect } = require('jest');
-test('editor functionality', () => {
-  // add test cases here
-});
+const { test } = require('tap');
+const { build } = require('./ci');
+
+build();
