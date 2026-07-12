@@ -1,15 +1,14 @@
 {"import { useState, useEffect } from 'react';
+import { cursorPosition } from './cursorPosition';
 
-const useCursor = () => {
-  const [cursor, setCursor] = useState({ x: 0, y: 0, color: '' });
+function useCursor() {
+  const [cursorPosition, setCursorPosition] = useState(cursorPosition);
+
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      setCursor({ x: e.clientX, y: e.clientY, color: e.target.dataset.color });
-    };
-    document.addEventListener('mousemove', handleMouseMove);
-    return () => document.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-  return cursor;
-};
+    setCursorPosition(cursorPosition);
+  }, [cursorPosition]);
+
+  return cursorPosition;
+}
 
 export default useCursor;

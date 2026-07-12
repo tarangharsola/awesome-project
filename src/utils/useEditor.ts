@@ -1,15 +1,14 @@
 {"import { useState, useEffect } from 'react';
+import { editorState } from './editorState';
 
-const useEditor = () => {
-  const [editor, setEditor] = useState({ children: '' });
+function useEditor() {
+  const [editorState, setEditorState] = useState(editorState);
+
   useEffect(() => {
-    const handleInput = (e) => {
-      setEditor({ children: e.target.value });
-    };
-    document.addEventListener('input', handleInput);
-    return () => document.removeEventListener('input', handleInput);
-  }, []);
-  return editor;
-};
+    setEditorState(editorState);
+  }, [editorState]);
+
+  return editorState;
+}
 
 export default useEditor;

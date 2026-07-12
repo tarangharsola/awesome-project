@@ -1,15 +1,21 @@
 {"import React from 'react';
-import { useUsers } from '../utils/useUsers';
+import { useState, useEffect } from 'react';
+import { users } from './users';
 
-const UserList = () => {
-  const users = useUsers();
+function UserList({ users }) {
+  const [userList, setUserList] = useState(users);
+
+  useEffect(() => {
+    setUserList(users);
+  }, [users]);
+
   return (
-    <div>
-      {users.map((user) => (
-        <div key={user.id}>{user.name}</div>
+    <ul>
+      {userList.map((user) => (
+        <li key={user.id}>{user.name}</li>
       ))}
-    </div>
+    </ul>
   );
-};
+}
 
 export default UserList;

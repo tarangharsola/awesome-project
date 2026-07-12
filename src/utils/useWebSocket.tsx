@@ -1,8 +1,12 @@
-{"import React from 'react';
-import useWebSocket from './useWebSocket';
+{"import React, { useState, useEffect } from 'react';
+import { ws } from './ws';
 
 function useWebSocket() {
-  const ws = useWebSocket();
+  const [ws, setWs] = useState(ws);
+
+  useEffect(() => {
+    setWs(ws);
+  }, [ws]);
 
   return ws;
 }

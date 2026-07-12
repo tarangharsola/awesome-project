@@ -7,35 +7,31 @@ import UserList from './UserList';
 function App() {
   const [users, setUsers] = useState([]);
   const [language, setLanguage] = useState('javascript');
-  const [editorValue, setEditorValue] = useState('');
+  const [code, setCode] = useState('');
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
-    socket.onmessage = (event) => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'users') {
         setUsers(data.users);
-      } else if (data.type === 'editorValue') {
-        setEditorValue(data.editorValue);
       }
     };
-    return () => {
-      socket.close();
-    };
+    return () => ws.close();
   }, []);
 
   const handleLanguageChange = (language) => {
     setLanguage(language);
   };
 
-  const handleEditorChange = (value) => {
-    setEditorValue(value);
+  const handleCodeChange = (code) => {
+    setCode(code);
   };
 
   return (
     <div>
       <LanguageSelector language={language} onChange={handleLanguageChange} />
-      <Editor value={editorValue} onChange={handleEditorChange} language={language} />
+      <Editor language={language} code={code} onChange={handleCodeChange} />
       <UserList users={users} />
     </div>
   );

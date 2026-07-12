@@ -1,27 +1,14 @@
 {"import { useState, useEffect } from 'react';
-import { useUsers } from './useUsers';
+import { users } from './users';
 
-interface Awareness {
-  users: any[];
-}
-
-const useAwareness = () => {
-  const [users, setUsers] = useState<any[]>([]);
-  const usersList = useUsers();
+function useAwareness() {
+  const [users, setUsers] = useState(users);
 
   useEffect(() => {
-    const handleUserUpdate = (user: any) => {
-      setUsers((prevUsers) => [...prevUsers, user]);
-    };
+    setUsers(users);
+  }, [users]);
 
-    usersList.on('update', handleUserUpdate);
-
-    return () => {
-      usersList.off('update', handleUserUpdate);
-    };
-  }, [usersList]);
-
-  return { users };
-};
+  return users;
+}
 
 export default useAwareness;

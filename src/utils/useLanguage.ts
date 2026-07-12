@@ -1,15 +1,14 @@
 {"import { useState, useEffect } from 'react';
+import { language } from './language';
 
-const useLanguage = () => {
-  const [language, setLanguage] = useState('javascript');
+function useLanguage() {
+  const [language, setLanguage] = useState(language);
+
   useEffect(() => {
-    const handleSelect = (e) => {
-      setLanguage(e.target.value);
-    };
-    document.addEventListener('change', handleSelect);
-    return () => document.removeEventListener('change', handleSelect);
-  }, []);
+    setLanguage(language);
+  }, [language]);
+
   return language;
-};
+}
 
 export default useLanguage;
