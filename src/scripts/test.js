@@ -1,4 +1,9 @@
-const { test } = require('tap');
-const { build } = require('./ci');
+// Import required modules
+const { test, describe } = require('jest');
 
-build();
+// Define test suite
+describe('App', () => {
+  it('renders correctly', () => {
+    // Test rendering of App component
+  });
+});

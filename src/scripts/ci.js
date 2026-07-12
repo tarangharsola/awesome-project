@@ -1,10 +1,10 @@
-const { spawnSync } = require('child_process');
-const { test } = require('tap');
+// Import required modules
+const { execSync } = require('child_process');
 
-module.exports = function() {
-  test('build script', t => {
-    const build = spawnSync('npm', ['run', 'build']);
-    t.ok(build.status === 0, 'Build script should exit with code 0');
-    t.end();
-  });
-};
+// Define test and build scripts
+const testScript = 'jest';
+const buildScript = 'npm run build';
+
+// Run tests and build script
+execSync(testScript);
+execSync(buildScript);

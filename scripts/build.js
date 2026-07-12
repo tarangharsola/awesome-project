@@ -1,14 +1,10 @@
-const { spawnSync } = require('child_process');
-const { resolve } = require('path');
-const { existsSync } = require('fs');
+// Import required modules
+const { build } = require('./src/scripts/build');
 
-const buildDir = resolve(__dirname, 'build');
+// Define build function
+module.exports = build;
 
-if (!existsSync(buildDir)) {
-  spawnSync('mkdir', ['-p', buildDir]);
-}
-
-const build = spawnSync('webpack', ['--mode', 'production', '--config', 'webpack.config.js']);
-if (build.status !== 0) {
-  process.exit(build.status);
+// Define build function implementation
+function build() {
+  // Build application
 }

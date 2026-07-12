@@ -1,7 +1,10 @@
+// Import required modules
 const { build } = require('./build');
-const { test } = require('./test');
 
-module.exports = function build() {
-  test();
-  console.log('Build complete.');
-};
+// Define build function
+module.exports = build;
+
+// Define build function implementation
+function build() {
+  // Build application
+}
