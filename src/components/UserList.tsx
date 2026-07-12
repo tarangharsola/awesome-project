@@ -1,20 +1,20 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
-import { users } from './users';
+import User from './User';
+import { useUsers } from './useUsers';
 
-function UserList({ users }) {
-  const [userList, setUserList] = useState(users);
-
-  useEffect(() => {
-    setUserList(users);
-  }, [users]);
+const UserList = () => {
+  const users = useUsers();
 
   return (
-    <ul>
-      {userList.map((user) => (
-        <li key={user.id}>{user.name}</li>
+    <div style={{
+      padding: '16px',
+      backgroundColor: '#333',
+      color: '#fff',
+    }}>
+      {users.map((user) => (
+        <User key={user.id} name={user.name} color={user.color} />
       ))}
-    </ul>
+    </div>
   );
 }
 
