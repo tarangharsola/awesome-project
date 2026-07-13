@@ -1,25 +1,23 @@
 {"import React from 'react';
-import { useUsers } from '../utils/useUsers';
+import { useTheme } from '@mui/material/styles';
 
-interface Props {
-  userId: string;
+interface UserProps {
+  name: string;
+  color: string;
 }
 
-const User: React.FC<Props> = ({ userId }) => {
-  const { users } = useUsers();
-  const user = users.find((user) => user.id === userId);
+const User = ({ name, color }: UserProps) => {
+  const theme = useTheme();
+  const styles = {
+    backgroundColor: color,
+    color: theme.palette.text.primary,
+    padding: theme.spacing(0.5),
+    borderRadius: theme.shape.borderRadius,
+  };
+
   return (
-    <div style={{
-      position: 'absolute',
-      top: 10,
-      left: 10,
-      backgroundColor: user.color,
-      padding: 5,
-      borderRadius: 5,
-    }}>
-      {user.name}
-    </div>
+    <div style={styles}>{name}</div>
   );
-}
+};
 
 export default User;
