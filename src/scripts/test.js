@@ -1,9 +1,13 @@
-// Import required modules
-const { test, describe } = require('jest');
+// eslint-disable-next-line
+import { test } from 'tape';
 
-// Define test suite
-describe('App', () => {
-  it('renders correctly', () => {
-    // Test rendering of App component
+export default function test() {
+  test('Editor renders correctly', async t => {
+    const editor = await import('./Editor');
+    t.ok(editor);
   });
-});
+  test('Cursor tracker renders correctly', async t => {
+    const cursorTracker = await import('./CursorTracker');
+    t.ok(cursorTracker);
+  });
+}
