@@ -1,41 +1,21 @@
 {"import { useState, useEffect } from 'react';
 import { useEditor } from './useEditor';
-import { useUsers } from './useUsers';
 
 const useAwareness = () => {
-  const [awareness, setAwareness] = useState({}
+  const [awareness, setAwareness] = useState({});
   const editor = useEditor();
-  const users = useUsers();
 
   useEffect(() => {
-    const handleCursorMove = (cursor) => {
-      setAwareness((prevAwareness) => ({
-        ...prevAwareness,
-        [cursor.userId]: cursor
-      }));
+    const handleAwareness = (awareness) => {
+      setAwareness(awareness);
     };
 
-    editor.on('cursorMove', handleCursorMove);
+    editor.on('awareness', handleAwareness);
 
     return () => {
-      editor.off('cursorMove', handleCursorMove);
+      editor.off('awareness', handleAwareness);
     };
-  }, [editor]);
-
-  useEffect(() => {
-    const handleUserJoin = (user) => {
-      setAwareness((prevAwareness) => ({
-        ...prevAwareness,
-        [user.id]: user
-      }));
-    };
-
-    users.on('join', handleUserJoin);
-
-    return () => {
-      users.off('join', handleUserJoin);
-    };
-  }, [users]);
+  }, []);
 
   return awareness;
 };

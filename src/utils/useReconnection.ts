@@ -3,21 +3,21 @@ import { useWebSocket } from './useWebSocket';
 
 const useReconnection = () => {
   const [reconnecting, setReconnecting] = useState(false);
-  const [lastKnownState, setLastKnownState] = useState(null);
-  const webSocket = useWebSocket();
+  const [retryCount, setRetryCount] = useState(0);
+  const { reconnect, reconnecting } = useWebSocket();
 
   useEffect(() => {
     const handleReconnect = () => {
       setReconnecting(true);
-      setLastKnownState(webSocket.getLastKnownState());
+      setRetryCount((prevRetryCount) => prevRetryCount + 1);
     };
 
-    webSocket.on('reconnect', handleReconnect);
+    reconnecting.on('reconnect', handleReconnect);
 
     return () => {
-      webSocket.off('reconnect', handleReconnect);
+      reconnecting.off('reconnect', handleReconnect);
     };
-  }, [webSocket]);
+  }, []);
 
   return reconnecting;
 };
