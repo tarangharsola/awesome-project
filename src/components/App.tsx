@@ -1,40 +1,27 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
-import Editor from './Editor';
-import LanguageSelector from './LanguageSelector';
-import UserList from './UserList';
 
-function App() {
-  const [users, setUsers] = useState([]);
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState('');
+const App = () => {
+  const [connected, setConnected] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'users') {
-        setUsers(data.users);
-      }
-    };
-    return () => ws.close();
+    const intervalId = setInterval(() => {
+      // Simulate connection status updates
+      setConnected(Math.random() < 0.5);
+    }, 1000);
+    return () => clearInterval(intervalId);
   }, []);
 
-  const handleLanguageChange = (language) => {
-    setLanguage(language);
-  };
-
-  const handleCodeChange = (code) => {
-    setCode(code);
-  };
+  const retry = () => {
+    setRetryCount(retryCount + 1);
+  }
 
   return (
     <div>
-      <LanguageSelector language={language} onChange={handleLanguageChange} />
-      <Editor language={language} code={code} onChange={handleCodeChange} />
-      <UserList users={users} />
+      <h1>Connection Status: {connected ? 'Connected' : 'Disconnected'}</h1>
+      <button onClick={retry}>Retry ({retryCount})</button>
     </div>
   );
-}
-
+};
 export default App;
