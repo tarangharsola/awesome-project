@@ -1,14 +1,29 @@
 {"import { useState, useEffect } from 'react';
-import { users } from './users';
+import { useWebSocket } from './useWebSocket';
 
-function useUsers() {
-  const [users, setUsers] = useState(users);
+interface Props {
+  roomId: string;
+}
+
+const useUsers = (roomId: string) => {
+  const [users, setUsers] = useState([]);
+  const { connect, disconnect } = useWebSocket(roomId);
 
   useEffect(() => {
-    setUsers(users);
-  }, [users]);
+    connect();
+    return () => disconnect();
+  }, []);
 
-  return users;
-}
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newUsers = [...users];
+      newUsers.push({ id: 'new-user', name: 'New User', color: '#' + Math.floor(Math.random() * 16777215).toString(16) });
+      setUsers(newUsers);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return { users };
+};
 
 export default useUsers;
