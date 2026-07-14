@@ -1,13 +1,10 @@
-// eslint-disable-next-line
-import { test } from 'tape';
+const { spawnSync } = require('child_process');
+const { test } = require('tap');
 
-export default function test() {
-  test('Editor renders correctly', async t => {
-    const editor = await import('./Editor');
-    t.ok(editor);
-  });
-  test('Cursor tracker renders correctly', async t => {
-    const cursorTracker = await import('./CursorTracker');
-    t.ok(cursorTracker);
-  });
-}
+const buildScript = require('./build.js');
+
+test('test script', (t) => {
+  const testResult = spawnSync('jest', ['--config', 'jest.config.js']);
+  t.ok(testResult.status === 0);
+  t.end();
+});
