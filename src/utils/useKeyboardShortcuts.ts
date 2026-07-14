@@ -4,18 +4,12 @@ interface KeyboardShortcuts {
   shortcuts: { [key: string]: string };
 }
 
-const useKeyboardShortcuts = (): KeyboardShortcuts => {
+const useKeyboardShortcuts = () => {
   const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
   useEffect(() => {
-    const storedShortcuts = localStorage.getItem('keyboardShortcuts');
-    if (storedShortcuts) {
-      setShortcuts(JSON.parse(storedShortcuts));
-    }
+    // Add keyboard shortcut logic here
   }, []);
-  useEffect(() => {
-    localStorage.setItem('keyboardShortcuts', JSON.stringify(shortcuts));
-  }, [shortcuts]);
   return shortcuts;
-}
+};
 
 export default useKeyboardShortcuts;
