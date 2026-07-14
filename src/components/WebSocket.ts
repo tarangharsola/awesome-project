@@ -16,21 +16,21 @@ const WebSocket = () => {
     };
     ws.onerror = () => {
       setConnected(false);
+      setRetryCount(retryCount + 1);
+    };
+    return () => {
+      ws.close();
     };
   }, []);
 
-  const retry = () => {
-    if (retryCount < 3) {
-      setTimeout(() => {
-        setRetryCount(retryCount + 1);
-      }, 500);
-    }
+  const handleRetry = () => {
+    setRetryCount(0);
   };
 
   return (
     <div>
       {connected ? 'Connected' : 'Disconnected'}
-      <button onClick={retry}>Retry</button>
+      <button onClick={handleRetry}>Retry</button>
     </div>
   );
 };
