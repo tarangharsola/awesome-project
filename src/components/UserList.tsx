@@ -1,19 +1,11 @@
 {"import React from 'react';
 import User from './User';
 
-interface UserListProps {
-  users: { name: string; color: string }[];
-}
-
-const UserList = ({ users }: UserListProps) => {
+function UserList({ users }) {
   return (
-    <div style={{
-      padding: '16px',
-      backgroundColor: '#333',
-      color: '#fff',
-    }}>
+    <div>
       {users.map((user, index) => (
-        <User key={index} name={user.name} color={user.color} />
+        <User key={index} user={user} />
       ))}
     </div>
   );

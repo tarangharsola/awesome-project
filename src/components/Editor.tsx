@@ -1,44 +1,44 @@
 {"import React, { useState, useEffect } from 'react';
-import { useEditor } from '../utils/useEditor';
-import { useWebSocket } from '../utils/useWebSocket';
+import { Editor as CodeMirror } from 'codemirror';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
 
-interface Props {
-  roomId: string;
-  language: string;
-}
-
-const Editor: React.FC<Props> = ({ roomId, language }) => {
-  const [code, setCode] = useState('');
-  const { sendCode, receiveCode } = useEditor(roomId);
-  const { connect, disconnect } = useWebSocket(roomId);
+function Editor({ value, language, onChange }) {
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
 
   useEffect(() => {
-    connect();
-    return () => disconnect();
-  }, []);
-
-  const handleCodeChange = (newCode: string) => {
-    setCode(newCode);
-    sendCode(newCode);
-  };
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      theme: 'monokai',
+      extraKeys: {
+        'Ctrl-Space': 'autocomplete'
+      }
+    });
+    editor.on('change', (instance, change) => {
+      onChange(instance.getValue());
+    });
+    return () => {
+      editor.toTextArea();
+    };
+  }, [language, onChange]);
 
   return (
-    <div style={{
-      height: '100vh',
-      width: '100vw',
-      overflow: 'auto',
-    }}>
-      <textarea
-        value={code}
-        onChange={(e) => handleCodeChange(e.target.value)}
-        style={{
-          width: '100%',
-          height: '100%',
-          padding: 10,
-          fontSize: 14,
-          fontFamily: 'monospace',
-        }}
-      />
+    <div>
+      <textarea id='editor' value={value} onChange={(event) => onChange(event.target.value)} />
+      <div className='cursor' style={{ top: cursorPosition.line * 20, left: cursorPosition.ch * 20 }} />
     </div>
   );
 }

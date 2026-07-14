@@ -1,27 +1,36 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
+import Editor from './Editor';
+import UserList from './UserList';
+import WebSocket from './WebSocket';
 
-const App = () => {
-  const [connected, setConnected] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+function App() {
+  const [users, setUsers] = useState([]);
+  const [editorValue, setEditorValue] = useState('');
+  const [language, setLanguage] = useState('javascript');
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      // Simulate connection status updates
-      setConnected(Math.random() < 0.5);
-    }, 1000);
-    return () => clearInterval(intervalId);
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'users') {
+        setUsers(data.users);
+      } else if (data.type === 'editorValue') {
+        setEditorValue(data.editorValue);
+      }
+    };
+    return () => {
+      ws.close();
+    };
   }, []);
-
-  const retry = () => {
-    setRetryCount(retryCount + 1);
-  }
 
   return (
     <div>
-      <h1>Connection Status: {connected ? 'Connected' : 'Disconnected'}</h1>
-      <button onClick={retry}>Retry ({retryCount})</button>
+      <Editor value={editorValue} language={language} onChange={(value) => setEditorValue(value)} />
+      <UserList users={users} />
+      <WebSocket />
     </div>
   );
-};
+}
+
 export default App;
