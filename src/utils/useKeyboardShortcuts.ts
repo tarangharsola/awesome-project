@@ -1,4 +1,4 @@
-{"import { useState, useEffect } from 'react';
+{"import { useState } from 'react';
 
 interface KeyboardShortcuts {
   shortcuts: { [key: string]: string };
@@ -6,10 +6,12 @@ interface KeyboardShortcuts {
 
 const useKeyboardShortcuts = () => {
   const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
-  useEffect(() => {
-    // Add keyboard shortcut logic here
-  }, []);
-  return shortcuts;
-};
+
+  const updateShortcuts = (newShortcuts: { [key: string]: string }) => {
+    setShortcuts({ shortcuts: newShortcuts });
+  };
+
+  return { shortcuts, updateShortcuts };
+}
 
 export default useKeyboardShortcuts;
