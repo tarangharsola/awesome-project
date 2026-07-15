@@ -11,7 +11,7 @@ const User = ({ name, color }: UserProps) => {
   const styles = {
     backgroundColor: color,
     color: theme.palette.text.primary,
-    padding: theme.spacing(0.5),
+    padding: theme.spacing(1),
     borderRadius: theme.shape.borderRadius,
   };
 
