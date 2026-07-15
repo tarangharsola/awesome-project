@@ -7,12 +7,16 @@ interface UserListProps {
 
 const UserList = ({ users }: UserListProps) => {
   return (
-    <div>
+    <div style={{
+      padding: '16px',
+      backgroundColor: '#333',
+      color: '#fff',
+    }}>
       {users.map((user, index) => (
         <User key={index} name={user.name} color={user.color} />
       ))}
     </div>
   );
-};
+}
 
 export default UserList;

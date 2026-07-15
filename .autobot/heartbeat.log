@@ -799,3 +799,4 @@
 2026-07-15T08:57:00.760753+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
 2026-07-15T08:57:15.604779+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
 2026-07-15T08:58:51.925903+00:00 | Add connection status indicator and retry/backoff behavior.
+2026-07-15T08:59:21.704079+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
