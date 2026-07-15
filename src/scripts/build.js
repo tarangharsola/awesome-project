@@ -1,10 +1,3 @@
-// Import required modules
-const { build } = require('./build');
-
-// Define build function
-module.exports = build;
-
-// Define build function implementation
-function build() {
-  // Build application
-}
+// This script builds the application
+const { build } = require('webpack');
+build();
