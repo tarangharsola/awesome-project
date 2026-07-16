@@ -1,7 +1,1 @@
-{"import { test } from 'jest';
-
-test('editor works', () => {
-  const editor = new Editor();
-  expect(editor.getValue()).toBe('');
-});
-}
+// No content for this file

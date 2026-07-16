@@ -1,11 +1,7 @@
 const { execSync } = require('child_process');
-const { test } = require('tap');
+const { resolve } = require('path');
 
-module.exports = function (tap) {
-  tap.test('build script', function (t) {
-    const buildScript = require('./build.js');
-    const buildResult = buildScript();
-    t.ok(buildResult, 'Build script executed successfully');
-    t.end();
-  });
+module.exports = function ci() {
+  // Run tests and build script
+  execSync('npm run test && npm run build', { stdio: 'inherit' });
 };

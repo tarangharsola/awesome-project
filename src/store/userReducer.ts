@@ -1,8 +1,1 @@
-{"import { combineReducers } from 'redux';
-import { userState } from './userState';
-
-const userReducer = combineReducers({
-  userState,
-});
-
-export default userReducer;
+// No content for this file

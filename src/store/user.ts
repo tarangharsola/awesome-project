@@ -1,11 +1,1 @@
-{"import { User } from './user';
-
-interface UserState {
-  user: User;
-}
-
-const initialState: UserState = {
-  user: null,
-};
-
-export default initialState;
+// No content for this file

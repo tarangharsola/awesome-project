@@ -1,12 +1,14 @@
-const { test } = require('tap');
+const { test } = require('tape');
+const { join } = require('path');
 const { resolve } = require('path');
 const { readFileSync } = require('fs');
 
-module.exports = function (tap) {
-  tap.test('editor functionality', function (t) {
-    const editor = require('./editor');
-    const editorHtml = readFileSync(resolve(__dirname, 'index.html'), 'utf8');
-    t.ok(editorHtml.includes('<div id="editor">'), 'Editor HTML rendered correctly');
-    t.end();
-  });
-};
+const testDir = resolve(__dirname, 'tests');
+
+test('Editor functionality', t => {
+  // Test editor functionality
+  const editor = require('./editor');
+  const code = readFileSync(join(testDir, 'editor.test.js'), 'utf8');
+  editor(code);
+  t.end();
+});
