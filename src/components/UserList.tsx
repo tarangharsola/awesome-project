@@ -1,24 +1,19 @@
 {"import React from 'react';
-import { useState } from 'react';
+import User from './User';
 
-const UserList = () => {
-  const [users, setUsers] = useState([]);
-
-  const handleUserJoin = (newUser) => {
-    setUsers((prevUsers) => [...prevUsers, newUser]);
-  };
-
-  const handleUserLeave = (userId) => {
-    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
-  };
-
+const UserList = ({ users }) => {
   return (
-    <ul>
-      {users.map((user) => (
-        <li key={user.id}>{user.name}</li>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '16px',
+    }}>
+      {users.map((user, index) => (
+        <User key={index} name={user.name} color={user.color} />
       ))}
-    </ul>
+    </div>
   );
-};
+}
 
 export default UserList;
