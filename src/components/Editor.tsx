@@ -15,14 +15,17 @@ import 'codemirror/addon/fold/foldcode';
 import 'codemirror/addon/fold/foldgutter';
 import 'codemirror/addon/fold/indent-fold';
 
-function Editor({ language, content, onChange }) {
+const Editor = ({ language, code, onChange }) => {
   const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
+  const [cursorColor, setCursorColor] = useState('#000000');
 
   useEffect(() => {
     const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
       mode: language,
-      lineNumbers: true,
       theme: 'monokai',
+      lineNumbers: true,
+      foldGutter: true,
+      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
       extraKeys: {
         'Ctrl-Space': 'autocomplete',
       },
@@ -31,20 +34,24 @@ function Editor({ language, content, onChange }) {
       onChange(instance.getValue());
     });
     return () => editor.toTextArea();
-  }, [language, content, onChange]);
+  }, [language, code, onChange]);
 
-  const handleCursorChange = (position) => {
+  const handleCursorPositionChange = (position) => {
     setCursorPosition(position);
+  };
+
+  const handleCursorColorChange = (color) => {
+    setCursorColor(color);
   };
 
   return (
     <div>
-      <textarea id='editor' value={content} onChange={(e) => onChange(e.target.value)} />
+      <textarea id='editor' value={code} onChange={(e) => onChange(e.target.value)} />
       <div>
-        <span>Line {cursorPosition.line}, Column {cursorPosition.ch}</span>
+        <span style={{ color: cursorColor }}>Cursor: {cursorPosition.line},{cursorPosition.ch}</span>
       </div>
     </div>
   );
-}
+};
 
 export default Editor;

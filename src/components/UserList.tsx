@@ -1,14 +1,39 @@
 {"import React from 'react';
-import User from './User';
+import { useState, useEffect } from 'react';
+import { WebSocket } from 'ws';
 
-function UserList({ users, onUserJoin, onUserLeave }) {
+const UserList = ({ users }) => {
+  const [ws, setWs] = useState(null);
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'updateUsers') {
+        setUsers(data.users);
+      }
+    };
+    return () => ws.close();
+  }, []);
+
+  const handleUserJoin = (user) => {
+    console.log(`User ${user.name} joined`);
+  };
+
+  const handleUserLeave = (user) => {
+    console.log(`User ${user.name} left`);
+  };
+
   return (
     <div>
-      {users.map((user) => (
-        <User key={user.id} user={user} onUserLeave={onUserLeave} />
-      ))}
+      <h2>Users:</h2>
+      <ul>
+        {users.map((user) => (
+          <li key={user.id}>{user.name}</li>
+        ))}
+      </ul>
     </div>
   );
-}
+};
 
 export default UserList;
