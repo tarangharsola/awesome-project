@@ -1,7 +1,16 @@
+// Import required modules
 const { execSync } = require('child_process');
-const { resolve } = require('path');
 
-module.exports = function ci() {
-  // Run tests and build script
-  execSync('npm run test && npm run build', { stdio: 'inherit' });
+// Define build and test commands
+const build = () => {
+  console.log('Building application...');
+  execSync('npm run build');
 };
+
+const test = () => {
+  console.log('Running tests...');
+  execSync('npm run test');
+};
+
+// Export build and test functions
+module.exports = { build, test };
