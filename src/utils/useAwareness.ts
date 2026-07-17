@@ -1,22 +1,21 @@
 {"import { useState, useEffect } from 'react';
-import { useUsers } from './useUsers';
-import { useWebSocket } from './useWebSocket';
+import { useEditor } from './useEditor';
 
 const useAwareness = () => {
-  const users = useUsers();
-  const webSocket = useWebSocket();
+  const [awareness, setAwareness] = useState({});
+  const editor = useEditor();
 
   useEffect(() => {
-    const handleUserUpdate = (user) => {
-      // Update user list and cursor positions
+    const handleCursorMove = (cursor) => {
+      setAwareness((prevAwareness) => ({ ...prevAwareness, [cursor.id]: cursor }));
     };
 
-    webSocket.on('userUpdate', handleUserUpdate);
+    editor.on('cursorMove', handleCursorMove);
 
-    return () => webSocket.off('userUpdate', handleUserUpdate);
-  }, [webSocket]);
+    return () => editor.off('cursorMove', handleCursorMove);
+  }, [editor]);
 
-  return users;
+  return awareness;
 };
 
 export default useAwareness;

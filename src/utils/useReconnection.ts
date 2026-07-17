@@ -3,13 +3,12 @@ import { useWebSocket } from './useWebSocket';
 
 const useReconnection = () => {
   const [reconnecting, setReconnecting] = useState(false);
-  const [lastError, setLastError] = useState(null);
+  const [lastKnownState, setLastKnownState] = useState({});
   const webSocket = useWebSocket();
 
   useEffect(() => {
     const handleReconnect = () => {
       setReconnecting(true);
-      setLastError(null);
     };
 
     webSocket.on('reconnect', handleReconnect);
@@ -19,8 +18,8 @@ const useReconnection = () => {
 
   useEffect(() => {
     const handleDisconnect = () => {
+      setLastKnownState(webSocket.getState());
       setReconnecting(false);
-      setLastError('Disconnected from server.');
     };
 
     webSocket.on('disconnect', handleDisconnect);
@@ -28,7 +27,7 @@ const useReconnection = () => {
     return () => webSocket.off('disconnect', handleDisconnect);
   }, [webSocket]);
 
-  return { reconnecting, lastError };
+  return reconnecting;
 };
 
 export default useReconnection;
