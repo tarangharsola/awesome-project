@@ -1,10 +1,10 @@
-{"import { createReducer } from 'redux';
-import { UPDATE_USERS } from './actions';
+{"import { createStore, combineReducers } from 'redux';
+import { userReducer } from './userReducer';
 
-const initialState = [];
-
-const userReducer = createReducer(initialState, {
-  [UPDATE_USERS]: (state, action) => action.users,
+const rootReducer = combineReducers({
+  user: userReducer,
 });
 
-export default userReducer;
+const store = createStore(rootReducer);
+
+export default store;

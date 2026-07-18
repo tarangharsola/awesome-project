@@ -1,5 +1,5 @@
 {"import React, { useState, useEffect } from 'react';
-import { Editor as CodeMirror } from 'codemirror';
+import CodeMirror from 'codemirror';
 import 'codemirror/addon/hint/show-hint';
 import 'codemirror/addon/hint/javascript-hint';
 import 'codemirror/addon/edit/matchbrackets';
@@ -7,48 +7,42 @@ import 'codemirror/addon/edit/closebrackets';
 import 'codemirror/addon/fold/foldcode';
 import 'codemirror/addon/fold/foldgutter';
 import 'codemirror/addon/fold/indent-fold';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/search/match-highlighter';
+import 'codemirror/addon/search/searchcursor';
 import 'codemirror/addon/edit/matchbrackets';
 import 'codemirror/addon/edit/closebrackets';
 import 'codemirror/addon/fold/foldcode';
 import 'codemirror/addon/fold/foldgutter';
 import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/search/match-highlighter';
+import 'codemirror/addon/search/searchcursor';
 
-const Editor = ({ language, code, onChange }) => {
+const Editor = () => {
+  const [code, setCode] = useState('');
   const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
-  const [cursorColor, setCursorColor] = useState('#000000');
 
   useEffect(() => {
-    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
+    const cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: 'javascript',
       theme: 'monokai',
       lineNumbers: true,
       foldGutter: true,
-      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
       extraKeys: {
         'Ctrl-Space': 'autocomplete',
       },
     });
-    editor.on('change', (instance, change) => {
-      onChange(instance.getValue());
+    cm.on('change', (instance, change) => {
+      setCode(instance.getValue());
+      setCursorPosition(change.from);
     });
-    return () => editor.toTextArea();
-  }, [language, code, onChange]);
-
-  const handleCursorPositionChange = (position) => {
-    setCursorPosition(position);
-  };
-
-  const handleCursorColorChange = (color) => {
-    setCursorColor(color);
-  };
+    return () => cm.toTextArea();
+  }, []);
 
   return (
     <div>
-      <textarea id='editor' value={code} onChange={(e) => onChange(e.target.value)} />
+      <textarea id="editor" />
       <div>
-        <span style={{ color: cursorColor }}>Cursor: {cursorPosition.line},{cursorPosition.ch}</span>
+        <span>Line {cursorPosition.line + 1}, Column {cursorPosition.ch + 1}</span>
       </div>
     </div>
   );

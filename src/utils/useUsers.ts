@@ -1,13 +1,21 @@
-import { useState, useEffect } from 'react';
-import { users } from '../store/users';
+{"import { useState, useEffect } from 'react';
+import { userReducer } from './userReducer';
 
-export function useUsers() {
-  const [users, setUsers] = useState(users);
+const useUsers = () => {
+  const [users, setUsers] = useState([]);
+
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setUsers(users);
-    }, 1000);
-    return () => clearInterval(intervalId);
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'updateUsers') {
+        setUsers(data.users);
+      }
+    };
+    return () => ws.close();
   }, []);
+
   return users;
-}
+};
+
+export default useUsers;

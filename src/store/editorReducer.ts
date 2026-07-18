@@ -1,10 +1,10 @@
-{"import { createReducer } from 'redux';
-import { UPDATE_EDITOR_CONTENT } from './actions';
+{"import { createStore, combineReducers } from 'redux';
+import { editorReducer } from './editorReducer';
 
-const initialState = '';
-
-const editorReducer = createReducer(initialState, {
-  [UPDATE_EDITOR_CONTENT]: (state, action) => action.content,
+const rootReducer = combineReducers({
+  editor: editorReducer,
 });
 
-export default editorReducer;
+const store = createStore(rootReducer);
+
+export default store;
