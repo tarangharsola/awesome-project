@@ -1,16 +1,16 @@
-// Import required modules
+const { spawnSync } = require('child_process');
 const { execSync } = require('child_process');
 
-// Define build and test commands
-const build = () => {
-  console.log('Building application...');
-  execSync('npm run build');
-};
+module.exports = function ci() {
+  const build = spawnSync('npm', ['run', 'build']);
+  if (build.status !== 0) {
+    console.error('Build failed');
+    process.exit(1);
+  }
 
-const test = () => {
-  console.log('Running tests...');
-  execSync('npm run test');
+  const test = spawnSync('npm', ['run', 'test']);
+  if (test.status !== 0) {
+    console.error('Tests failed');
+    process.exit(1);
+  }
 };
-
-// Export build and test functions
-module.exports = { build, test };
