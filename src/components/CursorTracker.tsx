@@ -1,5 +1,5 @@
 {"import React from 'react';
-import { useTheme } from '@mui/material/styles';
+import { useTheme } from '@material-ui/core/styles';
 
 interface Props {
   name: string;
@@ -10,29 +10,19 @@ interface Props {
 
 const CursorTracker = ({ name, color, x, y }: Props) => {
   const theme = useTheme();
-  const textColor = theme.palette.text.primary;
-  const backgroundColor = theme.palette.background.default;
+  const styles = {
+    position: 'absolute',
+    left: x,
+    top: y,
+    backgroundColor: color,
+    color: theme.palette.text.primary,
+    padding: theme.spacing(1),
+    borderRadius: theme.spacing(1),
+  };
 
   return (
-    <div style={{
-      position: 'absolute',
-      top: y,
-      left: x,
-      width: 10,
-      height: 10,
-      backgroundColor,
-      borderRadius: 10,
-      cursor: 'pointer',
-    }}>
-      <span style={{
-        fontSize: 12,
-        color: textColor,
-        position: 'absolute',
-        top: -15,
-        left: -20,
-      }}>{name}</span>
-    </div>
+    <div style={styles}>{name}</div>
   );
-}
+};
 
 export default CursorTracker;
