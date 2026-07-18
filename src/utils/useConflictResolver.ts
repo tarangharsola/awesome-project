@@ -1,23 +1,29 @@
 {"import { useState, useEffect } from 'react';
-import { editorReducer } from './editorReducer';
+import { OperationalTransformation } from 'operational-transformation';
 
 const useConflictResolver = () => {
-  const [conflict, setConflict] = useState(false);
+  const [conflicts, setConflicts] = useState({});
+  const [ot, setOt] = useState(new OperationalTransformation());
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'conflict') {
-        setConflict(true);
-      } else if (data.type === 'resolved') {
-        setConflict(false);
-      }
+    const handleConflict = (conflict) => {
+      setConflicts(conflict);
     };
-    return () => ws.close();
+
+    const handleReconciliation = (reconciled) => {
+      setConflicts({});
+    };
+
+    ot.on('conflict', handleConflict);
+    ot.on('reconciliation', handleReconciliation);
+
+    return () => {
+      ot.off('conflict', handleConflict);
+      ot.off('reconciliation', handleReconciliation);
+    };
   }, []);
 
-  return conflict;
+  return { conflicts, ot };
 };
 
 export default useConflictResolver;
