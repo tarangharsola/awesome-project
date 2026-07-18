@@ -3,21 +3,21 @@ import { useState, useEffect } from 'react';
 
 const WebSocket = () => {
   const [connected, setConnected] = useState(false);
-  const [retries, setRetries] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
     ws.onopen = () => setConnected(true);
     ws.onclose = () => {
       setConnected(false);
-      setRetries(retries + 1);
+      setRetryCount(retryCount + 1);
       setTimeout(() => {
         ws.reconnect();
       }, 5000);
     };
     ws.onerror = () => {
       setConnected(false);
-      setRetries(retries + 1);
+      setRetryCount(retryCount + 1);
       setTimeout(() => {
         ws.reconnect();
       }, 5000);
@@ -27,8 +27,7 @@ const WebSocket = () => {
   return (
     <div>
       {connected ? 'Connected' : 'Disconnected'}
-      <br />
-      {retries > 0 ? `Retries: ${retries}` : ''}
+      <button onClick={() => ws.send('ping')}>Send Ping</button>
     </div>
   );
 };
