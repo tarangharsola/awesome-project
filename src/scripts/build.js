@@ -1,10 +1,22 @@
-const { spawnSync } = require('child_process');
-const { execSync } = require('child_process');
+// Import required modules
+const webpack = require('webpack');
+const path = require('path');
 
-module.exports = function build() {
-  const build = spawnSync('webpack', ['--mode', 'production']);
-  if (build.status !== 0) {
-    console.error('Build failed');
-    process.exit(1);
+// Define build configuration
+module.exports = {
+  entry: './src/index.tsx',
+  output: {
+    path: path.resolve(__dirname, 'public'),
+    filename: 'bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        test: /.tsx?$/, use: 'ts-loader', exclude: /node_modules/
+      }
+    ]
+  },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js']
   }
 };

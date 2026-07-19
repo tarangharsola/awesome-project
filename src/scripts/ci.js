@@ -1,16 +1,18 @@
-const { spawnSync } = require('child_process');
-const { execSync } = require('child_process');
+// Import required modules
+const childProcess = require('child_process');
+const fs = require('fs');
 
-module.exports = function ci() {
-  const build = spawnSync('npm', ['run', 'build']);
-  if (build.status !== 0) {
-    console.error('Build failed');
-    process.exit(1);
-  }
+// Define test and build functions
+function runTests() {
+  console.log('Running tests...');
+  childProcess.execSync('jest');
+}
 
-  const test = spawnSync('npm', ['run', 'test']);
-  if (test.status !== 0) {
-    console.error('Tests failed');
-    process.exit(1);
-  }
-};
+function buildApp() {
+  console.log('Building app...');
+  childProcess.execSync('webpack');
+}
+
+// Run tests and build app
+runTests();
+buildApp();
