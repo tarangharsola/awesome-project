@@ -1,21 +1,23 @@
 {"import { useState, useEffect } from 'react';
-import { editorReducer } from './editorReducer';
+import { useWebSocket } from './useWebSocket';
 
-const useEditor = () => {
-  const [code, setCode] = useState('');
+function useEditor() {
+  const [editorValue, setEditorValue] = useState('');
+  const ws = useWebSocket('ws://localhost:8080');
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'updateCode') {
-        setCode(data.code);
+      if (data.type === 'editorValue') {
+        setEditorValue(data.editorValue);
       }
     };
-    return () => ws.close();
+    return () => {
+      ws.close();
+    };
   }, []);
 
-  return code;
-};
+  return editorValue;
+}
 
 export default useEditor;

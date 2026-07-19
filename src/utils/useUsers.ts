@@ -1,21 +1,23 @@
 {"import { useState, useEffect } from 'react';
-import { userReducer } from './userReducer';
+import { useWebSocket } from './useWebSocket';
 
-const useUsers = () => {
+function useUsers() {
   const [users, setUsers] = useState([]);
+  const ws = useWebSocket('ws://localhost:8080');
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'updateUsers') {
+      if (data.type === 'users') {
         setUsers(data.users);
       }
     };
-    return () => ws.close();
+    return () => {
+      ws.close();
+    };
   }, []);
 
   return users;
-};
+}
 
 export default useUsers;
