@@ -1,29 +1,49 @@
 {"import { useState, useEffect } from 'react';
-import { OperationalTransformation } from 'operational-transformation';
+import { useEditor } from './useEditor';
+import { useUsers } from './useUsers';
 
 const useConflictResolver = () => {
-  const [conflicts, setConflicts] = useState({});
-  const [ot, setOt] = useState(new OperationalTransformation());
+  const { editorState, setEditorState } = useEditor();
+  const { users, setUsers } = useUsers();
 
   useEffect(() => {
-    const handleConflict = (conflict) => {
-      setConflicts(conflict);
+    const handleUserUpdate = (user) => {
+      if (user.type === 'update') {
+        const { cursorPosition, selection } = user.data;
+        const { cursorPosition: editorCursorPosition, selection: editorSelection } = editorState;
+
+        if (cursorPosition !== editorCursorPosition || selection !== editorSelection) {
+          setEditorState({
+            cursorPosition,
+            selection,
+          });
+        }
+      }
     };
 
-    const handleReconciliation = (reconciled) => {
-      setConflicts({});
-    };
+    setUsers((prevUsers) => {
+      return prevUsers.map((user) => {
+        if (user.id === user.id) {
+          return {
+            ...user,
+            type: 'update',
+            data: {
+              cursorPosition: user.cursorPosition,
+              selection: user.selection,
+            },
+          };
+        }
+        return user;
+      });
+    });
+  }, [editorState, setEditorState, users, setUsers]);
 
-    ot.on('conflict', handleConflict);
-    ot.on('reconciliation', handleReconciliation);
-
-    return () => {
-      ot.off('conflict', handleConflict);
-      ot.off('reconciliation', handleReconciliation);
-    };
-  }, []);
-
-  return { conflicts, ot };
+  return {
+    editorState,
+    setEditorState,
+    users,
+    setUsers,
+  };
 };
 
 export default useConflictResolver;
