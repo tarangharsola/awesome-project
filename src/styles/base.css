@@ -1,1 +1,14 @@
-// No content for this file
+body {
+  background-color: #333;
+  color: #fff;
+}
+
+#active-users-panel {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background-color: #333;
+  padding: 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+}
