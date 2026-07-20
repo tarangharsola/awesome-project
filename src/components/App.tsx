@@ -15,27 +15,19 @@ function App() {
       const data = JSON.parse(event.data);
       if (data.type === 'users') {
         setUsers(data.users);
+      } else if (data.type === 'language') {
+        setLanguage(data.language);
       } else if (data.type === 'editorValue') {
         setEditorValue(data.editorValue);
       }
     };
-    return () => {
-      ws.close();
-    };
+    return () => ws.close();
   }, []);
-
-  const handleLanguageChange = (language) => {
-    setLanguage(language);
-  };
-
-  const handleEditorChange = (value) => {
-    setEditorValue(value);
-  };
 
   return (
     <div>
-      <LanguageSelector language={language} onChange={handleLanguageChange} />
-      <Editor value={editorValue} onChange={handleEditorChange} />
+      <LanguageSelector language={language} setLanguage={setLanguage} />
+      <Editor language={language} value={editorValue} setValue={setEditorValue} />
       <UserList users={users} />
     </div>
   );

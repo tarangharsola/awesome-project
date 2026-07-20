@@ -2,8 +2,8 @@
 import { useWebSocket } from './useWebSocket';
 
 function useEditor() {
-  const [editorValue, setEditorValue] = useState('');
   const ws = useWebSocket('ws://localhost:8080');
+  const [editorValue, setEditorValue] = useState('');
 
   useEffect(() => {
     ws.onmessage = (event) => {
@@ -11,9 +11,6 @@ function useEditor() {
       if (data.type === 'editorValue') {
         setEditorValue(data.editorValue);
       }
-    };
-    return () => {
-      ws.close();
     };
   }, []);
 

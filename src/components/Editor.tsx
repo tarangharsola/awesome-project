@@ -1,21 +1,39 @@
 {"import React, { useState, useEffect } from 'react';
-import { EditorState, ContentState } from 'draft-js';
-import 'draft-js/dist/draft.min.css';
+import CodeMirror from 'codemirror';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
 
-function Editor({ value, onChange }) {
-  const [editorState, setEditorState] = useState(EditorState.createWithContent(ContentState.createFromText(value)));
+function Editor({ language, value, setValue }) {
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
 
   useEffect(() => {
-    setEditorState(EditorState.createWithContent(ContentState.createFromText(value)));
-  }, [value]);
-
-  const handleEditorChange = (editorState) => {
-    onChange(editorState.getCurrentContent().getPlainText());
-  };
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      theme: 'monokai',
+    });
+    editor.on('cursorActivity', () => {
+      setCursorPosition(editor.getCursor());
+    });
+    return () => editor.toTextArea();
+  }, [language]);
 
   return (
-    <div className='editor' contentEditable={true} suppressContentEditableWarning={true} onInput={handleEditorChange}>
-      {editorState.getCurrentContent().getPlainText()}
+    <div>
+      <textarea id='editor' value={value} onChange={(e) => setValue(e.target.value)} />
+      <div>Cursor position: {cursorPosition.line}, {cursorPosition.ch}</div>
     </div>
   );
 }

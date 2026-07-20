@@ -7,9 +7,7 @@ function useWebSocket(url) {
   useEffect(() => {
     const ws = new WebSocket(url);
     setWs(ws);
-    return () => {
-      ws.close();
-    };
+    return () => ws.close();
   }, [url]);
 
   return ws;

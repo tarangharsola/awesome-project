@@ -2,8 +2,8 @@
 import { useWebSocket } from './useWebSocket';
 
 function useUsers() {
-  const [users, setUsers] = useState([]);
   const ws = useWebSocket('ws://localhost:8080');
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     ws.onmessage = (event) => {
@@ -11,9 +11,6 @@ function useUsers() {
       if (data.type === 'users') {
         setUsers(data.users);
       }
-    };
-    return () => {
-      ws.close();
     };
   }, []);
 
