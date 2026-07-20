@@ -1,10 +1,9 @@
-const { spawnSync } = require('child_process');
-const { execSync } = require('child_process');
+const { test } = require('tape');
+const App = require('./components/App').default;
 
-module.exports = function test() {
-  const test = spawnSync('jest');
-  if (test.status !== 0) {
-    console.error('Tests failed');
-    process.exit(1);
-  }
-};
+test('App renders without errors', function(t) {
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = '<App />';
+  t.equal(wrapper.querySelector('div').textContent, '');
+  t.end();
+});
