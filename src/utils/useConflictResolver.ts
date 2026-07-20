@@ -1,48 +1,24 @@
 {"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useUsers } from './useUsers';
+import { EditorState, ConflictResolver } from 'prosemirror-state';
 
 const useConflictResolver = () => {
-  const { editorState, setEditorState } = useEditor();
-  const { users, setUsers } = useUsers();
+  const [editorState, setEditorState] = useState(EditorState.create());
+  const [conflictResolver, setConflictResolver] = useState(new ConflictResolver());
 
   useEffect(() => {
-    const handleUserUpdate = (user) => {
-      if (user.type === 'update') {
-        const { cursorPosition, selection } = user.data;
-        const { cursorPosition: editorCursorPosition, selection: editorSelection } = editorState;
-
-        if (cursorPosition !== editorCursorPosition || selection !== editorSelection) {
-          setEditorState({
-            cursorPosition,
-            selection,
-          });
-        }
-      }
+    const handleEditorChange = (newEditorState) => {
+      setEditorState(newEditorState);
+      setConflictResolver(new ConflictResolver(newEditorState));
     };
 
-    setUsers((prevUsers) => {
-      return prevUsers.map((user) => {
-        if (user.id === user.id) {
-          return {
-            ...user,
-            type: 'update',
-            data: {
-              cursorPosition: user.cursorPosition,
-              selection: user.selection,
-            },
-          };
-        }
-        return user;
-      });
-    });
-  }, [editorState, setEditorState, users, setUsers]);
+    return () => {
+      // Clean up editor change handler
+    };
+  }, []);
 
   return {
     editorState,
-    setEditorState,
-    users,
-    setUsers,
+    conflictResolver
   };
 };
 

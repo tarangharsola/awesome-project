@@ -1,44 +1,46 @@
 {"import { useState, useEffect } from 'react';
-import { useUsers } from './useUsers';
+import { WebSocket } from 'ws';
 
 const useAwareness = () => {
-  const { users, setUsers } = useUsers();
+  const [users, setUsers] = useState([]);
+  const [cursorPositions, setCursorPositions] = useState({});
 
   useEffect(() => {
-    const handleUserUpdate = (user) => {
-      if (user.type === 'update') {
-        const { cursorPosition, selection } = user.data;
-        const { cursorPosition: editorCursorPosition, selection: editorSelection } = editorState;
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
+    };
 
-        if (cursorPosition !== editorCursorPosition || selection !== editorSelection) {
-          setEditorState({
-            cursorPosition,
-            selection,
-          });
-        }
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u !== user));
+    };
+
+    const handleCursorUpdate = (user, cursorPosition) => {
+      setCursorPositions((prevCursorPositions) => {
+        const newCursorPositions = { ...prevCursorPositions, [user]: cursorPosition };
+        return newCursorPositions;
+      });
+    };
+
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'userJoin') {
+        handleUserJoin(message.user);
+      } else if (message.type === 'userLeave') {
+        handleUserLeave(message.user);
+      } else if (message.type === 'cursorUpdate') {
+        handleCursorUpdate(message.user, message.cursorPosition);
       }
     };
 
-    setUsers((prevUsers) => {
-      return prevUsers.map((user) => {
-        if (user.id === user.id) {
-          return {
-            ...user,
-            type: 'update',
-            data: {
-              cursorPosition: user.cursorPosition,
-              selection: user.selection,
-            },
-          };
-        }
-        return user;
-      });
-    });
-  }, [editorState, setEditorState, users, setUsers]);
+    return () => {
+      // Clean up WebSocket
+    };
+  }, []);
 
   return {
     users,
-    setUsers,
+    cursorPositions
   };
 };
 

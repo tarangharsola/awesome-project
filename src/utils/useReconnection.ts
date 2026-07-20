@@ -1,26 +1,33 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { WebSocket } from 'ws';
 
 const useReconnection = () => {
-  const { socket, setSocket } = useWebSocket();
+  const [reconnecting, setReconnecting] = useState(false);
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
     const reconnect = () => {
-      setSocket(new WebSocket('ws://localhost:8080'));
+      setReconnecting(true);
+      const newWs = new WebSocket('ws://localhost:8080');
+      newWs.onopen = () => {
+        setWs(newWs);
+        setReconnecting(false);
+      };
+      newWs.onclose = () => {
+        reconnect();
+      };
     };
 
     reconnect();
 
-    const intervalId = setInterval(reconnect, 5000);
-
     return () => {
-      clearInterval(intervalId);
+      // Clean up reconnect function
     };
-  }, [setSocket]);
+  }, []);
 
   return {
-    socket,
-    setSocket,
+    reconnecting,
+    ws
   };
 };
 
