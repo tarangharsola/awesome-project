@@ -1,19 +1,22 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
+import User from './User';
 
-function UserList({ users }) {
-  const [userList, setUserList] = useState([]);
+interface UserListProps {
+  users: { name: string; color: string }[];
+}
 
-  useEffect(() => {
-    setUserList(users);
-  }, [users]);
-
+const UserList = ({ users }: UserListProps) => {
   return (
-    <ul>
-      {userList.map((user, index) => (
-        <li key={index}>{user.name}</li>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '16px',
+    }}>
+      {users.map((user, index) => (
+        <User key={index} name={user.name} color={user.color} />
       ))}
-    </ul>
+    </div>
   );
 }
 
