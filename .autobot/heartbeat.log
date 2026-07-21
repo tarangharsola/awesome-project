@@ -837,3 +837,4 @@
 2026-07-21T09:10:39.666626+00:00 | Add connection status indicator and retry/backoff behavior.
 2026-07-21T09:11:25.573998+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
 2026-07-21T09:12:17.734394+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
+2026-07-21T09:12:32.310203+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
