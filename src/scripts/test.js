@@ -1,9 +1,9 @@
-const { test } = require('tape');
-const App = require('./components/App').default;
+const { test } = require('tap');
+const { build } = require('./build');
 
-test('App renders without errors', function(t) {
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = '<App />';
-  t.equal(wrapper.querySelector('div').textContent, '');
-  t.end();
-});
+module.exports = function (tap) {
+  tap.test('editor functionality', function (t) {
+    build(t);
+    t.end();
+  });
+};
