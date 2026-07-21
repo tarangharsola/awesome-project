@@ -1,47 +1,23 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+import { useUsers } from './useUsers';
 
 const useAwareness = () => {
-  const [users, setUsers] = useState([]);
-  const [cursorPositions, setCursorPositions] = useState({});
+  const [awareness, setAwareness] = useState({});
+  const users = useUsers();
 
   useEffect(() => {
-    const handleUserJoin = (user) => {
-      setUsers((prevUsers) => [...prevUsers, user]);
+    const handleUserUpdate = (user) => {
+      setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
     };
 
-    const handleUserLeave = (user) => {
-      setUsers((prevUsers) => prevUsers.filter((u) => u !== user));
-    };
-
-    const handleCursorUpdate = (user, cursorPosition) => {
-      setCursorPositions((prevCursorPositions) => {
-        const newCursorPositions = { ...prevCursorPositions, [user]: cursorPosition };
-        return newCursorPositions;
-      });
-    };
-
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'userJoin') {
-        handleUserJoin(message.user);
-      } else if (message.type === 'userLeave') {
-        handleUserLeave(message.user);
-      } else if (message.type === 'cursorUpdate') {
-        handleCursorUpdate(message.user, message.cursorPosition);
-      }
-    };
+    users.on('update', handleUserUpdate);
 
     return () => {
-      // Clean up WebSocket
+      users.off('update', handleUserUpdate);
     };
   }, []);
 
-  return {
-    users,
-    cursorPositions
-  };
+  return awareness;
 };
 
 export default useAwareness;
