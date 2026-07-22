@@ -1,23 +1,36 @@
 {"import React from 'react';
-import { useTheme } from '@material-ui/core/styles';
+import { useState, useEffect } from 'react';
 
-interface Props {
+interface UserProps {
   name: string;
   color: string;
 }
 
-const User = ({ name, color }: Props) => {
-  const theme = useTheme();
-  const styles = {
-    backgroundColor: color,
-    color: theme.palette.text.primary,
-    padding: theme.spacing(1),
-    borderRadius: theme.spacing(1),
-  };
+const User = ({ name, color }: UserProps) => {
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    setIsConnected(true);
+  }, []);
 
   return (
-    <div style={styles}>{name}</div>
+    <div style={{
+      backgroundColor: color,
+      color: '#fff',
+      padding: '5px',
+      borderRadius: '5px',
+      display: 'flex',
+      alignItems: 'center',
+    }}>
+      <span style={{
+        marginRight: '5px',
+      }}>{name}</span>
+      <span style={{
+        fontSize: '12px',
+      }}>Cursor Position: {cursorPosition}</span>
+    </div>
   );
-};
+}
 
 export default User;

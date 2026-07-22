@@ -1,29 +1,27 @@
 {"import React from 'react';
-import { useState } from 'react';
-import { users } from './users';
+import User from './User';
 
-function UserList({ users, cursorPositions }) {
-  const [selectedUser, setSelectedUser] = useState(null);
+interface UserListProps {
+  users: { name: string; color: string }[];
+}
 
-  const handleUserSelect = (user) => {
-    setSelectedUser(user);
-  };
-
+const UserList = ({ users }: UserListProps) => {
   return (
-    <div>
-      {users.map((user) => (
-        <div key={user.id} onClick={() => handleUserSelect(user)}>
-          <span>{user.name}</span>
-          <span>{user.color}</span>
-        </div>
-      ))}
-      {selectedUser && (
-        <div>
-          <span>{selectedUser.name}</span>
-          <span>{selectedUser.color}</span>
-          <span>Cursor Position: {cursorPositions[selectedUser.id]}</span>
-        </div>
-      )}
+    <div style={{
+      padding: '10px',
+      backgroundColor: '#333',
+      color: '#fff',
+    }}>
+      <h2>Active Users:</h2>
+      <ul>
+        {users.map((user, index) => (
+          <li key={index} style={{
+            marginBottom: '10px',
+          }}>
+            <User name={user.name} color={user.color} />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
