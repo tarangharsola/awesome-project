@@ -19,19 +19,16 @@ const WebSocket = () => {
     return () => ws.close();
   }, []);
 
-  const retry = () => {
-    if (retryCount < 5) {
-      setTimeout(() => {
-        setRetryCount(0);
-        setConnected(false);
-      }, 2000);
+  useEffect(() => {
+    if (!connected && retryCount < 5) {
+      setTimeout(() => ws.reconnect(), 1000);
     }
-  };
+  }, [connected, retryCount, ws]);
 
   return (
     <div>
       {connected ? 'Connected' : 'Disconnected'}
-      <button onClick={retry}>Retry</button>
+      <button onClick={() => ws.reconnect()}>Retry</button>
     </div>
   );
 };
