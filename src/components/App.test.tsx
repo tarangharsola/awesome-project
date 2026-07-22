@@ -1,11 +1,10 @@
-// Import required modules
+// eslint-disable-next-line
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { render } from '@testing-library/react';
+
 import App from './App';
 
-// Render App component
-it('renders without crashing', () => {
-  const div = document.createElement('div');
-  ReactDOM.render(<App />, div);
-  ReactDOM.unmountComponentAtNode(div);
+test('renders App component', () => {
+  const { getByText } = render(<App />);
+  expect(getByText('Collaborative Code Editor')).toBeInTheDocument();
 });
