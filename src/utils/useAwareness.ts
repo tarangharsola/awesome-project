@@ -2,31 +2,25 @@
 import { useUsers } from './useUsers';
 
 interface Awareness {
-  users: any[];
-  addUser: (user: any) => void;
-  removeUser: (user: any) => void;
+  updateAwareness: (user: any) => void;
 }
 
-const useAwareness = () => {
-  const [users, setUsers] = useState([]);
-  const usersHook = useUsers();
+const useAwareness = (): Awareness => {
+  const [awareness, setAwareness] = useState({});
+  const users = useUsers();
 
   useEffect(() => {
-    const handleUserJoin = (user) => {
-      setUsers((prevUsers) => [...prevUsers, user]);
+    const handleUserUpdate = (user) => {
+      setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
     };
-    const handleUserLeave = (user) => {
-      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
-    };
-    usersHook.on('userJoin', handleUserJoin);
-    usersHook.on('userLeave', handleUserLeave);
-    return () => {
-      usersHook.off('userJoin', handleUserJoin);
-      usersHook.off('userLeave', handleUserLeave);
-    };
-  }, [usersHook]);
 
-  return { users, addUser: usersHook.addUser, removeUser: usersHook.removeUser };
+    users.on('update', handleUserUpdate);
+    return () => users.off('update', handleUserUpdate);
+  }, [users]);
+
+  return {
+    updateAwareness: (user) => setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user })),
+  };
 };
 
 export default useAwareness;

@@ -5,22 +5,23 @@ interface Reconnection {
   reconnect: () => void;
 }
 
-const useReconnection = () => {
+const useReconnection = (): Reconnection => {
   const [reconnecting, setReconnecting] = useState(false);
-  const [error, setError] = useState(null);
   const webSocket = useWebSocket();
 
   useEffect(() => {
     const handleReconnect = () => {
       setReconnecting(true);
-      webSocket.reconnect().catch((error) => setError(error));
-      setReconnecting(false);
+      webSocket.reconnect();
     };
+
     webSocket.on('reconnect', handleReconnect);
     return () => webSocket.off('reconnect', handleReconnect);
   }, [webSocket]);
 
-  return { reconnecting, error, reconnect: webSocket.reconnect };
+  return {
+    reconnect: () => setReconnecting(true),
+  };
 };
 
 export default useReconnection;

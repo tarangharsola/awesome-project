@@ -5,7 +5,7 @@ interface ConflictResolver {
   resolveConflict: (conflict: any) => any;
 }
 
-const useConflictResolver = () => {
+const useConflictResolver = (): ConflictResolver => {
   const [conflict, setConflict] = useState(null);
   const editor = useEditor();
 
@@ -14,11 +14,14 @@ const useConflictResolver = () => {
       setConflict(conflict);
       editor.resolveConflict(conflict);
     };
+
     editor.on('conflict', handleConflict);
     return () => editor.off('conflict', handleConflict);
   }, [editor]);
 
-  return { conflict, resolveConflict: editor.resolveConflict };
+  return {
+    resolveConflict: (conflict) => setConflict(conflict),
+  };
 };
 
 export default useConflictResolver;
