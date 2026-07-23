@@ -1,15 +1,9 @@
-// eslint-disable-next-line
-import { test } from 'tape';
+const { test } = require('tap');
+const { build } = require('./ci');
 
-const build = require('./build');
+build();
 
-test('Build script runs without errors', (t) => {
-  build();
-  t.pass('Build script ran successfully.');
-  t.end();
-});
-
-test('Test script runs without errors', (t) => {
-  t.pass('Test script ran successfully.');
+test('build script runs without errors', (t) => {
+  t.pass('build script runs without errors');
   t.end();
 });
