@@ -9,18 +9,27 @@ interface UserProps {
 const User = ({ name, color }: UserProps) => {
   const theme = useTheme();
   const textColor = theme.palette.text.primary;
-  const backgroundColor = color;
+  const backgroundColor = theme.palette.background.default;
 
   return (
     <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      padding: '8px',
       backgroundColor,
       color: textColor,
-      padding: '4px 8px',
       borderRadius: '4px',
-      display: 'inline-block',
-      marginRight: '8px',
+      marginBottom: '8px',
     }}>
-      {name}
+      <span style={{
+        marginRight: '8px',
+        fontSize: '14px',
+        fontWeight: 'bold',
+      }}>{name}</span>
+      <span style={{
+        fontSize: '14px',
+        color: color,
+      }}>&#x25A0;</span>
     </div>
   );
 }
