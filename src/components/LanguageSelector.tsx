@@ -1,1 +1,19 @@
-{"import React from 'react';\nimport { useState } from 'react';\nimport { useLanguage } from '../utils/useLanguage';\n\ninterface Props {\n  languages: string[];\n}\n\nconst LanguageSelector: React.FC<Props> = ({ languages }) => {\n  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);\n  const { formatCode } = useLanguage(selectedLanguage);\n\n  const handleLanguageChange = (language: string) => {\n    setSelectedLanguage(language);\n  };\n\n  return (\n    <div>\n      <select value={selectedLanguage} onChange={(e) => handleLanguageChange(e.target.value)}>\n        {languages.map((language) => (\n          <option key={language} value={language}>{language}</option>\n        ))}\n      </select>\n    </div>\n  );\n};\n\nexport default LanguageSelector;
+{"import React from 'react';
+import { useState } from 'react';
+
+const LanguageSelector = () => {
+  const [language, setLanguage] = useState('javascript');
+  const handleLanguageChange = (event) => {
+    setLanguage(event.target.value);
+  };
+
+  return (
+    <select value={language} onChange={handleLanguageChange}>
+      <option value="javascript">JavaScript</option>
+      <option value="python">Python</option>
+      <option value="html">HTML</option>
+    </select>
+  );
+};
+
+export default LanguageSelector;

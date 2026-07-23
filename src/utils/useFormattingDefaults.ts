@@ -1,1 +1,22 @@
-{"import { useState } from 'react';\n\ninterface Props {\n  language: string;\n}\n\nconst useFormattingDefaults = (props: Props) => {\n  const [formattingDefaults, setFormattingDefaults] = useState({\n    indentSize: 2,\n    tabSize: 2,\n  });\n\n  const handleFormatChange = (key: string, value: any) => {\n    setFormattingDefaults((prevDefaults) => ({ ...prevDefaults, [key]: value }));\n  };\n\n  return { formattingDefaults, handleFormatChange };\n};\n\nexport default useFormattingDefaults;
+{"import { useState } from 'react';
+
+const useFormattingDefaults = () => {
+  const [formattingDefaults, setFormattingDefaults] = useState({
+    tabSize: 2,
+    indentSize: 2,
+  });
+
+  const handleFormatChange = (event) => {
+    setFormattingDefaults({
+      ...formattingDefaults,
+      [event.target.name]: event.target.value,
+    });
+  };
+
+  return {
+    formattingDefaults,
+    handleFormatChange,
+  };
+};
+
+export default useFormattingDefaults;

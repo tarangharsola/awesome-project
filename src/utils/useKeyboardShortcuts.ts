@@ -1,1 +1,22 @@
-{"import { useState } from 'react';\n\ninterface Props {\n  language: string;\n}\n\nconst useKeyboardShortcuts = (props: Props) => {\n  const [shortcuts, setShortcuts] = useState({\n    indent: 'tab',\n    outdent: 'shift+tab',\n  });\n\n  const handleShortcutChange = (key: string, value: any) => {\n    setShortcuts((prevShortcuts) => ({ ...prevShortcuts, [key]: value }));\n  };\n\n  return { shortcuts, handleShortcutChange };\n};\n\nexport default useKeyboardShortcuts;
+{"import { useState } from 'react';
+
+const useKeyboardShortcuts = () => {
+  const [keyboardShortcuts, setKeyboardShortcuts] = useState({
+    'Ctrl+S': 'Save',
+    'Ctrl+Shift+S': 'Save As',
+  });
+
+  const handleShortcutChange = (event) => {
+    setKeyboardShortcuts({
+      ...keyboardShortcuts,
+      [event.target.name]: event.target.value,
+    });
+  };
+
+  return {
+    keyboardShortcuts,
+    handleShortcutChange,
+  };
+};
+
+export default useKeyboardShortcuts;
