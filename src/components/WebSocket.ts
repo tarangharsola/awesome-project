@@ -21,7 +21,7 @@ const WebSocket = () => {
 
   useEffect(() => {
     if (!connected && retryCount < 5) {
-      setTimeout(() => ws.reconnect(), 1000);
+      setTimeout(() => ws.reconnect(), 500);
     }
   }, [connected, retryCount, ws]);
 
