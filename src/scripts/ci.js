@@ -1,13 +1,13 @@
-const { spawnSync } = require('child_process');
-const { test } = require('tap');
+const childProcess = require('child_process');
+const fs = require('fs');
 
-module.exports = function ci() {
-  const build = spawnSync('npm', ['run', 'build'], { stdio: 'inherit' });
-  if (build.status !== 0) {
-    process.exit(build.status);
-  }
-  const testRun = spawnSync('npm', ['run', 'test'], { stdio: 'inherit' });
-  if (testRun.status !== 0) {
-    process.exit(testRun.status);
-  }
+module.exports = function runTests() {
+  const testResults = childProcess.execSync('jest', { stdio: 'pipe' })
+    .toString()
+    .split('\n')
+    .filter(line => line.includes('PASS') || line.includes('FAIL'))
+    .map(line => line.trim());
+
+  const testSummary = testResults.join('\n');
+  fs.writeFileSync('test-results.txt', testSummary);
 };

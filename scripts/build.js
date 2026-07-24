@@ -1,10 +1,7 @@
-// Import required modules
-const { build } = require('./src/scripts/build');
+const childProcess = require('child_process');
+const fs = require('fs');
 
-// Define build function
-module.exports = build;
-
-// Define build function implementation
-function build() {
-  // Build application
-}
+module.exports = function buildApp() {
+  childProcess.execSync('webpack --mode production');
+  fs.copyFileSync('src/index.html', 'public/index.html');
+};
