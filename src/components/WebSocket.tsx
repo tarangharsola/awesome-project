@@ -1,13 +1,21 @@
-{"import React from 'react';
-import useWebSocket from './useWebSocket';
+{"import React, { useState, useEffect } from 'react';
+import WebSocket from 'ws';
 
-const WebSocket = () => {
-  const { connectionStatus, reconnect } = useWebSocket('ws://localhost:8080');
+const WebSocket = ({ ws }) => {
+  const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    ws.onmessage = (event) => {
+      setMessage(event.data);
+    };
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   return (
     <div>
-      <p>Connection Status: {connectionStatus}</p>
-      <button onClick={reconnect}>Reconnect</button>
+      {message && <div>Received message: {message}</div>}
     </div>
   );
 };

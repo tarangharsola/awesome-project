@@ -1,1 +1,47 @@
-{"import React, { useState, useEffect } from 'react';\nimport { useEditor } from '../utils/useEditor';\nimport { useWebSocket } from '../utils/useWebSocket';\nimport { useUsers } from '../utils/useUsers';\nimport CursorTracker from './CursorTracker';\n\ninterface EditorProps {\n  language: string;\n  code: string;\n  users: { id: string; name: string; color: string; }[];\n}\n\nconst Editor = ({ language, code, users }: EditorProps) => {\n  const [cursor, setCursor] = useState({ x: 0, y: 0 });\n  const { send } = useWebSocket();\n  const { users: connectedUsers } = useUsers();\n  const { language: selectedLanguage } = useLanguage();\n  const { code: formattedCode } = useFormattingDefaults();\n\n  useEffect(() => {\n    const handleCursorMove = (newCursor: { x: number; y: number; }) => {\n      setCursor(newCursor);\n    };\n    send({ type: 'cursor-move', data: newCursor });\n  }, []);\n\n  return (\n    <div\n      style={{\n        position: 'relative',\n        width: '100%',\n        height: '100%',\n        padding: 10,\n        border: '1px solid #ccc',\n        borderRadius: 5,\n      }}\n    >\n      <div\n        style={{\n          position: 'absolute',\n          left: cursor.x,\n          top: cursor.y,\n          width: 10,\n          height: 10,\n          backgroundColor: 'red',\n          borderRadius: '50%',\n          boxShadow: '0 0 10px rgba(0, 0, 0, 0.2)',\n        }}\n      >\n        <span\n          style={{\n            position: 'absolute',\n            left: cursor.x + 15,\n            top: cursor.y - 15,\n            fontSize: 12,\n            color: 'white',\n          }}\n        >\n          {cursor.x}\n        </span>\n      </div>\n      <CursorTracker cursor={cursor} user={connectedUsers[0]} />\n      <div\n        style={{\n          position: 'absolute',\n          left: 10,\n          top: 10,\n          fontSize: 12,\n          color: 'black',\n        }}\n      >\n        {selectedLanguage}\n      </div>\n      <div\n        style={{\n          position: 'absolute',\n          left: 10,\n          top: 30,\n          fontSize: 12,\n          color: 'black',\n        }}\n      >\n        {formattedCode}\n      </div>\n    </div>\n  );\n};\n\nexport default Editor;
+{"import React, { useState, useEffect } from 'react';
+import { Editor as CodeMirror } from 'codemirror';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+import 'codemirror/addon/edit/matchbrackets';
+import 'codemirror/addon/edit/closebrackets';
+import 'codemirror/addon/fold/foldcode';
+import 'codemirror/addon/fold/foldgutter';
+import 'codemirror/addon/fold/indent-fold';
+import 'codemirror/addon/hint/show-hint';
+import 'codemirror/addon/hint/javascript-hint';
+
+const Editor = ({ language, content, onChange }) => {
+  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
+
+  useEffect(() => {
+    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: language,
+      lineNumbers: true,
+      foldGutter: true,
+      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+      hint: true,
+      extraKeys: {
+        'Ctrl-Space': 'autocomplete',
+      },
+    });
+    editor.on('change', () => {
+      onChange(editor.getValue());
+    });
+    return () => {
+      editor.toTextArea();
+    };
+  }, []);
+
+  const handleCursorPositionChange = (position) => {
+    setCursorPosition(position);
+  };
+
+  return (
+    <div>
+      <textarea id='editor' value={content} onChange={() => {}} />
+      <div className='cursor-position'>{cursorPosition.line}:{cursorPosition.ch}</div>
+    </div>
+  );
+};
+
+export default Editor;
