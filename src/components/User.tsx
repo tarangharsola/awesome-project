@@ -1,5 +1,5 @@
 {"import React from 'react';
-import { useState, useEffect } from 'react';
+import { useTheme } from '@material-ui/core/styles';
 
 interface UserProps {
   name: string;
@@ -7,28 +7,20 @@ interface UserProps {
 }
 
 const User = ({ name, color }: UserProps) => {
-  const [cursorPosition, setCursorPosition] = useState(0);
-  const [isConnected, setIsConnected] = useState(false);
-
-  useEffect(() => {
-    setIsConnected(true);
-  }, []);
+  const theme = useTheme();
+  const textColor = theme.palette.text.primary;
+  const backgroundColor = color;
 
   return (
     <div style={{
-      backgroundColor: color,
-      color: '#fff',
-      padding: '5px',
-      borderRadius: '5px',
-      display: 'flex',
-      alignItems: 'center',
+      backgroundColor: backgroundColor,
+      color: textColor,
+      padding: '4px 8px',
+      borderRadius: '4px',
+      display: 'inline-block',
+      marginRight: '8px',
     }}>
-      <span style={{
-        marginRight: '5px',
-      }}>{name}</span>
-      <span style={{
-        fontSize: '12px',
-      }}>Cursor Position: {cursorPosition}</span>
+      {name}
     </div>
   );
 }

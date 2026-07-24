@@ -1,14 +1,23 @@
 {"import React from 'react';
 import User from './User';
 
-const UserList = ({ users, onUserJoin, onUserLeave }) => {
+interface UserListProps {
+  users: { name: string; color: string }[];
+}
+
+const UserList = ({ users }: UserListProps) => {
   return (
-    <div>
-      {users.map((user) => (
-        <User key={user.id} user={user} onUserJoin={onUserJoin} onUserLeave={onUserLeave} />
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '16px',
+    }}>
+      {users.map((user, index) => (
+        <User key={index} name={user.name} color={user.color} />
       ))}
     </div>
   );
-};
+}
 
 export default UserList;
