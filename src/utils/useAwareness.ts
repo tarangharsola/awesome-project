@@ -1,26 +1,35 @@
 {"import { useState, useEffect } from 'react';
 import { useUsers } from './useUsers';
+import { useWebSocket } from './useWebSocket';
 
-interface Awareness {
-  updateAwareness: (user: any) => void;
-}
-
-const useAwareness = (): Awareness => {
-  const [awareness, setAwareness] = useState({});
-  const users = useUsers();
+const useAwareness = () => {
+  const [users, setUsers] = useState([]);
+  const { users: currentUsers } = useUsers();
+  const { broadcast } = useWebSocket();
 
   useEffect(() => {
-    const handleUserUpdate = (user) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
+    setUsers(currentUsers);
+  }, [currentUsers]);
+
+  useEffect(() => {
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    users.on('update', handleUserUpdate);
-    return () => users.off('update', handleUserUpdate);
-  }, [users]);
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
+    };
 
-  return {
-    updateAwareness: (user) => setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user })),
-  };
+    broadcast('user_join', handleUserJoin);
+    broadcast('user_leave', handleUserLeave);
+
+    return () => {
+      broadcast('user_join', () => {});
+      broadcast('user_leave', () => {});
+    };
+  }, [broadcast]);
+
+  return users;
 };
 
 export default useAwareness;
