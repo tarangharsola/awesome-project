@@ -7,25 +7,29 @@ interface LanguageSelectorProps {
   onChange: (language: string) => void;
 }
 
-const LanguageSelector: React.FC<LanguageSelectorProps> = ({
-  languages,
-  selectedLanguage,
-  onChange
-}) => {
-  const [currentLanguage, setCurrentLanguage] = useState(selectedLanguage);
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({ languages, selectedLanguage, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLanguageChange = (language: string) => {
     onChange(language);
-    setCurrentLanguage(language);
+    setIsOpen(false);
   };
 
   return (
-    <select value={currentLanguage} onChange={(e) => handleLanguageChange(e.target.value)}>
-      {languages.map((language) => (
-        <option key={language} value={language}>{language}</option>
-      ))}
-    </select>
+    <div>
+      <button onClick={() => setIsOpen(!isOpen)}>Select Language</button>
+      {isOpen && (
+        <ul>
+          {languages.map((language) => (
+            <li key={language} onClick={() => handleLanguageChange(language)}>
+              {language}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
-};
 
+  return LanguageSelector;
+}
 export default LanguageSelector;
