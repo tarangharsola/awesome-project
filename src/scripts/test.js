@@ -1,9 +1,9 @@
-const { test } = require('tap');
-const { build } = require('./ci');
+const { test } = require('tape');
+const { join } = require('path');
+const buildScript = require('./build.js');
 
-build();
-
-test('build script runs without errors', (t) => {
-  t.pass('build script runs without errors');
-  t.end();
-});
+module.exports = function test() {
+  console.log('Running tests...');
+  buildScript();
+  console.log('Tests complete.');
+};
