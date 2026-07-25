@@ -1,22 +1,23 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
 import Editor from './Editor';
+import LanguageSelector from './LanguageSelector';
 import UserList from './UserList';
 import WebSocket from './WebSocket';
 
-const App = () => {
+function App() {
   const [users, setUsers] = useState([]);
-  const [editorContent, setEditorContent] = useState('');
+  const [editorValue, setEditorValue] = useState('');
   const [language, setLanguage] = useState('javascript');
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'updateUsers') {
+      if (data.type === 'users') {
         setUsers(data.users);
-      } else if (data.type === 'updateEditorContent') {
-        setEditorContent(data.content);
+      } else if (data.type === 'editorValue') {
+        setEditorValue(data.editorValue);
       }
     };
     return () => {
@@ -24,26 +25,14 @@ const App = () => {
     };
   }, []);
 
-  const handleUserJoin = (user) => {
-    setUsers((prevUsers) => [...prevUsers, user]);
-  };
-
-  const handleUserLeave = (user) => {
-    setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
-  };
-
-  const handleEditorChange = (content) => {
-    setEditorContent(content);
-    ws.send(JSON.stringify({ type: 'updateEditorContent', content }));
-  };
-
   return (
     <div>
-      <Editor language={language} content={editorContent} onChange={handleEditorChange} />
-      <UserList users={users} onUserJoin={handleUserJoin} onUserLeave={handleUserLeave} />
+      <LanguageSelector language={language} setLanguage={setLanguage} />
+      <Editor value={editorValue} setValue={setEditorValue} language={language} />
+      <UserList users={users} />
       <WebSocket ws={ws} />
     </div>
   );
-};
+}
 
 export default App;

@@ -1,26 +1,17 @@
 {"import React from 'react';
-import { useTheme } from '@material-ui/core/styles';
+import { useState } from 'react';
 
-interface UserProps {
-  name: string;
-  color: string;
-}
+function User({ user, onSelect }) {
+  const [selected, setSelected] = useState(false);
 
-const User = ({ name, color }: UserProps) => {
-  const theme = useTheme();
-  const textColor = theme.palette.text.primary;
-  const backgroundColor = color;
+  const handleSelect = () => {
+    onSelect(user);
+    setSelected(true);
+  };
 
   return (
-    <div style={{
-      backgroundColor: backgroundColor,
-      color: textColor,
-      padding: '4px 8px',
-      borderRadius: '4px',
-      display: 'inline-block',
-      marginRight: '8px',
-    }}>
-      {name}
+    <div onClick={handleSelect} style={{ backgroundColor: user.color, padding: '10px', border: '1px solid black' }}>
+      {user.name}
     </div>
   );
 }
