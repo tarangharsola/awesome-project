@@ -1,14 +1,14 @@
 {"import React from 'react';
 import { useTheme } from '@mui/material/styles';
 
-interface Props {
+interface CursorTrackerProps {
   name: string;
   color: string;
   x: number;
   y: number;
 }
 
-const CursorTracker = ({ name, color, x, y }: Props) => {
+const CursorTracker = ({ name, color, x, y }: CursorTrackerProps) => {
   const theme = useTheme();
   const backgroundColor = theme.palette.background.default;
   const textColor = theme.palette.text.primary;
@@ -18,13 +18,17 @@ const CursorTracker = ({ name, color, x, y }: Props) => {
       position: 'absolute',
       left: x,
       top: y,
-      backgroundColor,
-      color,
-      padding: 5,
-      borderRadius: 5,
-      fontSize: 12,
+      backgroundColor: backgroundColor,
+      color: textColor,
+      padding: '4px 8px',
+      borderRadius: '4px',
+      display: 'inline-block',
+      marginRight: '8px',
     }}>
-      {name}
+      <span style={{
+        color: color,
+        fontWeight: 'bold',
+      }}>{name}</span>
     </div>
   );
 }
