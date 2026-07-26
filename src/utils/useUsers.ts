@@ -1,1 +1,42 @@
-{"import { useState, useEffect } from 'react';\nimport { useWebSocket } from './useWebSocket';\n\ninterface UsersProps {\n  users: { id: string; name: string; color: string; }[];\n}\n\nconst useUsers = () => {\n  const { send } = useWebSocket();\n  const [users, setUsers] = useState([]);\n  useEffect(() => {\n    const handleUserJoin = (newUser: { id: string; name: string; color: string; }) => {\n      setUsers([...users, newUser]);\n    };\n    const handleUserLeave = (userId: string) => {\n      setUsers(users.filter((user) => user.id !== userId));\n    };\n    send({ type: 'user-join', data: newUser });\n  }, []);\n  return { users, send };\n};\n\nexport default useUsers;
+{"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+
+interface Props {
+}
+
+const useUsers = () => {
+  const [users, setUsers] = useState([]);
+  const { send, receive } = useWebSocket();
+
+  useEffect(() => {
+    const handleUserUpdate = (data: {
+      type: 'UPDATE_USER';
+      data: {
+        id: string;
+        name: string;
+        color: string;
+      };
+    }) => {
+      setUsers((prevUsers) => {
+        const updatedUsers = [...prevUsers];
+        const index = updatedUsers.findIndex((user) => user.id === data.data.id);
+        if (index !== -1) {
+          updatedUsers[index] = data.data;
+        } else {
+          updatedUsers.push(data.data);
+        }
+        return updatedUsers;
+      });
+    };
+
+    receive(handleUserUpdate);
+
+    return () => {
+      receive(null);
+    };
+  }, [receive]);
+
+  return { users };
+}
+
+export default useUsers;

@@ -1,1 +1,28 @@
-{"import { useState, useEffect } from 'react';\n\ninterface CursorProps {\n  x: number;\n  y: number;\n}\n\nconst useCursor = () => {\n  const [cursor, setCursor] = useState({ x: 0, y: 0 });\n  const handleCursorMove = (newCursor: CursorProps) => {\n    setCursor(newCursor);\n  };\n  return { cursor, handleCursorMove };\n};\n\nexport default useCursor;
+{"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
+
+interface Props {
+  userId: string;
+}
+
+const useCursor = (userId: string) => {
+  const [cursor, setCursor] = useState({
+    userId,
+    position: 0,
+  });
+  const { send } = useWebSocket();
+
+  useEffect(() => {
+    send({
+      type: 'UPDATE_CURSOR',
+      data: {
+        userId,
+        position: cursor.position,
+      },
+    });
+  }, [cursor.position, send, userId]);
+
+  return { cursor, setCursor };
+}
+
+export default useCursor;
