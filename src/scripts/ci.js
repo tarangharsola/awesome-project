@@ -1,8 +1,8 @@
-const { execSync } = require('child_process');
-const buildScript = require('./build.js');
+// This is a basic CI script to validate the app
+const childProcess = require('child_process');
+const fs = require('fs');
 
-module.exports = function ci() {
-  console.log('Running CI script...');
-  buildScript();
-  console.log('CI script complete.');
+module.exports = function() {
+  // Run tests and build script
+  childProcess.execSync('npm run test && npm run build');
 };

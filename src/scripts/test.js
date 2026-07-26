@@ -1,9 +1,7 @@
-const { test } = require('tape');
-const { join } = require('path');
-const buildScript = require('./build.js');
+// This is a basic test script to validate the app
+const jest = require('jest');
 
-module.exports = function test() {
-  console.log('Running tests...');
-  buildScript();
-  console.log('Tests complete.');
+module.exports = function() {
+  // Run tests
+  jest();
 };
