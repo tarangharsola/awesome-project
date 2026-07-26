@@ -1,35 +1,56 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
+import WebSocket from 'ws';
 
-const WebSocket = () => {
-  const [connected, setConnected] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+const WebSocketComponent = () => {
+  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+  const [retries, setRetries] = useState(0);
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => setConnected(true);
+    const wsUrl = 'ws://localhost:8080';
+    const wsOptions = {
+      rejectUnauthorized: false,
+    };
+
+    const ws = new WebSocket(wsUrl, wsOptions);
+
+    ws.onopen = () => {
+      setConnectionStatus('Connected');
+      setWs(ws);
+    };
+
     ws.onclose = () => {
-      setConnected(false);
-      setRetryCount(retryCount + 1);
+      setConnectionStatus('Disconnected');
+      setRetries(retries + 1);
+      setTimeout(() => {
+        setRetries(0);
+      }, 5000);
     };
-    ws.onerror = () => {
-      setConnected(false);
-      setRetryCount(retryCount + 1);
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
     };
-    return () => ws.close();
+
+    return () => {
+      ws.close();
+    };
   }, []);
 
-  useEffect(() => {
-    if (!connected && retryCount < 5) {
-      setTimeout(() => ws.reconnect(), 500);
+  const retryConnection = () => {
+    if (retries < 5) {
+      setRetries(retries + 1);
+      setTimeout(() => {
+        setRetries(0);
+      }, 5000);
     }
-  }, [connected, retryCount, ws]);
+  };
 
   return (
     <div>
-      {connected ? 'Connected' : 'Disconnected'}
-      <button onClick={() => ws.reconnect()}>Retry</button>
+      <p>Connection Status: {connectionStatus}</p>
+      <button onClick={retryConnection}>Retry Connection</button>
     </div>
   );
 };
-export default WebSocket;
+
+export default WebSocketComponent;
