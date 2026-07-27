@@ -1,56 +1,35 @@
-{"import React, { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+{"import React from 'react';
+import { useState, useEffect } from 'react';
 
-const WebSocketComponent = () => {
-  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
-  const [retries, setRetries] = useState(0);
-  const [ws, setWs] = useState(null);
+const WebSocket = () => {
+  const [connected, setConnected] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    const wsUrl = 'ws://localhost:8080';
-    const wsOptions = {
-      rejectUnauthorized: false,
-    };
-
-    const ws = new WebSocket(wsUrl, wsOptions);
-
-    ws.onopen = () => {
-      setConnectionStatus('Connected');
-      setWs(ws);
-    };
-
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onopen = () => setConnected(true);
     ws.onclose = () => {
-      setConnectionStatus('Disconnected');
-      setRetries(retries + 1);
+      setConnected(false);
+      setRetryCount(retryCount + 1);
       setTimeout(() => {
-        setRetries(0);
+        setRetryCount(0);
       }, 5000);
     };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    return () => {
-      ws.close();
+    ws.onerror = () => {
+      setConnected(false);
+      setRetryCount(retryCount + 1);
+      setTimeout(() => {
+        setRetryCount(0);
+      }, 5000);
     };
   }, []);
 
-  const retryConnection = () => {
-    if (retries < 5) {
-      setRetries(retries + 1);
-      setTimeout(() => {
-        setRetries(0);
-      }, 5000);
-    }
-  };
-
   return (
     <div>
-      <p>Connection Status: {connectionStatus}</p>
-      <button onClick={retryConnection}>Retry Connection</button>
+      {connected ? 'Connected' : 'Disconnected'}
+      <br />
+      Retry count: {retryCount}
     </div>
   );
 };
-
-export default WebSocketComponent;
+export default WebSocket;
