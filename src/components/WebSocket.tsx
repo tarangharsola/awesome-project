@@ -2,20 +2,17 @@
 import WebSocket from 'ws';
 
 function WebSocket({ ws }) {
-  const [message, setMessage] = useState(null);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    ws.onmessage = (event) => {
-      setMessage(event.data);
-    };
-    return () => {
-      ws.close();
-    };
+    ws.onopen = () => setConnected(true);
+    ws.onclose = () => setConnected(false);
+    return () => ws.close();
   }, []);
 
   return (
     <div>
-      {message && <p>Received message: {message}</p>}
+      {connected ? <p>Connected</p> : <p>Disconnected</p>}
     </div>
   );
 }

@@ -7,29 +7,39 @@ import WebSocket from './WebSocket';
 
 function App() {
   const [users, setUsers] = useState([]);
-  const [editorValue, setEditorValue] = useState('');
   const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('');
+  const [cursorPositions, setCursorPositions] = useState({});
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'users') {
+      if (data.type === 'cursorPosition') {
+        setCursorPositions(data.cursorPositions);
+      } else if (data.type === 'users') {
         setUsers(data.users);
-      } else if (data.type === 'editorValue') {
-        setEditorValue(data.editorValue);
       }
     };
-    return () => {
-      ws.close();
-    };
+    return () => ws.close();
   }, []);
+
+  const handleCodeChange = (code) => {
+    setCode(code);
+    ws.send(JSON.stringify({ type: 'codeChange', code }));
+  };
+
+  const handleLanguageChange = (language) => {
+    setLanguage(language);
+    ws.send(JSON.stringify({ type: 'languageChange', language }));
+  };
 
   return (
     <div>
-      <LanguageSelector language={language} setLanguage={setLanguage} />
-      <Editor value={editorValue} setValue={setEditorValue} language={language} />
-      <UserList users={users} />
+      <h1>Collaborative Code Editor</h1>
+      <LanguageSelector language={language} onChange={handleLanguageChange} />
+      <Editor code={code} language={language} onChange={handleCodeChange} />
+      <UserList users={users} cursorPositions={cursorPositions} />
       <WebSocket ws={ws} />
     </div>
   );
