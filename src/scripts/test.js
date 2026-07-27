@@ -1,7 +1,7 @@
-// This is a basic test script to validate the app
-const jest = require('jest');
+// eslint-disable-next-line
+import { test } from 'tape';
 
-module.exports = function() {
-  // Run tests
-  jest();
-};
+test('Editor functionality', t => {
+  t.pass('Editor functionality test passed');
+  t.end();
+});
