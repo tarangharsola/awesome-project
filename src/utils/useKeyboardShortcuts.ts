@@ -4,16 +4,10 @@ interface KeyboardShortcuts {
   shortcuts: { [key: string]: string };
 }
 
-const useKeyboardShortcuts = (): KeyboardShortcuts => {
-  const [shortcuts, setShortcuts] = useState({
-    'Ctrl+S': 'Save file',
-    'Ctrl+C': 'Copy',
-    'Ctrl+V': 'Paste',
-  });
+const useKeyboardShortcuts = () => {
+  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
 
-  return {
-    shortcuts,
-  };
-};
+  return shortcuts;
+}
 
 export default useKeyboardShortcuts;
