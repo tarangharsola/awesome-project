@@ -1,8 +1,10 @@
-// eslint-disable-next-line
-import { execSync } from 'child_process';
+// Import required modules
+const { execSync } = require('child_process');
 
-export default function ci() {
-  const build = execSync('npm run build', { stdio: 'inherit' });
-  const test = execSync('npm run test', { stdio: 'inherit' });
-  console.log('Build and test successful');
-};
+// Define test and build scripts
+const testScript = 'jest';
+const buildScript = 'npm run build';
+
+// Run tests and build
+execSync(testScript);
+execSync(buildScript);
