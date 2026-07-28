@@ -1,35 +1,18 @@
-{"import React from 'react';
-import { useState, useEffect } from 'react';
+{"import WebSocket from 'ws';
 
-const WebSocket = () => {
-  const [connected, setConnected] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+class WebSocket {
+  constructor(url) {
+    this.url = url;
+    this.ws = new WebSocket(url);
+  }
 
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => {
-      setConnected(false);
-      setRetryCount(retryCount + 1);
-      setTimeout(() => {
-        setRetryCount(0);
-      }, 5000);
-    };
-    ws.onerror = () => {
-      setConnected(false);
-      setRetryCount(retryCount + 1);
-      setTimeout(() => {
-        setRetryCount(0);
-      }, 5000);
-    };
-  }, []);
+  reconnect() {
+    this.ws.close();
+    this.ws = new WebSocket(this.url);
+  }
 
-  return (
-    <div>
-      {connected ? 'Connected' : 'Disconnected'}
-      <br />
-      Retry count: {retryCount}
-    </div>
-  );
-};
+  get readyState() {
+    return this.ws.readyState;
+  }
+}
 export default WebSocket;
