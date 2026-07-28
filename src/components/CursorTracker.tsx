@@ -12,12 +12,12 @@ const CursorTracker: React.FC<Props> = ({ userId, cursorPosition, color }) => {
   return (
     <div style={{
       position: 'absolute',
-      top: cursorPosition,
-      left: 0,
+      left: cursorPosition,
+      top: 0,
       width: 2,
-      height: '100%',
+      height: 20,
       backgroundColor: color,
-    }}/>
+    }} />
   );
 }
 

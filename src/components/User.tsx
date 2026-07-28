@@ -1,18 +1,20 @@
 {"import React from 'react';
-import { useState } from 'react';
+import { useUsers } from '../utils/useUsers';
 
-function User({ user, onSelect }) {
-  const [selected, setSelected] = useState(false);
+interface Props {
+  userId: string;
+  color: string;
+}
 
-  const handleSelect = () => {
-    onSelect(user);
-    setSelected(true);
-  };
-
+const User: React.FC<Props> = ({ userId, color }) => {
+  const { users } = useUsers();
+  const user = users.find((user) => user.id === userId);
   return (
-    <div onClick={handleSelect} style={{ backgroundColor: user.color, padding: '10px', border: '1px solid black' }}>
-      {user.name}
-    </div>
+    <div style={{
+      backgroundColor: color,
+      padding: 10,
+      borderRadius: 10,
+    }}>{user?.name}</div>
   );
 }
 

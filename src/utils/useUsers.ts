@@ -2,41 +2,26 @@
 import { useWebSocket } from './useWebSocket';
 
 interface Props {
+  userId: string;
 }
 
-const useUsers = () => {
+const useUsers = (userId: string) => {
   const [users, setUsers] = useState([]);
   const { send, receive } = useWebSocket();
 
   useEffect(() => {
-    const handleUserUpdate = (data: {
-      type: 'UPDATE_USER';
-      data: {
-        id: string;
-        name: string;
-        color: string;
-      };
-    }) => {
-      setUsers((prevUsers) => {
-        const updatedUsers = [...prevUsers];
-        const index = updatedUsers.findIndex((user) => user.id === data.data.id);
-        if (index !== -1) {
-          updatedUsers[index] = data.data;
-        } else {
-          updatedUsers.push(data.data);
-        }
-        return updatedUsers;
-      });
+    const userUpdate = (data: { userId: string; users: { id: string; name: string; color: string }[] }) => {
+      if (data.userId === userId) {
+        setUsers(data.users);
+      }
     };
-
-    receive(handleUserUpdate);
-
+    receive('userUpdate', userUpdate);
     return () => {
-      receive(null);
+      receive('userUpdate', null);
     };
-  }, [receive]);
+  }, []);
 
-  return { users };
+  return { users, setUsers };
 }
 
 export default useUsers;
