@@ -15,7 +15,7 @@ const CursorTracker: React.FC<Props> = ({ userId, cursorPosition, color }) => {
       left: cursorPosition,
       top: 0,
       width: 2,
-      height: 20,
+      height: '100%',
       backgroundColor: color,
     }} />
   );

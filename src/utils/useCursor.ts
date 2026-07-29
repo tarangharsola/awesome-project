@@ -6,22 +6,17 @@ interface Props {
 }
 
 const useCursor = (userId: string) => {
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const { send, receive } = useWebSocket();
+  const [cursor, setCursor] = useState({ id: userId, position: 0 });
+  const { send } = useWebSocket();
 
   useEffect(() => {
-    const cursorUpdate = (data: { userId: string; cursorPosition: number }) => {
-      if (data.userId === userId) {
-        setCursor({ x: data.cursorPosition, y: 0 });
-      }
-    };
-    receive('cursorUpdate', cursorUpdate);
-    return () => {
-      receive('cursorUpdate', null);
-    };
-  }, []);
+    const intervalId = setInterval(() => {
+      send({ type: 'cursor', data: { id: userId, position: cursor.position } });
+    }, 100);
+    return () => clearInterval(intervalId);
+  }, [userId, cursor.position, send]);
 
-  return { cursor, setCursor };
+  return { cursor };
 }
 
 export default useCursor;

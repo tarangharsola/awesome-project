@@ -7,33 +7,35 @@ interface Props {
 
 const useWebSocket = (userId: string) => {
   const [ws, setWs] = useState<WebSocket | null>(null);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
     setWs(ws);
-    return () => {
-      ws.close();
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'cursor') {
+        setCursor({ id: userId, position: data.data.position });
+      } else if (data.type === 'users') {
+        setUsers(data.data.users);
+      }
     };
-  }, []);
+    ws.onopen = () => {
+      setConnected(true);
+    };
+    ws.onclose = () => {
+      setConnected(false);
+    };
+    return () => ws.close();
+  }, [userId]);
 
-  const send = (event: string, data: any) => {
-    if (ws) {
-      ws.send(JSON.stringify({ event, data }));
+  const send = (data: any) => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(data));
     }
   };
 
-  const receive = (event: string, callback: (data: any) => void) => {
-    if (ws) {
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.event === event) {
-          callback(data.data);
-        }
-      };
-    }
-  };
-
-  return { send, receive };
+  return { send, connected };
 }
 
 export default useWebSocket;
