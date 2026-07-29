@@ -1,9 +1,6 @@
-// Import required modules
-const { test, describe } = require('jest');
+const jest = require('jest');
 
-// Define test suite
-describe('App', () => {
-  it('renders correctly', () => {
-    // Render App component and assert its correctness
-  });
-});
+module.exports = function test() {
+  // Run tests
+  jest();
+};

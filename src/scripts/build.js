@@ -1,16 +1,6 @@
-// Import required modules
-const { build } = require('webpack');
+const childProcess = require('child_process');
 
-// Define build configuration
-const buildConfig = {
-  // Define entry points
-  entry: './src/index.tsx',
-  // Define output configuration
-  output: {
-    path: './dist',
-    filename: 'bundle.js'
-  }
+module.exports = function build() {
+  // Run build script
+  childProcess.execSync('webpack');
 };
-
-// Run build
-build(buildConfig);
