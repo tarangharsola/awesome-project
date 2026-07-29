@@ -2,20 +2,20 @@
 import { useUsers } from './useUsers';
 
 const useAwareness = () => {
-  const [awareness, setAwareness] = useState({});
-  const users = useUsers();
+  const [users, setUsers] = useState([]);
+  const usersHook = useUsers();
 
   useEffect(() => {
     const handleUserUpdate = (user) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    users.on('update', handleUserUpdate);
+    usersHook.on('userUpdate', handleUserUpdate);
 
-    return () => users.off('update', handleUserUpdate);
-  }, [users]);
+    return () => usersHook.off('userUpdate', handleUserUpdate);
+  }, [usersHook]);
 
-  return awareness;
+  return users;
 };
 
 export default useAwareness;
