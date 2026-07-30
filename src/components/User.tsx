@@ -3,21 +3,17 @@ import { useUsers } from '../utils/useUsers';
 
 interface Props {
   userId: string;
-  color: string;
+  userName: string;
 }
 
-const User: React.FC<Props> = ({ userId, color }) => {
-  const { users } = useUsers();
-  const user = users.find((user) => user.id === userId);
+const User: React.FC<Props> = ({ userId, userName }) => {
+  const { userColor } = useUsers(userId);
   return (
     <div style={{
-      position: 'absolute',
-      left: user.cursorPosition,
-      top: 0,
-      width: 2,
-      height: '100%',
-      backgroundColor: color,
-    }} />
+      backgroundColor: userColor,
+      padding: 10,
+      borderRadius: 10,
+    }}>{userName}</div>
   );
 }
 

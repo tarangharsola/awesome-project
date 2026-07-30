@@ -5,18 +5,18 @@ interface Props {
   userId: string;
 }
 
-const useUsers = (userId: string) => {
-  const [users, setUsers] = useState([]);
+const useUsers = ({ userId }) => {
+  const [users, setUsers] = useState({} as { [key: string]: string });
   const { send } = useWebSocket();
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      send({ type: 'users', data: { users } });
+    const usersInterval = setInterval(() => {
+      send({ type: 'users', data: { userId, users } });
     }, 100);
-    return () => clearInterval(intervalId);
-  }, [users, send]);
+    return () => clearInterval(usersInterval);
+  }, [userId, users, send]);
 
-  return { users };
+  return { users, setUsers };
 }
 
 export default useUsers;

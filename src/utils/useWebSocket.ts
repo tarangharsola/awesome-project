@@ -2,40 +2,29 @@
 import WebSocket from 'ws';
 
 interface Props {
-  userId: string;
+  url: string;
 }
 
-const useWebSocket = (userId: string) => {
+const useWebSocket = ({ url }) => {
   const [ws, setWs] = useState<WebSocket | null>(null);
-  const [connected, setConnected] = useState(false);
+  const [messages, setMessages] = useState([] as any[]);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
+    const ws = new WebSocket(url);
     setWs(ws);
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'cursor') {
-        setCursor({ id: userId, position: data.data.position });
-      } else if (data.type === 'users') {
-        setUsers(data.data.users);
-      }
-    };
-    ws.onopen = () => {
-      setConnected(true);
-    };
-    ws.onclose = () => {
-      setConnected(false);
+      setMessages((prevMessages) => [...prevMessages, event.data]);
     };
     return () => ws.close();
-  }, [userId]);
+  }, [url]);
 
-  const send = (data: any) => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(data));
+  const send = (message: any) => {
+    if (ws) {
+      ws.send(JSON.stringify(message));
     }
   };
 
-  return { send, connected };
+  return { send, ws, messages };
 }
 
 export default useWebSocket;
