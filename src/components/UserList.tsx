@@ -13,6 +13,6 @@ const UserList = ({ users }: UserListProps) => {
       ))}
     </div>
   );
-}
+};
 
 export default UserList;
