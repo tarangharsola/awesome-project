@@ -1,8 +1,8 @@
-const childProcess = require('child_process');
-const fs = require('fs');
+// eslint-disable-next-line
+import { execSync } from 'child_process';
 
-module.exports = function ci() {
-  // Run tests and build script
-  childProcess.execSync('jest');
-  childProcess.execSync('npm run build');
-};
+export default function ci() {
+  const build = execSync('npm run build', { stdio: 'inherit' });
+  const test = execSync('npm run test', { stdio: 'inherit' });
+  return { build, test };
+}

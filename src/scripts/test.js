@@ -1,6 +1,10 @@
-const jest = require('jest');
+// eslint-disable-next-line
+import { test } from 'tape';
 
-module.exports = function test() {
-  // Run tests
-  jest();
-};
+export default function test() {
+  test('Editor renders correctly', t => {
+    const editor = new Editor();
+    t.ok(editor.render(), 'Editor rendered correctly');
+    t.end();
+  });
+}
