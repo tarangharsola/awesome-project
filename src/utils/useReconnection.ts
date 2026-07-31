@@ -6,12 +6,21 @@ const useReconnection = () => {
   const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-    ws.on('open', () => setReconnecting(false));
-    ws.on('close', () => setReconnecting(true));
-    ws.on('error', () => setReconnecting(true));
-    return () => ws.destroy();
+    const reconnect = () => {
+      setReconnecting(true);
+      const ws = new WebSocket('ws://localhost:8080');
+      setWs(ws);
+      ws.on('open', () => {
+        setReconnecting(false);
+      });
+      ws.on('error', () => {
+        reconnect();
+      });
+    };
+    reconnect();
+    return () => {
+      ws.close();
+    };
   }, []);
 
   return { reconnecting, ws };
