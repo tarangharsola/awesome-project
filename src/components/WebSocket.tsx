@@ -1,20 +1,23 @@
 {"import React, { useState, useEffect } from 'react';
 import WebSocket from 'ws';
 
-function WebSocket({ ws }) {
-  const [connected, setConnected] = useState(false);
+const WebSocket = ({ ws }) => {
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => setConnected(false);
-    return () => ws.close();
+    ws.onmessage = (event) => {
+      setMessage(event.data);
+    };
+    return () => {
+      ws.close();
+    };
   }, []);
 
   return (
     <div>
-      {connected ? <p>Connected</p> : <p>Disconnected</p>}
+      <span>Message: {message}</span>
     </div>
   );
-}
+};
 
 export default WebSocket;

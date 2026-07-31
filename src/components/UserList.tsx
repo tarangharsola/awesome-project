@@ -1,17 +1,15 @@
 {"import React from 'react';
 import User from './User';
 
-interface UserListProps {
-  users: { name: string; color: string }[];
-}
-
-const UserList = ({ users }: UserListProps) => {
+const UserList = ({ users, cursorPositions }) => {
   return (
-    <div>
-      {users.map((user, index) => (
-        <User key={index} name={user.name} color={user.color} />
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>
+          <User user={user} cursorPosition={cursorPositions[user.id]} />
+        </li>
       ))}
-    </div>
+    </ul>
   );
 };
 

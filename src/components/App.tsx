@@ -5,7 +5,7 @@ import LanguageSelector from './LanguageSelector';
 import UserList from './UserList';
 import WebSocket from './WebSocket';
 
-function App() {
+const App = () => {
   const [users, setUsers] = useState([]);
   const [language, setLanguage] = useState('javascript');
   const [code, setCode] = useState('');
@@ -15,34 +15,39 @@ function App() {
     const ws = new WebSocket('ws://localhost:8080');
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'cursorPosition') {
-        setCursorPositions(data.cursorPositions);
-      } else if (data.type === 'users') {
+      if (data.type === 'updateUsers') {
         setUsers(data.users);
+      } else if (data.type === 'updateCode') {
+        setCode(data.code);
+      } else if (data.type === 'updateCursorPositions') {
+        setCursorPositions(data.cursorPositions);
       }
     };
-    return () => ws.close();
+    return () => {
+      ws.close();
+    };
   }, []);
-
-  const handleCodeChange = (code) => {
-    setCode(code);
-    ws.send(JSON.stringify({ type: 'codeChange', code }));
-  };
 
   const handleLanguageChange = (language) => {
     setLanguage(language);
-    ws.send(JSON.stringify({ type: 'languageChange', language }));
+  };
+
+  const handleCodeChange = (code) => {
+    setCode(code);
+  };
+
+  const handleCursorPositionChange = (userId, position) => {
+    setCursorPositions((prevCursorPositions) => ({ ...prevCursorPositions, [userId]: position }));
   };
 
   return (
     <div>
-      <h1>Collaborative Code Editor</h1>
       <LanguageSelector language={language} onChange={handleLanguageChange} />
-      <Editor code={code} language={language} onChange={handleCodeChange} />
+      <Editor language={language} code={code} onChange={handleCodeChange} />
       <UserList users={users} cursorPositions={cursorPositions} />
       <WebSocket ws={ws} />
     </div>
   );
-}
+};
 
 export default App;
