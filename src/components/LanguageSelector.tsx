@@ -16,16 +16,18 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ languages, selected
   };
 
   return (
-    <div>
-      <button onClick={() => setIsOpen(true)}>Select Language</button>
+    <div className="language-selector">
+      <button onClick={() => setIsOpen(!isOpen)}>
+        {selectedLanguage}
+      </button>
       {isOpen && (
-        <div>
+        <ul>
           {languages.map((language) => (
-            <button key={language} onClick={() => handleSelect(language)}>
+            <li key={language} onClick={() => handleSelect(language)}>
               {language}
-            </button>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
