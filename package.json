@@ -1,6 +1,9 @@
-...
-"scripts": {
-  "build": "webpack",
-  "test": "tap ./src/scripts/test.js"
-},
-...
+// Package.json file for the application
+{
+  "name": "collaborative-code-editor",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node scripts/test.js",
+    "build": "node scripts/build.js"
+  }
+}

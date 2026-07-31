@@ -1,6 +1,7 @@
-const childProcess = require('child_process');
+// This script is used for building the application
+const { build } = require('webpack');
 
-module.exports = function build() {
-  // Run build script
-  childProcess.execSync('webpack');
+module.exports = function() {
+  // Add build configurations here
+  build();
 };
