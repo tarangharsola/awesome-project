@@ -1,4 +1,4 @@
-{"import { useState } from 'react';
+import { useState } from 'react';
 
 interface FormattingDefaults {
   tabSize: number;
@@ -6,13 +6,13 @@ interface FormattingDefaults {
 }
 
 const useFormattingDefaults = () => {
-  const [defaults, setDefaults] = useState<FormattingDefaults>({ tabSize: 2, indentSize: 2 });
+  const [formattingDefaults, setFormattingDefaults] = useState<FormattingDefaults>({ tabSize: 2, indentSize: 2 });
 
-  const updateDefaults = (newDefaults: FormattingDefaults) => {
-    setDefaults(newDefaults);
+  const updateFormattingDefaults = (newDefaults: FormattingDefaults) => {
+    setFormattingDefaults(newDefaults);
   };
 
-  return { defaults, updateDefaults };
-}
+  return { formattingDefaults, updateFormattingDefaults };
+};
 
 export default useFormattingDefaults;

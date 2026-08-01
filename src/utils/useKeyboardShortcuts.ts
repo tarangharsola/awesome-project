@@ -1,4 +1,4 @@
-{"import { useState } from 'react';
+import { useState } from 'react';
 
 interface KeyboardShortcuts {
   shortcuts: { [key: string]: string };
@@ -12,6 +12,6 @@ const useKeyboardShortcuts = () => {
   };
 
   return { shortcuts, updateShortcuts };
-}
+};
 
 export default useKeyboardShortcuts;
