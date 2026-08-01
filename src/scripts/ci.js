@@ -1,8 +1,11 @@
-// This script is used for continuous integration and validation
 const { execSync } = require('child_process');
-
-module.exports = function() {
-  // Run tests and build script
-  execSync('npm test');
-  execSync('npm run build');
-};
+const { test } = require('tap');
+test('build script', t => {
+  try {
+    execSync('npm run build', { stdio: 'inherit' });
+    t.pass('build script executed successfully');
+  } catch (err) {
+    t.fail('build script failed');
+  }
+  t.end();
+});

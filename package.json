@@ -1,9 +1,6 @@
-// Package.json file for the application
-{
-  "name": "collaborative-code-editor",
-  "version": "1.0.0",
-  "scripts": {
-    "test": "node scripts/test.js",
-    "build": "node scripts/build.js"
-  }
-}
+...
+"scripts": {
+  "test": "node src/scripts/test.js",
+  "ci": "node src/scripts/ci.js"
+},
+...
