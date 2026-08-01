@@ -2,18 +2,22 @@
 import { useUsers } from '../utils/useUsers';
 
 interface Props {
-  userId: string;
-  userName: string;
+  user: { id: string; name: string; color: string; }
 }
 
-const User: React.FC<Props> = ({ userId, userName }) => {
-  const { userColor } = useUsers(userId);
+const User = ({ user }: Props) => {
+  const { id, name, color } = user;
   return (
     <div style={{
-      backgroundColor: userColor,
-      padding: 10,
-      borderRadius: 10,
-    }}>{userName}</div>
+      display: 'flex',
+      alignItems: 'center',
+      color: color,
+    }}>
+      <span>{name}</span>
+      <span style={{
+        marginLeft: 10,
+      }}>{id}</span>
+    </div>
   );
 }
 

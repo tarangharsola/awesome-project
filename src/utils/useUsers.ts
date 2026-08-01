@@ -1,22 +1,23 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
 
 interface Props {
-  userId: string;
+  users: { id: string; name: string; color: string; }[];
 }
 
-const useUsers = ({ userId }) => {
-  const [users, setUsers] = useState({} as { [key: string]: string });
-  const { send } = useWebSocket();
+const useUsers = ({ users }: Props) => {
+  const [activeUsers, setActiveUsers] = useState(users);
 
   useEffect(() => {
-    const usersInterval = setInterval(() => {
-      send({ type: 'users', data: { userId, users } });
-    }, 100);
-    return () => clearInterval(usersInterval);
-  }, [userId, users, send]);
+    const handleUserJoin = (user: { id: string; name: string; color: string; }) => {
+      setActiveUsers((prevUsers) => [...prevUsers, user]);
+    };
+    const handleUserLeave = (userId: string) => {
+      setActiveUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+    };
+    return () => {}
+  }, []);
 
-  return { users, setUsers };
+  return activeUsers;
 }
 
 export default useUsers;

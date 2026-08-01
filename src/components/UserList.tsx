@@ -1,20 +1,15 @@
 {"import React from 'react';
-import User from './User';
+import { useUsers } from '../utils/useUsers';
 
-interface UserListProps {
-  users: { name: string; color: string }[];
+interface Props {
+  users: { id: string; name: string; color: string; }[];
 }
 
-const UserList = ({ users }: UserListProps) => {
+const UserList = ({ users }: Props) => {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      padding: 20,
-    }}>
-      {users.map((user, index) => (
-        <User key={index} name={user.name} color={user.color} />
+    <div>
+      {users.map((user) => (
+        <User key={user.id} user={user} />
       ))}
     </div>
   );
