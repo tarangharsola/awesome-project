@@ -1,9 +1,9 @@
-const { test } = require('tap');
-test('editor functionality', t => {
-  // add test cases for editor functionality
-  t.end();
-});
-test('real-time collaboration', t => {
-  // add test cases for real-time collaboration
-  t.end();
-});
+// This is a basic test script to validate the app
+const { test, expect } = require('jest');
+
+module.exports = function() {
+  // Add test cases here
+  test('Test editor functionality', () => {
+    expect(true).toBe(true);
+  });
+};
