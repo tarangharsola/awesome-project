@@ -1,21 +1,23 @@
 {"import { useState, useEffect } from 'react';
 
 interface Props {
-  cursor: { x: number; y: number; }
+  user: { name: string; color: string }
 }
 
-const useCursor = ({ cursor }: Props) => {
-  const [cursorPosition, setCursorPosition] = useState(cursor);
+const useCursor = ({ user }) => {
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      setCursorPosition({ x: event.clientX, y: event.clientY });
+    const handleMouseMove = (e: MouseEvent) => {
+      setCursor({ x: e.clientX, y: e.clientY });
     };
+
     document.addEventListener('mousemove', handleMouseMove);
+
     return () => document.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  return cursorPosition;
+  return cursor;
 }
 
 export default useCursor;

@@ -1,23 +1,25 @@
 {"import { useState, useEffect } from 'react';
+import WebSocket from 'ws';
 
 interface Props {
-  users: { id: string; name: string; color: string; }[];
+  url: string;
 }
 
-const useUsers = ({ users }: Props) => {
-  const [activeUsers, setActiveUsers] = useState(users);
+const useUsers = ({ url }) => {
+  const [users, setUsers] = useState<{ [key: string]: { name: string; color: string } }>({ });
 
   useEffect(() => {
-    const handleUserJoin = (user: { id: string; name: string; color: string; }) => {
-      setActiveUsers((prevUsers) => [...prevUsers, user]);
-    };
-    const handleUserLeave = (userId: string) => {
-      setActiveUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
-    };
-    return () => {}
-  }, []);
+    const ws = new WebSocket(url);
 
-  return activeUsers;
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'users') setUsers(data.users);
+    };
+
+    return () => ws.close();
+  }, [url]);
+
+  return { users };
 }
 
 export default useUsers;

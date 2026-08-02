@@ -7,24 +7,19 @@ interface Props {
 
 const useWebSocket = ({ url }) => {
   const [ws, setWs] = useState<WebSocket | null>(null);
-  const [messages, setMessages] = useState([] as any[]);
 
   useEffect(() => {
     const ws = new WebSocket(url);
     setWs(ws);
-    ws.onmessage = (event) => {
-      setMessages((prevMessages) => [...prevMessages, event.data]);
-    };
+
     return () => ws.close();
   }, [url]);
 
-  const send = (message: any) => {
-    if (ws) {
-      ws.send(JSON.stringify(message));
-    }
+  const send = (data: any) => {
+    if (ws) ws.send(JSON.stringify(data));
   };
 
-  return { send, ws, messages };
+  return { send };
 }
 
 export default useWebSocket;
