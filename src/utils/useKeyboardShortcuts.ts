@@ -1,17 +1,24 @@
-import { useState } from 'react';
+{"import { useState, useEffect } from 'react';
 
-interface KeyboardShortcuts {
+interface Props {
+  language: string;
   shortcuts: { [key: string]: string };
 }
 
-const useKeyboardShortcuts = () => {
-  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
+const useKeyboardShortcuts = ({ language, shortcuts }: Props) => {
+  const [activeShortcut, setActiveShortcut] = useState(null);
 
-  const updateShortcuts = (newShortcuts: { [key: string]: string }) => {
-    setShortcuts({ shortcuts: newShortcuts });
-  };
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (shortcuts[event.key]) {
+        setActiveShortcut(shortcuts[event.key]);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [language, shortcuts]);
 
-  return { shortcuts, updateShortcuts };
+  return activeShortcut;
 };
 
 export default useKeyboardShortcuts;
