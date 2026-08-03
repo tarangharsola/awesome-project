@@ -12,12 +12,12 @@ const User = ({ name, color }: UserProps) => {
     backgroundColor: color,
     color: theme.palette.text.primary,
     padding: theme.spacing(1),
-    borderRadius: theme.shape.borderRadius,
+    borderRadius: theme.spacing(1),
   };
 
   return (
     <div style={styles}>{name}</div>
   );
-};
+}
 
 export default User;
