@@ -1,33 +1,32 @@
-{"import { useState, useEffect } from 'react';
+{"import React, { useState, useEffect } from 'react';
 import { useWebSocket } from './useWebSocket';
 
 const WebSocket = () => {
-  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState('connected');
   const [retryCount, setRetryCount] = useState(0);
-  const { reconnect, connectionStatus: wsStatus } = useWebSocket();
+  const { send, close } = useWebSocket();
 
   useEffect(() => {
-    if (wsStatus === 'connected') {
-      setConnectionStatus('connected');
-    } else {
-      setConnectionStatus('disconnected');
-    }
-  }, [wsStatus]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (wsStatus === 'disconnected') {
+    const intervalId = setInterval(() => {
+      if (connectionStatus === 'disconnected') {
         setRetryCount(retryCount + 1);
-        reconnect();
+        if (retryCount >= 3) {
+          setConnectionStatus('reconnecting');
+        }
       }
     }, 5000);
-    return () => clearInterval(interval);
-  }, [wsStatus, retryCount, reconnect]);
+    return () => clearInterval(intervalId);
+  }, [connectionStatus, retryCount]);
+
+  const handleConnectionStatusChange = (status) => {
+    setConnectionStatus(status);
+  };
 
   return (
     <div>
       <p>Connection Status: {connectionStatus}</p>
-      <p>Retry Count: {retryCount}</p>
+      <button onClick={() => close()}>Disconnect</button>
+      <button onClick={() => send('ping')}>Ping</button>
     </div>
   );
 };
