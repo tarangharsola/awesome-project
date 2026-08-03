@@ -1,6 +1,12 @@
-const { spawnSync } = require('child_process');
-const { build } = require('./build');
+import { build } from 'esbuild';
 
-module.exports = function () {
-  build(require('tap'));
-};
+build(
+  {
+    entryPoints: ['src/index.tsx'],
+    outdir: 'public',
+    bundle: true,
+    minify: true,
+  }
+).catch((err) => {
+  console.error(err);
+});

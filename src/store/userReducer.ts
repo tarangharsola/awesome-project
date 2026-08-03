@@ -1,10 +1,16 @@
 {"import { createReducer } from 'redux';
-import { USERS_CHANGED } from './actions';
 
-const initialState = [];
+interface State {
+  users: { name: string; color: string; }[];
+}
 
-const userReducer = createReducer(initialState, {
-  [USERS_CHANGED]: (state, action) => action.payload,
+const userReducer = createReducer<State>({}, {
+  ADD_USER: (state, action) => {
+    return { ...state, users: [...state.users, action.user] };
+  },
+  REMOVE_USER: (state, action) => {
+    return { ...state, users: state.users.filter((user) => user.name !== action.user.name) };
+  },
 });
 
 export default userReducer;

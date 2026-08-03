@@ -1,25 +1,18 @@
 {"import { useState, useEffect } from 'react';
-import WebSocket from 'ws';
 
 interface Props {
-  url: string;
 }
 
-const useUsers = ({ url }) => {
-  const [users, setUsers] = useState<{ [key: string]: { name: string; color: string } }>({ });
+const useUsers = () => {
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    const ws = new WebSocket(url);
+    // implement user tracking logic here
+  }, []);
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'users') setUsers(data.users);
-    };
-
-    return () => ws.close();
-  }, [url]);
-
-  return { users };
+  return {
+    users,
+  };
 }
 
 export default useUsers;

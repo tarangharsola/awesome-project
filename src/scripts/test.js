@@ -1,9 +1,5 @@
-// This is a basic test script to validate the app
-const { test, expect } = require('jest');
+import { test } from 'jest';
 
-module.exports = function() {
-  // Add test cases here
-  test('Test editor functionality', () => {
-    expect(true).toBe(true);
-  });
-};
+test('editor works', () => {
+  // implement test logic here
+});

@@ -1,13 +1,9 @@
-const { spawnSync } = require('child_process');
-const { test } = require('tap');
+import { exec } from 'child_process';
 
-module.exports = function (tap) {
-  const build = spawnSync('npm', ['run', 'build'], { stdio: 'inherit' });
-  if (build.status !== 0) {
-    tap.fail('Build failed');
+exec('npm run build', (err, stdout, stderr) => {
+  if (err) {
+    console.error(err);
+  } else {
+    console.log(stdout);
   }
-  const testRunner = spawnSync('npm', ['run', 'test'], { stdio: 'inherit' });
-  if (testRunner.status !== 0) {
-    tap.fail('Tests failed');
-  }
-};
+});

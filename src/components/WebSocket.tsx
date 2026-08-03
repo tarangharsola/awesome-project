@@ -1,23 +1,39 @@
 {"import React, { useState, useEffect } from 'react';
-import WebSocket from 'ws';
+import { useWebSocket } from '../utils/useWebSocket';
 
-const WebSocket = ({ ws }) => {
-  const [message, setMessage] = useState('');
+interface Props {
+}
+
+const WebSocket: React.FC<Props> = () => {
+  const [ws, setWs] = useState(null);
+  const { connect, send, receive } = useWebSocket();
 
   useEffect(() => {
-    ws.onmessage = (event) => {
-      setMessage(event.data);
-    };
-    return () => {
-      ws.close();
-    };
+    connect(() => {
+      setWs(true);
+    }, () => {
+      setWs(false);
+    });
   }, []);
 
+  useEffect(() => {
+    receive((message) => {
+      console.log(message);
+    });
+  }, []);
+
+  const handleSendMessage = () => {
+    send({ type: 'hello' });
+ );
+
   return (
-    <div>
-      <span>Message: {message}</span>
+    <div style={{
+      padding: 10,
+    }}>
+      <button onClick={handleSendMessage}>Send Message</button>
+      {ws ? 'Connected' : 'Disconnected'}
     </div>
   );
-};
+}
 
 export default WebSocket;

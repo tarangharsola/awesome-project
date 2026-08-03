@@ -1,1 +1,20 @@
-{"import { useState } from 'react';\n\ninterface LanguageProps {\n  language: string;\n}\n\nconst useLanguage = () => {\n  const [language, setLanguage] = useState('javascript');\n  const handleLanguageChange = (newLanguage: string) => {\n    setLanguage(newLanguage);\n  };\n  return { language, handleLanguageChange };\n};\n\nexport default useLanguage;
+{"import { useState, useEffect } from 'react';
+
+interface Props {
+}
+
+const useLanguage = () => {
+  const [language, setLanguage] = useState('javascript');
+  const [languages, setLanguages] = useState(['javascript', 'python', 'html']);
+
+  const selectLanguage = (lang: string) => {
+    setLanguage(lang);
+  };
+
+  return {
+    languages,
+    selectLanguage,
+  };
+}
+
+export default useLanguage;

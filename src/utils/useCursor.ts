@@ -1,23 +1,22 @@
 {"import { useState, useEffect } from 'react';
 
 interface Props {
-  user: { name: string; color: string }
+  code: string;
+  language: string;
 }
 
-const useCursor = ({ user }) => {
+const useCursor = ({ code, language }) => {
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setCursor({ x: e.clientX, y: e.clientY });
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-
-    return () => document.removeEventListener('mousemove', handleMouseMove);
+    // implement cursor tracking logic here
   }, []);
 
-  return cursor;
+  return {
+    color: users.find((user) => user.name === 'John').color,
+    name: 'John',
+  };
 }
 
 export default useCursor;

@@ -1,38 +1,55 @@
 {"import React, { useState, useEffect } from 'react';
 import { useEditor } from '../utils/useEditor';
 import { useWebSocket } from '../utils/useWebSocket';
-import { useUsers } from '../utils/useUsers';
+import CursorTracker from './CursorTracker';
 
 interface Props {
   language: string;
-  value: string;
 }
 
-const Editor: React.FC<Props> = ({ language, value }) => {
-  const [text, setText] = useState(value);
-  const { send } = useWebSocket();
-  const { users } = useUsers();
+const Editor: React.FC<Props> = ({ language }) => {
+  const [code, setCode] = useState('');
+  const { send, receive } = useWebSocket();
+  const { cursor, users } = useEditor(code, language);
 
   useEffect(() => {
-    send({ type: 'update', value: text });
-  }, [text]);
+    receive((message) => {
+      if (message.type === 'update') {
+        setCode(message.code);
+      }
+    });
+  }, []);
+
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    send({ type: 'update', code: newCode });
+ );
 
   return (
     <div style={{
-      width: '100%',
+      position: 'relative',
       height: '100vh',
-      padding: 10,
-      backgroundColor: '#f0f0f0',
-      fontFamily: 'monospace',
-      fontSize: 12,
-      overflow: 'auto',
+      overflow: 'hidden',
     }}>
-      <pre style={{
+      <CursorTracker cursor={cursor} />
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
         padding: 10,
-        backgroundColor: '#fff',
-        border: '1px solid #ddd',
-        borderRadius: 5,
-      }}>{text}</pre>
+        fontSize: 14,
+        fontFamily: 'monospace',
+        overflow: 'auto',
+      }}>
+        {code.split('
+').map((line, index) => (
+          <div key={index} style={{
+            marginBottom: 2,
+          }}>{line}</div>
+        ))}
+      </div>
     </div>
   );
 }

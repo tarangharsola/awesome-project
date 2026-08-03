@@ -1,10 +1,17 @@
 {"import { createReducer } from 'redux';
-import { EDITOR_VALUE_CHANGED } from './actions';
 
-const initialState = '';
+interface State {
+  code: string;
+  language: string;
+}
 
-const editorReducer = createReducer(initialState, {
-  [EDITOR_VALUE_CHANGED]: (state, action) => action.payload,
+const editorReducer = createReducer<State>({}, {
+  UPDATE_CODE: (state, action) => {
+    return { ...state, code: action.code };
+  },
+  UPDATE_LANGUAGE: (state, action) => {
+    return { ...state, language: action.language };
+  },
 });
 
 export default editorReducer;
