@@ -1,7 +1,6 @@
-// This is a basic build script to compile the app
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
+const { build } = require('./build');
 
-module.exports = function() {
-  // Run build process
-  execSync('npm run build');
+module.exports = function () {
+  build(require('tap'));
 };

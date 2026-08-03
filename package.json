@@ -1,6 +1,6 @@
 ...
 "scripts": {
-  "test": "node src/scripts/test.js",
-  "ci": "node src/scripts/ci.js"
+  "build": "node scripts/build.js",
+  "test": "node scripts/test.js"
 },
 ...
