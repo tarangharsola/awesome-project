@@ -1,20 +1,23 @@
 {"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
 import { useUsers } from './useUsers';
 
 const useAwareness = () => {
-  const editor = useEditor();
+  const [awareness, setAwareness] = useState({});
   const users = useUsers();
 
   useEffect(() => {
-    const handleCursorUpdate = (cursor) => {
-      editor.updateCursor(cursor);
+    const handleUserUpdate = (user) => {
+      setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
     };
-    users.forEach((user) => editor.updateCursor(user.cursor));
-    return () => editor.off('cursorUpdate', handleCursorUpdate);
-  }, [editor, users]);
 
-  return { users, updateCursor: editor.updateCursor };
+    users.on('update', handleUserUpdate);
+
+    return () => {
+      users.off('update', handleUserUpdate);
+    };
+  }, [users]);
+
+  return awareness;
 };
 
 export default useAwareness;
