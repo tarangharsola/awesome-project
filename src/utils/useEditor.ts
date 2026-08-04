@@ -1,27 +1,22 @@
 {"import { useState, useEffect } from 'react';
 import { useWebSocket } from './useWebSocket';
 
-interface Props {
-  code: string;
-  language: string;
-}
-
-const useEditor = ({ code, language }) => {
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+const useEditor = () => {
   const { send, receive } = useWebSocket();
+  const [code, setCode] = useState('');
 
   useEffect(() => {
-    receive((message) => {
-      if (message.type === 'update') {
-        setCursor(message.cursor);
-      }
-    });
+    const handleCodeUpdate = (event) => {
+      setCode(event.code);
+    };
+    receive(handleCodeUpdate);
+    return () => receive(null);
   }, []);
 
-  return {
-    cursor,
-    users: [],
-  };
-}
+  const sendCode = (code) => send({ type: 'code', code });
+  const receiveCode = () => code;
+
+  return { sendCode, receiveCode };
+};
 
 export default useEditor;

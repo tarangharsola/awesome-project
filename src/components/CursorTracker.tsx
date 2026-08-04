@@ -1,23 +1,28 @@
 {"import React from 'react';
+import { useState, useEffect } from 'react';
 import { useCursor } from '../utils/useCursor';
 
-interface Props {
-  cursor: { x: number; y: number; }
-}
+const CursorTracker = () => {
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+  const { cursor, users } = useCursor();
 
-const CursorTracker: React.FC<Props> = ({ cursor }) => {
-  const { color, name } = useCursor();
+  useEffect(() => {
+    const handleMouseMove = (event) => {
+      setCursorPosition({ x: event.clientX, y: event.clientY });
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => document.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   return (
-    <div style={{
-      position: 'absolute',
-      left: cursor.x,
-      top: cursor.y,
-      width: 2,
-      height: 2,
-      backgroundColor: color,
-      borderRadius: '50%',
-    }} />
+    <div style={{ position: 'absolute', left: cursorPosition.x, top: cursorPosition.y, backgroundColor: 'red', width: 10, height: 10 }}>
+      {users.map((user, index) => (
+        <div key={index} style={{ position: 'absolute', left: user.x, top: user.y, backgroundColor: user.color, width: 10, height: 10 }}>
+          {user.name}
+        </div>
+      ))}
+    </div>
   );
-}
+};
 
 export default CursorTracker;

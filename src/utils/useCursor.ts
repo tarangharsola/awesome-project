@@ -1,22 +1,23 @@
 {"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-interface Props {
-  code: string;
-  language: string;
-}
-
-const useCursor = ({ code, language }) => {
+const useCursor = () => {
+  const { receive } = useWebSocket();
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    // implement cursor tracking logic here
+    const handleCursorUpdate = (event) => {
+      setCursor(event.cursor);
+    };
+    const handleUserUpdate = (event) => {
+      setUsers(event.users);
+    };
+    receive(handleCursorUpdate, handleUserUpdate);
+    return () => receive(null, null);
   }, []);
 
-  return {
-    color: users.find((user) => user.name === 'John').color,
-    name: 'John',
-  };
-}
+  return { cursor, users };
+};
 
 export default useCursor;
