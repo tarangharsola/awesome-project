@@ -1,12 +1,10 @@
-import { build } from 'esbuild';
+const { spawnSync } = require('child_process');
+const { execSync } = require('child_process');
 
-build(
-  {
-    entryPoints: ['src/index.tsx'],
-    outdir: 'public',
-    bundle: true,
-    minify: true,
+module.exports = function build() {
+  const build = spawnSync('webpack', { stdio: 'inherit' });
+  if (build.status !== 0) {
+    process.exit(build.status);
   }
-).catch((err) => {
-  console.error(err);
-});
+  console.log('Build successful');
+};

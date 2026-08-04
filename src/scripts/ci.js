@@ -1,9 +1,14 @@
-import { exec } from 'child_process';
+const { spawnSync } = require('child_process');
+const { execSync } = require('child_process');
 
-exec('npm run build', (err, stdout, stderr) => {
-  if (err) {
-    console.error(err);
-  } else {
-    console.log(stdout);
+module.exports = function ci() {
+  const build = spawnSync('npm', ['run', 'build'], { stdio: 'inherit' });
+  if (build.status !== 0) {
+    process.exit(build.status);
   }
-});
+  const test = spawnSync('npm', ['run', 'test'], { stdio: 'inherit' });
+  if (test.status !== 0) {
+    process.exit(test.status);
+  }
+  console.log('CI validation successful');
+};
