@@ -1,23 +1,23 @@
 {"import React from 'react';
+import { useState } from 'react';
 import User from './User';
 
-interface Props {
-  users: { name: string; color: string }[];
-}
+function UserList({ users }) {
+  const [selectedUser, setSelectedUser] = useState(null);
 
-const UserList = ({ users }: Props) => {
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+  };
+
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      padding: '16px',
-    }}>
+    <ul>
       {users.map((user) => (
-        <User key={user.name} name={user.name} color={user.color} />
+        <li key={user.id} onClick={() => handleUserSelect(user)}>
+          <User user={user} selected={selectedUser === user} />
+        </li>
       ))}
-    </div>
+    </ul>
   );
-};
+}
 
 export default UserList;

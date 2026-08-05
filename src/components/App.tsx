@@ -5,7 +5,7 @@ import LanguageSelector from './LanguageSelector';
 import UserList from './UserList';
 import WebSocket from './WebSocket';
 
-const App = () => {
+function App() {
   const [users, setUsers] = useState([]);
   const [language, setLanguage] = useState('javascript');
   const [code, setCode] = useState('');
@@ -15,39 +15,33 @@ const App = () => {
     const ws = new WebSocket('ws://localhost:8080');
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'updateUsers') {
-        setUsers(data.users);
-      } else if (data.type === 'updateCode') {
-        setCode(data.code);
-      } else if (data.type === 'updateCursorPositions') {
+      if (data.type === 'cursorPosition') {
         setCursorPositions(data.cursorPositions);
+      } else if (data.type === 'users') {
+        setUsers(data.users);
       }
     };
-    return () => {
-      ws.close();
-    };
+    return () => ws.close();
   }, []);
 
-  const handleLanguageChange = (language) => {
-    setLanguage(language);
+  const handleCodeChange = (newCode) => {
+    setCode(newCode);
+    ws.send(JSON.stringify({ type: 'codeChange', code: newCode }));
   };
 
-  const handleCodeChange = (code) => {
-    setCode(code);
-  };
-
-  const handleCursorPositionChange = (userId, position) => {
-    setCursorPositions((prevCursorPositions) => ({ ...prevCursorPositions, [userId]: position }));
+  const handleLanguageChange = (newLanguage) => {
+    setLanguage(newLanguage);
   };
 
   return (
     <div>
+      <h1>Code Editor</h1>
       <LanguageSelector language={language} onChange={handleLanguageChange} />
-      <Editor language={language} code={code} onChange={handleCodeChange} />
-      <UserList users={users} cursorPositions={cursorPositions} />
+      <Editor code={code} language={language} onChange={handleCodeChange} />
+      <UserList users={users} />
       <WebSocket ws={ws} />
     </div>
   );
-};
+}
 
 export default App;
