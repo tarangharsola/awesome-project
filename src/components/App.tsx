@@ -1,47 +1,24 @@
 {"import React from 'react';
 import { useState, useEffect } from 'react';
-import Editor from './Editor';
-import LanguageSelector from './LanguageSelector';
-import UserList from './UserList';
-import WebSocket from './WebSocket';
+import { useWebSocket } from './useWebSocket';
 
 function App() {
-  const [users, setUsers] = useState([]);
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState('');
-  const [cursorPositions, setCursorPositions] = useState({});
+  const [connectionStatus, setConnectionStatus] = useState('connected');
+  const { reconnect, status } = useWebSocket();
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'cursorPosition') {
-        setCursorPositions(data.cursorPositions);
-      } else if (data.type === 'users') {
-        setUsers(data.users);
-      }
-    };
-    return () => ws.close();
-  }, []);
+    setConnectionStatus(status);
+  }, [status]);
 
-  const handleCodeChange = (newCode) => {
-    setCode(newCode);
-    ws.send(JSON.stringify({ type: 'codeChange', code: newCode }));
-  };
-
-  const handleLanguageChange = (newLanguage) => {
-    setLanguage(newLanguage);
+  const handleReconnect = () => {
+    reconnect();
   };
 
   return (
     <div>
-      <h1>Code Editor</h1>
-      <LanguageSelector language={language} onChange={handleLanguageChange} />
-      <Editor code={code} language={language} onChange={handleCodeChange} />
-      <UserList users={users} />
-      <WebSocket ws={ws} />
+      <h1>Connection Status: {connectionStatus}</h1>
+      <button onClick={handleReconnect}>Reconnect</button>
     </div>
   );
 }
-
 export default App;
