@@ -1,14 +1,19 @@
 const { spawnSync } = require('child_process');
-const { execSync } = require('child_process');
+const { test } = require('tap');
 
 module.exports = function ci() {
-  const build = spawnSync('npm', ['run', 'build'], { stdio: 'inherit' });
-  if (build.status !== 0) {
-    process.exit(build.status);
+  const buildCommand = "npm run build";
+  const testCommand = "npm run test";
+  const buildResult = spawnSync(buildCommand, { shell: true });
+  const testResult = spawnSync(testCommand, { shell: true });
+
+  if (buildResult.status !== 0) {
+    throw new Error(`Build failed with code ${buildResult.status}`);
   }
-  const test = spawnSync('npm', ['run', 'test'], { stdio: 'inherit' });
-  if (test.status !== 0) {
-    process.exit(test.status);
+
+  if (testResult.status !== 0) {
+    throw new Error(`Tests failed with code ${testResult.status}`);
   }
-  console.log('CI validation successful');
 };
+
+module.exports.ci();
