@@ -8,24 +8,16 @@ const useAwareness = () => {
   const users = useUsers();
 
   useEffect(() => {
-    const handleCursorUpdate = (cursor) => {
+    const handleCursorMove = (cursor) => {
       setAwareness((prevAwareness) => ({ ...prevAwareness, [cursor.userId]: cursor }));
     };
 
-    editor.on('cursorUpdate', handleCursorUpdate);
+    editor.on('cursorMove', handleCursorMove);
 
-    return () => editor.off('cursorUpdate', handleCursorUpdate);
-  }, [editor]);
-
-  useEffect(() => {
-    const handleUserUpdate = (user) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, [user.id]: user }));
+    return () => {
+      editor.off('cursorMove', handleCursorMove);
     };
-
-    users.on('update', handleUserUpdate);
-
-    return () => users.off('update', handleUserUpdate);
-  }, [users]);
+  }, []);
 
   return awareness;
 };
