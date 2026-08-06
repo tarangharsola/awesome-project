@@ -1,10 +1,10 @@
-// This is a basic test file for the App component
 import React from 'react';
 import { render } from '@testing-library/react';
+import App from './App';
 
-describe('App component', () => {
-  it('renders correctly', () => {
+describe('App', () => {
+  it('renders without crashing', () => {
     const { getByText } = render(<App />);
-    expect(getByText('App')).toBeInTheDocument();
+    expect(getByText('Collaborative Code Editor')).toBeInTheDocument();
   });
 });

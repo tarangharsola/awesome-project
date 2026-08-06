@@ -1,20 +1,16 @@
-const { test } = require('tap');
-const { join } = require('path');
-const { resolve } = require('path');
+const { spawnSync } = require('child_process');
+const { execSync } = require('child_process');
 
-const buildDir = join(__dirname, "build");
-const testDir = join(__dirname, "test");
+module.exports = function test() {
+  const testCommand = 'jest';
 
-test("Build script runs successfully", async t => {
-  const buildCommand = "npm run build";
-  const buildResult = spawnSync(buildCommand, { shell: true });
+  console.log('Running tests...');
 
-  t.ok(buildResult.status === 0, "Build script should exit with code 0");
-});
-
-test("Test script runs successfully", async t => {
-  const testCommand = "npm run test";
   const testResult = spawnSync(testCommand, { shell: true });
+  if (testResult.status !== 0) {
+    console.error('Tests failed.');
+    process.exit(1);
+  }
 
-  t.ok(testResult.status === 0, "Test script should exit with code 0");
-});
+  console.log('Tests successful.');
+};

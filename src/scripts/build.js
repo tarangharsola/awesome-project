@@ -1,7 +1,16 @@
 const { spawnSync } = require('child_process');
-const { resolve } = require('path');
+const { execSync } = require('child_process');
 
-const buildDir = resolve(__dirname, "build");
-const buildCommand = "babel src --out-dir build";
+module.exports = function build() {
+  const buildCommand = 'webpack';
 
-spawnSync(buildCommand, { shell: true });
+  console.log('Building...');
+
+  const buildResult = spawnSync(buildCommand, { shell: true });
+  if (buildResult.status !== 0) {
+    console.error('Build failed.');
+    process.exit(1);
+  }
+
+  console.log('Build successful.');
+};
