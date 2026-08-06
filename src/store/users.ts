@@ -1,7 +1,6 @@
-interface User {
-  id: string;
-  name: string;
-  color: string;
-}
+{"import { createStore } from 'redux';
+import { userReducer } from './userReducer';
 
-export const users: User[] = [];
+const usersStore = createStore(userReducer);
+
+export default usersStore;

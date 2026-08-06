@@ -1,36 +1,27 @@
-{"import React from 'react';
-import { useLanguage } from '../utils/useLanguage';
+{"import React, { useState, useEffect } from 'react';
+import { useEditor } from '../utils/useEditor';
+import { useWebSocket } from '../utils/useWebSocket';
 
 const Editor = () => {
-  const language = useLanguage();
-  const [code, setCode] = React.useState('');
-  const [formattingDefaults, setFormattingDefaults] = React.useState({
-    indentSize: 2,
-    tabSize: 2
-  });
+  const [code, setCode] = useState('');
+  const { send, receive } = useWebSocket();
+  const { cursor } = useEditor();
 
-  const handleLanguageChange = (language: string) => {
-    setCode('');
-    setFormattingDefaults({
-      indentSize: language === 'javascript' ? 4 : 2,
-      tabSize: language === 'javascript' ? 4 : 2
+  useEffect(() => {
+    receive((message) => {
+      setCode(message.code);
     });
+  }, []);
+
+  const handleSendMessage = () => {
+    send({ type: 'update', code });
   };
 
   return (
     <div>
-      <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
-        <option value="javascript">JavaScript</option>
-        <option value="python">Python</option>
-        <option value="html">HTML</option>
-      </select>
-      <textarea value={code} onChange={(e) => setCode(e.target.value)} style={{
-        fontSize: 16,
-        padding: 10,
-        width: '100%',
-        height: '100vh'
-      }}/>
-      <button onClick={() => setCode(formatCode(code, formattingDefaults))}>Format</button>
+      <textarea value={code} onChange={(e) => setCode(e.target.value)} />
+      <button onClick={handleSendMessage}>Send</button>
+      <CursorTracker />
     </div>
   );
 };

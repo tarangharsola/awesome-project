@@ -1,23 +1,16 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
 
 const useCursor = () => {
-  const { receive } = useWebSocket();
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const [users, setUsers] = useState([]);
+  const [cursor, setCursor] = useState({ x: 0, y: 0, color: '' });
+  const { send, receive } = useWebSocket();
 
   useEffect(() => {
-    const handleCursorUpdate = (event) => {
-      setCursor(event.cursor);
-    };
-    const handleUserUpdate = (event) => {
-      setUsers(event.users);
-    };
-    receive(handleCursorUpdate, handleUserUpdate);
-    return () => receive(null, null);
+    receive((message) => {
+      setCursor(message.cursor);
+    });
   }, []);
 
-  return { cursor, users };
+  return cursor;
 };
 
 export default useCursor;

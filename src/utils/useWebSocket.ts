@@ -1,44 +1,33 @@
 {"import { useState, useEffect } from 'react';
+import WebSocket from 'ws';
+
 const useWebSocket = () => {
-  const [connected, setConnected] = useState(false);
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const [users, setUsers] = useState([]);
-  const [code, setCode] = useState('');
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'cursor') {
-        setCursor(data.cursor);
-      } else if (data.type === 'users') {
-        setUsers(data.users);
-      } else if (data.type === 'code') {
-        setCode(data.code);
-      }
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
+
+    return () => {
+      ws.close();
     };
-    socket.onopen = () => setConnected(true);
-    socket.onclose = () => setConnected(false);
-    return () => socket.close();
   }, []);
 
-  const send = (data) => {
-    socket.send(JSON.stringify(data));
+  const send = (message) => {
+    if (ws) {
+      ws.send(JSON.stringify(message));
+    }
   };
 
-  const receive = (handleCursorUpdate, handleUserUpdate) => {
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (handleCursorUpdate) {
-        handleCursorUpdate({ cursor: data.cursor });
-      }
-      if (handleUserUpdate) {
-        handleUserUpdate({ users: data.users });
-      }
-    };
+  const receive = (callback) => {
+    if (ws) {
+      ws.onmessage = (event) => {
+        callback(JSON.parse(event.data));
+      };
+    }
   };
 
-  return { connected, cursor, users, code, send, receive };
+  return { send, receive };
 };
 
 export default useWebSocket;
