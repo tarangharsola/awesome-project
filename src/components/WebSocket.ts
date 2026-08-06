@@ -6,44 +6,20 @@ const WebSocket = () => {
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => {
-      setConnected(false);
-      setRetryCount(retryCount + 1);
-    };
-    ws.onerror = () => {
-      setConnected(false);
-      setRetryCount(retryCount + 1);
-    };
-    return () => ws.close();
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!connected && retryCount < 5) {
+    const intervalId = setInterval(() => {
+      if (!connected) {
         setRetryCount(retryCount + 1);
-        const ws = new WebSocket('ws://localhost:8080');
-        ws.onopen = () => setConnected(true);
-        ws.onclose = () => {
-          setConnected(false);
-          setRetryCount(retryCount + 1);
-        };
-        ws.onerror = () => {
-          setConnected(false);
-          setRetryCount(retryCount + 1);
-        };
       }
     }, 5000);
-    return () => clearInterval(interval);
+    return () => clearInterval(intervalId);
   }, [connected, retryCount]);
 
   return (
     <div>
-      {connected ? 'Connected' : 'Disconnected'}
-      <br />
-      Retry count: {retryCount}
+      <p>Connection Status: {connected ? 'Connected' : 'Disconnected'}</p>
+      <p>Retry Count: {retryCount}</p>
     </div>
   );
 };
+
 export default WebSocket;
