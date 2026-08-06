@@ -1,25 +1,25 @@
 {"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
 import { useUsers } from './useUsers';
 
 const useAwareness = () => {
-  const [awareness, setAwareness] = useState({});
-  const editor = useEditor();
-  const users = useUsers();
+  const [users, setUsers] = useState([]);
+  const usersHook = useUsers();
 
   useEffect(() => {
-    const handleCursorMove = (cursor) => {
-      setAwareness((prevAwareness) => ({ ...prevAwareness, [cursor.userId]: cursor }));
+    const handleUserUpdate = (user) => {
+      setUsers((prevUsers) => {
+        const index = prevUsers.findIndex((u) => u.id === user.id);
+        if (index !== -1) {
+          return [...prevUsers.slice(0, index), user, ...prevUsers.slice(index + 1)];
+        }
+        return [...prevUsers, user];
+      });
     };
+    usersHook.on('userUpdate', handleUserUpdate);
+    return () => usersHook.off('userUpdate', handleUserUpdate);
+  }, [usersHook]);
 
-    editor.on('cursorMove', handleCursorMove);
-
-    return () => {
-      editor.off('cursorMove', handleCursorMove);
-    };
-  }, []);
-
-  return awareness;
+  return users;
 };
 
 export default useAwareness;
