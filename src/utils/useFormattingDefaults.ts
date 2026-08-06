@@ -1,20 +1,11 @@
 {"import { useState } from 'react';
 
 const useFormattingDefaults = () => {
-  const [defaults, setDefaults] = useState({
+  const [formattingDefaults, setFormattingDefaults] = useState({
     indentSize: 2,
-    tabSize: 2,
-    newline: '\n'
+    tabSize: 2
   });
-
-  const updateDefaults = (newDefaults) => {
-    setDefaults(newDefaults);
-  };
-
-  return {
-    defaults,
-    updateDefaults
-  };
+  return formattingDefaults;
 };
 
 export default useFormattingDefaults;

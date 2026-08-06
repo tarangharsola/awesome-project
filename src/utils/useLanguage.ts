@@ -1,9 +1,8 @@
 {"import { useState } from 'react';
-const useLanguage = () => {
-  const languages = ['javascript', 'python', 'html'];
-  const [language, setLanguage] = useState('javascript');
 
-  return { languages, language };
+const useLanguage = () => {
+  const [language, setLanguage] = useState('javascript');
+  return language;
 };
 
 export default useLanguage;

@@ -1,49 +1,38 @@
-{"import React, { useState, useEffect } from 'react';
-import CodeMirror from 'codemirror';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
-import 'codemirror/addon/hint/show-hint';
-import 'codemirror/addon/hint/javascript-hint';
-import 'codemirror/addon/edit/matchbrackets';
-import 'codemirror/addon/edit/closebrackets';
-import 'codemirror/addon/fold/foldcode';
-import 'codemirror/addon/fold/foldgutter';
-import 'codemirror/addon/fold/indent-fold';
+{"import React from 'react';
+import { useLanguage } from '../utils/useLanguage';
 
-function Editor({ code, language, onChange }) {
-  const [cursorPosition, setCursorPosition] = useState({ line: 0, ch: 0 });
+const Editor = () => {
+  const language = useLanguage();
+  const [code, setCode] = React.useState('');
+  const [formattingDefaults, setFormattingDefaults] = React.useState({
+    indentSize: 2,
+    tabSize: 2
+  });
 
-  useEffect(() => {
-    const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-      mode: language,
-      lineNumbers: true,
-      foldGutter: true,
-      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-      hint: true,
-      matchBrackets: true,
-      closeBrackets: true,
+  const handleLanguageChange = (language: string) => {
+    setCode('');
+    setFormattingDefaults({
+      indentSize: language === 'javascript' ? 4 : 2,
+      tabSize: language === 'javascript' ? 4 : 2
     });
-    editor.on('change', (instance, change) => {
-      onChange(instance.getValue());
-    });
-    return () => editor.toTextArea();
-  }, [language, onChange]);
-
-  const handleCursorPositionChange = (newCursorPosition) => {
-    setCursorPosition(newCursorPosition);
   };
 
   return (
     <div>
-      <textarea id='editor' value={code} onChange={(e) => onChange(e.target.value)} />
-      <div className='cursor-position'>{`Cursor position: ${cursorPosition.line},${cursorPosition.ch}`}</div>
+      <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="html">HTML</option>
+      </select>
+      <textarea value={code} onChange={(e) => setCode(e.target.value)} style={{
+        fontSize: 16,
+        padding: 10,
+        width: '100%',
+        height: '100vh'
+      }}/>
+      <button onClick={() => setCode(formatCode(code, formattingDefaults))}>Format</button>
     </div>
   );
-}
+};
 
 export default Editor;

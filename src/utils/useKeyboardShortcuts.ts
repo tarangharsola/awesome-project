@@ -2,20 +2,9 @@
 
 const useKeyboardShortcuts = () => {
   const [shortcuts, setShortcuts] = useState({
-    'Ctrl+Shift+P': 'Paste',
-    'Ctrl+Shift+V': 'Paste',
-    'Ctrl+Shift+C': 'Copy',
-    'Ctrl+Shift+X': 'Cut'
+    format: 'Ctrl+Shift+F'
   });
-
-  const handleShortcut = (event) => {
-    console.log(`Shortcut pressed: ${event.key}`);
-  };
-
-  return {
-    shortcuts,
-    handleShortcut
-  };
+  return shortcuts;
 };
 
 export default useKeyboardShortcuts;
