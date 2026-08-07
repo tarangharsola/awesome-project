@@ -1,13 +1,1 @@
-import React from 'react';
-import Editor from './Editor';
-
-function App() {
-  return (
-    <div>
-      <h1>Collaborative Code Editor</h1>
-      <Editor />
-    </div>
-  );
-}
-
-export default App;
+{"import React from 'react';\nimport { useState, useEffect } from 'react';\n\nconst App = () => {\n  const [connected, setConnected] = useState(false);\n  const [retryCount, setRetryCount] = useState(0);\n\n  useEffect(() => {\n    const intervalId = setInterval(() => {\n      // Simulate connection status\n      setConnected(Math.random() < 0.5);\n    }, 1000);\n    return () => clearInterval(intervalId);\n  }, []);\n\n  const retry = () => {\n    setRetryCount(retryCount + 1);\n  };\n\n  return (\n    <div>\n      <h1>Connection Status: {connected ? 'Connected' : 'Disconnected'}\n        ({retryCount} retries)</h1>\n      <button onClick={retry}>Retry</button>\n    </div>\n  );\n};\n\nexport default App;
