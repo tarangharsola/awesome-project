@@ -8,20 +8,14 @@ interface UserListProps {
 const UserList = ({ users }: UserListProps) => {
   return (
     <div style={{
-      padding: 16,
-      backgroundColor: '#333',
-      color: '#fff',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '16px',
     }}>
-      <h2>Active Users</h2>
-      <ul>
-        {users.map((user, index) => (
-          <li key={index} style={{
-            marginBottom: 8,
-          }}>
-            <User name={user.name} color={user.color} />
-          </li>
-        ))}
-      </ul>
+      {users.map((user, index) => (
+        <User key={index} name={user.name} color={user.color} />
+      ))}
     </div>
   );
 }
