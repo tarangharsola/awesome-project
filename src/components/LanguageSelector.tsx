@@ -1,19 +1,18 @@
 {"import React from 'react';
-import { useState } from 'react';
-import { languages } from 'codemirror';
+import { useLanguage } from '../utils/useLanguage';
 
-function LanguageSelector({ language, onChange }) {
-  const [selectedLanguage, setSelectedLanguage] = useState(language);
+interface Props {
+  languages: string[];
+  selectedLanguage: string;
+  onChange: (language: string) => void;
+}
 
-  const handleLanguageChange = (language) => {
-    setSelectedLanguage(language);
-    onChange(language);
-  };
-
+const LanguageSelector: React.FC<Props> = ({ languages, selectedLanguage, onChange }) => {
+  const { language } = useLanguage();
   return (
-    <select value={selectedLanguage} onChange={(e) => handleLanguageChange(e.target.value)}>
-      {languages.map((lang) => (
-        <option key={lang} value={lang}>{lang}</option>
+    <select value={selectedLanguage} onChange={(e) => onChange(e.target.value)}>
+      {languages.map((language) => (
+        <option key={language} value={language}>{language}</option>
       ))}
     </select>
   );

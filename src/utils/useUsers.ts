@@ -1,18 +1,15 @@
 {"import { useState, useEffect } from 'react';
 
-interface Props {
+interface UsersState {
+  users: { userId: string; username: string; color: string }[];
 }
 
 const useUsers = () => {
-  const [users, setUsers] = useState([]);
-
+  const [usersState, setUsersState] = useState<UsersState>({ users: [] });
   useEffect(() => {
-    // implement user tracking logic here
+    // Update users from WebSocket events
   }, []);
-
-  return {
-    users,
-  };
-}
+  return usersState;
+};
 
 export default useUsers;
