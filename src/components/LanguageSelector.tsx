@@ -1,21 +1,15 @@
 {"import React from 'react';
 import { useLanguage } from '../utils/useLanguage';
 
-interface Props {
-  languages: string[];
-  selectedLanguage: string;
-  onChange: (language: string) => void;
-}
-
-const LanguageSelector: React.FC<Props> = ({ languages, selectedLanguage, onChange }) => {
-  const { language } = useLanguage();
+const LanguageSelector = () => {
+  const { language, setLanguage } = useLanguage();
   return (
-    <select value={selectedLanguage} onChange={(e) => onChange(e.target.value)}>
-      {languages.map((language) => (
-        <option key={language} value={language}>{language}</option>
-      ))}
+    <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+      <option value='javascript'>JavaScript</option>
+      <option value='python'>Python</option>
+      <option value='html'>HTML</option>
     </select>
   );
-}
+};
 
 export default LanguageSelector;

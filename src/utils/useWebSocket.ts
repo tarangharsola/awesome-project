@@ -2,32 +2,28 @@
 import WebSocket from 'ws';
 
 const useWebSocket = () => {
-  const [ws, setWs] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [language, setLanguage] = useState('javascript');
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-
-    return () => {
-      ws.close();
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      switch (data.type) {
+        case 'users':
+          setUsers(data.users);
+          break;
+        case 'language':
+          setLanguage(data.language);
+          break;
+        default:
+          break;
+      }
     };
+    return () => ws.close();
   }, []);
 
-  const send = (message) => {
-    if (ws) {
-      ws.send(JSON.stringify(message));
-    }
-  };
-
-  const receive = (callback) => {
-    if (ws) {
-      ws.onmessage = (event) => {
-        callback(JSON.parse(event.data));
-      };
-    }
-  };
-
-  return { send, receive };
+  return { users, language, setLanguage };
 };
 
 export default useWebSocket;

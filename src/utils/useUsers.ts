@@ -1,15 +1,9 @@
 {"import { useState, useEffect } from 'react';
-
-interface UsersState {
-  users: { userId: string; username: string; color: string }[];
-}
+import { useWebSocket } from './useWebSocket';
 
 const useUsers = () => {
-  const [usersState, setUsersState] = useState<UsersState>({ users: [] });
-  useEffect(() => {
-    // Update users from WebSocket events
-  }, []);
-  return usersState;
+  const { users } = useWebSocket();
+  return { users };
 };
 
 export default useUsers;
