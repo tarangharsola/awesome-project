@@ -1,10 +1,9 @@
-// eslint-disable-next-line
 import React from 'react';
+import Editor from './Editor';
 
 const App = () => {
   return (
     <div>
-      <h1>Collaborative Code Editor</h1>
       <Editor />
     </div>
   );

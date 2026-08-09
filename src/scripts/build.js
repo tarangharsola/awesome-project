@@ -1,10 +1,7 @@
-// eslint-disable-next-line
-import { spawnSync } from 'child_process';
+const { spawnSync } = require('child_process');
+const { resolve } = require('path');
 
-const buildApp = () => {
-  console.log('Building app...');
-  const result = spawnSync('webpack', ['--mode', 'production'], { stdio: 'inherit' });
-  console.log(result);
+module.exports = function () {
+  const buildCommand = spawnSync('webpack', ['--mode', 'production'], { cwd: resolve(__dirname, '..') });
+  return buildCommand.status;
 };
-
-module.exports = buildApp;
