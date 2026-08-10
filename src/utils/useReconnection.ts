@@ -1,34 +1,25 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+
+interface Reconnection {
+  reconnect: () => void;
+}
 
 const useReconnection = () => {
   const [reconnecting, setReconnecting] = useState(false);
-  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-
-    ws.on('open', () => {
-      console.log('Connected to WebSocket server');
-    });
-
-    ws.on('error', (error) => {
-      console.error('Error occurred while connecting to WebSocket server:', error);
+    const handleReconnection = () => {
       setReconnecting(true);
-    });
-
-    ws.on('close', () => {
-      console.log('Disconnected from WebSocket server');
-      setReconnecting(true);
-    });
+    };
 
     return () => {
-      ws.destroy();
+      // Clean up
     };
   }, []);
 
-  return { reconnecting, ws };
+  return { reconnecting, reconnect: () => {
+    // Implement reconnection logic here
+  }};
 };
 
 export default useReconnection;

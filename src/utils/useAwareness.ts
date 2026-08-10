@@ -1,28 +1,25 @@
 {"import { useState, useEffect } from 'react';
-import { WebSocket } from 'ws';
+
+interface Awareness {
+  updateAwareness: (newAwareness: string) => void;
+}
 
 const useAwareness = () => {
-  const [users, setUsers] = useState([]);
-  const [cursorPositions, setCursorPositions] = useState({});
+  const [awareness, setAwareness] = useState('');
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-
-    ws.on('message', (message) => {
-      const data = JSON.parse(message);
-      if (data.type === 'users') {
-        setUsers(data.users);
-      } else if (data.type === 'cursorPositions') {
-        setCursorPositions(data.cursorPositions);
-      }
-    });
+    const handleAwarenessUpdate = (newAwareness: string) => {
+      setAwareness(newAwareness);
+    };
 
     return () => {
-      ws.destroy();
+      // Clean up
     };
   }, []);
 
-  return { users, cursorPositions };
+  return { awareness, updateAwareness: (newAwareness: string) => {
+    // Implement awareness update logic here
+  }};
 };
 
 export default useAwareness;
