@@ -1,8 +1,12 @@
-// eslint-disable-next-line
-import { test } from 'tape';
+const { test, describe } = require('jest');
+const { join } = require('path');
+const { readFileSync } = require('fs');
+const { resolve } = require('path');
 
-test('App renders correctly', async t => {
-  const app = await import('./App.test.tsx');
-  t.ok(app.default);
-  t.end();
+const buildScript = require('./ci').default;
+
+describe('build script', () => {
+  it('should build the app', () => {
+    buildScript();
+  });
 });
