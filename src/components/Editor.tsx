@@ -1,35 +1,36 @@
 {"import React, { useState, useEffect } from 'react';
 import { useEditor } from '../utils/useEditor';
 
-const Editor = () => {
-  const [code, setCode] = useState('');
-  const { editor, users } = useEditor();
+interface Props {
+  roomId: string;
+  initialCode: string;
+}
+
+const Editor = ({ roomId, initialCode }: Props) => {
+  const [code, setCode] = useState(initialCode);
+  const { sendCode, cursors, users } = useEditor(roomId);
 
   useEffect(() => {
-    const handleChanges = (changes) => {
-      setCode(changes.code);
-    };
-    editor.on('changes', handleChanges);
-    return () => editor.off('changes', handleChanges);
-  }, [editor]);
+    sendCode(code);
+  }, [code]);
 
   return (
     <div>
       <textarea value={code} onChange={(e) => setCode(e.target.value)} />
-      {users.map((user) => (
-        <div key={user.id} style={{
-          position: 'absolute',
-          top: user.cursor.top,
-          left: user.cursor.left,
-          backgroundColor: user.color,
-          width: 2,
-          height: 20,
-        }}>
-          {user.name}
-        </div>
-      ))}
+      <div>
+        {cursors.map((cursor, index) => (
+          <div key={index} style={{
+            position: 'absolute',
+            left: cursor.position[0],
+            top: cursor.position[1],
+            width: 2,
+            height: 20,
+            backgroundColor: users[index].color,
+          }} />
+        ))}
+      </div>
     </div>
   );
-};
+}
 
 export default Editor;

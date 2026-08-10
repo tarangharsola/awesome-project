@@ -1,19 +1,22 @@
 {"import { useState, useEffect } from 'react';
-import { useWebSocket } from './useWebSocket';
 
-const useCursor = () => {
-  const { users } = useWebSocket();
-  const [cursor, setCursor] = useState({ top: 0, left: 0 });
+interface Props {
+  userId: string;
+}
+
+const useCursor = ({ userId }: Props) => {
+  const [cursorColor, setCursorColor] = useState(
+    () => {
+      const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+      return `#${randomColor}`;
+    }
+  );
 
   useEffect(() => {
-    const handleCursorChanges = (changes) => {
-      setCursor(changes.cursor);
-    };
-    users.on('cursorChanges', handleCursorChanges);
-    return () => users.off('cursorChanges', handleCursorChanges);
-  }, [users]);
+    // Update cursor color on user reconnection
+  }, []);
 
-  return { cursor, users };
-};
+  return { cursorColor, setCursorColor };
+}
 
 export default useCursor;
