@@ -2,18 +2,17 @@
 
 interface KeyboardShortcuts {
   shortcuts: { [key: string]: string };
+  registerShortcut: (key: string, handler: () => void) => void;
 }
 
 const useKeyboardShortcuts = (): KeyboardShortcuts => {
-  const [shortcuts, setShortcuts] = useState<KeyboardShortcuts>({ shortcuts: {} });
+  const [shortcuts, setShortcuts] = useState<{ [key: string]: string }>({});
 
-  const updateShortcuts = (shortcuts: { [key: string]: string }) => {
-    setShortcuts({ shortcuts });
+  const registerShortcut = (key: string, handler: () => void) => {
+    setShortcuts((prevShortcuts) => ({ ...prevShortcuts, [key]: handler.toString() }));
   };
 
-  return { shortcuts, updateShortcuts };
-
-  return useKeyboardShortcuts;
+  return { shortcuts, registerShortcut };
 }
 
 export default useKeyboardShortcuts;
