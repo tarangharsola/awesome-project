@@ -1,25 +1,41 @@
 {"import { useState, useEffect } from 'react';
-
-interface Awareness {
-  updateAwareness: (newAwareness: string) => void;
-}
+import { WebSocket } from 'ws';
 
 const useAwareness = () => {
-  const [awareness, setAwareness] = useState('');
+  const [users, setUsers] = useState([]);
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const handleAwarenessUpdate = (newAwareness: string) => {
-      setAwareness(newAwareness);
+    const handleUserJoin = (user) => {
+      setUsers((prevUsers) => [...prevUsers, user]);
     };
 
-    return () => {
-      // Clean up
+    const handleUserLeave = (user) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u !== user));
+    };
+
+    const handleUpdate = (update) => {
+      setUsers((prevUsers) => OT.applyUpdate(prevUsers, update));
+    };
+
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
+    ws.onmessage = (event) => {
+      const update = JSON.parse(event.data);
+      if (update.type === 'user_join') {
+        handleUserJoin(update.user);
+      } else if (update.type === 'user_leave') {
+        handleUserLeave(update.user);
+      } else if (update.type === 'update') {
+        handleUpdate(update.update);
+      }
+    };
+    ws.onclose = () => {
+      setWs(null);
     };
   }, []);
 
-  return { awareness, updateAwareness: (newAwareness: string) => {
-    // Implement awareness update logic here
-  }};
+  return { users, ws };
 };
 
 export default useAwareness;

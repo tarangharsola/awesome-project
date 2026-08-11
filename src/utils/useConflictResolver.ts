@@ -1,28 +1,26 @@
 {"import { useState, useEffect } from 'react';
-
-interface ConflictResolver {
-  resolveConflict: (localValue: string, remoteValue: string) => string;
-}
+import { OT } from 'operational-transform';
 
 const useConflictResolver = () => {
-  const [localValue, setLocalValue] = useState('');
-  const [remoteValue, setRemoteValue] = useState('');
+  const [conflicts, setConflicts] = useState([]);
+  const [resolved, setResolved] = useState(false);
 
   useEffect(() => {
-    const handleRemoteValueChange = (newRemoteValue: string) => {
-      setRemoteValue(newRemoteValue);
-      setLocalValue(useConflictResolver.resolveConflict(localValue, newRemoteValue));
+    const handleConflict = (conflict) => {
+      setConflicts((prevConflicts) => [...prevConflicts, conflict]);
+    };
+
+    const handleResolve = () => {
+      setResolved(true);
     };
 
     return () => {
-      // Clean up
+      handleConflict(null);
+      handleResolve();
     };
   }, []);
 
-  return { localValue, remoteValue, resolveConflict: (localValue: string, remoteValue: string) => {
-    // Implement conflict resolution logic here
-    return localValue;
-  }};
+  return { conflicts, resolved };
 };
 
 export default useConflictResolver;
