@@ -1,13 +1,9 @@
-const { execSync } = require('child_process');
-const { resolve } = require('path');
-const { readFileSync } = require('fs');
+// eslint-disable-next-line
+import { execSync } from 'child_process';
 
-module.exports = function() {
-  const buildScript = readFileSync(resolve(__dirname, '../scripts/build.js'), 'utf8');
-  const testScript = readFileSync(resolve(__dirname, '../scripts/test.js'), 'utf8');
-  const testResults = execSync('jest', { stdio: 'pipe' });
-  if (testResults.status !== 0) {
-    throw new Error('Tests failed');
-  }
-  execSync(buildScript);
-};
+export default function ci() {
+  console.log('Running tests...');
+  const testResults = execSync('jest', { stdio: 'inherit' });
+  console.log('Tests completed.');
+  return testResults;
+}

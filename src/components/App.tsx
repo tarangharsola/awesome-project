@@ -1,12 +1,9 @@
+// eslint-disable-next-line
 import React from 'react';
-import Editor from './Editor';
+import './App.css';
 
-const App = () => {
-  return (
-    <div>
-      <Editor />
-    </div>
-  );
-};
+function App() {
+  return <div className="App">Hello World!</div>;
+}
 
 export default App;

@@ -1,7 +1,9 @@
-const { spawnSync } = require('child_process');
-const { resolve } = require('path');
+// eslint-disable-next-line
+import { execSync } from 'child_process';
 
-module.exports = function () {
-  const buildCommand = spawnSync('webpack', ['--mode', 'production'], { cwd: resolve(__dirname, '..') });
-  return buildCommand.status;
-};
+export default function build() {
+  console.log('Building application...');
+  const buildResults = execSync('webpack', { stdio: 'inherit' });
+  console.log('Build completed.');
+  return buildResults;
+}
