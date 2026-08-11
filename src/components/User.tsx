@@ -1,23 +1,15 @@
 {"import React from 'react';
-import { useUsers } from '../utils/useUsers';
 
-interface Props {
-  user: { name: string; color: string }
+interface UserProps {
+  user: { id: string; name: string; color: string };
 }
 
-const User: React.FC<Props> = ({ user }) => {
-  const { name, color } = user;
+const User = ({ user }: UserProps) => {
   return (
-    <div style={{
-      backgroundColor: color,
-      padding: 10,
-      borderRadius: 10,
-      display: 'flex',
-      alignItems: 'center',
-    }}>
-      {name}
+    <div className="user" style={{ backgroundColor: user.color }}>
+      <span className="user-name">{user.name}</span>
     </div>
   );
-}
+};
 
 export default User;
