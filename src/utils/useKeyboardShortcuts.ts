@@ -1,18 +1,30 @@
 {"import { useState } from 'react';
 
-interface KeyboardShortcuts {
-  shortcuts: { [key: string]: string };
-  registerShortcut: (key: string, handler: () => void) => void;
+interface Props {
+  language: string;
 }
 
-const useKeyboardShortcuts = (): KeyboardShortcuts => {
-  const [shortcuts, setShortcuts] = useState<{ [key: string]: string }>({});
+const useKeyboardShortcuts = (props: Props) => {
+  const [shortcuts, setShortcuts] = useState({
+    'Ctrl+Shift+P': 'Paste',
+    'Ctrl+Shift+V': 'Paste',
+    'Ctrl+Shift+C': 'Copy',
+    'Ctrl+Shift+X': 'Cut'
+  });
 
-  const registerShortcut = (key: string, handler: () => void) => {
-    setShortcuts((prevShortcuts) => ({ ...prevShortcuts, [key]: handler.toString() }));
+  const handleShortcutChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setShortcuts({
+      ...shortcuts,
+      [event.target.name]: event.target.value
+    });
   };
 
-  return { shortcuts, registerShortcut };
+  return {
+    shortcuts,
+    handleShortcutChange
+  };
+
+  return useKeyboardShortcuts;
 }
 
 export default useKeyboardShortcuts;
