@@ -1,24 +1,23 @@
 {"import React from 'react';
 import { useUsers } from '../utils/useUsers';
 
-const User = () => {
-  const { users } = useUsers();
+interface Props {
+  user: { name: string; color: string }
+}
+
+const User: React.FC<Props> = ({ user }) => {
+  const { name, color } = user;
   return (
-    <div>
-      {users.map((user) => (
-        <div key={user.id} style={{
-          position: 'absolute',
-          top: user.cursor.top,
-          left: user.cursor.left,
-          backgroundColor: user.color,
-          width: 2,
-          height: 20,
-        }}>
-          {user.name}
-        </div>
-      ))}
+    <div style={{
+      backgroundColor: color,
+      padding: 10,
+      borderRadius: 10,
+      display: 'flex',
+      alignItems: 'center',
+    }}>
+      {name}
     </div>
   );
-};
+}
 
 export default User;

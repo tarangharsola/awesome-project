@@ -1,22 +1,22 @@
 {"import { useState, useEffect } from 'react';
 
-interface Props {
-  userId: string;
+interface CursorState {
+  x: number;
+  y: number;
 }
 
-const useCursor = ({ userId }: Props) => {
-  const [cursorColor, setCursorColor] = useState(
-    () => {
-      const randomColor = Math.floor(Math.random() * 16777215).toString(16);
-      return `#${randomColor}`;
-    }
-  );
-
+const useCursor = () => {
+  const [cursor, setCursor] = useState<CursorState>({ x: 0, y: 0 });
   useEffect(() => {
-    // Update cursor color on user reconnection
+    const handleMouseMove = (event: MouseEvent) => {
+      setCursor({ x: event.clientX, y: event.clientY });
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+    };
   }, []);
-
-  return { cursorColor, setCursorColor };
-}
+  return cursor;
+};
 
 export default useCursor;
