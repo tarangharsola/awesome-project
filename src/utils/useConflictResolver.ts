@@ -1,24 +1,25 @@
 {"import { useState, useEffect } from 'react';
-import { useEditor } from './useEditor';
-import { useUsers } from './useUsers';
 
-const useConflictResolver = () => {
-  const [editorState, setEditorState] = useState({});
-  const { editor } = useEditor();
-  const { users } = useUsers();
+interface ConflictResolverProps {
+  users: { id: string; name: string; color: string; }[];
+}
+
+const useConflictResolver = ({ users }: ConflictResolverProps) => {
+  const [conflicts, setConflicts] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const handleEditorChange = (newState) => {
-      // Handle conflicts by merging user changes
-      const mergedState = mergeConflicts(editorState, newState);
-      setEditorState(mergedState);
-    };
+    const conflicts: Record<string, string> = {};
 
-    editor.on('change', handleEditorChange);
-    return () => editor.off('change', handleEditorChange);
-  }, [editor, editorState]);
+    users.forEach((user) => {
+      const { id, name, color } = user;
 
-  return editorState;
-};
+      conflicts[id] = name;
+    });
+
+    setConflicts(conflicts);
+  }, [users]);
+
+  return conflicts;
+}
 
 export default useConflictResolver;

@@ -1,22 +1,25 @@
 {"import { useState, useEffect } from 'react';
-import { useUsers } from './useUsers';
 
-const useAwareness = () => {
-  const [awareness, setAwareness] = useState({});
-  const { users } = useUsers();
+interface AwarenessProps {
+  users: { id: string; name: string; color: string; }[];
+}
+
+const useAwareness = ({ users }: AwarenessProps) => {
+  const [awareness, setAwareness] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const handleUserUpdate = (updatedUser) => {
-      // Update awareness state with user updates
-      const updatedAwareness = updateAwareness(awareness, updatedUser);
-      setAwareness(updatedAwareness);
-    };
+    const awareness: Record<string, string> = {};
 
-    users.on('update', handleUserUpdate);
-    return () => users.off('update', handleUserUpdate);
-  }, [users, awareness]);
+    users.forEach((user) => {
+      const { id, name, color } = user;
+
+      awareness[id] = name;
+    });
+
+    setAwareness(awareness);
+  }, [users]);
 
   return awareness;
-};
+}
 
 export default useAwareness;
