@@ -1,18 +1,19 @@
 {"import React from 'react';
-import { User } from './User';
+import User from './User';
+import styles from './styles.module.css';
 
 interface UserListProps {
-  users: { id: string; name: string; color: string }[];
+  users: { name: string; color: string }[];
 }
 
 const UserList = ({ users }: UserListProps) => {
   return (
-    <div className="user-list">
-      {users.map((user) => (
-        <User key={user.id} user={user} />
+    <div className={styles.userList}>
+      {users.map((user, index) => (
+        <User key={index} name={user.name} color={user.color} />
       ))}
     </div>
   );
-};
+}
 
-export default UserList;
+export default UserList;"
