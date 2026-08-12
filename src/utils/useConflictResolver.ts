@@ -1,26 +1,24 @@
 {"import { useState, useEffect } from 'react';
-import { OT } from 'operational-transform';
+import { useEditor } from './useEditor';
+import { useUsers } from './useUsers';
 
 const useConflictResolver = () => {
-  const [conflicts, setConflicts] = useState([]);
-  const [resolved, setResolved] = useState(false);
+  const [editorState, setEditorState] = useState({});
+  const { editor } = useEditor();
+  const { users } = useUsers();
 
   useEffect(() => {
-    const handleConflict = (conflict) => {
-      setConflicts((prevConflicts) => [...prevConflicts, conflict]);
+    const handleEditorChange = (newState) => {
+      // Handle conflicts by merging user changes
+      const mergedState = mergeConflicts(editorState, newState);
+      setEditorState(mergedState);
     };
 
-    const handleResolve = () => {
-      setResolved(true);
-    };
+    editor.on('change', handleEditorChange);
+    return () => editor.off('change', handleEditorChange);
+  }, [editor, editorState]);
 
-    return () => {
-      handleConflict(null);
-      handleResolve();
-    };
-  }, []);
-
-  return { conflicts, resolved };
+  return editorState;
 };
 
 export default useConflictResolver;
