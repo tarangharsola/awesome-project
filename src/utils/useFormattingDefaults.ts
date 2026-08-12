@@ -1,27 +1,18 @@
 {"import { useState } from 'react';
 
-interface Props {
-  language: string;
+interface FormattingDefaults {
+  tabSize: number;
+  indentSize: number;
 }
 
-const useFormattingDefaults = (props: Props) => {
-  const [tabSize, setTabSize] = useState(2);
-  const [indentSize, setIndentSize] = useState(2);
+const useFormattingDefaults = () => {
+  const [formattingDefaults, setFormattingDefaults] = useState<FormattingDefaults>({ tabSize: 2, indentSize: 2 });
 
-  const handleTabSizeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTabSize(parseInt(event.target.value, 10));
+  const updateFormattingDefaults = (tabSize: number, indentSize: number) => {
+    setFormattingDefaults({ tabSize, indentSize });
   };
 
-  const handleIndentSizeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setIndentSize(parseInt(event.target.value, 10));
-  };
-
-  return {
-    tabSize,
-    indentSize,
-    handleTabSizeChange,
-    handleIndentSizeChange
-  };
+  return { formattingDefaults, updateFormattingDefaults };
 
   return useFormattingDefaults;
 }
