@@ -1,7 +1,5 @@
-const childProcess = require('child_process');
-const fs = require('fs');
+// Import required modules
+const { execSync } = require('child_process');
 
-module.exports = function buildApp() {
-  childProcess.execSync('webpack --mode production');
-  fs.copyFileSync('src/index.html', 'public/index.html');
-};
+// Build the application
+execSync('webpack --mode production');

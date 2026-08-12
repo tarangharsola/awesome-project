@@ -1,12 +1,14 @@
-const { test, describe } = require('jest');
-const { join } = require('path');
-const { readFileSync } = require('fs');
-const { resolve } = require('path');
+// Import required modules
+const { test, expect } = require('jest');
 
-const buildScript = require('./ci').default;
+// Test the App component
+test('renders App component', () => {
+  const wrapper = shallow(<App />);
+  expect(wrapper.find('h1').text()).toBe('Collaborative Code Editor');
+});
 
-describe('build script', () => {
-  it('should build the app', () => {
-    buildScript();
-  });
+// Test the Editor component
+test('renders Editor component', () => {
+  const wrapper = shallow(<Editor />);
+  expect(wrapper.find('div').text()).toBe('');
 });
