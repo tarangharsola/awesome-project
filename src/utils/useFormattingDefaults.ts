@@ -1,20 +1,22 @@
-{"import { useState } from 'react';
+{"import { useState, useEffect } from 'react';
 
-interface FormattingDefaults {
-  tabSize: number;
-  indentSize: number;
+interface Props {
+  language: string;
 }
 
-const useFormattingDefaults = () => {
-  const [formattingDefaults, setFormattingDefaults] = useState<FormattingDefaults>({ tabSize: 2, indentSize: 2 });
+const useFormattingDefaults = ({ language }: Props) => {
+  const [defaults, setDefaults] = useState({} as any);
 
-  const updateFormattingDefaults = (tabSize: number, indentSize: number) => {
-    setFormattingDefaults({ tabSize, indentSize });
-  };
+  useEffect(() => {
+    const loadDefaults = async () => {
+      const response = await fetch(`/api/formatting-defaults/${language}`);
+      const data = await response.json();
+      setDefaults(data);
+    };
+    loadDefaults();
+  }, [language]);
 
-  return { formattingDefaults, updateFormattingDefaults };
-
-  return useFormattingDefaults;
+  return defaults;
 }
 
 export default useFormattingDefaults;
