@@ -1,22 +1,23 @@
 {"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-interface CursorState {
-  x: number;
-  y: number;
+interface CursorProps {
+  userId: string;
 }
 
-const useCursor = () => {
-  const [cursor, setCursor] = useState<CursorState>({ x: 0, y: 0 });
+const useCursor = ({ userId }: CursorProps) => {
+  const [cursorPosition, setCursorPosition] = useState([0, 0]);
+  const [cursorColor, setCursorColor] = useState('#000000');
+  const { send } = useWebSocket();
+
   useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      setCursor({ x: event.clientX, y: event.clientY });
-    };
-    document.addEventListener('mousemove', handleMouseMove);
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, []);
-  return cursor;
+    const intervalId = setInterval(() => {
+      send({ type: 'cursorPosition', data: { userId, cursorPosition } });
+    }, 100);
+    return () => clearInterval(intervalId);
+  }, [userId, cursorPosition, send]);
+
+  return { cursorPosition, cursorColor, setCursorPosition, setCursorColor };
 };
 
 export default useCursor;

@@ -1,24 +1,26 @@
 {"import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
-interface UserState {
-  name: string;
-  color: string;
+interface UsersProps {
+  userId: string;
 }
 
-const useUsers = () => {
-  const [users, setUsers] = useState<UserState[]>([]);
+const useUsers = ({ userId }: UsersProps) => {
+  const { messages } = useWebSocket();
+  const [users, setUsers] = useState([]);
+
   useEffect(() => {
-    const handleUserJoin = (user: UserState) => {
-      setUsers((prevUsers) => [...prevUsers, user]);
-    };
-    const handleUserLeave = (user: UserState) => {
-      setUsers((prevUsers) => prevUsers.filter((u) => u.name !== user.name));
-    };
-    return () => {
-      // cleanup
-    };
-  }, []);
-  return users;
+    const intervalId = setInterval(() => {
+      const userMessages = messages.filter((message) => message.type === 'userPresence');
+      setUsers(userMessages.reduce((acc, message) => {
+        acc[message.data.userId] = message.data.userName;
+        return acc;
+      }, {}));
+    }, 100);
+    return () => clearInterval(intervalId);
+  }, [messages, userId]);
+
+  return { users };
 };
 
 export default useUsers;
