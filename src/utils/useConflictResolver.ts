@@ -1,25 +1,21 @@
 {"import { useState, useEffect } from 'react';
+import { OperationalTransform } from 'operational-transform';
 
-interface ConflictResolverProps {
-  users: { id: string; name: string; color: string; }[];
-}
-
-const useConflictResolver = ({ users }: ConflictResolverProps) => {
-  const [conflicts, setConflicts] = useState<Record<string, string>>({});
+const useConflictResolver = () => {
+  const [conflicts, setConflicts] = useState([]);
+  const [transform, setTransform] = useState(new OperationalTransform());
 
   useEffect(() => {
-    const conflicts: Record<string, string> = {};
+    const handleConflict = (conflict) => {
+      setConflicts((prevConflicts) => [...prevConflicts, conflict]);
+    };
 
-    users.forEach((user) => {
-      const { id, name, color } = user;
+    return () => {
+      setConflicts([]);
+    };
+  }, []);
 
-      conflicts[id] = name;
-    });
-
-    setConflicts(conflicts);
-  }, [users]);
-
-  return conflicts;
-}
+  return { conflicts, transform };
+};
 
 export default useConflictResolver;

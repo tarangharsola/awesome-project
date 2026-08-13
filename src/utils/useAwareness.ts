@@ -1,25 +1,35 @@
 {"import { useState, useEffect } from 'react';
+import { WebSocket } from 'ws';
 
-interface AwarenessProps {
-  users: { id: string; name: string; color: string; }[];
-}
-
-const useAwareness = ({ users }: AwarenessProps) => {
-  const [awareness, setAwareness] = useState<Record<string, string>>({});
+const useAwareness = () => {
+  const [users, setUsers] = useState([]);
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
-    const awareness: Record<string, string> = {};
+    const ws = new WebSocket('ws://localhost:8080');
+    setWs(ws);
 
-    users.forEach((user) => {
-      const { id, name, color } = user;
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'users') {
+        setUsers(data.users);
+      }
+    };
 
-      awareness[id] = name;
-    });
+    ws.onclose = () => {
+      console.log('Disconnected from WebSocket server.');
+    };
 
-    setAwareness(awareness);
-  }, [users]);
+    ws.onerror = (event) => {
+      console.error(event);
+    };
 
-  return awareness;
-}
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  return { users, ws };
+};
 
 export default useAwareness;
