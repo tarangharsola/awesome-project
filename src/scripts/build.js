@@ -2,8 +2,5 @@
 import { execSync } from 'child_process';
 
 export default function build() {
-  console.log('Building application...');
-  const buildResults = execSync('webpack', { stdio: 'inherit' });
-  console.log('Build completed.');
-  return buildResults;
+  execSync('npm run build', { stdio: 'inherit' });
 }
