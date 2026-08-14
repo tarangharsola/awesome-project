@@ -2,25 +2,23 @@
 import { useWebSocket } from './useWebSocket';
 
 interface UsersProps {
-  userId: string;
+  users: { name: string; color: string; }[];
 }
 
-const useUsers = ({ userId }: UsersProps) => {
-  const { messages } = useWebSocket();
-  const [users, setUsers] = useState([]);
+const useUsers = () => {
+  const { send, receive } = useWebSocket();
+  const [users, setUsers] = useState<UsersProps>({ users: [] });
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      const userMessages = messages.filter((message) => message.type === 'userPresence');
-      setUsers(userMessages.reduce((acc, message) => {
-        acc[message.data.userId] = message.data.userName;
-        return acc;
-      }, {}));
-    }, 100);
-    return () => clearInterval(intervalId);
-  }, [messages, userId]);
+    send({ type: 'users', users: users.users });
+  }, [users.users]);
 
-  return { users };
-};
+  useEffect(() => {
+    const updatedUsers = receive({ type: 'users' });
+    setUsers({ users: updatedUsers });
+  }, []);
+
+  return users;
+}
 
 export default useUsers;

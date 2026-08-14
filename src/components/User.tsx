@@ -1,29 +1,20 @@
 {"import React from 'react';
-import { useUsers } from './useUsers';
+import { useUser } from '../utils/useUser';
 
 interface UserProps {
-  userId: string;
-  userName: string;
-  cursorColor: string;
+  user: { name: string; color: string; }
 }
 
-const User: React.FC<UserProps> = ({ userId, userName, cursorColor }) => {
-  const { users } = useUsers();
-  const user = users.find((user) => user.id === userId);
+const User = ({ user }: UserProps) => {
+  const { name, color } = user;
   return (
     <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      padding: 10,
+      backgroundColor: color,
     }}>
-      <span style={{
-        color: cursorColor,
-      }}>{userName}</span>
-      <span style={{
-        color: cursorColor,
-      }}>{userId}</span>
+      {name}
     </div>
   );
-};
+}
 
 export default User;

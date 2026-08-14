@@ -1,34 +1,38 @@
 {"import React, { useState, useEffect } from 'react';
 import { useEditor } from '../utils/useEditor';
+import { useWebSocket } from '../utils/useWebSocket';
 
-interface Props {
-  roomId: string;
-  initialCode: string;
+interface EditorProps {
+  language: string;
+  code: string;
 }
 
-const Editor = ({ roomId, initialCode }: Props) => {
-  const [code, setCode] = useState(initialCode);
-  const { sendCode, cursors, users } = useEditor(roomId);
+const Editor = ({ language, code }: EditorProps) => {
+  const [codeState, setCodeState] = useState(code);
+  const { send, receive } = useWebSocket();
+  const { syntaxHighlighting } = useEditor(language);
 
   useEffect(() => {
-    sendCode(code);
-  }, [code]);
+    send({ type: 'update', code: codeState });
+  }, [codeState]);
+
+  useEffect(() => {
+    const updatedCode = receive({ type: 'update' });
+    setCodeState(updatedCode);
+  }, []);
 
   return (
-    <div>
-      <textarea value={code} onChange={(e) => setCode(e.target.value)} />
-      <div>
-        {cursors.map((cursor, index) => (
-          <div key={index} style={{
-            position: 'absolute',
-            left: cursor.position[0],
-            top: cursor.position[1],
-            width: 2,
-            height: 20,
-            backgroundColor: users[index].color,
-          }} />
-        ))}
-      </div>
+    <div style={{
+      padding: 10,
+      backgroundColor: '#f0f0f0',
+    }}>
+      <pre style={{
+        padding: 10,
+        backgroundColor: '#fff',
+        border: '1px solid #ddd',
+      }}>
+        {syntaxHighlighting(codeState)}
+      </pre>
     </div>
   );
 }
