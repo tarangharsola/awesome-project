@@ -2,11 +2,8 @@
 import { execSync } from 'child_process';
 
 export default function ci() {
-  try {
-    execSync('npm run test', { stdio: 'inherit' });
-    console.log('Tests passed');
-  } catch (error) {
-    console.error('Tests failed:', error);
-    process.exit(1);
-  }
+  console.log('Running tests...');
+  const testResults = execSync('jest', { stdio: 'inherit' });
+  console.log('Tests completed.');
+  process.exit(testResults.status);
 }

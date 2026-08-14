@@ -1,6 +1,9 @@
 // eslint-disable-next-line
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 
 export default function build() {
-  execSync('npm run build', { stdio: 'inherit' });
+  console.log('Building application...');
+  const buildResults = spawnSync('webpack', { stdio: 'inherit' });
+  console.log('Build completed.');
+  process.exit(buildResults.status);
 }
