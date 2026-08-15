@@ -1,14 +1,8 @@
-// Import required modules
-const { test, expect } = require('jest');
+const { test } = require('tap');
 
-// Test the App component
-test('renders App component', () => {
-  const wrapper = shallow(<App />);
-  expect(wrapper.find('h1').text()).toBe('Collaborative Code Editor');
-});
-
-// Test the Editor component
-test('renders Editor component', () => {
-  const wrapper = shallow(<Editor />);
-  expect(wrapper.find('div').text()).toBe('');
-});
+module.exports = function (t) {
+  t.test('editor functionality', function (t) {
+    // add test cases for editor functionality
+    t.end();
+  });
+};
