@@ -2,37 +2,37 @@
 import { useEditor } from '../utils/useEditor';
 import { useWebSocket } from '../utils/useWebSocket';
 
-interface EditorProps {
-  language: string;
-  code: string;
+interface Props {
+  roomId: string;
 }
 
-const Editor = ({ language, code }: EditorProps) => {
-  const [codeState, setCodeState] = useState(code);
-  const { send, receive } = useWebSocket();
-  const { syntaxHighlighting } = useEditor(language);
+const Editor: React.FC<Props> = ({ roomId }) => {
+  const [code, setCode] = useState('');
+  const { sendCode, receiveCode } = useWebSocket(roomId);
+  const { cursorPositions } = useEditor(roomId);
 
   useEffect(() => {
-    send({ type: 'update', code: codeState });
-  }, [codeState]);
-
-  useEffect(() => {
-    const updatedCode = receive({ type: 'update' });
-    setCodeState(updatedCode);
+    receiveCode((code) => setCode(code));
   }, []);
+
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    sendCode(newCode);
+  };
 
   return (
     <div style={{
-      padding: 10,
-      backgroundColor: '#f0f0f0',
+      position: 'relative',
+      height: 400,
+      overflow: 'auto',
     }}>
       <pre style={{
         padding: 10,
-        backgroundColor: '#fff',
-        border: '1px solid #ddd',
-      }}>
-        {syntaxHighlighting(codeState)}
-      </pre>
+        fontSize: 12,
+      }}>{code}</pre>
+      {cursorPositions.map((position, index) => (
+        <CursorTracker key={index} userId={position.userId} cursorPosition={position.cursorPosition} />
+      ))}
     </div>
   );
 }

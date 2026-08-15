@@ -1,22 +1,24 @@
 {"import { useState, useEffect } from 'react';
 
-interface CursorProps {
-  x: number;
-  y: number;
+interface User {
+  id: string;
+  color: string;
 }
 
-const useCursor = () => {
-  const [cursor, setCursor] = useState<CursorProps>({ x: 0, y: 0 });
+interface CursorPosition {
+  userId: string;
+  cursorPosition: [number, number];
+}
+
+const useCursor = (userId: string) => {
+  const [cursorColor, setCursorColor] = useState('#' + Math.floor(Math.random() * 16777215).toString(16));
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setCursor({ x: e.clientX, y: e.clientY });
-    };
-    document.addEventListener('mousemove', handleMouseMove);
-    return () => document.removeEventListener('mousemove', handleMouseMove);
+    // Broadcast user's cursor position to all connected clients
+    // and update their local cursor color
   }, []);
 
-  return cursor;
-}
+  return { cursorColor };
+};
 
 export default useCursor;
