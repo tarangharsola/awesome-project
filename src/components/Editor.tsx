@@ -1,40 +1,23 @@
-{"import React, { useState, useEffect } from 'react';
-import { useEditor } from '../utils/useEditor';
-import { useWebSocket } from '../utils/useWebSocket';
+import React from 'react';
+import { useEditor } from './useEditor';
 
 interface Props {
-  roomId: string;
+  language: string;
+  code: string;
 }
 
-const Editor: React.FC<Props> = ({ roomId }) => {
-  const [code, setCode] = useState('');
-  const { sendCode, receiveCode } = useWebSocket(roomId);
-  const { cursorPositions } = useEditor(roomId);
-
-  useEffect(() => {
-    receiveCode((code) => setCode(code));
-  }, []);
-
-  const handleCodeChange = (newCode: string) => {
-    setCode(newCode);
-    sendCode(newCode);
-  };
-
+const Editor: React.FC<Props> = ({ language, code }) => {
+  const { editorRef } = useEditor(language);
   return (
-    <div style={{
-      position: 'relative',
-      height: 400,
-      overflow: 'auto',
+    <div ref={editorRef} style={{
+      width: '100%',
+      height: '100vh',
+      padding: 10,
+      backgroundColor: '#f0f0f0',
     }}>
-      <pre style={{
-        padding: 10,
-        fontSize: 12,
-      }}>{code}</pre>
-      {cursorPositions.map((position, index) => (
-        <CursorTracker key={index} userId={position.userId} cursorPosition={position.cursorPosition} />
-      ))}
+      {code}
     </div>
   );
-}
+};
 
 export default Editor;

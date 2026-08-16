@@ -1,18 +1,11 @@
-{"import { useState, useEffect } from 'react';
-
-interface LanguageProps {
-  language: string;
-}
+import { useState, useEffect } from 'react';
 
 const useLanguage = () => {
-  const [language, setLanguage] = useState<string>('javascript');
-
+  const [languages, setLanguages] = useState(['javascript', 'python', 'html']);
   useEffect(() => {
-    // fetch languages from server
-    // setLanguage('javascript');
+    // Update languages here
   }, []);
-
-  return { languages: ['javascript', 'python', 'html'] }; // placeholder for languages
-}
+  return { languages };
+};
 
 export default useLanguage;

@@ -1,17 +1,13 @@
-{"import { createReducer } from 'redux';
+import { createReducer } from '@reduxjs/toolkit';
 
-interface State {
-  code: string;
-  language: string;
-}
+const initialState = {
+  code: '',
+  language: 'javascript',
+};
 
-const editorReducer = createReducer<State>({}, {
-  UPDATE_CODE: (state, action) => {
-    return { ...state, code: action.code };
-  },
-  UPDATE_LANGUAGE: (state, action) => {
-    return { ...state, language: action.language };
-  },
+const editorReducer = createReducer(initialState, (builder) => {
+  builder
+    .addCase('UPDATE_CODE', (state, action) => ({ ...state, code: action.payload }));
 });
 
 export default editorReducer;

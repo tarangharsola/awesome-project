@@ -1,6 +1,12 @@
-{"import { combineReducers } from 'redux';
-import { user } from './user';
+import { createReducer } from '@reduxjs/toolkit';
 
-const userReducer = combineReducers({ user });
+const initialState = {
+  users: [],
+};
+
+const userReducer = createReducer(initialState, (builder) => {
+  builder
+    .addCase('UPDATE_USERS', (state, action) => ({ ...state, users: action.payload }));
+});
 
 export default userReducer;

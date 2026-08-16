@@ -1,32 +1,11 @@
-{"import { useState, useEffect } from 'react';
-import { useWebSocket } from '../utils/useWebSocket';
+import { useState, useEffect } from 'react';
 
-interface Room {
-  id: string;
-}
-
-interface EditorState {
-  code: string;
-  cursorPositions: CursorPosition[];
-}
-
-const useEditor = (roomId: string) => {
-  const [editorState, setEditorState] = useState<EditorState>({ code: '', cursorPositions: [] });
-
-  const { receiveCode, sendCode } = useWebSocket(roomId);
-
+const useEditor = (language: string) => {
+  const [editorRef, setEditorRef] = useState(null);
   useEffect(() => {
-    receiveCode((code) => {
-      setEditorState((prevState) => ({ ...prevState, code }));
-    });
+    // Update editor here
   }, []);
-
-  const handleCodeChange = (newCode: string) => {
-    setEditorState((prevState) => ({ ...prevState, code: newCode }));
-    sendCode(newCode);
-  };
-
-  return { editorState, handleCodeChange };
+  return { editorRef, language };
 };
 
 export default useEditor;

@@ -1,20 +1,21 @@
-{"import React from 'react';
-import { useLanguage } from '../utils/useLanguage';
+import React from 'react';
+import { useLanguage } from './useLanguage';
 
-interface LanguageSelectorProps {
+interface Props {
   language: string;
-  onChange: (language: string) => void;
 }
 
-const LanguageSelector = ({ language, onChange }: LanguageSelectorProps) => {
+const LanguageSelector: React.FC<Props> = ({ language }) => {
   const { languages } = useLanguage();
   return (
-    <select value={language} onChange={(e) => onChange(e.target.value)}>
+    <select value={language} onChange={(e) => {
+      // Update language here
+    }}>
       {languages.map((lang) => (
         <option key={lang} value={lang}>{lang}</option>
       ))}
     </select>
   );
-}
+};
 
 export default LanguageSelector;
