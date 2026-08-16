@@ -1,25 +1,15 @@
 {"import React from 'react';
 
 interface UserProps {
-  username: string;
-  color: string;
-  cursorPosition: number;
+  user: { id: string; name: string; color: string };
 }
 
-const User = ({ username, color, cursorPosition }: UserProps) => {
+const User = ({ user }: UserProps) => {
   return (
-    <div className="user">
-      <span className="username">{username}</span>
-      <span className="cursor-label" style={{
-        backgroundColor: color,
-        color: "#fff",
-        padding: "2px 4px",
-        borderRadius: "4px",
-      }}>
-        {cursorPosition}
-      </span>
+    <div className="user" style={{ backgroundColor: user.color }}>
+      <span>{user.name}</span>
     </div>
   );
 };
 
-export default User;
+export default User;"

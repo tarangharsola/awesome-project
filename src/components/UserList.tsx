@@ -2,27 +2,17 @@
 import { User } from './User';
 
 interface UserListProps {
-  users: User[];
+  users: { id: string; name: string; color: string }[];
 }
 
 const UserList = ({ users }: UserListProps) => {
   return (
     <div className="user-list">
-      {users.map((user, index) => (
-        <div key={index} className="user-item">
-          <span className="username">{user.username}</span>
-          <span className="cursor-label" style={{
-            backgroundColor: user.color,
-            color: "#fff",
-            padding: "2px 4px",
-            borderRadius: "4px",
-          }}>
-            {user.cursorPosition}
-          </span>
-        </div>
+      {users.map((user) => (
+        <User key={user.id} user={user} />
       ))}
     </div>
   );
 };
 
-export default UserList;
+export default UserList;"
