@@ -12,23 +12,19 @@ const WebSocket = () => {
       setConnected(false);
       setRetryCount(retryCount + 1);
       setTimeout(() => {
-        ws.reconnect();
+        setRetryCount(0);
       }, 5000);
     };
     ws.onerror = () => {
       setConnected(false);
-      setRetryCount(retryCount + 1);
-      setTimeout(() => {
-        ws.reconnect();
-      }, 5000);
     };
+    return () => ws.close();
   }, []);
 
   return (
     <div>
       {connected ? 'Connected' : 'Disconnected'}
-      <br />
-      Retry count: {retryCount}
+      {retryCount > 0 ? ` (retrying in ${retryCount * 5000}ms)` : ''}
     </div>
   );
 };
