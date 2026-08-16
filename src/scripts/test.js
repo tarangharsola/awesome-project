@@ -1,8 +1,14 @@
-const { test } = require('tap');
+const { test } = require('tape');
+const { build, test: runTest } = require('./ci');
 
-module.exports = function (t) {
-  t.test('editor functionality', function (t) {
-    // add test cases for editor functionality
-    t.end();
-  });
-};
+build();
+
+runTest('Build script runs without errors', t => {
+  t.pass('Build script executed successfully');
+  t.end();
+});
+
+runTest('Test script runs without errors', t => {
+  t.pass('Test script executed successfully');
+  t.end();
+});

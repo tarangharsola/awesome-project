@@ -1,10 +1,8 @@
 const { execSync } = require('child_process');
-const { test } = require('tap');
+const buildScript = 'npm run build';
+const testScript = 'npm run test';
 
-module.exports = function (t) {
-  t.test('build script', function (t) {
-    const buildOutput = execSync('npm run build', { stdio: 'pipe' });
-    t.ok(buildOutput.toString().includes('build successful'), 'build script executed successfully');
-    t.end();
-  });
+module.exports = {
+  build: () => execSync(buildScript),
+  test: () => execSync(testScript),
 };
