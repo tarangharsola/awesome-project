@@ -1,8 +1,4 @@
+// This script will run tests and build the application
 const { execSync } = require('child_process');
-const buildScript = 'npm run build';
-const testScript = 'npm run test';
-
-module.exports = {
-  build: () => execSync(buildScript),
-  test: () => execSync(testScript),
-};
+execSync('jest', { stdio: 'inherit' });
+execSync('npm run build', { stdio: 'inherit' });
