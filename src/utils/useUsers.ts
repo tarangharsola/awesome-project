@@ -1,11 +1,1 @@
-import { useState, useEffect } from 'react';
-
-const useUsers = (roomId: string) => {
-  const [users, setUsers] = useState([]);
-  useEffect(() => {
-    // Update users here
-  }, []);
-  return { users, roomId };
-};
-
-export default useUsers;
+{"import { useState, useEffect } from 'react';\n\ninterface UserState {\n  name: string;\n  color: string;\n}\n\nconst useUsers = () => {\n  const [users, setUsers] = useState<UserState[]>([]);\n\n  useEffect(() => {\n    // Update users state\n  }, []);\n\n  return users;\n};\n\nexport default useUsers;

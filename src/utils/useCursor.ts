@@ -1,11 +1,1 @@
-import { useState, useEffect } from 'react';
-
-const useCursor = (userId: string) => {
-  const [cursorColor, setCursorColor] = useState('#' + Math.floor(Math.random() * 16777215).toString(16));
-  useEffect(() => {
-    // Update cursor color here
-  }, []);
-  return { cursorColor, userId };
-};
-
-export default useCursor;
+{"import { useState, useEffect } from 'react';\n\ninterface CursorState {\n  x: number;\n  y: number;\n}\n\ninterface UserState {\n  name: string;\n  color: string;\n}\n\nconst useCursor = () => {\n  const [cursor, setCursor] = useState<CursorState>({ x: 0, y: 0 });\n  const [user, setUser] = useState<UserState>({ name: '', color: '' });\n\n  useEffect(() => {\n    // Update cursor position and user state\n  }, []);\n\n  return { cursor, user };\n};\n\nexport default useCursor;
