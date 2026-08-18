@@ -1,21 +1,30 @@
+// src/components/LanguageSelector.tsx
 import React from 'react';
-import { useLanguage } from './useLanguage';
+import { useLanguage } from '../utils/useLanguage';
 
-interface Props {
-  language: string;
-}
+const LANGUAGES = [
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'python', label: 'Python' },
+  { value: 'html', label: 'HTML' },
+];
 
-const LanguageSelector: React.FC<Props> = ({ language }) => {
-  const { languages } = useLanguage();
+export const LanguageSelector: React.FC = () => {
+  const { language, setLanguage } = useLanguage();
+
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLanguage(e.target.value);
+  };
+
   return (
-    <select value={language} onChange={(e) => {
-      // Update language here
-    }}>
-      {languages.map((lang) => (
-        <option key={lang} value={lang}>{lang}</option>
-      ))}
-    </select>
+    <div className="language-selector">
+      <label htmlFor="language-select">Language:</label>
+      <select id="language-select" value={language} onChange={handleChange}>
+        {LANGUAGES.map((lang) => (
+          <option key={lang.value} value={lang.value}>
+            {lang.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 };
-
-export default LanguageSelector;
