@@ -1,28 +1,70 @@
-import * as Y from "yjs";
+import { useEffect, useRef } from 'react';
+import * as Y from 'yjs';
+import { WebsocketProvider } from 'y-websocket';
+import { useEditor } from './useEditor';
+import { useAwareness } from './hooks/useAwareness';
 
 /**
- * Creates a new Yjs document with a shared text type named "codemirror".
- * The returned `text` can be bound to any editor that supports plain text
- * insertion/deletion events.
+ * Hook that sets up Yjs CRDT synchronization for a given room.
+ * It binds the shared Y.Text to the editor instance, handles local
+ * edits, remote updates, and user awareness (cursor + name).
  */
-export function createYDoc() {
-  const doc = new Y.Doc();
-  const text = doc.getText("codemirror");
-  return { doc, text };
-}
+export const useConflictResolver = (roomId: string, username: string, color: string) => {
+  const ydocRef = useRef<Y.Doc>();
+  const providerRef = useRef<WebsocketProvider>();
+  const { editor, setContent } = useEditor();
 
-/**
- * Applies a remote Yjs update to the supplied document. This function is safe
- * to call multiple times – Yjs internally deduplicates already‑applied updates.
- */
-export function applyRemoteUpdate(doc: Y.Doc, update: Uint8Array) {
-  Y.applyUpdate(doc, update);
-}
+  // Initialize Yjs document and provider
+  useEffect(() => {
+    const ydoc = new Y.Doc();
+    ydocRef.current = ydoc;
+    const wsUrl = `${window.location.origin.replace(/^http/, 'ws')}/yjs`;
+    const provider = new WebsocketProvider(wsUrl, roomId, ydoc);
+    providerRef.current = provider;
 
-/**
- * Serialises the current state of a Yjs document as an Uint8Array that can be
- * transmitted over the network.
- */
-export function getUpdate(doc: Y.Doc): Uint8Array {
-  return Y.encodeStateAsUpdate(doc);
-}
+    const yText = ydoc.getText('codemirror');
+
+    // Populate editor with existing content or seed Yjs with editor content
+    if (yText.length > 0) {
+      setContent(yText.toString());
+    } else {
+      ydoc.transact(() => {
+        yText.insert(0, editor.getValue());
+      });
+    }
+
+    // Local editor changes -> Yjs
+    const onEditorChange = () => {
+      const value = editor.getValue();
+      ydoc.transact(() => {
+        yText.delete(0, yText.length);
+        yText.insert(0, value);
+      });
+    };
+    editor.on('change', onEditorChange);
+
+    // Remote Yjs changes -> editor
+    const yObserver = (event: Y.YTextEvent) => {
+      const newValue = yText.toString();
+      if (newValue !== editor.getValue()) {
+        editor.setValue(newValue);
+      }
+    };
+    yText.observe(yObserver);
+
+    // Awareness (cursor + user info)
+    const awareness = provider.awareness;
+    awareness.setLocalStateField('user', { name: username, color });
+
+    // Cleanup on unmount
+    return () => {
+      editor.off('change', onEditorChange);
+      yText.unobserve(yObserver);
+      provider.disconnect();
+      ydoc.destroy();
+    };
+  }, [roomId, username, color, editor, setContent]);
+
+  // Expose provider for other hooks (e.g., useAwareness)
+  return { provider: providerRef.current };
+};

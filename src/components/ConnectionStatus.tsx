@@ -1,45 +1,20 @@
 import React from 'react';
-import { useWebSocket } from '../utils/useWebSocket';
+import styles from '../styles/user.module.css';
 
-// Assuming the WebSocket URL is provided via environment or context
-const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8080';
+interface Props {
+  connected: boolean;
+}
 
-const ConnectionStatus: React.FC = () => {
-  const { status, reconnectAttempts, reconnect } = useWebSocket(WS_URL);
-
-  const getColor = () => {
-    switch (status) {
-      case 'connected':
-        return 'green';
-      case 'connecting':
-        return 'orange';
-      case 'reconnecting':
-        return 'orange';
-      case 'disconnected':
-        return 'red';
-      default:
-        return 'gray';
-    }
-  };
-
+export const ConnectionStatus: React.FC<Props> = ({ connected }) => {
   return (
-    <div className="connection-status" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+    <div className={styles.connectionStatus}>
       <span
-        style={{
-          width: '10px',
-          height: '10px',
-          borderRadius: '50%',
-          backgroundColor: getColor()
-        }}
-      />
-      <span style={{ textTransform: 'capitalize' }}>{status}</span>
-      {status !== 'connected' && (
-        <button onClick={reconnect} style={{ marginLeft: '0.5rem' }}>
-          Retry ({reconnectAttempts})
-        </button>
-      )}
+        className={connected ? styles.online : styles.offline}
+        title={connected ? 'Connected' : 'Disconnected'}
+      >
+        ●
+      </span>
+      <span className={styles.label}>{connected ? 'Online' : 'Offline'}</span>
     </div>
   );
 };
-
-export default ConnectionStatus;

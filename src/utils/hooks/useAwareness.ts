@@ -1,48 +1,32 @@
-import { useEffect, useState } from "react";
-import { AwarenessUser } from "../types";
+import { useEffect, useState } from 'react';
+import { WebsocketProvider } from 'y-websocket';
 
 /**
- * Hook to manage awareness (presence) data received via WebSocket.
+ * Hook that extracts the list of active users from a Yjs awareness instance.
+ * Returns an array of user objects containing clientId, name, and color.
  */
-export function useAwareness(
-  ws: WebSocket | null,
-  localUser: AwarenessUser
-) {
-  const [users, setUsers] = useState<Record<string, AwarenessUser>>({});
+export const useAwareness = (provider: WebsocketProvider | null) => {
+  const [users, setUsers] = useState<Array<{ clientId: number; name: string; color: string }>>([]);
 
   useEffect(() => {
-    if (!ws) return;
-
-    const handleMessage = (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      if (data.type === "awareness") {
-        setUsers((prev) => ({
-          ...prev,
-          [data.payload.id]: data.payload,
+    if (!provider) return;
+    const awareness = provider.awareness;
+    const update = () => {
+      const states = Array.from(awareness.getStates().entries())
+        .filter(([, state]) => state.user)
+        .map(([clientId, state]) => ({
+          clientId,
+          name: state.user.name,
+          color: state.user.color,
         }));
-      } else if (data.type === "awareness-leave") {
-        setUsers((prev) => {
-          const copy = { ...prev };
-          delete copy[data.payload.id];
-          return copy;
-        });
-      }
+      setUsers(states);
     };
-
-    ws.addEventListener("message", handleMessage);
-    // Broadcast own presence once connection is ready
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: "awareness", payload: localUser }));
-    } else {
-      ws.addEventListener("open", () => {
-        ws.send(JSON.stringify({ type: "awareness", payload: localUser }));
-      }, { once: true });
-    }
-
+    awareness.on('change', update);
+    update();
     return () => {
-      ws.removeEventListener("message", handleMessage);
+      awareness.off('change', update);
     };
-  }, [ws, localUser]);
+  }, [provider]);
 
   return users;
-}
+};
