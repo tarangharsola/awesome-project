@@ -1,52 +1,19 @@
-import React, { useEffect, useRef } from 'react';
-import { useCursor } from '../utils/useCursor';
-import { useUsers } from '../utils/useUsers';
+import React, { useContext } from "react";
+import { EditorContext } from "./Editor";
+import { useWebSocket } from "../utils/hooks/useWebSocket";
+import { useCursor } from "../utils/hooks/useCursor";
+import { useUser } from "../utils/hooks/useUser";
 
-interface CursorProps {
-  clientId: string;
-}
+/**
+ * Component that wires the editor view with cursor broadcasting logic.
+ * It renders nothing; its purpose is side‑effects only.
+ */
+export const CursorTracker: React.FC = () => {
+  const { view } = useContext(EditorContext);
+  const { user } = useUser();
+  const [ws] = useWebSocket({ url: process.env.REACT_APP_WS_URL! });
 
-const CursorTracker: React.FC<CursorProps> = ({ clientId }) => {
-  const cursorRef = useRef<HTMLDivElement>(null);
-  const { position } = useCursor(clientId);
-  const { getUserById } = useUsers();
-  const user = getUserById(clientId);
+  useCursor(view, ws, user);
 
-  useEffect(() => {
-    if (cursorRef.current && position) {
-      cursorRef.current.style.transform = `translate(${position.x}px, ${position.y}px)`;
-    }
-  }, [position]);
-
-  if (!user) return null;
-
-  const labelStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: -20,
-    left: 0,
-    backgroundColor: '#2c2c2c',
-    color: '#f0f0f0',
-    padding: '2px 4px',
-    borderRadius: '3px',
-    fontSize: '0.75rem',
-    whiteSpace: 'nowrap',
-    pointerEvents: 'none',
-    boxShadow: '0 0 2px rgba(0,0,0,0.5)'
-  };
-
-  return (
-    <div ref={cursorRef} className="remote-cursor" style={{ position: 'absolute', pointerEvents: 'none' }}>
-      <div style={labelStyle}>{user.name}</div>
-      <div
-        style={{
-          width: '2px',
-          height: '1.2em',
-          backgroundColor: user.color,
-          marginTop: '2px'
-        }}
-      />
-    </div>
-  );
+  return null;
 };
-
-export default CursorTracker;
