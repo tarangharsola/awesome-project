@@ -1,20 +1,40 @@
+import { useCallback, useRef, useState } from 'react';
+
 /**
- * Simple reconnection helper that schedules a reconnect using exponential back‑off.
- * Consumers can call `schedule()` after a failure to trigger the next attempt.
+ * Exponential back‑off reconnection helper.
+ *
+ * @param reconnect   Function that attempts to re‑establish the connection.
+ * @param initialDelay Starting delay in ms (default 1000).
+ * @param maxDelay    Maximum delay in ms (default 30000).
+ * @returns           { attempt, schedule, reset }
  */
-export function useReconnection(
+export const useReconnection = (
   reconnect: () => void,
-  maxAttempts = 10,
-  baseDelay = 1000
-) {
-  let attempts = 0;
-  const schedule = () => {
-    if (attempts >= maxAttempts) return;
-    const delay = Math.min(baseDelay * 2 ** attempts, 30000);
-    setTimeout(() => {
-      attempts += 1;
+  initialDelay = 1000,
+  maxDelay = 30000
+) => {
+  const [attempt, setAttempt] = useState(0);
+  const delayRef = useRef(initialDelay);
+  const timeoutRef = useRef<number | null>(null);
+
+  const schedule = useCallback(() => {
+    const delay = delayRef.current;
+    timeoutRef.current = window.setTimeout(() => {
+      setAttempt((a) => a + 1);
       reconnect();
+      delayRef.current = Math.min(delayRef.current * 2, maxDelay);
     }, delay);
-  };
-  return { schedule };
-}
+  }, [reconnect, maxDelay]);
+
+  const reset = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+    }
+    delayRef.current = initialDelay;
+    setAttempt(0);
+  }, [initialDelay]);
+
+  return { attempt, schedule, reset };
+};
+
+export default useReconnection;
