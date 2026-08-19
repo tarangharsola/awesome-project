@@ -1,34 +1,64 @@
-// src/components/Editor.tsx
-import React, { useEffect, useRef } from 'react';
-import { useEditor } from '../utils/useEditor';
+import React, { useEffect, useRef, useState } from 'react';
+import { EditorView, basicSetup } from '@codemirror/basic-setup';
+import { EditorState } from '@codemirror/state';
 import { useLanguage } from '../utils/useLanguage';
-import { getFormattingDefaults } from '../utils/useFormattingDefaults';
+import { useFormattingDefaults } from '../utils/useFormattingDefaults';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import './Editor.css';
+import { LanguageSelector } from './LanguageSelector';
 
+/**
+ * Core editor component.
+ * Integrates language switching, default formatting, and keyboard shortcuts.
+ */
 export const Editor: React.FC = () => {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const { editor, setOptions } = useEditor();
-  const { language } = useLanguage();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { language, setLanguage, getExtension } = useLanguage();
+  const formattingExtensions = useFormattingDefaults();
+  const [view, setView] = useState<EditorView | null>(null);
 
-  // Apply language‑specific formatting defaults whenever the language changes
+  // Initialise CodeMirror once.
   useEffect(() => {
-    if (editor) {
-      const defaults = getFormattingDefaults(language);
-      setOptions(defaults);
-    }
-  }, [editor, language, setOptions]);
+    if (!containerRef.current) return;
+    const startState = EditorState.create({
+      doc: '',
+      extensions: [
+        basicSetup,
+        getExtension(),
+        ...formattingExtensions,
+        EditorView.updateListener.of(update => {
+          if (update.docChanged) {
+            // TODO: broadcast changes via WebSocket (handled elsewhere).
+          }
+        }),
+      ],
+    });
+    const cmView = new EditorView({ state: startState, parent: containerRef.current });
+    setView(cmView);
+    return () => cmView.destroy();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Attach keyboard shortcuts
-  useKeyboardShortcuts(editor);
-
-  // Initialise the editor once
+  // Reconfigure language when it changes.
   useEffect(() => {
-    if (editorRef.current && !editor) {
-      // The useEditor hook should handle creation of the underlying editor instance.
-      // This effect only ensures the container element exists before the hook runs.
-    }
-  }, [editorRef, editor]);
+    if (!view) return;
+    view.dispatch({
+      effects: EditorView.reconfigure.of([getExtension()]),
+    });
+  }, [language, view, getExtension]);
 
-  return <div ref={editorRef} className="editor-container" />;
+  // Apply keyboard shortcuts (re‑apply when language or view changes).
+  useEffect(() => {
+    if (!view) return;
+    const shortcuts = useKeyboardShortcuts(language, view);
+    view.dispatch({
+      effects: EditorView.reconfigure.of([shortcuts]),
+    });
+  }, [language, view]);
+
+  return (
+    <div className="editor-wrapper" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <LanguageSelector language={language} onChange={setLanguage} />
+      <div ref={containerRef} style={{ flexGrow: 1, border: '1px solid #444' }} />
+    </div>
+  );
 };

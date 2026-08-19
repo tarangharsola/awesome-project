@@ -1,53 +1,52 @@
-// src/utils/useKeyboardShortcuts.ts
-import { useEffect } from 'react';
+import { EditorView } from '@codemirror/view';
+import { keymap } from '@codemirror/view';
+import { format as prettierFormat } from 'prettier/standalone';
+import parserBabel from 'prettier/parser-babel';
+import parserHTML from 'prettier/parser-html';
+import parserPython from 'prettier/parser-python';
+import { Language } from './useLanguage';
 
 /**
- * Attaches common keyboard shortcuts to the supplied editor instance.
- *
- * Supported shortcuts:
- *   • Ctrl/Cmd + S – Prevent default browser save and emit a custom "save" event.
- *   • Ctrl/Cmd + Shift + F – Format the whole document (if the editor exposes a format method).
- *   • Tab – Insert indentation respecting the editor's configuration.
- *
- * The editor argument is expected to be a CodeMirror or Monaco editor instance that
- * provides `dispatch`, `trigger`, or `format` methods. The hook guards against missing
- * methods to stay framework‑agnostic.
+ * Returns a CodeMirror keymap extension that adds useful shortcuts:
+ *   • Cmd/Ctrl + S – format the current document using Prettier.
+ *   • Cmd/Ctrl + Shift + L – placeholder for language toggle (handled by UI).
  */
-export function useKeyboardShortcuts(editor: any) {
-  useEffect(() => {
-    if (!editor) return;
+export const useKeyboardShortcuts = (language: Language, view: EditorView | null) => {
+  if (!view) return [];
 
-    const handler = (e: KeyboardEvent) => {
-      // Save shortcut
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        // Emit a custom event that the parent can listen to
-        const saveEvent = new CustomEvent('editor-save', { detail: { editor } });
-        window.dispatchEvent(saveEvent);
-        return;
-      }
+  const formatCode = () => {
+    const code = view.state.doc.toString();
+    let parser: string = 'babel';
+    if (language === 'python') parser = 'python';
+    if (language === 'html') parser = 'html';
+    try {
+      const formatted = prettierFormat(code, {
+        parser,
+        plugins: [parserBabel, parserHTML, parserPython],
+        singleQuote: true,
+      });
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: formatted },
+      });
+    } catch (e) {
+      console.error('Formatting failed:', e);
+    }
+  };
 
-      // Format shortcut
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
-        e.preventDefault();
-        if (typeof editor.format === 'function') {
-          editor.format();
-        } else if (typeof editor.trigger === 'function') {
-          // Monaco‑style command
-          editor.trigger('keyboard', 'editor.action.formatDocument');
-        }
-        return;
-      }
-
-      // Tab handling – let the editor manage it, but ensure we don't lose focus
-      if (e.key === 'Tab') {
-        // Most editors already handle Tab correctly; we just stop propagation
-        // to avoid the browser moving focus.
-        e.stopPropagation();
-      }
-    };
-
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [editor]);
-}
+  return keymap.of([
+    {
+      key: 'Mod-s',
+      run: () => {
+        formatCode();
+        return true;
+      },
+    },
+    {
+      key: 'Mod-Shift-l',
+      run: () => {
+        // Language change is performed via UI; we simply return true to consume the shortcut.
+        return true;
+      },
+    },
+  ]);
+};
