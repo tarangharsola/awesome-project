@@ -1,15 +1,16 @@
-// CI script: run build and test, exit with appropriate status code
+#!/usr/bin/env node
 const { execSync } = require('child_process');
-function run(command, name) {
-  try {
-    console.log(`Running ${name}...`);
-    execSync(command, { stdio: 'inherit' });
-    console.log(`${name} succeeded`);
-  } catch (err) {
-    console.error(`${name} failed`);
-    process.exit(1);
-  }
+
+function run(command) {
+  console.log(`Running: ${command}`);
+  execSync(command, { stdio: 'inherit' });
 }
-run('npm run build', 'build');
-run('npm run test', 'test');
-process.exit(0);
+
+try {
+  run('node scripts/build.js');
+  run('node scripts/test.js');
+  process.exit(0);
+} catch (error) {
+  console.error('CI failed:', error);
+  process.exit(1);
+}

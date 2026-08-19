@@ -1,14 +1,10 @@
-const { test } = require('tape');
-const { build, test: runTest } = require('./ci');
+#!/usr/bin/env node
+const { execSync } = require('child_process');
 
-build();
-
-runTest('Build script runs without errors', t => {
-  t.pass('Build script executed successfully');
-  t.end();
-});
-
-runTest('Test script runs without errors', t => {
-  t.pass('Test script executed successfully');
-  t.end();
-});
+try {
+  execSync('npx jest --ci', { stdio: 'inherit' });
+  process.exit(0);
+} catch (error) {
+  console.error('Tests failed:', error);
+  process.exit(1);
+}
