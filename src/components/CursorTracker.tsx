@@ -1,65 +1,52 @@
 import React, { useEffect, useRef } from 'react';
-import { useEditor } from '../utils/useEditor';
+import { useCursor } from '../utils/useCursor';
 import { useUsers } from '../utils/useUsers';
-import styles from '../styles/user.module.css';
 
 interface CursorProps {
-  userId: string;
-  position: { line: number; ch: number };
-  name: string;
-  color: string;
+  clientId: string;
 }
 
-const CursorTracker: React.FC = () => {
-  const { editor } = useEditor();
-  const { users } = useUsers();
-  const cursorRefs = useRef<Record<string, HTMLDivElement>>({});
+const CursorTracker: React.FC<CursorProps> = ({ clientId }) => {
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const { position } = useCursor(clientId);
+  const { getUserById } = useUsers();
+  const user = getUserById(clientId);
 
   useEffect(() => {
-    if (!editor) return;
-    const cm = editor.getCodeMirror();
+    if (cursorRef.current && position) {
+      cursorRef.current.style.transform = `translate(${position.x}px, ${position.y}px)`;
+    }
+  }, [position]);
 
-    const updateCursors = () => {
-      users.forEach((user) => {
-        if (user.id === cm.getOption('userId')) return; // skip self
-        const { line, ch } = user.cursor;
-        const coords = cm.charCoords({ line, ch }, 'local');
-        let cursorEl = cursorRefs.current[user.id];
-        if (!cursorEl) {
-          cursorEl = document.createElement('div');
-          cursorEl.className = styles.cursorCaret;
-          cursorEl.style.backgroundColor = user.color;
-          const label = document.createElement('div');
-          label.className = styles.cursorLabel;
-          label.textContent = user.name;
-          cursorEl.appendChild(label);
-          cm.getWrapperElement().appendChild(cursorEl);
-          cursorRefs.current[user.id] = cursorEl;
-        }
-        cursorEl.style.left = `${coords.left}px`;
-        cursorEl.style.top = `${coords.top}px`;
-        // Position label slightly above the caret
-        const label = cursorEl.firstChild as HTMLElement;
-        if (label) {
-          label.style.left = '0px';
-          label.style.top = '-1.2em';
-        }
-      });
-    };
+  if (!user) return null;
 
-    const changeHandler = cm.on('cursorActivity', updateCursors);
-    const refreshHandler = cm.on('refresh', updateCursors);
-    updateCursors();
+  const labelStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: -20,
+    left: 0,
+    backgroundColor: '#2c2c2c',
+    color: '#f0f0f0',
+    padding: '2px 4px',
+    borderRadius: '3px',
+    fontSize: '0.75rem',
+    whiteSpace: 'nowrap',
+    pointerEvents: 'none',
+    boxShadow: '0 0 2px rgba(0,0,0,0.5)'
+  };
 
-    return () => {
-      cm.off('cursorActivity', changeHandler);
-      cm.off('refresh', refreshHandler);
-      Object.values(cursorRefs.current).forEach((el) => el.remove());
-      cursorRefs.current = {};
-    };
-  }, [editor, users]);
-
-  return null;
+  return (
+    <div ref={cursorRef} className="remote-cursor" style={{ position: 'absolute', pointerEvents: 'none' }}>
+      <div style={labelStyle}>{user.name}</div>
+      <div
+        style={{
+          width: '2px',
+          height: '1.2em',
+          backgroundColor: user.color,
+          marginTop: '2px'
+        }}
+      />
+    </div>
+  );
 };
 
 export default CursorTracker;

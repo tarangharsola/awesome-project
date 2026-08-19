@@ -4,50 +4,21 @@
   padding: 0;
   margin: 0;
   list-style: none;
-  background-color: #1e1e1e; /* dark background for panel */
-  color: #e0e0e0; /* light text for readability */
+  color: #e0e0e0;
 }
 
 .userItem {
   display: flex;
   align-items: center;
-  padding: 6px 10px;
-  margin-bottom: 2px;
-  background-color: #2c2c2c; /* subtle dark card */
-  border-left: 4px solid var(--user-color, #777);
+  margin-bottom: 4px;
+  padding: 4px 8px;
   border-radius: 4px;
-  font-size: 0.9rem;
-  color: #e0e0e0;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
-.userAvatar {
+.userColor {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   margin-right: 8px;
-  background-color: var(--user-color, #777);
-}
-
-.cursorLabel {
-  position: absolute;
-  pointer-events: none;
-  background: rgba(0, 0, 0, 0.75); /* dark semi‑transparent background */
-  color: #ffffff; /* white text */
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  z-index: 10;
-}
-
-.cursorCaret {
-  position: absolute;
-  width: 2px;
-  background-color: var(--user-color, #fff);
-  animation: blink 1s step-start infinite;
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
 }
