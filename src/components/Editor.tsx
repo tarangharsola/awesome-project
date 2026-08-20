@@ -1,51 +1,44 @@
-import React, { useEffect, useRef } from 'react';
-import * as monaco from 'monaco-editor';
-import { useYjsDocument } from '../utils/editorCore';
-import { setEditorLanguage } from '../utils/editorExtensions';
-import { Language, User } from '../types';
+import React, { useCallback, useEffect } from 'react';
+import { useEditor } from '../utils/useEditor';
+import useLanguage from '../utils/useLanguage';
+import getFormattingDefaults from '../utils/useFormattingDefaults';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { useDispatch } from 'react-redux';
+import { updateDocument } from '../store/editorReducer';
 
-type Props = {
-  roomId: string;
-  user: User;
-  language: Language;
-};
+const Editor = () => {
+  const dispatch = useDispatch();
+  const { language, changeLanguage } = useLanguage();
+  const formatting = getFormattingDefaults(language);
+  const { editorView, setValue } = useEditor({ language, formatting });
 
-export const Editor: React.FC<Props> = ({ roomId, user, language }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>();
-  const { ydoc, provider, yText } = useYjsDocument(roomId, user);
+  const handleSave = useCallback(() => {
+    const content = editorView?.state.doc.toString() ?? '';
+    dispatch(updateDocument(content));
+  }, [editorView, dispatch]);
 
+  const handleFormat = useCallback(() => {
+    const content = editorView?.state.doc.toString() ?? '';
+    const formatted = content
+      .split('\n')
+      .map((line) => line.replace(/\s+$/g, ''))
+      .join('\n');
+    setValue(formatted);
+  }, [editorView, setValue]);
+
+  useKeyboardShortcuts(editorView, { save: handleSave, format: handleFormat });
+
+  // Reconfigure editor when language changes
   useEffect(() => {
-    if (!containerRef.current) return;
-    const editorInstance = monaco.editor.create(containerRef.current, {
-      theme: 'vs-dark',
-      automaticLayout: true,
-      minimap: { enabled: false }
+    if (!editorView) return;
+    const { languageSupport } = require('../utils/editorExtensions');
+    const langExt = languageSupport(language);
+    editorView.dispatch({
+      effects: editorView.state.reconfigure(langExt),
     });
-    editorRef.current = editorInstance;
+  }, [editorView, language]);
 
-    if (yText) {
-      const model = monaco.editor.createModel(yText.toString(), language);
-      editorInstance.setModel(model);
-      setEditorLanguage(model, language);
-
-      const binding = new (window as any).Y.MonacoBinding(yText, model, new Set([editorInstance]), provider.awareness);
-
-      // Cleanup on unmount
-      return () => {
-        binding.destroy();
-        model.dispose();
-        editorInstance.dispose();
-      };
-    }
-  }, [yText, provider, language]);
-
-  // Update language when prop changes
-  useEffect(() => {
-    if (editorRef.current && editorRef.current.getModel()) {
-      setEditorLanguage(editorRef.current.getModel()!, language);
-    }
-  }, [language]);
-
-  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
+  return <div id="editor" ref={editorView?.dom?.parentNode ? undefined : null} />;
 };
+
+export default Editor;

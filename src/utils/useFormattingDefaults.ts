@@ -1,18 +1,13 @@
-import { EditorView } from '@codemirror/view';
-import { indentUnit } from '@codemirror/language';
-import { defaultHighlightStyle } from '@codemirror/highlight';
-import { oneDark } from '@codemirror/theme-one-dark';
+export const getFormattingDefaults = (language) => {
+  switch (language) {
+    case 'python':
+      return { tabSize: 4, insertSpaces: true };
+    case 'html':
+      return { tabSize: 2, insertSpaces: true };
+    default:
+      // javascript and fallback
+      return { tabSize: 2, insertSpaces: true };
+  }
+};
 
-/**
- * Provides a set of default CodeMirror extensions for consistent formatting.
- * - Two‑space indentation
- * - Line wrapping
- * - Dark theme (oneDark)
- * - Default syntax highlighting style
- */
-export const useFormattingDefaults = () => [
-  indentUnit.of('  '), // two spaces per indent level
-  EditorView.lineWrapping,
-  oneDark,
-  defaultHighlightStyle,
-];
+export default getFormattingDefaults;
