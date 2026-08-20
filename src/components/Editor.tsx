@@ -1,64 +1,51 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { EditorView, basicSetup } from '@codemirror/basic-setup';
-import { EditorState } from '@codemirror/state';
-import { useLanguage } from '../utils/useLanguage';
-import { useFormattingDefaults } from '../utils/useFormattingDefaults';
-import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { LanguageSelector } from './LanguageSelector';
+import React, { useEffect, useRef } from 'react';
+import * as monaco from 'monaco-editor';
+import { useYjsDocument } from '../utils/editorCore';
+import { setEditorLanguage } from '../utils/editorExtensions';
+import { Language, User } from '../types';
 
-/**
- * Core editor component.
- * Integrates language switching, default formatting, and keyboard shortcuts.
- */
-export const Editor: React.FC = () => {
+type Props = {
+  roomId: string;
+  user: User;
+  language: Language;
+};
+
+export const Editor: React.FC<Props> = ({ roomId, user, language }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { language, setLanguage, getExtension } = useLanguage();
-  const formattingExtensions = useFormattingDefaults();
-  const [view, setView] = useState<EditorView | null>(null);
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>();
+  const { ydoc, provider, yText } = useYjsDocument(roomId, user);
 
-  // Initialise CodeMirror once.
   useEffect(() => {
     if (!containerRef.current) return;
-    const startState = EditorState.create({
-      doc: '',
-      extensions: [
-        basicSetup,
-        getExtension(),
-        ...formattingExtensions,
-        EditorView.updateListener.of(update => {
-          if (update.docChanged) {
-            // TODO: broadcast changes via WebSocket (handled elsewhere).
-          }
-        }),
-      ],
+    const editorInstance = monaco.editor.create(containerRef.current, {
+      theme: 'vs-dark',
+      automaticLayout: true,
+      minimap: { enabled: false }
     });
-    const cmView = new EditorView({ state: startState, parent: containerRef.current });
-    setView(cmView);
-    return () => cmView.destroy();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    editorRef.current = editorInstance;
 
-  // Reconfigure language when it changes.
+    if (yText) {
+      const model = monaco.editor.createModel(yText.toString(), language);
+      editorInstance.setModel(model);
+      setEditorLanguage(model, language);
+
+      const binding = new (window as any).Y.MonacoBinding(yText, model, new Set([editorInstance]), provider.awareness);
+
+      // Cleanup on unmount
+      return () => {
+        binding.destroy();
+        model.dispose();
+        editorInstance.dispose();
+      };
+    }
+  }, [yText, provider, language]);
+
+  // Update language when prop changes
   useEffect(() => {
-    if (!view) return;
-    view.dispatch({
-      effects: EditorView.reconfigure.of([getExtension()]),
-    });
-  }, [language, view, getExtension]);
+    if (editorRef.current && editorRef.current.getModel()) {
+      setEditorLanguage(editorRef.current.getModel()!, language);
+    }
+  }, [language]);
 
-  // Apply keyboard shortcuts (re‑apply when language or view changes).
-  useEffect(() => {
-    if (!view) return;
-    const shortcuts = useKeyboardShortcuts(language, view);
-    view.dispatch({
-      effects: EditorView.reconfigure.of([shortcuts]),
-    });
-  }, [language, view]);
-
-  return (
-    <div className="editor-wrapper" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <LanguageSelector language={language} onChange={setLanguage} />
-      <div ref={containerRef} style={{ flexGrow: 1, border: '1px solid #444' }} />
-    </div>
-  );
+  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
 };

@@ -1,20 +1,18 @@
-export interface User {
+export type User = {
   id: string;
   name: string;
   color: string;
-}
+};
 
-export interface CursorPosition {
-  line: number;
-  ch: number;
-}
+export type CursorData = {
+  userId: string;
+  position: monaco.editor.IPosition;
+};
 
-export interface AwarenessUser extends User {
-  cursor?: CursorPosition;
-}
+export type WebSocketMessage =
+  | { type: 'join'; user: User }
+  | { type: 'leave'; userId: string }
+  | { type: 'update'; delta: Uint8Array }
+  | { type: 'cursor'; cursor: CursorData };
 
-export type WSMessage =
-  | { type: "awareness"; payload: AwarenessUser }
-  | { type: "awareness-leave"; payload: { id: string } }
-  | { type: "cursor"; payload: AwarenessUser }
-  | { type: "doc"; payload: string };
+export type Language = 'javascript' | 'python' | 'html';

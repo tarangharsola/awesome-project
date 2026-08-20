@@ -1,56 +1,49 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useCallback } from 'react';
+import { WebSocketMessage, User, CursorData } from '../../types';
 
-export interface WebSocketOptions {
-  url: string;
-  protocols?: string | string[];
-  reconnectInterval?: number;
-}
-
-export interface WebSocketState {
-  connected: boolean;
-  lastMessage?: MessageEvent;
-  error?: Event;
-}
-
-/**
- * Hook that manages a WebSocket connection with automatic reconnection.
- */
-export function useWebSocket(
-  options: WebSocketOptions
-): [WebSocket | null, WebSocketState, (data: string | ArrayBuffer) => void] {
-  const { url, protocols, reconnectInterval = 3000 } = options;
+export const useWebSocket = (
+  url: string,
+  onMessage: (msg: WebSocketMessage) => void,
+  onOpen?: () => void,
+  onClose?: () => void
+) => {
   const wsRef = useRef<WebSocket | null>(null);
-  const [state, setState] = useState<WebSocketState>({ connected: false });
 
-  const send = (data: string | ArrayBuffer) => {
+  const sendMessage = useCallback((msg: WebSocketMessage) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(data);
+      wsRef.current.send(JSON.stringify(msg));
     }
-  };
+  }, []);
 
   useEffect(() => {
-    let shouldReconnect = true;
-    const connect = () => {
-      const ws = new WebSocket(url, protocols);
-      wsRef.current = ws;
+    const ws = new WebSocket(url);
+    wsRef.current = ws;
 
-      ws.onopen = () => setState({ connected: true });
-      ws.onmessage = (msg) => setState((s) => ({ ...s, lastMessage: msg }));
-      ws.onerror = (err) => setState((s) => ({ ...s, error: err }));
-      ws.onclose = () => {
-        setState({ connected: false });
-        if (shouldReconnect) {
-          setTimeout(connect, reconnectInterval);
-        }
-      };
+    ws.onopen = () => {
+      onOpen?.();
     };
-    connect();
+
+    ws.onmessage = (event) => {
+      try {
+        const data: WebSocketMessage = JSON.parse(event.data);
+        onMessage(data);
+      } catch (e) {
+        console.error('Invalid WS message', e);
+      }
+    };
+
+    ws.onclose = () => {
+      onClose?.();
+    };
+
+    ws.onerror = (err) => {
+      console.error('WebSocket error', err);
+    };
 
     return () => {
-      shouldReconnect = false;
-      wsRef.current?.close();
+      ws.close();
     };
-  }, [url, protocols, reconnectInterval]);
+  }, [url, onMessage, onOpen, onClose]);
 
-  return [wsRef.current, state, send];
-}
+  return { sendMessage };
+};
