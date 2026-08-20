@@ -7,10 +7,11 @@ function run(command) {
 }
 
 try {
-  run('node scripts/build.js');
   run('node scripts/test.js');
+  run('node scripts/build.js');
+  console.log('CI passed');
   process.exit(0);
-} catch (error) {
-  console.error('CI failed:', error);
+} catch (err) {
+  console.error('CI failed');
   process.exit(1);
 }
