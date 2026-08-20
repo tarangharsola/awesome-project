@@ -1,19 +1,31 @@
-import React, { useContext } from "react";
-import { EditorContext } from "./Editor";
-import { useWebSocket } from "../utils/hooks/useWebSocket";
-import { useCursor } from "../utils/hooks/useCursor";
-import { useUser } from "../utils/hooks/useUser";
+import React from 'react';
+import { useCursor } from '../utils/hooks/useCursor';
+import styles from '../styles/user.module.css';
 
 /**
- * Component that wires the editor view with cursor broadcasting logic.
- * It renders nothing; its purpose is side‑effects only.
+ * Renders a remote user's cursor with a label showing their name.
+ * The label uses the .cursorLabel class defined in user.module.css for
+ * dark‑mode‑friendly styling.
  */
-export const CursorTracker: React.FC = () => {
-  const { view } = useContext(EditorContext);
-  const { user } = useUser();
-  const [ws] = useWebSocket({ url: process.env.REACT_APP_WS_URL! });
+const CursorTracker: React.FC<{ userId: string }> = ({ userId }) => {
+  const { position, name, color } = useCursor(userId);
 
-  useCursor(view, ws, user);
+  if (!position) return null;
 
-  return null;
+  return (
+    <div
+      className={styles.cursor}
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+        color: color,
+      }}
+    >
+      <div className={styles.cursorLabel} style={{ backgroundColor: color }}>
+        {name}
+      </div>
+    </div>
+  );
 };
+
+export default CursorTracker;
