@@ -1,28 +1,31 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Language } from '../types';
+import type { EditorState, EditorAction } from '../types';
 
-interface EditorState {
-  language: Language;
-  content: string;
-}
-
-const initialState: EditorState = {
-  language: 'javascript',
-  content: ''
+export const initialEditorState: EditorState = {
+  content: '',
+  version: 0,
 };
 
-export const editorSlice = createSlice({
-  name: 'editor',
-  initialState,
-  reducers: {
-    setLanguage(state, action: PayloadAction<Language>) {
-      state.language = action.payload;
-    },
-    setContent(state, action: PayloadAction<string>) {
-      state.content = action.payload;
+export default function editorReducer(state = initialEditorState, action: EditorAction): EditorState {
+  switch (action.type) {
+    case 'LOCAL_CHANGE': {
+      const { delta, version } = action.payload;
+      return {
+        content: delta,
+        version,
+      };
     }
+    case 'REMOTE_CHANGE': {
+      const { delta, version } = action.payload;
+      if (version > state.version) {
+        return { content: delta, version };
+      }
+      // Stale remote change – ignore
+      return state;
+    }
+    case 'RESET_DOCUMENT': {
+      return { content: action.payload.content, version: 0 };
+    }
+    default:
+      return state;
   }
-});
-
-export const { setLanguage, setContent } = editorSlice.actions;
-export default editorSlice.reducer;
+}

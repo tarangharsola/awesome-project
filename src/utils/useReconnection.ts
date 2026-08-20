@@ -1,40 +1,32 @@
-import { useCallback, useRef, useState } from 'react';
+import { useState, useCallback } from 'react';
+
+interface ReconnectionConfig {
+  maxAttempts?: number;
+  baseDelay?: number; // milliseconds
+}
 
 /**
- * Exponential back‑off reconnection helper.
- *
- * @param reconnect   Function that attempts to re‑establish the connection.
- * @param initialDelay Starting delay in ms (default 1000).
- * @param maxDelay    Maximum delay in ms (default 30000).
- * @returns           { attempt, schedule, reset }
+ * Hook providing exponential backoff reconnection scheduling.
  */
-export const useReconnection = (
-  reconnect: () => void,
-  initialDelay = 1000,
-  maxDelay = 30000
-) => {
+export default function useReconnection({ maxAttempts = 10, baseDelay = 500 }: ReconnectionConfig = {}) {
   const [attempt, setAttempt] = useState(0);
-  const delayRef = useRef(initialDelay);
-  const timeoutRef = useRef<number | null>(null);
 
-  const schedule = useCallback(() => {
-    const delay = delayRef.current;
-    timeoutRef.current = window.setTimeout(() => {
-      setAttempt((a) => a + 1);
-      reconnect();
-      delayRef.current = Math.min(delayRef.current * 2, maxDelay);
-    }, delay);
-  }, [reconnect, maxDelay]);
+  const scheduleReconnect = useCallback(
+    (reconnectFn: () => void) => {
+      if (attempt >= maxAttempts) {
+        console.warn('Maximum reconnection attempts reached');
+        return;
+      }
+      const delay = baseDelay * Math.pow(2, attempt);
+      setTimeout(() => {
+        setAttempt((a) => a + 1);
+        reconnectFn();
+      }, delay);
+    },
+    [attempt, maxAttempts, baseDelay]
+  );
 
-  const reset = useCallback(() => {
-    if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current);
-    }
-    delayRef.current = initialDelay;
-    setAttempt(0);
-  }, [initialDelay]);
+  const resetAttempts = useCallback(() => setAttempt(0), []);
 
-  return { attempt, schedule, reset };
-};
-
-export default useReconnection;
+  return { attempt, scheduleReconnect, resetAttempts };
+}
