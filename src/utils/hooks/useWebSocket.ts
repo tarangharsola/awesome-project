@@ -1,49 +1,69 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { WebSocketMessage, User, CursorData } from '../../types';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
-export const useWebSocket = (
+interface WebSocketMessage {
+  type: string;
+  payload?: any;
+}
+
+interface UseWebSocketReturn {
+  socket: WebSocket | null;
+  isConnected: boolean;
+  sendMessage: (msg: WebSocketMessage) => void;
+}
+
+/**
+ * Hook to manage a WebSocket connection with automatic reconnection.
+ * @param url The WebSocket endpoint URL.
+ * @param reconnectIntervalMs Interval between reconnection attempts (ms).
+ */
+export function useWebSocket(
   url: string,
-  onMessage: (msg: WebSocketMessage) => void,
-  onOpen?: () => void,
-  onClose?: () => void
-) => {
-  const wsRef = useRef<WebSocket | null>(null);
+  reconnectIntervalMs: number = 3000
+): UseWebSocketReturn {
+  const [isConnected, setIsConnected] = useState(false);
+  const socketRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<number | null>(null);
+
+  const clearReconnectTimeout = () => {
+    if (reconnectTimeoutRef.current !== null) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+  };
+
+  const connect = useCallback(() => {
+    clearReconnectTimeout();
+    const ws = new WebSocket(url);
+    ws.onopen = () => setIsConnected(true);
+    ws.onclose = () => {
+      setIsConnected(false);
+      // Attempt reconnection after a delay
+      reconnectTimeoutRef.current = window.setTimeout(() => connect(), reconnectIntervalMs);
+    };
+    ws.onerror = () => ws.close();
+    socketRef.current = ws;
+  }, [url, reconnectIntervalMs]);
+
+  useEffect(() => {
+    connect();
+    return () => {
+      clearReconnectTimeout();
+      socketRef.current?.close();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const sendMessage = useCallback((msg: WebSocketMessage) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(msg));
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(msg));
+    } else {
+      console.warn('WebSocket is not open. Message not sent:', msg);
     }
   }, []);
 
-  useEffect(() => {
-    const ws = new WebSocket(url);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      onOpen?.();
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data: WebSocketMessage = JSON.parse(event.data);
-        onMessage(data);
-      } catch (e) {
-        console.error('Invalid WS message', e);
-      }
-    };
-
-    ws.onclose = () => {
-      onClose?.();
-    };
-
-    ws.onerror = (err) => {
-      console.error('WebSocket error', err);
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, [url, onMessage, onOpen, onClose]);
-
-  return { sendMessage };
-};
+  return {
+    socket: socketRef.current,
+    isConnected,
+    sendMessage,
+  };
+}
