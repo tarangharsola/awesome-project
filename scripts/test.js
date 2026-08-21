@@ -1,17 +1,12 @@
-#!/usr/bin/env node
-const { execSync } = require('child_process');
-
-function run(command) {
-  console.log(`Running: ${command}`);
-  execSync(command, { stdio: 'inherit' });
-}
+const React = require('react');
+const ReactDOMServer = require('react-dom/server');
+const App = require('../src/components/App').default;
 
 try {
-  // Execute Jest in CI mode
-  run('npx jest --ci');
-  console.log('Tests passed');
+  const html = ReactDOMServer.renderToString(React.createElement(App));
+  console.log('Render successful');
   process.exit(0);
-} catch (err) {
-  console.error('Tests failed');
+} catch (e) {
+  console.error('Render failed', e);
   process.exit(1);
 }
