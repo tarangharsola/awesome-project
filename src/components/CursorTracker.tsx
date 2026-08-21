@@ -1,23 +1,37 @@
 import React from 'react';
-import styles from '../styles/user.module.css';
-import { CursorData } from '../types';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
 
-type Props = {
-  cursor: CursorData;
+const cursorLabelStyle: React.CSSProperties = {
+  position: 'absolute',
+  backgroundColor: '#333',
+  color: '#fff',
+  padding: '2px 4px',
+  borderRadius: '3px',
+  fontSize: '0.75rem',
+  whiteSpace: 'nowrap',
+  pointerEvents: 'none',
+  transform: 'translate(-50%, -150%)',
 };
 
-const CursorTracker: React.FC<Props> = ({ cursor }) => {
-  const { x, y, user } = cursor;
-  const style: React.CSSProperties = {
-    left: x,
-    top: y,
-    borderColor: user.color,
-  };
-
+const CursorTracker: React.FC = () => {
+  const cursors = useSelector((state: RootState) => state.editor.cursors);
   return (
-    <div className={styles.cursor} style={style}>
-      <div className={styles.cursorLabel}>{user.name}</div>
-    </div>
+    <>
+      {cursors.map(c => (
+        <div key={c.id} style={{ position: 'absolute', left: c.x, top: c.y }}>
+          <div
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: c.color,
+            }}
+          />
+          <div style={cursorLabelStyle}>{c.name}</div>
+        </div>
+      ))}
+    </>
   );
 };
 
