@@ -1,50 +1,43 @@
-/* Existing styles may be defined above */
-
-/* Active Users Panel */
-.activeUserPanel {
-  background-color: #1e1e1e; /* Dark background suitable for dark mode */
-  color: #e0e0e0; /* Light text for contrast */
-  padding: 0.5rem;
-  border-radius: 4px;
-  max-height: 60vh;
-  overflow-y: auto;
+.userList {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  color: #e0e0e0;
 }
 
 .userItem {
   display: flex;
   align-items: center;
-  margin-bottom: 0.4rem;
-  font-size: 0.9rem;
-  color: #e0e0e0; /* Ensure text is readable */
+  margin-bottom: 8px;
 }
 
-.userColorBadge {
-  width: 10px;
-  height: 10px;
+.colorBadge {
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  margin-right: 0.5rem;
+  margin-right: 8px;
   flex-shrink: 0;
 }
 
-/* Cursor label styling */
-.cursorLabel {
-  position: absolute;
-  transform: translate(-50%, -120%);
-  background-color: rgba(50, 50, 50, 0.9); /* Dark semi‑transparent background */
-  color: #f0f0f0; /* Light text */
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  pointer-events: none;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+.userName {
+  font-size: 0.9rem;
 }
 
-/* Optional: cursor pointer styling */
 .cursor {
   position: absolute;
-  width: 2px;
-  height: 1.2em;
-  background-color: currentColor;
   pointer-events: none;
+  border: 2px solid;
+  border-radius: 2px;
+}
+
+.cursorLabel {
+  position: absolute;
+  top: -1.5em;
+  left: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  white-space: nowrap;
 }

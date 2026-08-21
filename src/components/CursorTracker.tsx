@@ -1,29 +1,22 @@
 import React from 'react';
-import { useCursor } from '../utils/hooks/useCursor';
 import styles from '../styles/user.module.css';
+import { CursorData } from '../types';
 
-/**
- * Renders a remote user's cursor with a label showing their name.
- * The label uses the .cursorLabel class defined in user.module.css for
- * dark‑mode‑friendly styling.
- */
-const CursorTracker: React.FC<{ userId: string }> = ({ userId }) => {
-  const { position, name, color } = useCursor(userId);
+type Props = {
+  cursor: CursorData;
+};
 
-  if (!position) return null;
+const CursorTracker: React.FC<Props> = ({ cursor }) => {
+  const { x, y, user } = cursor;
+  const style: React.CSSProperties = {
+    left: x,
+    top: y,
+    borderColor: user.color,
+  };
 
   return (
-    <div
-      className={styles.cursor}
-      style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        color: color,
-      }}
-    >
-      <div className={styles.cursorLabel} style={{ backgroundColor: color }}>
-        {name}
-      </div>
+    <div className={styles.cursor} style={style}>
+      <div className={styles.cursorLabel}>{user.name}</div>
     </div>
   );
 };
