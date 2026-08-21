@@ -1,44 +1,45 @@
-import React, { useCallback, useEffect } from 'react';
-import { useEditor } from '../utils/useEditor';
-import useLanguage from '../utils/useLanguage';
-import getFormattingDefaults from '../utils/useFormattingDefaults';
+import React, { useEffect, useRef } from 'react';
+import { useLanguage } from '../utils/useLanguage';
+import { getFormattingDefaults } from '../utils/useFormattingDefaults';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { useDispatch } from 'react-redux';
-import { updateDocument } from '../store/editorReducer';
+import { initEditor, updateEditorLanguage, applyFormatting } from '../utils/editorCore';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
 
-const Editor = () => {
-  const dispatch = useDispatch();
-  const { language, changeLanguage } = useLanguage();
-  const formatting = getFormattingDefaults(language);
-  const { editorView, setValue } = useEditor({ language, formatting });
+export const Editor: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<any>(null);
+  const { language } = useLanguage();
+  const content = useSelector((state: RootState) => state.editor.content);
 
-  const handleSave = useCallback(() => {
-    const content = editorView?.state.doc.toString() ?? '';
-    dispatch(updateDocument(content));
-  }, [editorView, dispatch]);
-
-  const handleFormat = useCallback(() => {
-    const content = editorView?.state.doc.toString() ?? '';
-    const formatted = content
-      .split('\n')
-      .map((line) => line.replace(/\s+$/g, ''))
-      .join('\n');
-    setValue(formatted);
-  }, [editorView, setValue]);
-
-  useKeyboardShortcuts(editorView, { save: handleSave, format: handleFormat });
-
-  // Reconfigure editor when language changes
+  // Initialize editor once
   useEffect(() => {
-    if (!editorView) return;
-    const { languageSupport } = require('../utils/editorExtensions');
-    const langExt = languageSupport(language);
-    editorView.dispatch({
-      effects: editorView.state.reconfigure(langExt),
-    });
-  }, [editorView, language]);
+    if (containerRef.current && !editorRef.current) {
+      editorRef.current = initEditor(containerRef.current, {
+        language,
+        value: content,
+        ...getFormattingDefaults(language),
+      });
+    }
+  }, []);
 
-  return <div id="editor" ref={editorView?.dom?.parentNode ? undefined : null} />;
+  // Update language and formatting when language changes
+  useEffect(() => {
+    if (editorRef.current) {
+      updateEditorLanguage(editorRef.current, language);
+      applyFormatting(editorRef.current, getFormattingDefaults(language));
+    }
+  }, [language]);
+
+  // Sync external content changes (e.g., remote updates)
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.getValue() !== content) {
+      editorRef.current.setValue(content);
+    }
+  }, [content]);
+
+  // Attach keyboard shortcuts
+  useKeyboardShortcuts(editorRef);
+
+  return <div ref={containerRef} style={{ height: '100%', width: '100%' }} />;
 };
-
-export default Editor;

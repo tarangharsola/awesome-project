@@ -1,25 +1,18 @@
-import { useState, useEffect } from 'react';
-import { Language } from '../types';
+import { useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { setLanguage as setLanguageAction } from '../store/editorReducer';
 
-const supportedLanguages: Language[] = ['javascript', 'python', 'html'];
+export const useLanguage = () => {
+  const dispatch = useDispatch();
+  const language = useSelector((state: RootState) => state.editor.language);
 
-export const useLanguage = (initial?: Language) => {
-  const [language, setLanguage] = useState<Language>(() => {
-    const saved = localStorage.getItem('editorLanguage');
-    return (saved as Language) || initial || 'javascript';
-  });
+  const setLanguage = useCallback(
+    (lang: string) => {
+      dispatch(setLanguageAction(lang as any));
+    },
+    [dispatch]
+  );
 
-  useEffect(() => {
-    localStorage.setItem('editorLanguage', language);
-  }, [language]);
-
-  const changeLanguage = (lang: Language) => {
-    if (supportedLanguages.includes(lang)) {
-      setLanguage(lang);
-    }
-  };
-
-  return { language, changeLanguage, supportedLanguages };
+  return { language, setLanguage };
 };
-
-export default useLanguage;

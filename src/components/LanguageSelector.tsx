@@ -1,23 +1,32 @@
 import React from 'react';
-import useLanguage from '../utils/useLanguage';
+import { useLanguage } from '../utils/useLanguage';
 import styles from '../styles/user.module.css';
 
-const LanguageSelector = () => {
-  const { language, changeLanguage, supportedLanguages } = useLanguage();
+const languages = [
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'python', label: 'Python' },
+  { value: 'html', label: 'HTML' },
+];
+
+export const LanguageSelector: React.FC = () => {
+  const { language, setLanguage } = useLanguage();
+
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLanguage(e.target.value as any);
+  };
 
   return (
     <select
-      className={styles.selector}
+      className={styles.languageSelector}
       value={language}
-      onChange={(e) => changeLanguage(e.target.value)}
+      onChange={handleChange}
+      aria-label="Select language"
     >
-      {supportedLanguages.map((lang) => (
-        <option key={lang} value={lang}>
-          {lang.charAt(0).toUpperCase() + lang.slice(1)}
+      {languages.map((lang) => (
+        <option key={lang.value} value={lang.value}>
+          {lang.label}
         </option>
       ))}
     </select>
   );
 };
-
-export default LanguageSelector;
