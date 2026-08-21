@@ -1,64 +1,43 @@
-import { useEffect, useRef } from 'react';
-import type { AwarenessMessage, UserPresence } from '../../types';
-import useWebSocket from '../useWebSocket';
-import { v4 as uuidv4 } from 'uuid';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { updateCursorPosition, setLocalUser } from '../../store/usersReducer';
+import { useYjsCollaboration } from '../useConflictResolver';
 
-/**
- * Hook that manages user awareness (cursor position, name, color).
- * It broadcasts local presence changes and merges remote updates into a shared map.
- */
-export default function useAwareness(roomId: string, username: string, color: string, onUpdate: (users: Record<string, UserPresence>) => void) {
-  const userId = useRef(uuidv4());
-  const presenceMap = useRef<Record<string, UserPresence>>({});
+interface AwarenessProps {
+  roomId: string;
+  userId: string;
+  userName: string;
+  userColor: string;
+}
 
-  const handleMessage = (msg: AwarenessMessage) => {
-    if (msg.type !== 'awareness' || msg.roomId !== roomId) return;
-    const { userId: remoteId, presence } = msg;
-    if (remoteId === userId.current) return; // ignore own messages
-    presenceMap.current[remoteId] = presence;
-    onUpdate({ ...presenceMap.current });
-  };
+export const useAwareness = ({ roomId, userId, userName, userColor }: AwarenessProps) => {
+  const dispatch = useDispatch();
+  const { updateCursor } = useYjsCollaboration(roomId, userId, userName, userColor);
+  const localCursor = useSelector((state: RootState) => state.users.localCursor);
 
-  const { sendMessage } = useWebSocket(`wss://example.com/rooms/${roomId}`, handleMessage);
-
-  // Broadcast initial presence
+  // Sync local cursor to Yjs awareness whenever it changes
   useEffect(() => {
-    const init: AwarenessMessage = {
-      type: 'awareness',
-      roomId,
-      userId: userId.current,
-      presence: { username, color, cursor: null },
-    };
-    sendMessage(init);
+    if (localCursor) {
+      updateCursor({ from: localCursor.from, to: localCursor.to });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId, username, color, sendMessage]);
+  }, [localCursor]);
 
-  const broadcastCursor = (cursor: { line: number; ch: number } | null) => {
-    const msg: AwarenessMessage = {
-      type: 'awareness',
-      roomId,
-      userId: userId.current,
-      presence: { username, color, cursor },
-    };
-    sendMessage(msg);
-    // Update local map for immediate UI feedback
-    presenceMap.current[userId.current] = { username, color, cursor };
-    onUpdate({ ...presenceMap.current });
-  };
-
-  // Cleanup on unmount – inform others that this user left
+  // Initialize local user info in store
   useEffect(() => {
-    return () => {
-      const leaveMsg: AwarenessMessage = {
-        type: 'awareness-leave',
-        roomId,
-        userId: userId.current,
-        presence: { username, color, cursor: null },
-      };
-      sendMessage(leaveMsg);
-    };
+    dispatch(setLocalUser({ id: userId, name: userName, color: userColor }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { broadcastCursor, localUserId: userId.current };
-}
+  // Listen for remote awareness updates via Redux (populated by useYjsCollaboration)
+  const remoteUsers = useSelector((state: RootState) => state.users.awareness);
+
+  // Dispatch cursor updates for remote users to UI components
+  useEffect(() => {
+    remoteUsers.forEach((u) => {
+      dispatch(updateCursorPosition({ userId: u.id, cursor: u.cursor }));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remoteUsers]);
+};
