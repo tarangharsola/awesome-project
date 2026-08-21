@@ -1,56 +1,91 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { WebSocketMessage } from '../../types';
 
-interface WSOptions {
-  url: string;
-  protocols?: string | string[];
-  reconnectAttempts?: number;
-  reconnectDelay?: number; // initial delay in ms
-}
+type Status = 'connected' | 'disconnected' | 'connecting';
 
-export const useWebSocket = ({ url, protocols, reconnectAttempts = 5, reconnectDelay = 1000 }: WSOptions) => {
+/**
+ * Hook that manages a WebSocket connection with automatic reconnection using
+ * exponential backoff. It exposes the connection status, a countdown for the
+ * next retry attempt, and a sendMessage function.
+ */
+export const useWebSocket = (
+  url: string = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`
+) => {
   const wsRef = useRef<WebSocket | null>(null);
-  const [connected, setConnected] = useState(false);
-  const attemptsRef = useRef(0);
-  const timeoutRef = useRef<number | null>(null);
+  const [status, setStatus] = useState<Status>('connecting');
+  const [retryIn, setRetryIn] = useState<number | null>(null);
 
-  const connect = () => {
-    wsRef.current = new WebSocket(url, protocols);
+  // Backoff starts at 1s and caps at 30s.
+  const backoffRef = useRef<number>(1000);
+  const maxBackoff = 30000;
+  const reconnectTimeout = useRef<number | null>(null);
+
+  const connect = useCallback(() => {
+    setStatus('connecting');
+    wsRef.current = new WebSocket(url);
+
     wsRef.current.onopen = () => {
-      setConnected(true);
-      attemptsRef.current = 0;
+      setStatus('connected');
+      setRetryIn(null);
+      backoffRef.current = 1000; // reset backoff after successful connection
     };
+
+    wsRef.current.onmessage = (event) => {
+      // Forward messages via a global custom event so other parts of the app can listen.
+      const data: WebSocketMessage = JSON.parse(event.data);
+      window.dispatchEvent(new CustomEvent('ws-message', { detail: data }));
+    };
+
     wsRef.current.onclose = () => {
-      setConnected(false);
-      if (attemptsRef.current < reconnectAttempts) {
-        const delay = reconnectDelay * Math.pow(2, attemptsRef.current); // exponential backoff
-        attemptsRef.current += 1;
-        timeoutRef.current = window.setTimeout(() => {
-          connect();
-        }, delay);
-      }
+      setStatus('disconnected');
+      scheduleReconnect();
     };
-    wsRef.current.onerror = (err) => {
-      console.error('WebSocket error:', err);
+
+    wsRef.current.onerror = () => {
+      // Treat any error as a closed connection to trigger reconnection.
       wsRef.current?.close();
     };
-  };
+  }, [url]);
 
+  const scheduleReconnect = useCallback(() => {
+    const delay = backoffRef.current;
+    setRetryIn(Math.ceil(delay / 1000));
+    reconnectTimeout.current = window.setTimeout(() => {
+      setRetryIn(null);
+      connect();
+    }, delay);
+    backoffRef.current = Math.min(backoffRef.current * 2, maxBackoff);
+  }, [connect]);
+
+  const sendMessage = useCallback((msg: WebSocketMessage) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(msg));
+    }
+  }, []);
+
+  // Initialise connection on mount.
   useEffect(() => {
     connect();
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+      }
       wsRef.current?.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url]);
+  }, [connect]);
 
-  const sendMessage = (msg: any) => {
-    if (connected && wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(msg));
-    } else {
-      console.warn('WebSocket not connected, message dropped:', msg);
-    }
-  };
+  // Countdown UI for retryIn.
+  useEffect(() => {
+    if (retryIn === null) return;
+    const interval = setInterval(() => {
+      setRetryIn((prev) => {
+        if (prev && prev > 1) return prev - 1;
+        clearInterval(interval);
+        return null;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [retryIn]);
 
-  return { connected, sendMessage, ws: wsRef.current };
+  return { status, retryIn, sendMessage };
 };

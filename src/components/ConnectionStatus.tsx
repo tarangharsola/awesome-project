@@ -1,13 +1,26 @@
 import React from 'react';
 import { useWebSocket } from '../utils/hooks/useWebSocket';
+import styles from '../styles/user.module.css';
 
-type Props = {
-  url: string;
-  onOpen: () => void;
-  onClose: () => void;
-};
+export const ConnectionStatus: React.FC = () => {
+  const { status, retryIn } = useWebSocket();
 
-export const ConnectionStatus: React.FC<Props> = ({ url, onOpen, onClose }) => {
-  useWebSocket(url, () => {}, onOpen, onClose);
-  return null; // UI handled elsewhere
+  let text: string;
+  let className = styles.status;
+
+  switch (status) {
+    case 'connected':
+      text = 'Connected';
+      className += ` ${styles.connected}`;
+      break;
+    case 'connecting':
+      text = 'Connecting...';
+      className += ` ${styles.connecting}`;
+      break;
+    default:
+      text = retryIn ? `Reconnecting in ${retryIn}s` : 'Disconnected';
+      className += ` ${styles.disconnected}`;
+  }
+
+  return <div className={className}>{text}</div>;
 };
