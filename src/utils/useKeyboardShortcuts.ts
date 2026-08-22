@@ -1,43 +1,39 @@
 import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { setContent } from '../store/editorReducer';
-import { formatCode } from './formatCode';
+import * as monaco from 'monaco-editor';
+import { getFormattingDefaults } from './useFormattingDefaults';
 import { useLanguage } from './useLanguage';
+import { useDispatch } from 'react-redux';
 
-export const useKeyboardShortcuts = (editorRef: React.RefObject<any>) => {
+export const useKeyboardShortcuts = (editor: monaco.editor.IStandaloneCodeEditor | null) => {
+  const { language, setLanguage } = useLanguage();
   const dispatch = useDispatch();
-  const { language } = useLanguage();
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      // Save shortcut: Ctrl/Cmd + S
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+    if (!editor) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + S => format document
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        const editor = editorRef.current;
-        if (editor && typeof editor.getValue === 'function') {
-          const value = editor.getValue();
-          dispatch(setContent(value));
-        }
+        editor.getAction('editor.action.formatDocument').run();
       }
-
-      // Format shortcut: Ctrl/Cmd + Shift + F
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+      // Ctrl/Cmd + Shift + L => cycle language
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
         e.preventDefault();
-        const editor = editorRef.current;
-        if (
-          editor &&
-          typeof editor.getValue === 'function' &&
-          typeof editor.setValue === 'function'
-        ) {
-          const raw = editor.getValue();
-          const formatted = formatCode(raw, language);
-          editor.setValue(formatted);
-          dispatch(setContent(formatted));
-        }
+        const languages = ['javascript', 'python', 'html'];
+        const next = languages[(languages.indexOf(language) + 1) % languages.length];
+        setLanguage(next);
       }
     };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [editor, language, setLanguage]);
 
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [editorRef, dispatch, language]);
+  // Apply formatting defaults when language changes
+  useEffect(() => {
+    if (!editor) return;
+    const defaults = getFormattingDefaults(language);
+    editor.updateOptions(defaults);
+  }, [editor, language]);
 };

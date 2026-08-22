@@ -1,10 +1,8 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-export type Language = 'javascript' | 'python' | 'html';
+import { AnyAction } from 'redux';
 
 export interface EditorState {
   content: string;
-  language: Language;
+  language: string;
 }
 
 const initialState: EditorState = {
@@ -12,18 +10,13 @@ const initialState: EditorState = {
   language: 'javascript',
 };
 
-const editorSlice = createSlice({
-  name: 'editor',
-  initialState,
-  reducers: {
-    setContent(state, action: PayloadAction<string>) {
-      state.content = action.payload;
-    },
-    setLanguage(state, action: PayloadAction<Language>) {
-      state.language = action.payload;
-    },
-  },
-});
-
-export const { setContent, setLanguage } = editorSlice.actions;
-export default editorSlice.reducer;
+export const editorReducer = (state = initialState, action: AnyAction): EditorState => {
+  switch (action.type) {
+    case 'SET_CONTENT':
+      return { ...state, content: action.payload };
+    case 'SET_LANGUAGE':
+      return { ...state, language: action.payload };
+    default:
+      return state;
+  }
+};

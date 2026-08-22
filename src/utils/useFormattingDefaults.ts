@@ -1,35 +1,13 @@
-import { Language } from '../store/editorReducer';
-
-export interface FormattingOptions {
-  tabSize: number;
-  insertSpaces: boolean;
-  autoClosingBrackets: boolean;
-  formatOnPaste: boolean;
-}
-
-export const getFormattingDefaults = (language: Language): FormattingOptions => {
+export const getFormattingDefaults = (language: string) => {
   switch (language) {
-    case 'python':
-      return {
-        tabSize: 4,
-        insertSpaces: true,
-        autoClosingBrackets: false,
-        formatOnPaste: false,
-      };
-    case 'html':
-      return {
-        tabSize: 2,
-        insertSpaces: true,
-        autoClosingBrackets: true,
-        formatOnPaste: true,
-      };
     case 'javascript':
+    case 'typescript':
+      return { tabSize: 2, insertSpaces: true };
+    case 'python':
+      return { tabSize: 4, insertSpaces: true };
+    case 'html':
+      return { tabSize: 2, insertSpaces: true };
     default:
-      return {
-        tabSize: 2,
-        insertSpaces: true,
-        autoClosingBrackets: true,
-        formatOnPaste: true,
-      };
+      return { tabSize: 2, insertSpaces: true };
   }
 };
