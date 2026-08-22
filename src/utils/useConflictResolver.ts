@@ -1,83 +1,44 @@
-import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
-import { useEffect, useRef } from 'react';
-import { useDispatch } from 'react-redux';
-import { updateDocument } from '../store/editorReducer';
-import { setUserAwareness } from '../store/usersReducer';
+import { EditorChange } from '../types';
 
-// Hook to initialize Yjs document and provider, and expose sync functions
-export const useYjsCollaboration = (roomId: string, userId: string, userName: string, userColor: string) => {
-  const ydocRef = useRef<Y.Doc>();
-  const providerRef = useRef<WebsocketProvider>();
-  const dispatch = useDispatch();
+export interface ConflictResolver {
+  version: number;
+  applyLocalChange(change: EditorChange): { change: EditorChange; version: number };
+  applyRemoteChange(change: EditorChange, remoteVersion: number): EditorChange | null;
+  getCurrentVersion(): number;
+}
 
-  useEffect(() => {
-    // Initialize Yjs document
-    const ydoc = new Y.Doc();
-    ydocRef.current = ydoc;
+/**
+ * Simple version‑based conflict resolver.
+ * For each edit we increment a monotonically increasing version number.
+ * Remote edits with a version newer than the local version are applied;
+ * older or duplicate versions are ignored. This provides deterministic
+ * ordering without requiring a heavy OT/CRDT library.
+ */
+export function createConflictResolver(initialContent: string = ''): ConflictResolver {
+  let doc = initialContent;
+  let version = 0;
 
-    // Connect to Yjs WebSocket server (assumes same origin WS endpoint /yjs)
-    const provider = new WebsocketProvider(`${window.location.origin.replace(/^http/, 'ws')}/yjs`, roomId, ydoc, {
-      // optional params
-      connect: true,
-      // awareness will be used for cursor tracking
-    });
-    providerRef.current = provider;
+  function applyLocalChange(change: EditorChange) {
+    // In this simplified model we replace the whole document content.
+    // Real implementations could apply incremental diffs.
+    doc = change.text;
+    version += 1;
+    return { change, version };
+  }
 
-    // Set local awareness information
-    provider.awareness.setLocalStateField('user', {
-      id: userId,
-      name: userName,
-      color: userColor,
-    });
+  function applyRemoteChange(change: EditorChange, remoteVersion: number) {
+    if (remoteVersion <= version) {
+      // Stale or duplicate update – ignore to keep state consistent.
+      return null;
+    }
+    doc = change.text;
+    version = remoteVersion;
+    return change;
+  }
 
-    // Listen for remote document updates
-    const yText = ydoc.getText('codemirror');
-    const applyRemoteChanges = () => {
-      const content = yText.toString();
-      dispatch(updateDocument(content));
-    };
-    yText.observe(applyRemoteChanges);
+  function getCurrentVersion() {
+    return version;
+  }
 
-    // Listen for awareness updates (cursor positions, etc.)
-    const awarenessHandler = () => {
-      const states = Array.from(provider.awareness.getStates().entries())
-        .filter(([_, state]) => state && state.cursor)
-        .map(([id, state]) => ({
-          id,
-          name: state.user?.name,
-          color: state.user?.color,
-          cursor: state.cursor,
-        }));
-      dispatch(setUserAwareness(states));
-    };
-    provider.awareness.on('change', awarenessHandler);
-
-    // Cleanup on unmount
-    return () => {
-      yText.unobserve(applyRemoteChanges);
-      provider.awareness.off('change', awarenessHandler);
-      provider.disconnect();
-      ydoc.destroy();
-    };
-  }, [roomId, userId, userName, userColor, dispatch]);
-
-  // Function to apply local edits to the Yjs document
-  const applyLocalChange = (newContent: string) => {
-    if (!ydocRef.current) return;
-    const yText = ydocRef.current.getText('codemirror');
-    // Replace entire content – simple approach; for large docs consider diffing
-    ydocRef.current.transact(() => {
-      yText.delete(0, yText.length);
-      yText.insert(0, newContent);
-    });
-  };
-
-  // Function to update local cursor awareness
-  const updateCursor = (cursor: { from: number; to: number }) => {
-    if (!providerRef.current) return;
-    providerRef.current.awareness.setLocalStateField('cursor', cursor);
-  };
-
-  return { applyLocalChange, updateCursor };
-};
+  return { version, applyLocalChange, applyRemoteChange, getCurrentVersion };
+}

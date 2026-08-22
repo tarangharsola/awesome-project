@@ -1,91 +1,92 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { WebSocketMessage } from '../../types';
-
-type Status = 'connected' | 'disconnected' | 'connecting';
+import { useEffect, useRef, useState } from 'react';
+import { useReconnection } from './useReconnection';
+import { createConflictResolver } from '../useConflictResolver';
+import { EditorChange, PresenceMessage } from '../../types';
 
 /**
- * Hook that manages a WebSocket connection with automatic reconnection using
- * exponential backoff. It exposes the connection status, a countdown for the
- * next retry attempt, and a sendMessage function.
+ * Centralised WebSocket hook used by the editor and awareness layers.
+ * Handles automatic reconnection with exponential back‑off, versioned
+ * conflict resolution, and an initial document sync after each reconnect.
  */
-export const useWebSocket = (
-  url: string = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`
-) => {
+export function useWebSocket(
+  url: string,
+  username: string,
+  onRemoteChange: (change: EditorChange) => void,
+  onPresence: (msg: PresenceMessage) => void
+) {
   const wsRef = useRef<WebSocket | null>(null);
-  const [status, setStatus] = useState<Status>('connecting');
-  const [retryIn, setRetryIn] = useState<number | null>(null);
+  const [connected, setConnected] = useState(false);
+  const conflictResolver = useRef(createConflictResolver());
 
-  // Backoff starts at 1s and caps at 30s.
-  const backoffRef = useRef<number>(1000);
-  const maxBackoff = 30000;
-  const reconnectTimeout = useRef<number | null>(null);
+  const { schedule, reset } = useReconnection(() => {
+    connect();
+  });
 
-  const connect = useCallback(() => {
-    setStatus('connecting');
-    wsRef.current = new WebSocket(url);
-
-    wsRef.current.onopen = () => {
-      setStatus('connected');
-      setRetryIn(null);
-      backoffRef.current = 1000; // reset backoff after successful connection
-    };
-
-    wsRef.current.onmessage = (event) => {
-      // Forward messages via a global custom event so other parts of the app can listen.
-      const data: WebSocketMessage = JSON.parse(event.data);
-      window.dispatchEvent(new CustomEvent('ws-message', { detail: data }));
-    };
-
-    wsRef.current.onclose = () => {
-      setStatus('disconnected');
-      scheduleReconnect();
-    };
-
-    wsRef.current.onerror = () => {
-      // Treat any error as a closed connection to trigger reconnection.
-      wsRef.current?.close();
-    };
-  }, [url]);
-
-  const scheduleReconnect = useCallback(() => {
-    const delay = backoffRef.current;
-    setRetryIn(Math.ceil(delay / 1000));
-    reconnectTimeout.current = window.setTimeout(() => {
-      setRetryIn(null);
-      connect();
-    }, delay);
-    backoffRef.current = Math.min(backoffRef.current * 2, maxBackoff);
-  }, [connect]);
-
-  const sendMessage = useCallback((msg: WebSocketMessage) => {
+  const send = (msg: any) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(msg));
     }
-  }, []);
+  };
 
-  // Initialise connection on mount.
+  const connect = () => {
+    wsRef.current = new WebSocket(url);
+    wsRef.current.onopen = () => {
+      setConnected(true);
+      reset();
+      // announce ourselves
+      send({ type: 'join', username });
+      // request the latest document state from the server
+      send({ type: 'syncRequest' });
+    };
+    wsRef.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      switch (data.type) {
+        case 'change': {
+          const remote = conflictResolver.current.applyRemoteChange(data.change, data.version);
+          if (remote) {
+            onRemoteChange(remote);
+          }
+          break;
+        }
+        case 'sync': {
+          // Full document sync – replace local state and version.
+          conflictResolver.current.applyRemoteChange({ text: data.content }, data.version);
+          onRemoteChange({ text: data.content });
+          break;
+        }
+        case 'presence': {
+          onPresence(data);
+          break;
+        default:
+          // ignore unknown messages
+          break;
+      }
+    };
+    wsRef.current.onclose = () => {
+      setConnected(false);
+      schedule();
+    };
+    wsRef.current.onerror = () => {
+      wsRef.current?.close();
+    };
+  };
+
   useEffect(() => {
     connect();
     return () => {
-      if (reconnectTimeout.current) {
-        clearTimeout(reconnectTimeout.current);
-      }
       wsRef.current?.close();
     };
-  }, [connect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, username]);
 
-  // Countdown UI for retryIn.
-  useEffect(() => {
-    if (retryIn === null) return;
-    const interval = setInterval(() => {
-      setRetryIn((prev) => {
-        if (prev && prev > 1) return prev - 1;
-        clearInterval(interval);
-        return null;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [retryIn]);
+  const broadcastChange = (change: EditorChange) => {
+    const { change: localChange, version } = conflictResolver.current.applyLocalChange(change);
+    send({ type: 'change', change: localChange, version });
+  };
 
-  return { status, retryIn, sendMessage };
-};
+  const broadcastPresence = (msg: PresenceMessage) => {
+    send({ type: 'presence', ...msg });
+  };
+
+  return { connected, broadcastChange, broadcastPresence };
+}
