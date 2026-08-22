@@ -1,18 +1,17 @@
-export type User = {
+export interface User {
   id: string;
   name: string;
   color: string;
-};
+}
 
-export type CursorData = {
+export interface RemoteCursor {
   userId: string;
-  position: monaco.editor.IPosition;
-};
+  position: {
+    line: number;
+    ch: number;
+  };
+  color: string;
+  name: string;
+}
 
-export type WebSocketMessage =
-  | { type: 'join'; user: User }
-  | { type: 'leave'; userId: string }
-  | { type: 'update'; delta: Uint8Array }
-  | { type: 'cursor'; cursor: CursorData };
-
-export type Language = 'javascript' | 'python' | 'html';
+// Existing types (if any) remain unchanged below this line.

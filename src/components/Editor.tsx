@@ -1,45 +1,46 @@
-import React, { useEffect, useRef } from 'react';
-import { useLanguage } from '../utils/useLanguage';
-import { getFormattingDefaults } from '../utils/useFormattingDefaults';
-import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { initEditor, updateEditorLanguage, applyFormatting } from '../utils/editorCore';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store';
+import React, { useEffect, useRef } from "react";
+import { EditorView } from "@codemirror/view";
+import { basicSetup } from "codemirror";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../store";
+import { applyRemoteChange } from "../store/editorReducer";
+import RemoteCursor from "./RemoteCursor";
+import { getLanguageExtension } from "../utils/editorHelpers";
+import { useAwareness } from "../utils/hooks/useAwareness";
 
-export const Editor: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<any>(null);
-  const { language } = useLanguage();
-  const content = useSelector((state: RootState) => state.editor.content);
+const Editor: React.FC = () => {
+  const dispatch = useDispatch();
+  const editorRef = useRef<HTMLDivElement>(null);
+  const language = useSelector((state: RootState) => state.editor.language);
+  const remoteCursors = useAwareness();
 
-  // Initialize editor once
   useEffect(() => {
-    if (containerRef.current && !editorRef.current) {
-      editorRef.current = initEditor(containerRef.current, {
-        language,
-        value: content,
-        ...getFormattingDefaults(language),
-      });
-    }
-  }, []);
+    if (!editorRef.current) return;
+    const view = new EditorView({
+      doc: "",
+      extensions: [
+        basicSetup,
+        getLanguageExtension(language),
+        EditorView.updateListener.of((v) => {
+          if (v.docChanged) {
+            const changes = v.changes.toJSON();
+            dispatch(applyRemoteChange({ changes }));
+          }
+        })
+      ],
+      parent: editorRef.current
+    });
+    return () => view.destroy();
+  }, [language, dispatch]);
 
-  // Update language and formatting when language changes
-  useEffect(() => {
-    if (editorRef.current) {
-      updateEditorLanguage(editorRef.current, language);
-      applyFormatting(editorRef.current, getFormattingDefaults(language));
-    }
-  }, [language]);
-
-  // Sync external content changes (e.g., remote updates)
-  useEffect(() => {
-    if (editorRef.current && editorRef.current.getValue() !== content) {
-      editorRef.current.setValue(content);
-    }
-  }, [content]);
-
-  // Attach keyboard shortcuts
-  useKeyboardShortcuts(editorRef);
-
-  return <div ref={containerRef} style={{ height: '100%', width: '100%' }} />;
+  return (
+    <div className="editor-wrapper" style={{ position: "relative" }}>
+      <div ref={editorRef} />
+      {remoteCursors.map((c) => (
+        <RemoteCursor key={c.userId} cursor={c} />
+      ))}
+    </div>
+  );
 };
+
+export default Editor;
