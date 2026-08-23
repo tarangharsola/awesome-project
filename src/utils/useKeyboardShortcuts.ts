@@ -1,39 +1,26 @@
 import { useEffect } from 'react';
-import * as monaco from 'monaco-editor';
-import { getFormattingDefaults } from './useFormattingDefaults';
-import { useLanguage } from './useLanguage';
-import { useDispatch } from 'react-redux';
-
-export const useKeyboardShortcuts = (editor: monaco.editor.IStandaloneCodeEditor | null) => {
-  const { language, setLanguage } = useLanguage();
-  const dispatch = useDispatch();
-
+import { EditorView } from '@codemirror/view';
+export const useKeyboardShortcuts = (
+  view: EditorView | null,
+  formatCode: () => void,
+  toggleLanguage: () => void
+) => {
   useEffect(() => {
-    if (!editor) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl/Cmd + S => format document
+    if (!view) return;
+    const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        editor.getAction('editor.action.formatDocument').run();
+        formatCode();
       }
-      // Ctrl/Cmd + Shift + L => cycle language
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
         e.preventDefault();
-        const languages = ['javascript', 'python', 'html'];
-        const next = languages[(languages.indexOf(language) + 1) % languages.length];
-        setLanguage(next);
+        toggleLanguage();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
+    view.dom.addEventListener('keydown', handler);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      view.dom.removeEventListener('keydown', handler);
     };
-  }, [editor, language, setLanguage]);
-
-  // Apply formatting defaults when language changes
-  useEffect(() => {
-    if (!editor) return;
-    const defaults = getFormattingDefaults(language);
-    editor.updateOptions(defaults);
-  }, [editor, language]);
+  }, [view, formatCode, toggleLanguage]);
 };
+export default useKeyboardShortcuts;

@@ -1,41 +1,60 @@
-import React, { useRef } from 'react';
-import MonacoEditor from 'react-monaco-editor';
-import * as monaco from 'monaco-editor';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { EditorView, basicSetup } from '@codemirror/basic-setup';
+import { EditorState } from '@codemirror/state';
+import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { html } from '@codemirror/lang-html';
 import { useLanguage } from '../utils/useLanguage';
+import { getFormattingDefaults } from '../utils/useFormattingDefaults';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-
-const Editor: React.FC = () => {
-  const dispatch = useDispatch();
-  const content = useSelector((state: RootState) => state.editor.content);
-  const { language } = useLanguage();
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-
-  const editorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
-    editorRef.current = editor;
-    editor.onDidChangeModelContent(() => {
-      const value = editor.getValue();
-      dispatch({ type: 'SET_CONTENT', payload: value });
-    });
-  };
-
-  useKeyboardShortcuts(editorRef.current);
-
-  return (
-    <MonacoEditor
-      width="100%"
-      height="100%"
-      language={language}
-      theme="vs-dark"
-      value={content}
-      options={{
-        automaticLayout: true,
-        minimap: { enabled: false },
-      }}
-      editorDidMount={editorDidMount}
-    />
-  );
+import { formatCode } from '../utils/formatCode';
+import './Editor.css';
+const languageExtensionsMap = {
+  javascript,
+  python,
+  html
+} as const;
+export const Editor: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [view, setView] = useState<EditorView | null>(null);
+  const { language, setLanguage } = useLanguage();
+  const formatting = getFormattingDefaults(language);
+  const initEditor = useCallback(() => {
+    if (containerRef.current) {
+      const startState = EditorState.create({
+        doc: '',
+        extensions: [
+          basicSetup,
+          languageExtensionsMap[language](),
+          EditorView.lineWrapping,
+          EditorView.theme({
+            '&': { fontSize: '14px' }
+          })
+        ]
+      });
+      const editorView = new EditorView({ state: startState, parent: containerRef.current });
+      setView(editorView);
+    }
+  }, [language]);
+  useEffect(() => {
+    initEditor();
+    return () => {
+      view?.destroy();
+    };
+  }, [initEditor]);
+  const formatCurrentCode = useCallback(() => {
+    if (view) {
+      const formatted = formatCode(view.state.doc.toString(), language);
+      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: formatted } });
+    }
+  }, [view, language]);
+  const toggleLanguage = useCallback(() => {
+    const order: Array<keyof typeof languageExtensionsMap> = ['javascript', 'python', 'html'];
+    const currentIdx = order.indexOf(language as any);
+    const next = order[(currentIdx + 1) % order.length];
+    setLanguage(next);
+  }, [language, setLanguage]);
+  useKeyboardShortcuts(view, formatCurrentCode, toggleLanguage);
+  return <div ref={containerRef} className="editor-container" />;
 };
-
 export default Editor;
