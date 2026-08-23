@@ -4,14 +4,12 @@ export interface User {
   color: string;
 }
 
-export interface RemoteCursor {
-  userId: string;
-  position: {
-    line: number;
-    ch: number;
-  };
-  color: string;
-  name: string;
+export interface CursorPosition {
+  line: number;
+  ch: number;
 }
 
-// Existing types (if any) remain unchanged below this line.
+export interface Message {
+  type: string;
+  payload: any;
+}
