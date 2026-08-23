@@ -1,53 +1,55 @@
-/* src/styles/user.module.css */
-
-/* Active Users Panel */
+/* Active Users Panel Styles */
 .userList {
-  display: flex;
-  flex-direction: column;
-  padding: 0.5rem;
-  background-color: #1e1e1e; /* Dark background for the panel */
+  background-color: #1e1e1e; /* Dark background for panel */
   color: #e0e0e0; /* Light text for readability */
+  padding: 8px;
+  border-radius: 6px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .userItem {
   display: flex;
   align-items: center;
-  margin-bottom: 0.25rem;
-  padding: 0.25rem 0.5rem;
+  padding: 4px 8px;
+  margin-bottom: 4px;
   border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.08); /* Subtle highlight on hover/focus */
+  background-color: #2a2a2a; /* Slightly lighter than panel for contrast */
   color: #e0e0e0;
+  font-size: 0.9rem;
 }
 
-.userColor {
+.userColorBadge {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  margin-right: 0.5rem;
-  border: 1px solid #555; /* Visible border for dark backgrounds */
+  margin-right: 8px;
+  flex-shrink: 0;
+  border: 2px solid #fff; /* Ensure visibility on dark backgrounds */
 }
 
-/* Remote Cursor Label */
-.cursorLabel {
+/* Remote Cursor Styles */
+.remote-cursor {
   position: absolute;
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-size: 0.75rem;
-  background-color: rgba(0, 0, 0, 0.75); /* Dark semi‑transparent background */
-  color: #e0e0e0; /* Light text */
   pointer-events: none;
-  white-space: nowrap;
   z-index: 10;
 }
 
-.cursorLabel::after {
-  content: "";
-  position: absolute;
-  bottom: -4px;
-  left: 5px;
-  border-width: 4px 4px 0;
-  border-style: solid;
-  border-color: rgba(0, 0, 0, 0.75) transparent;
-  display: block;
-  width: 0;
+.cursor-label {
+  padding: 2px 6px;
+  border-radius: 3px;
+  background-color: rgba(0, 0, 0, 0.6); /* Dark translucent background */
+  color: #ffffff; /* White text for contrast */
+  font-size: 0.75rem;
+  white-space: nowrap;
+  border-left: 4px solid; /* Color will be set inline */
+  margin-bottom: 2px;
+}
+
+.cursor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ffffff; /* Default fallback */
+  border: 2px solid; /* Color will be set inline */
 }

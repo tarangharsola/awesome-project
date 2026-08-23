@@ -1,26 +1,29 @@
-import React from "react";
-import { RemoteCursor as RemoteCursorType } from "../types";
+import React from 'react';
+import { User } from '../types';
 
-interface Props {
-  cursor: RemoteCursorType;
-}
-
-const RemoteCursor: React.FC<Props> = ({ cursor }) => {
-  const { position, color, name } = cursor;
-  const style: React.CSSProperties = {
-    position: "absolute",
-    left: `${position.ch * 8}px`,
-    top: `${position.line * 18}px`,
-    backgroundColor: color,
-    color: "#fff",
-    padding: "2px 4px",
-    borderRadius: "3px",
-    fontSize: "12px",
-    pointerEvents: "none",
-    transform: "translate(-50%, -100%)",
-    zIndex: 10
-  };
-  return <div style={style}>{name}</div>;
+type Props = {
+  user: User;
+  position: { top: number; left: number };
 };
 
-export default RemoteCursor;
+export const RemoteCursor: React.FC<Props> = ({ user, position }) => (
+  <div className="remote-cursor" style={{ top: position.top, left: position.left }}>
+    <div
+      className="cursor-label"
+      style={{
+        borderLeftColor: user.color,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        color: '#fff'
+      }}
+    >
+      {user.name}
+    </div>
+    <div
+      className="cursor-dot"
+      style={{
+        backgroundColor: '#fff',
+        borderColor: user.color
+      }}
+    />
+  </div>
+);
