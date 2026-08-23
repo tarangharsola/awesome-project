@@ -1,44 +1,62 @@
-import { EditorChange } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
-export interface ConflictResolver {
-  version: number;
-  applyLocalChange(change: EditorChange): { change: EditorChange; version: number };
-  applyRemoteChange(change: EditorChange, remoteVersion: number): EditorChange | null;
-  getCurrentVersion(): number;
-}
+export type Change = {
+  id: string;
+  clientId: string;
+  timestamp: number;
+  ops: any; // editor operations or full document string
+};
 
-/**
- * Simple version‑based conflict resolver.
- * For each edit we increment a monotonically increasing version number.
- * Remote edits with a version newer than the local version are applied;
- * older or duplicate versions are ignored. This provides deterministic
- * ordering without requiring a heavy OT/CRDT library.
- */
-export function createConflictResolver(initialContent: string = ''): ConflictResolver {
-  let doc = initialContent;
-  let version = 0;
+export class ConflictResolver {
+  private clientId: string;
+  private pending: Change[] = [];
+  private appliedIds = new Set<string>();
+  private document: any;
 
-  function applyLocalChange(change: EditorChange) {
-    // In this simplified model we replace the whole document content.
-    // Real implementations could apply incremental diffs.
-    doc = change.text;
-    version += 1;
-    return { change, version };
+  constructor(initialDoc: any, clientId?: string) {
+    this.document = initialDoc;
+    this.clientId = clientId ?? (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : uuidv4());
   }
 
-  function applyRemoteChange(change: EditorChange, remoteVersion: number) {
-    if (remoteVersion <= version) {
-      // Stale or duplicate update – ignore to keep state consistent.
-      return null;
-    }
-    doc = change.text;
-    version = remoteVersion;
+  // Create a change from a local edit and apply it immediately
+  createLocalChange(ops: any): Change {
+    const change: Change = {
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : uuidv4(),
+      clientId: this.clientId,
+      timestamp: Date.now(),
+      ops,
+    };
+    this.applyChange(change);
     return change;
   }
 
-  function getCurrentVersion() {
-    return version;
+  // Apply any incoming change (local or remote) in timestamp order
+  applyChange(change: Change) {
+    if (this.appliedIds.has(change.id)) return;
+    this.pending.push(change);
+    this.pending.sort((a, b) => a.timestamp - b.timestamp);
+    while (this.pending.length) {
+      const next = this.pending[0];
+      // In practice we apply as soon as it's the earliest pending change
+      this.pending.shift();
+      this.applyOps(next.ops);
+      this.appliedIds.add(next.id);
+    }
   }
 
-  return { version, applyLocalChange, applyRemoteChange, getCurrentVersion };
+  private applyOps(ops: any) {
+    // Simple implementation: if ops is a string, replace the whole document.
+    // Real editors would apply incremental deltas.
+    if (typeof ops === 'string') {
+      this.document = ops;
+    }
+  }
+
+  getDocument() {
+    return this.document;
+  }
+
+  getClientId() {
+    return this.clientId;
+  }
 }

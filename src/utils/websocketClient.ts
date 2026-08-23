@@ -1,13 +1,11 @@
-import { WSMessage } from './useWebSocket';
-
-type EventHandler = (msg: WSMessage) => void;
+type Message = any;
 
 export class WebSocketClient {
   private url: string;
-  private ws?: WebSocket;
-  private handlers: Map<string, Set<EventHandler>> = new Map();
+  private socket: WebSocket | null = null;
+  private messageQueue: Message[] = [];
   private reconnectAttempts = 0;
-  private readonly maxAttempts = 5;
+  private readonly maxBackoff = 30000;
 
   constructor(url: string) {
     this.url = url;
@@ -15,57 +13,46 @@ export class WebSocketClient {
   }
 
   private connect() {
-    this.ws = new WebSocket(this.url);
-    this.ws.onopen = () => {
-      this.reconnectAttempts = 0;
-      this.dispatch({ type: 'open', payload: null });
-    };
-    this.ws.onmessage = (ev) => {
-      try {
-        const data: WSMessage = JSON.parse(ev.data);
-        this.dispatch(data);
-      } catch {
-        // ignore malformed messages
-      }
-    };
-    this.ws.onclose = () => {
-      this.dispatch({ type: 'close', payload: null });
-      if (this.reconnectAttempts < this.maxAttempts) {
-        setTimeout(() => {
-          this.reconnectAttempts++;
-          this.connect();
-        }, 1000 * this.reconnectAttempts);
-      }
-    };
-    this.ws.onerror = () => {
-      this.ws?.close();
-    };
+    this.socket = new WebSocket(this.url);
+    this.socket.addEventListener('open', this.flushQueue);
+    this.socket.addEventListener('close', this.handleClose);
+    this.socket.addEventListener('error', this.handleError);
   }
 
-  private dispatch(message: WSMessage) {
-    const set = this.handlers.get(message.type);
-    if (set) {
-      set.forEach((h) => h(message));
+  private flushQueue = () => {
+    while (this.messageQueue.length) {
+      const msg = this.messageQueue.shift();
+      this.socket?.send(JSON.stringify(msg));
+    }
+    this.reconnectAttempts = 0;
+  };
+
+  private scheduleReconnect = () => {
+    const backoff = Math.min(1000 * 2 ** this.reconnectAttempts, this.maxBackoff);
+    setTimeout(() => {
+      this.reconnectAttempts += 1;
+      this.connect();
+    }, backoff);
+  };
+
+  private handleClose = () => {
+    this.scheduleReconnect();
+  };
+
+  private handleError = () => {
+    // Let close handler manage reconnection
+    this.socket?.close();
+  };
+
+  send(message: Message) {
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify(message));
+    } else {
+      this.messageQueue.push(message);
     }
   }
 
-  public send(type: string, payload: any) {
-    const msg = JSON.stringify({ type, payload });
-    this.ws?.send(msg);
-  }
-
-  public on(type: string, handler: EventHandler) {
-    if (!this.handlers.has(type)) {
-      this.handlers.set(type, new Set());
-    }
-    this.handlers.get(type)!.add(handler);
-  }
-
-  public off(type: string, handler: EventHandler) {
-    this.handlers.get(type)?.delete(handler);
-  }
-
-  public close() {
-    this.ws?.close();
+  getSocket(): WebSocket | null {
+    return this.socket;
   }
 }

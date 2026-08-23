@@ -1,19 +1,46 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useWebSocket } from './useWebSocket';
+import { ConflictResolver } from '../utils/useConflictResolver';
 
-export const useReconnection = (url: string) => {
-  const { socket, isConnected, sendMessage } = useWebSocket(url);
-  const attempts = useRef(0);
+export function useReconnection(resolver: ConflictResolver) {
+  const { socket, sendMessage, isConnected } = useWebSocket();
+  const backoffRef = useRef(1000);
+  const timeoutRef = useRef<number | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
+  // Trigger sync request on (re)connection
   useEffect(() => {
-    if (!isConnected && attempts.current < 5) {
-      const timer = setTimeout(() => {
-        attempts.current += 1;
-        // Re-instantiating the hook will create a new WebSocket connection.
-      }, 2000);
-      return () => clearTimeout(timer);
+    if (isConnected && socket) {
+      backoffRef.current = 1000;
+      setRetryCount(0);
+      sendMessage({ type: 'sync_request', clientId: resolver.getClientId() });
+    } else {
+      const attempt = () => {
+        backoffRef.current = Math.min(backoffRef.current * 2, 30000);
+        setRetryCount((c) => c + 1);
+      };
+      timeoutRef.current = window.setTimeout(attempt, backoffRef.current);
     }
-  }, [isConnected]);
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [isConnected, socket, resolver, sendMessage]);
 
-  return { socket, isConnected, sendMessage };
-};
+  // Handle incoming sync response from server
+  useEffect(() => {
+    if (!socket) return;
+    const handler = (event: MessageEvent) => {
+      const msg = JSON.parse(event.data);
+      if (msg.type === 'sync_response' && msg.document !== undefined) {
+        resolver.applyChange({
+          id: `sync-${Date.now()}`,
+          clientId: 'server',
+          timestamp: Date.now(),
+          ops: msg.document,
+        });
+      }
+    };
+    socket.addEventListener('message', handler);
+    return () => socket.removeEventListener('message', handler);
+  }, [socket, resolver]);
+}
