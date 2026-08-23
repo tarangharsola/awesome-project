@@ -1,38 +1,46 @@
-import React from 'react';
-import { useWebSocket } from '../utils/hooks/useWebSocket';
+import React from "react";
+import { useWebSocket, WebSocketStatus } from "../hooks/useWebSocket";
 
+/**
+ * Simple visual indicator of the WebSocket connection state.
+ * It uses the same reconnection logic as the rest of the app, ensuring the UI
+ * reflects real‑time connectivity.
+ */
 interface ConnectionStatusProps {
-  /**
-   * WebSocket endpoint used by the application. The same URL should be passed to other
-   * parts of the app that rely on the hook so that a single connection is shared.
-   */
+  /** URL of the WebSocket server – typically passed from a config or env */
   url: string;
 }
 
-/**
- * Visual indicator of the WebSocket connection state.
- * Shows "connected" (green), "reconnecting" (orange) or "disconnected" (red).
- */
-const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ url }) => {
-  const { status } = useWebSocket(url);
+export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ url }) => {
+  const { status } = useWebSocket({ url });
 
-  const colorMap: Record<string, string> = {
-    connected: '#4caf50', // green
-    reconnecting: '#ff9800', // orange
-    disconnected: '#f44336', // red
+  const backgroundColor: Record<WebSocketStatus, string> = {
+    connected: "#28a745",
+    connecting: "#ffc107",
+    disconnected: "#dc3545",
   };
 
-  const style: React.CSSProperties = {
-    color: colorMap[status] ?? '#fff',
-    fontWeight: 'bold',
-    marginLeft: '1rem',
+  const label: Record<WebSocketStatus, string> = {
+    connected: "Connected",
+    connecting: "Connecting…",
+    disconnected: "Disconnected",
   };
 
   return (
-    <div style={style} data-testid="connection-status">
-      Connection: {status}
+    <div
+      style={{
+        padding: "4px 8px",
+        borderRadius: "4px",
+        backgroundColor: backgroundColor[status],
+        color: "white",
+        fontSize: "0.85rem",
+        fontWeight: 500,
+        display: "inline-block",
+      }}
+      aria-live="polite"
+      aria-label={`WebSocket ${status}`}
+    >
+      {label[status]}
     </div>
   );
 };
-
-export default ConnectionStatus;
