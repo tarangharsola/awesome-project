@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
-# Install dependencies in a clean environment
+echo "Installing dependencies..."
 npm ci
 
-# Build the application
+echo "Running build..."
 npm run build
 
-# Run the test suite
-npm test
+echo "Running tests..."
+npm test -- --ci --coverage
