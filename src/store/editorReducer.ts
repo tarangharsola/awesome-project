@@ -1,19 +1,36 @@
-import { EditorState, EditorAction } from '../types';
+import { Reducer } from 'react';
+import ConflictResolver from '../utils/useConflictResolver';
+import { DocumentChange } from '../utils/conflictResolver/types';
 
-const initialState: EditorState = {
-  content: '',
-  language: 'javascript',
-  // ... other state fields
+export interface EditorState {
+  resolver: ConflictResolver;
+  cursorPosition: number;
+}
+
+export type EditorAction =
+  | { type: 'LOCAL_EDIT'; ops: DocumentChange['ops'] }
+  | { type: 'REMOTE_CHANGE'; change: DocumentChange }
+  | { type: 'SET_CURSOR'; position: number };
+
+export const initialState: EditorState = {
+  resolver: new ConflictResolver(),
+  cursorPosition: 0,
 };
 
-export default function editorReducer(state = initialState, action: EditorAction): EditorState {
+export const editorReducer: Reducer<EditorState, EditorAction> = (state, action) => {
   switch (action.type) {
-    case 'SET_CONTENT':
-      return { ...state, content: action.payload };
-    case 'SET_LANGUAGE':
-      return { ...state, language: action.payload };
-    // ... other action handlers
+    case 'LOCAL_EDIT': {
+      // Produce a local change; actual broadcasting is handled elsewhere
+      state.resolver.generateLocalChange(action.ops);
+      return { ...state };
+    }
+    case 'REMOTE_CHANGE': {
+      state.resolver.applyRemote(action.change);
+      return { ...state };
+    }
+    case 'SET_CURSOR':
+      return { ...state, cursorPosition: action.position };
     default:
       return state;
   }
-}
+};

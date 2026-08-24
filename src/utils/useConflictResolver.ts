@@ -1,54 +1,55 @@
-import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
+import { DocumentChange, ConflictResolverOptions } from './conflictResolver/types';
 
 /**
- * Creates a Yjs document bound to a WebSocket provider for real‑time collaboration.
- * @param roomId Unique identifier for the collaborative session.
- * @param wsUrl  WebSocket server URL (e.g., ws://localhost:1234).
- * @returns An object containing the Y.Doc, the shared Y.Text, and the provider.
+ * Simple conflict‑resolution engine based on versioned operation lists.
+ * It is deliberately lightweight to avoid pulling in heavy CRDT libraries
+ * while still providing deterministic merging of remote edits.
  */
-export const createCollabDoc = (roomId: string, wsUrl: string) => {
-  const doc = new Y.Doc();
-  const provider = new WebsocketProvider(wsUrl, roomId, doc);
-  const yText = doc.getText('codemirror');
+export class ConflictResolver {
+  private content: string;
+  private version: number;
 
-  // Log connection status for debugging.
-  provider.on('status', (event: { status: string }) => {
-    console.log(`WebSocket connection status: ${event.status}`);
-  });
+  constructor(options?: ConflictResolverOptions) {
+    this.content = options?.initialContent ?? '';
+    this.version = 0;
+  }
 
-  return { doc, yText, provider };
-};
+  /** Current document text */
+  getContent(): string {
+    return this.content;
+  }
 
-/**
- * Apply a local change (delta) to the shared Y.Text.
- * The delta format follows CodeMirror's transaction delta.
- */
-export const applyLocalDelta = (yText: Y.Text, delta: any) => {
-  // Y.Text.applyDelta expects an array of insert/delete/retain ops.
-  // Directly forward the delta; callers must ensure correct format.
-  yText.applyDelta(delta);
-};
+  /** Current version number */
+  getVersion(): number {
+    return this.version;
+  }
 
-/**
- * Subscribe to remote changes on the shared Y.Text.
- * The callback receives the full updated text.
- */
-export const onRemoteChange = (yText: Y.Text, callback: (text: string) => void) => {
-  const observer = () => {
-    callback(yText.toString());
-  };
-  yText.observe(observer);
-  return () => yText.unobserve(observer);
-};
+  /** Apply a remote change if it is newer than the current version */
+  applyRemote(change: DocumentChange): void {
+    if (change.version <= this.version) return;
+    let newContent = this.content;
+    for (const op of change.ops) {
+      if (op.type === 'insert') {
+        newContent =
+          newContent.slice(0, op.index) + op.text + newContent.slice(op.index);
+      } else if (op.type === 'delete') {
+        newContent =
+          newContent.slice(0, op.index) + newContent.slice(op.index + op.length);
+      }
+    }
+    this.content = newContent;
+    this.version = change.version;
+  }
 
-/**
- * Retrieve the current text content from the shared Y.Text.
- */
-export const getCurrentText = (yText: Y.Text) => yText.toString();
+  /** Generate a local change from a list of ops and apply it locally */
+  generateLocalChange(ops: DocumentChange['ops']): DocumentChange {
+    const change: DocumentChange = {
+      version: this.version + 1,
+      ops,
+    };
+    this.applyRemote(change);
+    return change;
+  }
+}
 
-/**
- * Access the awareness API provided by y‑websocket.
- * Allows broadcasting user metadata (name, color, cursor).
- */
-export const getAwareness = (provider: WebsocketProvider) => provider.awareness;
+export default ConflictResolver;
