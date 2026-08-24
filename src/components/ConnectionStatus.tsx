@@ -1,25 +1,31 @@
 import React from 'react';
-import { useReconnection } from '../hooks/useReconnection';
+import './ConnectionStatus.css';
 
-interface Props {
-  wsUrl: string;
-}
+type Props = {
+  status: 'connected' | 'disconnected' | 'reconnecting';
+};
 
-export const ConnectionStatus: React.FC<Props> = ({ wsUrl }) => {
-  const { connected } = useReconnection(wsUrl, () => {});
+/**
+ * Visual indicator of the WebSocket connection state.
+ * Green  – connected
+ * Orange – reconnecting
+ * Gray   – disconnected
+ */
+export const ConnectionStatus: React.FC<Props> = ({ status }) => {
+  let color = '#888';
+  let text = 'Disconnected';
+
+  if (status === 'connected') {
+    color = '#4caf50';
+    text = 'Connected';
+  } else if (status === 'reconnecting') {
+    color = '#ff9800';
+    text = 'Reconnecting...';
+  }
 
   return (
-    <div className="connection-status" style={{
-      position: 'absolute',
-      top: 10,
-      right: 10,
-      padding: '4px 8px',
-      background: connected ? 'rgba(0,128,0,0.6)' : 'rgba(128,0,0,0.6)',
-      color: '#fff',
-      borderRadius: 4,
-      fontSize: 12,
-    }}>
-      {connected ? 'Connected' : 'Disconnected'}
+    <div className="connection-status" style={{ color, fontSize: '0.9rem', margin: '4px' }}>
+      {text}
     </div>
   );
 };
