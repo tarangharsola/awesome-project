@@ -1,46 +1,66 @@
 import { useEffect, useRef, useState } from 'react';
-import { useWebSocket } from './useWebSocket';
-import { ConflictResolver } from '../utils/useConflictResolver';
 
-export function useReconnection(resolver: ConflictResolver) {
-  const { socket, sendMessage, isConnected } = useWebSocket();
-  const backoffRef = useRef(1000);
-  const timeoutRef = useRef<number | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+/**
+ * Hook that manages a WebSocket connection with exponential back‑off reconnection.
+ * It abstracts the low‑level socket handling and provides stable callbacks.
+ */
+export const useReconnection = (
+  url: string,
+  onMessage: (event: MessageEvent) => void,
+  onOpen?: () => void,
+  onClose?: (event: CloseEvent) => void
+) => {
+  const socketRef = useRef<WebSocket | null>(null);
+  const [connected, setConnected] = useState(false);
+  const retryCountRef = useRef(0);
+  const maxRetries = 10;
 
-  // Trigger sync request on (re)connection
-  useEffect(() => {
-    if (isConnected && socket) {
-      backoffRef.current = 1000;
-      setRetryCount(0);
-      sendMessage({ type: 'sync_request', clientId: resolver.getClientId() });
-    } else {
-      const attempt = () => {
-        backoffRef.current = Math.min(backoffRef.current * 2, 30000);
-        setRetryCount((c) => c + 1);
-      };
-      timeoutRef.current = window.setTimeout(attempt, backoffRef.current);
-    }
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  const connect = () => {
+    const ws = new WebSocket(url);
+    socketRef.current = ws;
+
+    ws.onopen = () => {
+      setConnected(true);
+      retryCountRef.current = 0;
+      onOpen && onOpen();
     };
-  }, [isConnected, socket, resolver, sendMessage]);
 
-  // Handle incoming sync response from server
-  useEffect(() => {
-    if (!socket) return;
-    const handler = (event: MessageEvent) => {
-      const msg = JSON.parse(event.data);
-      if (msg.type === 'sync_response' && msg.document !== undefined) {
-        resolver.applyChange({
-          id: `sync-${Date.now()}`,
-          clientId: 'server',
-          timestamp: Date.now(),
-          ops: msg.document,
-        });
+    ws.onmessage = onMessage;
+
+    ws.onclose = (event) => {
+      setConnected(false);
+      onClose && onClose(event);
+      // Attempt reconnection with exponential back‑off.
+      if (retryCountRef.current < maxRetries) {
+        const timeout = Math.min(1000 * 2 ** retryCountRef.current, 30000);
+        retryCountRef.current += 1;
+        setTimeout(connect, timeout);
+      } else {
+        console.error('Maximum reconnection attempts reached.');
       }
     };
-    socket.addEventListener('message', handler);
-    return () => socket.removeEventListener('message', handler);
-  }, [socket, resolver]);
-}
+
+    ws.onerror = (err) => {
+      console.error('WebSocket error:', err);
+      ws.close();
+    };
+  };
+
+  useEffect(() => {
+    connect();
+    return () => {
+      socketRef.current && socketRef.current.close();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url]);
+
+  const send = (data: string) => {
+    if (connected && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(data);
+    } else {
+      console.warn('Attempted to send message while WebSocket is not open.');
+    }
+  };
+
+  return { connected, send };
+};

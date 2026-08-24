@@ -1,62 +1,54 @@
-import { v4 as uuidv4 } from 'uuid';
+import * as Y from 'yjs';
+import { WebsocketProvider } from 'y-websocket';
 
-export type Change = {
-  id: string;
-  clientId: string;
-  timestamp: number;
-  ops: any; // editor operations or full document string
+/**
+ * Creates a Yjs document bound to a WebSocket provider for real‑time collaboration.
+ * @param roomId Unique identifier for the collaborative session.
+ * @param wsUrl  WebSocket server URL (e.g., ws://localhost:1234).
+ * @returns An object containing the Y.Doc, the shared Y.Text, and the provider.
+ */
+export const createCollabDoc = (roomId: string, wsUrl: string) => {
+  const doc = new Y.Doc();
+  const provider = new WebsocketProvider(wsUrl, roomId, doc);
+  const yText = doc.getText('codemirror');
+
+  // Log connection status for debugging.
+  provider.on('status', (event: { status: string }) => {
+    console.log(`WebSocket connection status: ${event.status}`);
+  });
+
+  return { doc, yText, provider };
 };
 
-export class ConflictResolver {
-  private clientId: string;
-  private pending: Change[] = [];
-  private appliedIds = new Set<string>();
-  private document: any;
+/**
+ * Apply a local change (delta) to the shared Y.Text.
+ * The delta format follows CodeMirror's transaction delta.
+ */
+export const applyLocalDelta = (yText: Y.Text, delta: any) => {
+  // Y.Text.applyDelta expects an array of insert/delete/retain ops.
+  // Directly forward the delta; callers must ensure correct format.
+  yText.applyDelta(delta);
+};
 
-  constructor(initialDoc: any, clientId?: string) {
-    this.document = initialDoc;
-    this.clientId = clientId ?? (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : uuidv4());
-  }
+/**
+ * Subscribe to remote changes on the shared Y.Text.
+ * The callback receives the full updated text.
+ */
+export const onRemoteChange = (yText: Y.Text, callback: (text: string) => void) => {
+  const observer = () => {
+    callback(yText.toString());
+  };
+  yText.observe(observer);
+  return () => yText.unobserve(observer);
+};
 
-  // Create a change from a local edit and apply it immediately
-  createLocalChange(ops: any): Change {
-    const change: Change = {
-      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : uuidv4(),
-      clientId: this.clientId,
-      timestamp: Date.now(),
-      ops,
-    };
-    this.applyChange(change);
-    return change;
-  }
+/**
+ * Retrieve the current text content from the shared Y.Text.
+ */
+export const getCurrentText = (yText: Y.Text) => yText.toString();
 
-  // Apply any incoming change (local or remote) in timestamp order
-  applyChange(change: Change) {
-    if (this.appliedIds.has(change.id)) return;
-    this.pending.push(change);
-    this.pending.sort((a, b) => a.timestamp - b.timestamp);
-    while (this.pending.length) {
-      const next = this.pending[0];
-      // In practice we apply as soon as it's the earliest pending change
-      this.pending.shift();
-      this.applyOps(next.ops);
-      this.appliedIds.add(next.id);
-    }
-  }
-
-  private applyOps(ops: any) {
-    // Simple implementation: if ops is a string, replace the whole document.
-    // Real editors would apply incremental deltas.
-    if (typeof ops === 'string') {
-      this.document = ops;
-    }
-  }
-
-  getDocument() {
-    return this.document;
-  }
-
-  getClientId() {
-    return this.clientId;
-  }
-}
+/**
+ * Access the awareness API provided by y‑websocket.
+ * Allows broadcasting user metadata (name, color, cursor).
+ */
+export const getAwareness = (provider: WebsocketProvider) => provider.awareness;
