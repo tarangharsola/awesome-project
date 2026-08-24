@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 const { execSync } = require('child_process');
 
-function run(command) {
-  console.log(`Running: ${command}`);
-  execSync(command, { stdio: 'inherit' });
+function run(cmd) {
+  console.log(`Running: ${cmd}`);
+  execSync(cmd, { stdio: 'inherit' });
 }
 
 try {
-  run('node scripts/test.js');
-  run('node scripts/build.js');
+  run('npm run build');
+  run('npm test -- --watchAll=false');
   console.log('CI passed');
   process.exit(0);
-} catch (err) {
+} catch (e) {
   console.error('CI failed');
   process.exit(1);
 }
