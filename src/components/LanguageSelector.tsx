@@ -1,6 +1,6 @@
 import React from 'react';
-import { useLanguage } from '../utils/useLanguage';
-import styles from '../styles/user.module.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store';
 
 const languages = [
   { value: 'javascript', label: 'JavaScript' },
@@ -9,19 +9,16 @@ const languages = [
 ];
 
 export const LanguageSelector: React.FC = () => {
-  const { language, setLanguage } = useLanguage();
+  const dispatch = useDispatch();
+  const currentLanguage = useSelector((state: RootState) => state.editor.language);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setLanguage(e.target.value as any);
+    const newLang = e.target.value;
+    dispatch({ type: 'SET_LANGUAGE', payload: newLang });
   };
 
   return (
-    <select
-      className={styles.languageSelector}
-      value={language}
-      onChange={handleChange}
-      aria-label="Select language"
-    >
+    <select value={currentLanguage} onChange={handleChange} className="language-selector">
       {languages.map((lang) => (
         <option key={lang.value} value={lang.value}>
           {lang.label}

@@ -1,26 +1,35 @@
 import { useEffect } from 'react';
-import { EditorView } from '@codemirror/view';
-export const useKeyboardShortcuts = (
-  view: EditorView | null,
-  formatCode: () => void,
-  toggleLanguage: () => void
-) => {
+import { useEditor } from './useEditor';
+
+/**
+ * Hook that registers global keyboard shortcuts for the editor.
+ * - Ctrl/Cmd + S : Save (currently logs to console, can be extended).
+ * - Ctrl/Cmd + Shift + F : Format the document using the editor's format method.
+ */
+export function useKeyboardShortcuts() {
+  const editor = useEditor();
+
   useEffect(() => {
-    if (!view) return;
     const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      // Save shortcut
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        formatCode();
+        console.log('Save shortcut triggered');
+        // Extend with actual save logic if needed
+        return;
       }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
+
+      // Format shortcut
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
         e.preventDefault();
-        toggleLanguage();
+        if (editor && typeof editor.format === 'function') {
+          editor.format();
+        }
+        return;
       }
     };
-    view.dom.addEventListener('keydown', handler);
-    return () => {
-      view.dom.removeEventListener('keydown', handler);
-    };
-  }, [view, formatCode, toggleLanguage]);
-};
-export default useKeyboardShortcuts;
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [editor]);
+}

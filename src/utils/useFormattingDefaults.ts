@@ -1,17 +1,17 @@
-export type FormattingOptions = {
-  tabSize: number;
-  insertSpaces: boolean;
-  autoCloseBrackets: boolean;
+/**
+ * Default formatting options per language.
+ * These options are used when initializing the editor extensions.
+ */
+export const formattingDefaults: Record<string, { tabSize: number; insertSpaces: boolean }> = {
+  javascript: { tabSize: 2, insertSpaces: true },
+  python: { tabSize: 4, insertSpaces: true },
+  html: { tabSize: 2, insertSpaces: true },
 };
-export const getFormattingDefaults = (language: string): FormattingOptions => {
-  switch (language) {
-    case 'javascript':
-    case 'python':
-      return { tabSize: 2, insertSpaces: true, autoCloseBrackets: true };
-    case 'html':
-      return { tabSize: 2, insertSpaces: true, autoCloseBrackets: false };
-    default:
-      return { tabSize: 2, insertSpaces: true, autoCloseBrackets: true };
-  }
-};
-export default getFormattingDefaults;
+
+/**
+ * Retrieves formatting options for a given language.
+ * Falls back to JavaScript defaults if the language is unknown.
+ */
+export function getFormattingOptions(language: string) {
+  return formattingDefaults[language] ?? formattingDefaults.javascript;
+}
