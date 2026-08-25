@@ -1,36 +1,40 @@
-import { Reducer } from 'react';
-import ConflictResolver from '../utils/useConflictResolver';
-import { DocumentChange } from '../utils/conflictResolver/types';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import * as Y from 'yjs';
 
-export interface EditorState {
-  resolver: ConflictResolver;
-  cursorPosition: number;
+interface EditorState {
+  content: string;
+  ydoc: Y.Doc;
 }
 
-export type EditorAction =
-  | { type: 'LOCAL_EDIT'; ops: DocumentChange['ops'] }
-  | { type: 'REMOTE_CHANGE'; change: DocumentChange }
-  | { type: 'SET_CURSOR'; position: number };
-
-export const initialState: EditorState = {
-  resolver: new ConflictResolver(),
-  cursorPosition: 0,
+const initialState: EditorState = {
+  content: '',
+  ydoc: new Y.Doc(),
 };
 
-export const editorReducer: Reducer<EditorState, EditorAction> = (state, action) => {
-  switch (action.type) {
-    case 'LOCAL_EDIT': {
-      // Produce a local change; actual broadcasting is handled elsewhere
-      state.resolver.generateLocalChange(action.ops);
-      return { ...state };
-    }
-    case 'REMOTE_CHANGE': {
-      state.resolver.applyRemote(action.change);
-      return { ...state };
-    }
-    case 'SET_CURSOR':
-      return { ...state, cursorPosition: action.position };
-    default:
-      return state;
-  }
-};
+const editorSlice = createSlice({
+  name: 'editor',
+  initialState,
+  reducers: {
+    localChange(state, action: PayloadAction<string>) {
+      state.content = action.payload;
+      const yText = state.ydoc.getText('code');
+      yText.delete(0, yText.length);
+      yText.insert(0, action.payload);
+    },
+    remoteChange(state, action: PayloadAction<string>) {
+      state.content = action.payload;
+      const yText = state.ydoc.getText('code');
+      yText.delete(0, yText.length);
+      yText.insert(0, action.payload);
+    },
+    syncDocument(state, action: PayloadAction<string>) {
+      const yText = state.ydoc.getText('code');
+      yText.delete(0, yText.length);
+      yText.insert(0, action.payload);
+      state.content = action.payload;
+    },
+  },
+});
+
+export const { localChange, remoteChange, syncDocument } = editorSlice.actions;
+export default editorSlice.reducer;

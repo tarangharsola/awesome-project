@@ -1,58 +1,81 @@
-type Message = any;
+import { EventEmitter } from 'events';
 
-export class WebSocketClient {
+export interface WSMessage {
+  type: string;
+  payload: any;
+}
+
+export class ReconnectingWebSocket extends EventEmitter {
   private url: string;
-  private socket: WebSocket | null = null;
-  private messageQueue: Message[] = [];
+  private ws?: WebSocket;
   private reconnectAttempts = 0;
-  private readonly maxBackoff = 30000;
+  private maxAttempts = 10;
+  private backoffBase = 500; // ms
+  private messageQueue: WSMessage[] = [];
+  private manuallyClosed = false;
 
   constructor(url: string) {
+    super();
     this.url = url;
     this.connect();
   }
 
   private connect() {
-    this.socket = new WebSocket(this.url);
-    this.socket.addEventListener('open', this.flushQueue);
-    this.socket.addEventListener('close', this.handleClose);
-    this.socket.addEventListener('error', this.handleError);
+    this.ws = new WebSocket(this.url);
+    this.ws.binaryType = 'arraybuffer';
+
+    this.ws.onopen = () => {
+      this.reconnectAttempts = 0;
+      this.emit('open');
+      this.flushQueue();
+    };
+
+    this.ws.onmessage = (ev) => {
+      try {
+        const data = JSON.parse(ev.data);
+        this.emit('message', data);
+      } catch {
+        // ignore malformed messages
+      }
+    };
+
+    this.ws.onclose = () => {
+      this.emit('close');
+      if (!this.manuallyClosed) {
+        this.scheduleReconnect();
+      }
+    };
+
+    this.ws.onerror = (err) => {
+      this.emit('error', err);
+      this.ws?.close();
+    };
   }
 
-  private flushQueue = () => {
+  private scheduleReconnect() {
+    if (this.reconnectAttempts >= this.maxAttempts) return;
+    const delay = this.backoffBase * 2 ** this.reconnectAttempts + Math.random() * 200;
+    this.reconnectAttempts += 1;
+    setTimeout(() => this.connect(), delay);
+  }
+
+  private flushQueue() {
     while (this.messageQueue.length) {
-      const msg = this.messageQueue.shift();
-      this.socket?.send(JSON.stringify(msg));
+      const msg = this.messageQueue.shift()!;
+      this.send(msg);
     }
-    this.reconnectAttempts = 0;
-  };
+  }
 
-  private scheduleReconnect = () => {
-    const backoff = Math.min(1000 * 2 ** this.reconnectAttempts, this.maxBackoff);
-    setTimeout(() => {
-      this.reconnectAttempts += 1;
-      this.connect();
-    }, backoff);
-  };
-
-  private handleClose = () => {
-    this.scheduleReconnect();
-  };
-
-  private handleError = () => {
-    // Let close handler manage reconnection
-    this.socket?.close();
-  };
-
-  send(message: Message) {
-    if (this.socket?.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify(message));
+  public send(message: WSMessage) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(message));
     } else {
       this.messageQueue.push(message);
     }
   }
 
-  getSocket(): WebSocket | null {
-    return this.socket;
+  public close() {
+    this.manuallyClosed = true;
+    this.ws?.close();
   }
 }

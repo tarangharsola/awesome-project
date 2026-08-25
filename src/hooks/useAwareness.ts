@@ -1,24 +1,51 @@
 import { useEffect } from 'react';
-import { getAwareness } from '../utils/useConflictResolver';
-import type { WebsocketProvider } from 'y-websocket';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../store';
+import { updateUserAwareness, removeUserAwareness } from '../store/usersReducer';
+import { WSMessage, ReconnectingWebSocket } from '../utils/websocketClient';
 
-/**
- * Hook to manage user awareness (cursor position, name, color) via Yjs awareness.
- * Ensures that metadata is broadcast on join and cleaned up on unmount.
- */
-export const useAwareness = (
-  provider: WebsocketProvider,
-  user: { id: string; name: string; color: string }
-) => {
+export const useAwareness = (ws: ReconnectingWebSocket) => {
+  const dispatch = useDispatch();
+  const localUser = useSelector((state: RootState) => state.user);
+
+  // Broadcast local awareness whenever relevant fields change
   useEffect(() => {
-    const awareness = getAwareness(provider);
-    // Set local state for this client.
-    awareness.setLocalStateField('user', user);
-
-    // Cleanup on component unmount.
-    return () => {
-      awareness.setLocalStateField('user', null);
+    const payload = {
+      id: localUser.id,
+      name: localUser.name,
+      color: localUser.color,
+      cursor: localUser.cursor,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [provider, user.id, user.name, user.color]);
+    ws.send({ type: 'awareness', payload });
+  }, [localUser.id, localUser.name, localUser.color, localUser.cursor, ws]);
+
+  // Handle incoming awareness updates
+  useEffect(() => {
+    const handleMessage = (msg: WSMessage) => {
+      if (msg.type !== 'awareness') return;
+      const data = msg.payload;
+      if (data.id === localUser.id) return; // ignore own updates
+      dispatch(updateUserAwareness(data));
+    };
+    ws.on('message', handleMessage);
+    return () => {
+      ws.off('message', handleMessage);
+    };
+  }, [ws, dispatch, localUser.id]);
+
+  // Cleanup awareness on disconnect
+  useEffect(() => {
+    const handleClose = () => {
+      dispatch(removeUserAwareness(localUser.id));
+    };
+    ws.on('close', handleClose);
+    return () => {
+      ws.off('close', handleClose);
+    };
+  }, [ws, dispatch, localUser.id]);
+};
+
+export const broadcastAwareness = (ws: ReconnectingWebSocket) => {
+  // Trigger a fresh awareness broadcast after reconnection
+  ws.send({ type: 'awareness-request', payload: null });
 };
