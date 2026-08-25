@@ -1,20 +1,21 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store';
+import { useUsers } from '../hooks/useUsers';
 import styles from '../styles/user.module.css';
 
-const UserList: React.FC = () => {
-  const users = useSelector((state: RootState) => state.users.list);
+export const UserList: React.FC = () => {
+  const users = useUsers();
+
   return (
-    <div className={styles.userList}>
-      {users.map(user => (
-        <div key={user.id} className={styles.userItem}>
-          <span className={styles.userColor} style={{ backgroundColor: user.color }} />
-          <span className={styles.userName}>{user.name}</span>
-        </div>
+    <ul className={styles.userList}>
+      {users.map((user) => (
+        <li key={user.id} className={styles.userItem}>
+          <span
+            className={styles.colorBadge}
+            style={{ backgroundColor: user.color }}
+          />
+          {user.name}
+        </li>
       ))}
-    </div>
+    </ul>
   );
 };
-
-export default UserList;

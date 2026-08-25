@@ -1049,3 +1049,4 @@
 2026-08-24T07:42:28.471811+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
 2026-08-25T07:25:54.383063+00:00 | Improve editor UX: language switching, formatting defaults, and better keyboard shortcuts.
 2026-08-25T07:26:39.176747+00:00 | Add connection status indicator and retry/backoff behavior.
+2026-08-25T07:27:23.486185+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
