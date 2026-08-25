@@ -1,22 +1,25 @@
 import React from 'react';
-import { Editor } from './Editor';
-import { LanguageSelector } from './LanguageSelector';
-import { UserList } from './UserList';
-import { WebSocketProvider } from './WebSocket';
+import ConnectionStatus from './ConnectionStatus';
+import Editor from './Editor';
+import LanguageSelector from './LanguageSelector';
+import UserList from './UserList';
+import Room from './Room';
 
-// Adjust the WebSocket URL as appropriate for your environment.
-const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:4000';
-
-export const App: React.FC = () => (
-  <WebSocketProvider url={WS_URL}>
-    <div style={{ display: 'flex', height: '100vh', backgroundColor: '#1e1e1e', color: '#fff' }}>
-      <aside style={{ width: '200px', borderRight: '1px solid #333', padding: '1rem' }}>
-        <UserList />
+const App: React.FC = () => {
+  return (
+    <div className="app-container" data-testid="app-root">
+      <header className="app-header">
+        <h1>Collaborative Code Editor</h1>
         <LanguageSelector />
-      </aside>
-      <main style={{ flexGrow: 1, padding: '1rem' }}>
+        <ConnectionStatus />
+      </header>
+      <main className="app-main">
+        <Room />
         <Editor />
+        <UserList />
       </main>
     </div>
-  </WebSocketProvider>
-);
+  );
+};
+
+export default App;
