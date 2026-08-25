@@ -1,35 +1,42 @@
-import { useEffect } from 'react';
-import { useEditor } from './useEditor';
+import { useEffect, useRef } from 'react';
+
+type ShortcutHandler = () => void;
 
 /**
- * Hook that registers global keyboard shortcuts for the editor.
- * - Ctrl/Cmd + S : Save (currently logs to console, can be extended).
- * - Ctrl/Cmd + Shift + F : Format the document using the editor's format method.
+ * Hook to register global keyboard shortcuts.
+ * Shortcuts are expressed in a simplified notation similar to CodeMirror's:
+ *   - "Mod" represents Ctrl on Windows/Linux and Cmd on macOS.
+ *   - Modifiers can be combined with "-" (e.g., "Shift-Mod-f").
  */
-export function useKeyboardShortcuts() {
-  const editor = useEditor();
+export const useKeyboardShortcuts = () => {
+  const shortcutsRef = useRef<Record<string, ShortcutHandler>>({});
+
+  const registerShortcut = (combo: string, handler: ShortcutHandler) => {
+    shortcutsRef.current[combo] = handler;
+  };
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      // Save shortcut
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        console.log('Save shortcut triggered');
-        // Extend with actual save logic if needed
-        return;
-      }
+    const listener = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().includes('MAC');
+      const mod = isMac ? e.metaKey : e.ctrlKey;
+      const key = e.key.toLowerCase();
 
-      // Format shortcut
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+      const parts: string[] = [];
+      if (mod) parts.push('Mod');
+      if (e.shiftKey) parts.push('Shift');
+      if (e.altKey) parts.push('Alt');
+      parts.push(key);
+      const combo = parts.join('-');
+
+      const handler = shortcutsRef.current[combo];
+      if (handler) {
         e.preventDefault();
-        if (editor && typeof editor.format === 'function') {
-          editor.format();
-        }
-        return;
+        handler();
       }
     };
+    window.addEventListener('keydown', listener);
+    return () => window.removeEventListener('keydown', listener);
+  }, []);
 
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [editor]);
-}
+  return { registerShortcut };
+};
