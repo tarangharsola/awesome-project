@@ -1,85 +1,82 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { User, DocumentChange, Cursor } from '../types';
 
-export type WebSocketStatus = 'connected' | 'disconnected' | 'reconnecting';
-
-interface UseWebSocketOptions {
-  url: string;
-  maxRetries?: number;
-  maxDelay?: number; // maximum delay in ms
+interface WebSocketMessage {
+  type: 'change' | 'cursor' | 'presence';
+  payload: any;
 }
 
-/**
- * Hook that manages a WebSocket connection with automatic reconnection using
- * exponential backoff. It exposes the current socket instance, a sendMessage
- * helper and the connection status.
- */
-export const useWebSocket = ({
-  url,
-  maxRetries = Infinity,
-  maxDelay = 30000,
-}: UseWebSocketOptions) => {
-  const socketRef = useRef<WebSocket | null>(null);
-  const [status, setStatus] = useState<WebSocketStatus>('disconnected');
-  const retryCountRef = useRef(0);
-  const timeoutRef = useRef<number | null>(null);
+export function useWebSocket(roomId: string, user: User) {
+  const [connected, setConnected] = useState(false);
+  const [remoteCursors, setRemoteCursors] = useState<Record<string, Cursor>>({});
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectAttempts = useRef(0);
 
-  const clearPendingTimeout = () => {
-    if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+  const sendMessage = (msg: WebSocketMessage) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(msg));
     }
   };
 
-  const connect = useCallback(() => {
-    setStatus('reconnecting');
-    const ws = new WebSocket(url);
-    socketRef.current = ws;
+  const broadcastChange = (change: DocumentChange) => {
+    sendMessage({ type: 'change', payload: change });
+  };
 
-    ws.onopen = () => {
-      setStatus('connected');
-      retryCountRef.current = 0;
-    };
+  const broadcastCursor = (cursor: Cursor) => {
+    sendMessage({ type: 'cursor', payload: cursor });
+  };
 
-    ws.onmessage = (event) => {
-      // Message handling is delegated to consumers via the socket reference.
-    };
-
-    ws.onclose = () => {
-      setStatus('disconnected');
-      attemptReconnect();
-    };
-
-    ws.onerror = () => {
-      // Ensure the socket is closed so onclose triggers reconnection logic.
-      ws.close();
-    };
-  }, [url]);
-
-  const attemptReconnect = () => {
-    if (retryCountRef.current >= maxRetries) return;
-    const delay = Math.min(1000 * 2 ** retryCountRef.current, maxDelay);
-    retryCountRef.current += 1;
-    timeoutRef.current = window.setTimeout(() => {
-      connect();
-    }, delay);
+  const handleMessage = (event: MessageEvent) => {
+    try {
+      const msg: WebSocketMessage = JSON.parse(event.data);
+      switch (msg.type) {
+        case 'cursor':
+          setRemoteCursors(prev => ({ ...prev, [msg.payload.userId]: msg.payload }));
+          break;
+        // other message types can be handled by consumers via callbacks
+        default:
+          break;
+      }
+    } catch (e) {
+      console.error('Failed to parse WebSocket message', e);
+    }
   };
 
   useEffect(() => {
+    const connect = () => {
+      const ws = new WebSocket(`${process.env.REACT_APP_WS_URL}/rooms/${roomId}`);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        setConnected(true);
+        reconnectAttempts.current = 0;
+        // announce presence
+        sendMessage({ type: 'presence', payload: { user } });
+      };
+
+      ws.onmessage = handleMessage;
+
+      ws.onclose = () => {
+        setConnected(false);
+        // exponential backoff reconnection
+        const timeout = Math.min(10000, 1000 * 2 ** reconnectAttempts.current);
+        reconnectAttempts.current += 1;
+        setTimeout(connect, timeout);
+      };
+
+      ws.onerror = err => {
+        console.error('WebSocket error', err);
+        ws.close();
+      };
+    };
+
     connect();
+
     return () => {
-      clearPendingTimeout();
-      socketRef.current?.close();
+      wsRef.current?.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connect]);
+  }, [roomId, user.id]);
 
-  const sendMessage = useCallback((data: string) => {
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      socketRef.current.send(data);
-    } else {
-      console.warn('WebSocket is not open. Message not sent.');
-    }
-  }, []);
-
-  return { socket: socketRef.current, sendMessage, status };
-};
+  return { connected, broadcastChange, broadcastCursor, remoteCursors };
+}

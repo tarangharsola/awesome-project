@@ -1,5 +1,5 @@
-export * from './useWebSocket';
-export * from './useAwareness';
-export * from './useCursor';
-export * from './useReconnection';
-export * from './useUsers';
+export { default as useAwareness } from './useAwareness';
+export { default as useCursor } from './useCursor';
+export { default as useReconnection } from './useReconnection';
+export { default as useUsers } from './useUsers';
+export { useWebSocket } from './useWebSocket';
