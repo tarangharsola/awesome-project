@@ -1,17 +1,28 @@
-/**
- * Default formatting options per language.
- * These options are used when initializing the editor extensions.
- */
-export const formattingDefaults: Record<string, { tabSize: number; insertSpaces: boolean }> = {
-  javascript: { tabSize: 2, insertSpaces: true },
-  python: { tabSize: 4, insertSpaces: true },
-  html: { tabSize: 2, insertSpaces: true },
-};
+import { EditorView } from '@codemirror/view';
+import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { html } from '@codemirror/lang-html';
 
-/**
- * Retrieves formatting options for a given language.
- * Falls back to JavaScript defaults if the language is unknown.
- */
-export function getFormattingOptions(language: string) {
-  return formattingDefaults[language] ?? formattingDefaults.javascript;
-}
+export const applyFormattingDefaults = (view: EditorView, language: string) => {
+  const extensions = [];
+  switch (language) {
+    case 'javascript':
+      extensions.push(javascript({ jsx: true }));
+      break;
+    case 'python':
+      extensions.push(python());
+      break;
+    case 'html':
+      extensions.push(html());
+      break;
+    default:
+      break;
+  }
+  // Reconfigure the editor with the language-specific extensions and a sensible tab size.
+  view.dispatch({
+    effects: [
+      EditorView.reconfigure.of(extensions),
+      EditorView.tabSize.of(2),
+    ],
+  });
+};

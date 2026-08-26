@@ -1,42 +1,28 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
+import { EditorView } from '@codemirror/view';
+import { applyFormattingDefaults } from './useFormattingDefaults';
+import { useLanguage } from './useLanguage';
 
-type ShortcutHandler = () => void;
-
-/**
- * Hook to register global keyboard shortcuts.
- * Shortcuts are expressed in a simplified notation similar to CodeMirror's:
- *   - "Mod" represents Ctrl on Windows/Linux and Cmd on macOS.
- *   - Modifiers can be combined with "-" (e.g., "Shift-Mod-f").
- */
-export const useKeyboardShortcuts = () => {
-  const shortcutsRef = useRef<Record<string, ShortcutHandler>>({});
-
-  const registerShortcut = (combo: string, handler: ShortcutHandler) => {
-    shortcutsRef.current[combo] = handler;
-  };
+export const useKeyboardShortcuts = (view: EditorView | null) => {
+  const { language } = useLanguage();
 
   useEffect(() => {
-    const listener = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().includes('MAC');
-      const mod = isMac ? e.metaKey : e.ctrlKey;
-      const key = e.key.toLowerCase();
-
-      const parts: string[] = [];
-      if (mod) parts.push('Mod');
-      if (e.shiftKey) parts.push('Shift');
-      if (e.altKey) parts.push('Alt');
-      parts.push(key);
-      const combo = parts.join('-');
-
-      const handler = shortcutsRef.current[combo];
-      if (handler) {
+    if (!view) return;
+    const handler = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + S => format / apply defaults
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        handler();
+        applyFormattingDefaults(view, language);
+      }
+      // Ctrl/Cmd + Space => placeholder for autocomplete (future integration)
+      if ((e.ctrlKey || e.metaKey) && e.key === ' ') {
+        e.preventDefault();
+        // Autocomplete logic could be added here.
       }
     };
-    window.addEventListener('keydown', listener);
-    return () => window.removeEventListener('keydown', listener);
-  }, []);
-
-  return { registerShortcut };
+    view.dom.addEventListener('keydown', handler);
+    return () => {
+      view.dom.removeEventListener('keydown', handler);
+    };
+  }, [view, language]);
 };

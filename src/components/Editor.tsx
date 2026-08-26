@@ -1,102 +1,45 @@
 import React, { useEffect, useRef } from 'react';
-import { EditorView, keymap } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { html } from '@codemirror/lang-html';
-import { defaultKeymap } from '@codemirror/commands';
+import { useDispatch, useSelector } from 'react-redux';
+import { EditorView, basicSetup } from '@codemirror/basic-setup';
+import { RootState } from '../store';
+import { useLanguage } from '../utils/useLanguage';
+import { applyFormattingDefaults } from '../utils/useFormattingDefaults';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { Language } from '../types';
-import './Editor.css';
 
-type Props = {
-  value: string;
-  onChange: (value: string) => void;
-  language: Language;
-};
-
-export const Editor: React.FC<Props> = ({ value, onChange, language }) => {
+export const Editor: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
-  const { registerShortcut } = useKeyboardShortcuts();
+  const dispatch = useDispatch();
+  const content = useSelector((state: RootState) => state.editor.content);
+  const { language } = useLanguage();
 
-  // Initialize or re‑initialize the editor when language changes
+  // Initialize CodeMirror editor once.
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    // Clean up any existing view
-    viewRef.current?.destroy();
-    viewRef.current = null;
-
-    const languageExtension =
-      language === 'javascript'
-        ? javascript()
-        : language === 'python'
-        ? python()
-        : language === 'html'
-        ? html()
-        : javascript();
-
-    const extensions = [
-      keymap.of([...defaultKeymap]),
-      EditorView.updateListener.of(update => {
-        if (update.docChanged) {
-          const newValue = update.state.doc.toString();
-          onChange(newValue);
-        }
-      }),
-      EditorView.lineWrapping,
-      EditorView.theme({
-        '&': {
-          height: '100%',
-          fontFamily: 'var(--font-mono)',
+    if (containerRef.current && !viewRef.current) {
+      viewRef.current = new EditorView({
+        doc: content,
+        extensions: [basicSetup],
+        parent: containerRef.current,
+        dispatch: (tr) => {
+          viewRef.current?.update([tr]);
+          if (tr.docChanged) {
+            const newContent = viewRef.current?.state.doc.toString() ?? '';
+            dispatch({ type: 'SET_CONTENT', payload: newContent });
+          }
         },
-      }),
-      // Formatting defaults
-      EditorState.tabSize.of(2),
-      EditorState.indentUnit.of('  '),
-      languageExtension,
-    ];
-
-    viewRef.current = new EditorView({
-      doc: value,
-      extensions,
-      parent: containerRef.current,
-    });
-
-    // Register common shortcuts
-    registerShortcut('Mod-s', () => {
-      // Save shortcut – placeholder for future persistence logic
-      console.log('Document saved (Ctrl/Cmd+S)');
-    });
-    registerShortcut('Shift-Mod-f', () => {
-      // Simple format: re‑indent whole document
-      const view = viewRef.current;
-      if (!view) return;
-      const fullRange = { from: 0, to: view.state.doc.length };
-      view.dispatch({
-        changes: [{ ...fullRange, insert: view.state.doc.toString() }],
-      });
-    });
-
-    return () => {
-      viewRef.current?.destroy();
-      viewRef.current = null;
-    };
-    // Re‑run when language or initial value changes
-  }, [language, value, onChange, registerShortcut]);
-
-  // Keep editor content in sync when external value changes (e.g., remote edits)
-  useEffect(() => {
-    const view = viewRef.current;
-    if (!view) return;
-    const current = view.state.doc.toString();
-    if (current !== value) {
-      view.dispatch({
-        changes: { from: 0, to: current.length, insert: value },
       });
     }
-  }, [value]);
+  }, [containerRef, content, dispatch]);
+
+  // Apply language‑specific extensions whenever the language changes.
+  useEffect(() => {
+    if (viewRef.current) {
+      applyFormattingDefaults(viewRef.current, language);
+    }
+  }, [language]);
+
+  // Register keyboard shortcuts for the editor instance.
+  useKeyboardShortcuts(viewRef.current);
 
   return <div ref={containerRef} className="editor-container" />;
 };
