@@ -1,40 +1,37 @@
 import { useEffect, useRef } from 'react';
-import { ReconnectingWebSocket, WSMessage } from '../utils/websocketClient';
-import { useDispatch } from 'react-redux';
-import { setConnectionStatus } from '../store/userReducer';
-import { syncDocument } from '../store/editorReducer';
-import { broadcastAwareness } from './useAwareness';
+import { initWebSocket, getProvider } from '../utils/websocketClient';
 
-export const useReconnection = (url: string) => {
-  const dispatch = useDispatch();
-  const wsRef = useRef<ReconnectingWebSocket | null>(null);
+/**
+ * Hook that ensures the WebSocket connection is re‑established with exponential back‑off.
+ * It also updates the supplied `onStatusChange` callback.
+ */
+export const useReconnection = (roomId: string, onStatusChange: (status: string) => void) => {
+  const retryCount = useRef(0);
+  const maxDelay = 30000; // 30 seconds
 
   useEffect(() => {
-    const ws = new ReconnectingWebSocket(url);
-    wsRef.current = ws;
-
-    const handleOpen = () => {
-      dispatch(setConnectionStatus('connected'));
-      ws.send({ type: 'request-sync', payload: null });
-      broadcastAwareness(ws);
-    };
+    // Initialise the connection on mount.
+    initWebSocket(roomId, onStatusChange);
 
     const handleClose = () => {
-      dispatch(setConnectionStatus('disconnected'));
+      const delay = Math.min(1000 * 2 ** retryCount.current, maxDelay);
+      setTimeout(() => {
+        // Re‑initialise the provider; Yjs provider will attempt reconnection automatically.
+        initWebSocket(roomId, onStatusChange);
+        retryCount.current += 1;
+      }, delay);
     };
 
-    const handleMessage = (msg: WSMessage) => {
-      if (msg.type === 'sync') {
-        dispatch(syncDocument(msg.payload));
-      }
-    };
-
-    ws.on('open', handleOpen);
-    ws.on('close', handleClose);
-    ws.on('message', handleMessage);
+    const provider = getProvider();
+    if (provider) {
+      provider.on('connection-close', handleClose);
+    }
 
     return () => {
-      ws.close();
+      const prov = getProvider();
+      if (prov) {
+        prov.off('connection-close', handleClose);
+      }
     };
-  }, [url, dispatch]);
+  }, [roomId, onStatusChange]);
 };

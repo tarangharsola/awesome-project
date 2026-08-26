@@ -1,51 +1,37 @@
-import { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store';
-import { updateUserAwareness, removeUserAwareness } from '../store/usersReducer';
-import { WSMessage, ReconnectingWebSocket } from '../utils/websocketClient';
+import { useEffect, useState } from 'react';
+import { getProvider } from '../utils/websocketClient';
+import type { User } from '../types';
 
-export const useAwareness = (ws: ReconnectingWebSocket) => {
-  const dispatch = useDispatch();
-  const localUser = useSelector((state: RootState) => state.user);
+/**
+ * Hook that synchronises user awareness (cursor position, name, colour) across all peers.
+ * It returns the current list of active users.
+ */
+export const useAwareness = (localUser: User) => {
+  const [users, setUsers] = useState<User[]>([]);
 
-  // Broadcast local awareness whenever relevant fields change
   useEffect(() => {
-    const payload = {
-      id: localUser.id,
-      name: localUser.name,
-      color: localUser.color,
-      cursor: localUser.cursor,
-    };
-    ws.send({ type: 'awareness', payload });
-  }, [localUser.id, localUser.name, localUser.color, localUser.cursor, ws]);
+    const provider = getProvider();
+    if (!provider) return;
 
-  // Handle incoming awareness updates
-  useEffect(() => {
-    const handleMessage = (msg: WSMessage) => {
-      if (msg.type !== 'awareness') return;
-      const data = msg.payload;
-      if (data.id === localUser.id) return; // ignore own updates
-      dispatch(updateUserAwareness(data));
+    const awareness = provider.awareness;
+    // Publish local user information.
+    awareness.setLocalStateField('user', localUser);
+
+    const updateUsers = () => {
+      const states = Array.from(awareness.getStates().values())
+        .map(state => (state as any).user)
+        .filter(Boolean) as User[];
+      setUsers(states);
     };
-    ws.on('message', handleMessage);
+
+    awareness.on('change', updateUsers);
+    // Initialise list immediately.
+    updateUsers();
+
     return () => {
-      ws.off('message', handleMessage);
+      awareness.off('change', updateUsers);
     };
-  }, [ws, dispatch, localUser.id]);
+  }, [localUser]);
 
-  // Cleanup awareness on disconnect
-  useEffect(() => {
-    const handleClose = () => {
-      dispatch(removeUserAwareness(localUser.id));
-    };
-    ws.on('close', handleClose);
-    return () => {
-      ws.off('close', handleClose);
-    };
-  }, [ws, dispatch, localUser.id]);
-};
-
-export const broadcastAwareness = (ws: ReconnectingWebSocket) => {
-  // Trigger a fresh awareness broadcast after reconnection
-  ws.send({ type: 'awareness-request', payload: null });
+  return users;
 };
