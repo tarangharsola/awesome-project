@@ -1,25 +1,27 @@
-import React from 'react';
-import ConnectionStatus from './ConnectionStatus';
-import Editor from './Editor';
-import LanguageSelector from './LanguageSelector';
-import UserList from './UserList';
-import Room from './Room';
+import React from "react";
+import { Editor } from "./Editor";
+import { UserList } from "./UserList";
+import { LanguageSelector } from "./LanguageSelector";
+import { ConnectionStatus } from "./ConnectionStatus";
+import { useWebSocket } from "../hooks/useWebSocket";
 
-const App: React.FC = () => {
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "ws://localhost:4000";
+
+export const App: React.FC = () => {
+  const { sendMessage, status, reconnect } = useWebSocket({ url: SOCKET_URL });
+
   return (
-    <div className="app-container" data-testid="app-root">
-      <header className="app-header">
-        <h1>Collaborative Code Editor</h1>
-        <LanguageSelector />
-        <ConnectionStatus />
-      </header>
-      <main className="app-main">
-        <Room />
-        <Editor />
-        <UserList />
-      </main>
+    <div className="app-container">
+      <ConnectionStatus status={status} onRetry={reconnect} />
+      <div className="main-layout">
+        <aside className="sidebar">
+          <UserList />
+          <LanguageSelector />
+        </aside>
+        <main className="editor-pane">
+          <Editor sendMessage={sendMessage} connectionStatus={status} />
+        </main>
+      </div>
     </div>
   );
 };
-
-export default App;

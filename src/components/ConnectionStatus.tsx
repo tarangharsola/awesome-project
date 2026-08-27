@@ -1,25 +1,49 @@
-import React from 'react';
-import { WebsocketProvider } from 'y-websocket';
+import React from "react";
+import styles from "../styles/user.module.css";
 
 interface Props {
-  provider: WebsocketProvider;
+  status: "connected" | "connecting" | "disconnected" | "error";
+  onRetry?: () => void;
 }
 
-export const ConnectionStatus: React.FC<Props> = ({ provider }) => {
-  const [status, setStatus] = React.useState(provider.status);
+export const ConnectionStatus: React.FC<Props> = ({ status, onRetry }) => {
+  let text = "";
+  let color = "";
 
-  React.useEffect(() => {
-    const handler = ({ status }: { status: string }) => setStatus(status);
-    provider.on('status', handler);
-    return () => {
-      provider.off('status', handler);
-    };
-  }, [provider]);
+  switch (status) {
+    case "connected":
+      text = "Connected";
+      color = "#4caf50";
+      break;
+    case "connecting":
+      text = "Connecting...";
+      color = "#ff9800";
+      break;
+    case "disconnected":
+      text = "Disconnected";
+      color = "#f44336";
+      break;
+    case "error":
+      text = "Error";
+      color = "#e53935";
+      break;
+    default:
+      text = "Unknown";
+      color = "#9e9e9e";
+  }
 
-  const color = status === 'connected' ? 'green' : 'red';
   return (
-    <div style={{ color }}>
-      {status === 'connected' ? 'Connected' : 'Disconnected'}
+    <div className={styles.connectionStatus} style={{ color }}>
+      {text}
+      {status !== "connected" && onRetry && (
+        <button
+          className={styles.retryButton}
+          onClick={onRetry}
+          style={{ marginLeft: "8px" }}
+        >
+          Retry
+        </button>
+      )}
     </div>
   );
 };
