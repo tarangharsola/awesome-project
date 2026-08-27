@@ -1,5 +1,6 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { setLanguage } from '../store/editorReducer';
 import { RootState } from '../store';
 
 const languages = [
@@ -8,21 +9,28 @@ const languages = [
   { value: 'html', label: 'HTML' },
 ];
 
-export const LanguageSelector: React.FC = () => {
+const LanguageSelector: React.FC = () => {
   const dispatch = useDispatch();
-  const current = useSelector((state: RootState) => state.editor.language);
+  const currentLanguage = useSelector((state: RootState) => state.editor.language);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    dispatch({ type: 'SET_LANGUAGE', payload: e.target.value });
+    dispatch(setLanguage(e.target.value));
   };
 
   return (
-    <select value={current} onChange={handleChange} aria-label="Language selector">
-      {languages.map((lang) => (
-        <option key={lang.value} value={lang.value}>
-          {lang.label}
-        </option>
-      ))}
-    </select>
+    <div className="language-selector">
+      <label htmlFor="language-select" style={{ marginRight: '8px' }}>
+        Language:
+      </label>
+      <select id="language-select" value={currentLanguage} onChange={handleChange}>
+        {languages.map((lang) => (
+          <option key={lang.value} value={lang.value}>
+            {lang.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 };
+
+export default LanguageSelector;
