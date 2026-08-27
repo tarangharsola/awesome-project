@@ -1,37 +1,28 @@
 import { useEffect, useRef } from 'react';
-import { initWebSocket, getProvider } from '../utils/websocketClient';
+import { WebsocketProvider } from 'y-websocket';
 
 /**
- * Hook that ensures the WebSocket connection is re‑established with exponential back‑off.
- * It also updates the supplied `onStatusChange` callback.
+ * Handles reconnection with exponential backoff for a Yjs WebsocketProvider.
  */
-export const useReconnection = (roomId: string, onStatusChange: (status: string) => void) => {
+export function useReconnection(provider: WebsocketProvider) {
   const retryCount = useRef(0);
   const maxDelay = 30000; // 30 seconds
 
   useEffect(() => {
-    // Initialise the connection on mount.
-    initWebSocket(roomId, onStatusChange);
-
-    const handleClose = () => {
-      const delay = Math.min(1000 * 2 ** retryCount.current, maxDelay);
-      setTimeout(() => {
-        // Re‑initialise the provider; Yjs provider will attempt reconnection automatically.
-        initWebSocket(roomId, onStatusChange);
-        retryCount.current += 1;
-      }, delay);
-    };
-
-    const provider = getProvider();
-    if (provider) {
-      provider.on('connection-close', handleClose);
-    }
-
-    return () => {
-      const prov = getProvider();
-      if (prov) {
-        prov.off('connection-close', handleClose);
+    const handleStatus = ({ status }: { status: string }) => {
+      if (status === 'disconnected') {
+        const delay = Math.min(1000 * 2 ** retryCount.current, maxDelay);
+        setTimeout(() => {
+          provider.connect();
+          retryCount.current += 1;
+        }, delay);
+      } else if (status === 'connected') {
+        retryCount.current = 0;
       }
     };
-  }, [roomId, onStatusChange]);
-};
+    provider.on('status', handleStatus);
+    return () => {
+      provider.off('status', handleStatus);
+    };
+  }, [provider]);
+}

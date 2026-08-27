@@ -1,50 +1,25 @@
 import React from 'react';
-import { useWebSocket, ConnectionStatus } from '../hooks/useWebSocket';
+import { WebsocketProvider } from 'y-websocket';
 
 interface Props {
-  /** WebSocket endpoint for the collaborative session */
-  url: string;
+  provider: WebsocketProvider;
 }
 
-/**
- * Visual indicator of the WebSocket connection state.
- * Shows a colored dot (green = connected, orange = connecting, red = disconnected)
- * alongside a textual status.
- */
-const ConnectionStatusIndicator: React.FC<Props> = ({ url }) => {
-  const { status } = useWebSocket(url);
+export const ConnectionStatus: React.FC<Props> = ({ provider }) => {
+  const [status, setStatus] = React.useState(provider.status);
 
-  const getColor = (s: ConnectionStatus) => {
-    switch (s) {
-      case 'connected':
-        return '#4caf50'; // green
-      case 'connecting':
-        return '#ff9800'; // orange
-      case 'disconnected':
-      default:
-        return '#f44336'; // red
-    }
-  };
+  React.useEffect(() => {
+    const handler = ({ status }: { status: string }) => setStatus(status);
+    provider.on('status', handler);
+    return () => {
+      provider.off('status', handler);
+    };
+  }, [provider]);
 
-  const color = getColor(status);
-  const capitalized = status.charAt(0).toUpperCase() + status.slice(1);
-
+  const color = status === 'connected' ? 'green' : 'red';
   return (
-    <div style={{ display: 'flex', alignItems: 'center', fontFamily: 'inherit' }}>
-      <span
-        style={{
-          width: 10,
-          height: 10,
-          borderRadius: '50%',
-          backgroundColor: color,
-          display: 'inline-block',
-          marginRight: 8,
-        }}
-        aria-label={`connection-${status}`}
-      />
-      <span>{capitalized}</span>
+    <div style={{ color }}>
+      {status === 'connected' ? 'Connected' : 'Disconnected'}
     </div>
   );
 };
-
-export default ConnectionStatusIndicator;
