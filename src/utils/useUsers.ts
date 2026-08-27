@@ -1,1 +1,0 @@
-{"import { useState, useEffect } from 'react';\n\ninterface UserState {\n  name: string;\n  color: string;\n}\n\nconst useUsers = () => {\n  const [users, setUsers] = useState<UserState[]>([]);\n\n  useEffect(() => {\n    // Update users state\n  }, []);\n\n  return users;\n};\n\nexport default useUsers;

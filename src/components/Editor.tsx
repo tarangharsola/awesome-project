@@ -1,45 +1,24 @@
-import React, { useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { EditorView, basicSetup } from '@codemirror/basic-setup';
-import { RootState } from '../store';
+import React, { useReducer } from 'react';
+import { editorReducer, initialEditorState } from '../store/editorReducer';
 import { useLanguage } from '../utils/useLanguage';
-import { applyFormattingDefaults } from '../utils/useFormattingDefaults';
-import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { Editor as MonacoEditor } from '@monaco-editor/react';
 
 export const Editor: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
-  const dispatch = useDispatch();
-  const content = useSelector((state: RootState) => state.editor.content);
-  const { language } = useLanguage();
+  const [state, dispatch] = useReducer(editorReducer, initialEditorState);
+  const { language, setLanguage } = useLanguage(state.language, (lang) =>
+    dispatch({ type: 'SET_LANGUAGE', payload: lang })
+  );
 
-  // Initialize CodeMirror editor once.
-  useEffect(() => {
-    if (containerRef.current && !viewRef.current) {
-      viewRef.current = new EditorView({
-        doc: content,
-        extensions: [basicSetup],
-        parent: containerRef.current,
-        dispatch: (tr) => {
-          viewRef.current?.update([tr]);
-          if (tr.docChanged) {
-            const newContent = viewRef.current?.state.doc.toString() ?? '';
-            dispatch({ type: 'SET_CONTENT', payload: newContent });
-          }
-        },
-      });
-    }
-  }, [containerRef, content, dispatch]);
+  const handleChange = (value: string | undefined) => {
+    dispatch({ type: 'SET_CONTENT', payload: value ?? '' });
+  };
 
-  // Apply language‑specific extensions whenever the language changes.
-  useEffect(() => {
-    if (viewRef.current) {
-      applyFormattingDefaults(viewRef.current, language);
-    }
-  }, [language]);
-
-  // Register keyboard shortcuts for the editor instance.
-  useKeyboardShortcuts(viewRef.current);
-
-  return <div ref={containerRef} className="editor-container" />;
+  return (
+    <MonacoEditor
+      height="90vh"
+      language={language}
+      value={state.content}
+      onChange={handleChange}
+    />
+  );
 };

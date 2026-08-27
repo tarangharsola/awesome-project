@@ -1,23 +1,23 @@
 import React from 'react';
-import { User } from '../types';
-import styles from '../styles/user.module.css';
+import { useUsers } from '../hooks/useUsers';
 
-type Props = {
-  users: User[];
+interface Props {
+  roomId: string;
+  username: string;
+}
+
+export const UserList: React.FC<Props> = ({ roomId, username }) => {
+  const { users, connected } = useUsers(roomId, username);
+  return (
+    <div className="user-list">
+      <h3>{connected ? 'Online' : 'Offline'}</h3>
+      <ul>
+        {users.map((u) => (
+          <li key={u.id} style={{ color: u.color }}>
+            {u.name}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 };
-
-export const UserList: React.FC<Props> = ({ users }) => (
-  <div className={styles.userList}>
-    {users.map(user => (
-      <div key={user.id} className={styles.userItem}>
-        <span
-          className={styles.userColor}
-          style={{ backgroundColor: user.color }}
-        />
-        <span>{user.name}</span>
-      </div>
-    ))}
-  </div>
-);
-
-export default UserList;

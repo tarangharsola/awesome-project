@@ -1,21 +1,8 @@
-export interface DocumentChange {
-  range: {
-    startLineNumber: number;
-    startColumn: number;
-    endLineNumber: number;
-    endColumn: number;
-  };
-  text: string;
+export interface EditorState {
+  content: string;
+  language: string;
 }
 
-export interface CursorPosition {
-  lineNumber: number;
-  column: number;
-}
-
-export interface UserCursor {
-  userId: string;
-  username: string;
-  color: string;
-  position: CursorPosition;
-}
+export type EditorAction =
+  | { type: 'SET_CONTENT'; payload: string }
+  | { type: 'SET_LANGUAGE'; payload: string };
