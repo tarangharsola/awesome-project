@@ -1,35 +1,38 @@
 import React from 'react';
-import { CursorData } from '../types/editor';
-import styles from '../styles/user.module.css';
+import { CursorData } from '../types';
 
 type Props = {
   cursor: CursorData;
 };
 
-export const RemoteCursor: React.FC<Props> = ({ cursor }) => {
-  const { position, color, name } = cursor;
-  const wrapperStyle = {
-    position: 'absolute' as const,
-    left: `${position.column * 8}px`,
-    top: `${position.row * 18}px`,
-    pointerEvents: 'none' as const,
+const RemoteCursor: React.FC<Props> = ({ cursor }) => {
+  const { position, name, color } = cursor;
+  const containerStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: `${position.x}px`,
+    top: `${position.y}px`,
+    pointerEvents: 'none',
+    zIndex: 10,
   };
-
-  const labelStyle = {
-    borderLeft: `2px solid ${color}`,
-    backgroundColor: 'rgba(30,30,30,0.9)',
-    color: '#fff',
+  const caretStyle: React.CSSProperties = {
+    width: '2px',
+    height: '1.2em',
+    backgroundColor: color,
+    animation: 'blink 1s steps(2, start) infinite',
+  };
+  const labelStyle: React.CSSProperties = {
+    background: 'rgba(0, 0, 0, 0.6)',
+    color: color,
     padding: '2px 4px',
     borderRadius: '3px',
     fontSize: '0.75rem',
-    whiteSpace: 'nowrap' as const,
+    whiteSpace: 'nowrap',
+    marginTop: '-1.2em',
   };
-
   return (
-    <div style={wrapperStyle}>
-      <div className={styles.cursorLabel} style={labelStyle}>
-        {name}
-      </div>
+    <div style={containerStyle}>
+      <div style={caretStyle} />
+      <div style={labelStyle}>{name}</div>
     </div>
   );
 };
