@@ -1,37 +1,44 @@
-import { useEffect, useState } from 'react';
-import { getProvider } from '../utils/websocketClient';
-import type { User } from '../types';
+import { useEffect } from 'react';
+import { WebsocketProvider } from 'y-websocket';
+import { Awareness } from 'y-protocols/awareness';
 
 /**
- * Hook that synchronises user awareness (cursor position, name, colour) across all peers.
- * It returns the current list of active users.
+ * Hook that synchronises local user awareness (name, colour, cursor) across
+ * all participants in a Yjs‑based collaborative session.
+ *
+ * @param provider   Yjs WebSocket provider for the current room.
+ * @param user       Local user metadata.
+ * @param onChange   Optional callback invoked when the set of remote users changes.
  */
-export const useAwareness = (localUser: User) => {
-  const [users, setUsers] = useState<User[]>([]);
-
+export const useAwareness = (
+  provider: WebsocketProvider,
+  user: { id: string; name: string; color: string },
+  onChange?: (users: Array<{ id: number; name: string; color: string }>) => void
+) => {
   useEffect(() => {
-    const provider = getProvider();
-    if (!provider) return;
+    const awareness: Awareness = provider.awareness;
 
-    const awareness = provider.awareness;
-    // Publish local user information.
-    awareness.setLocalStateField('user', localUser);
+    // Initialise local state – this will be broadcast to peers automatically
+    awareness.setLocalStateField('user', user);
 
-    const updateUsers = () => {
-      const states = Array.from(awareness.getStates().values())
-        .map(state => (state as any).user)
-        .filter(Boolean) as User[];
-      setUsers(states);
+    const handleChange = ({ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] }) => {
+      if (!onChange) return;
+      const states = awareness.getStates();
+      const activeUsers: Array<{ id: number; name: string; color: string }> = [];
+      states.forEach((state, clientId) => {
+        if (state.user) {
+          activeUsers.push({ id: clientId, name: state.user.name, color: state.user.color });
+        }
+      });
+      onChange(activeUsers);
     };
 
-    awareness.on('change', updateUsers);
-    // Initialise list immediately.
-    updateUsers();
+    awareness.on('change', handleChange);
 
     return () => {
-      awareness.off('change', updateUsers);
+      awareness.off('change', handleChange);
+      // Clear local state on unmount so peers know we left
+      awareness.setLocalStateField('user', null);
     };
-  }, [localUser]);
-
-  return users;
+  }, [provider, user, onChange]);
 };

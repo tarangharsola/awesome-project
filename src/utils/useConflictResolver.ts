@@ -1,45 +1,50 @@
-import { useEffect } from 'react';
 import * as Y from 'yjs';
-import { EditorView } from '@codemirror/view';
+import { WebsocketProvider } from 'y-websocket';
+import { useEffect, useRef } from 'react';
 
 /**
- * Binds a Yjs Text type to a CodeMirror editor view.
- * Synchronizes remote changes into the editor and local edits back to Yjs.
+ * Hook that sets up a Yjs document and WebSocket provider for a given room.
+ * It ensures conflict‑free collaborative editing and notifies the caller on
+ * document updates.
  */
-export function useYjsBinding(view: EditorView, yText: Y.Text) {
-  useEffect(() => {
-    // Apply remote Yjs changes to the editor
-    const remoteObserver = (event: Y.YTextEvent) => {
-      view.dispatch({
-        changes: event.delta.map(d => {
-          if (d.insert) {
-            return { from: d.index, insert: d.insert as string };
-          } else if (d.delete) {
-            return { from: d.index, to: d.index + d.delete };
-          }
-          return null;
-        }).filter(Boolean) as any,
-      });
-    };
-    yText.observe(remoteObserver);
+export const useConflictResolver = (
+  roomId: string,
+  onUpdate: (doc: Y.Doc) => void
+) => {
+  const ydocRef = useRef<Y.Doc>();
+  const providerRef = useRef<WebsocketProvider>();
 
-    // Apply local editor changes to Yjs
-    const localListener = view.state.field(EditorView.updateListener, false);
-    const localObserver = (update: any) => {
-      if (update.docChanged) {
-        update.changes.iterChanges((fromA: number, toA: number, fromB: number, toB: number, inserted: any) => {
-          const text = inserted.toString();
-          yText.delete(fromA, toA - fromA);
-          if (text) {
-            yText.insert(fromA, text);
-          }
-        });
+  useEffect(() => {
+    // Initialise Yjs document
+    const ydoc = new Y.Doc();
+    ydocRef.current = ydoc;
+
+    // Build WebSocket URL – fallback to same origin if env var not set
+    const wsBase = process.env.REACT_APP_WS_URL || `${window.location.protocol.replace('http', 'ws')}//${window.location.host}`;
+    const wsUrl = `${wsBase}/room/${roomId}`;
+
+    // Initialise Yjs WebSocket provider
+    const provider = new WebsocketProvider(wsUrl, roomId, ydoc);
+    providerRef.current = provider;
+
+    // Forward Yjs updates to the consumer (ignore local origin to avoid loops)
+    const handleYUpdate = (update: Uint8Array, origin: any) => {
+      if (origin !== provider) {
+        onUpdate(ydoc);
       }
     };
-    view.dispatch({ effects: EditorView.updateListener.of(localObserver) });
+    ydoc.on('update', handleYUpdate);
 
+    // Cleanup on unmount or room change
     return () => {
-      yText.unobserve(remoteObserver);
+      ydoc.off('update', handleYUpdate);
+      provider.disconnect();
+      ydoc.destroy();
     };
-  }, [view, yText]);
-}
+  }, [roomId, onUpdate]);
+
+  const getYDoc = () => ydocRef.current;
+  const getProvider = () => providerRef.current;
+
+  return { getYDoc, getProvider };
+};
