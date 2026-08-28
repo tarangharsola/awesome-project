@@ -1,51 +1,47 @@
-import { useEffect } from 'react';
-import { EditorView } from '@codemirror/view';
-import { useDispatch } from 'react-redux';
-import { setContent } from '../store/editorReducer';
+import { keymap } from '@codemirror/view';
+import { formatCode } from './formatCode';
+import { EditorView } from '@codemirror/basic-setup';
 
-/**
- * Hook that registers common keyboard shortcuts for the editor.
- * - Ctrl+S / Cmd+S: Prevent default browser save and dispatch current content.
- * - Ctrl+Shift+F / Cmd+Shift+F: Trigger a simple formatting routine (re‑indent).
- * - Tab / Shift+Tab: Insert or remove indentation respecting the editor's settings.
- */
-export function useKeyboardShortcuts(view: EditorView) {
-  const dispatch = useDispatch();
+export const useKeyboardShortcuts = (view: EditorView, language: string) => {
+  const format = () => {
+    const doc = view.state.doc.toString();
+    const formatted = formatCode(doc, language);
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: formatted },
+    });
+  };
 
-  useEffect(() => {
-    if (!view) return undefined;
+  const save = () => {
+    const blob = new Blob([view.state.doc.toString()], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `code.${language === 'javascript' ? 'js' : language === 'python' ? 'py' : 'html'}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-    const keydownHandler = (event: KeyboardEvent) => {
-      const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-      const ctrlKey = isMac ? event.metaKey : event.ctrlKey;
-
-      // Save shortcut
-      if (ctrlKey && event.key === 's') {
-        event.preventDefault();
-        const currentContent = view.state.doc.toString();
-        dispatch(setContent(currentContent));
-        // Optionally show a toast or visual feedback here
-        return;
-      }
-
-      // Format shortcut (simple re‑indent)
-      if (ctrlKey && event.shiftKey && event.key.toLowerCase() === 'f') {
-        event.preventDefault();
-        // Use built‑in indentAll command from CodeMirror
-        import('@codemirror/commands').then(({ indentAll }) => {
-          view.dispatch({
-            changes: [],
-            annotations: [],
-          });
-          indentAll(view);
-        });
-        return;
-      }
-    };
-
-    view.dom.addEventListener('keydown', keydownHandler);
-    return () => {
-      view.dom.removeEventListener('keydown', keydownHandler);
-    };
-  }, [view, dispatch]);
-}
+  return keymap.of([
+    {
+      key: 'Mod-s',
+      run: () => {
+        save();
+        return true;
+      },
+    },
+    {
+      key: 'Mod-Shift-f',
+      run: () => {
+        format();
+        return true;
+      },
+    },
+    {
+      key: 'Tab',
+      run: (view) => {
+        view.dispatch(view.state.replaceSelection('  '));
+        return true;
+      },
+    },
+  ]);
+};
