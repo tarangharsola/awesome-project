@@ -1,40 +1,46 @@
 import React from "react";
+import { useWebSocket } from "../hooks/useWebSocket";
 import "./ConnectionStatus.css";
 
-type Status = "connected" | "disconnected" | "reconnecting";
+// Build the WebSocket URL based on the current location.
+const WS_URL = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`;
 
-interface Props {
-  status: Status;
-}
+export const ConnectionStatus: React.FC = () => {
+  const { status, manualReconnect } = useWebSocket(WS_URL, Infinity);
 
-export const ConnectionStatus: React.FC<Props> = ({ status }) => {
   const getColor = () => {
     switch (status) {
       case "connected":
-        return "#4caf50";
-      case "reconnecting":
-        return "#ff9800";
+        return "green";
+      case "connecting":
+        return "orange";
       case "disconnected":
+      case "error":
+        return "red";
       default:
-        return "#f44336";
-    }
-  };
-
-  const getLabel = () => {
-    switch (status) {
-      case "connected":
-        return "Connected";
-      case "reconnecting":
-        return "Reconnecting...";
-      case "disconnected":
-        return "Disconnected";
+        return "gray";
     }
   };
 
   return (
-    <div className="connection-status" style={{ color: getColor() }}>
-      <span className="dot" style={{ backgroundColor: getColor() }} />
-      {getLabel()}
+    <div className="connection-status" style={{ display: "flex", alignItems: "center" }}>
+      <span
+        className="status-indicator"
+        style={{
+          width: 10,
+          height: 10,
+          borderRadius: "50%",
+          backgroundColor: getColor(),
+          marginRight: 8,
+        }}
+        title={status}
+      />
+      <span style={{ marginRight: 12, textTransform: "capitalize" }}>{status}</span>
+      {status !== "connected" && (
+        <button onClick={manualReconnect} className="retry-button">
+          Retry
+        </button>
+      )}
     </div>
   );
 };
