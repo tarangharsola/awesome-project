@@ -1,44 +1,43 @@
-import { useEffect } from 'react';
-import { WebsocketProvider } from 'y-websocket';
-import { Awareness } from 'y-protocols/awareness';
+import { useEffect, useRef } from "react";
+import * as Y from "yjs";
+import { WebsocketProvider } from "y-websocket";
+import { useWebSocket } from "./useWebSocket";
+
+export interface AwarenessUser {
+  id: string;
+  name: string;
+  color: string;
+}
 
 /**
- * Hook that synchronises local user awareness (name, colour, cursor) across
- * all participants in a Yjs‑based collaborative session.
- *
- * @param provider   Yjs WebSocket provider for the current room.
- * @param user       Local user metadata.
- * @param onChange   Optional callback invoked when the set of remote users changes.
+ * Hook that sets up Yjs awareness for a collaborative session.
+ * It ensures that user presence is broadcast and cleaned up on disconnect.
  */
-export const useAwareness = (
-  provider: WebsocketProvider,
-  user: { id: string; name: string; color: string },
-  onChange?: (users: Array<{ id: number; name: string; color: string }>) => void
-) => {
+export function useAwareness(
+  doc: Y.Doc,
+  roomId: string,
+  localUser: AwarenessUser,
+  wsUrl: string
+) {
+  const providerRef = useRef<WebsocketProvider | null>(null);
+
   useEffect(() => {
-    const awareness: Awareness = provider.awareness;
+    const provider = new WebsocketProvider(wsUrl, roomId, doc, {
+      // Use a dedicated awareness instance to avoid conflicts with other providers
+      awareness: new Y.Awareness(doc),
+    });
+    providerRef.current = provider;
 
-    // Initialise local state – this will be broadcast to peers automatically
-    awareness.setLocalStateField('user', user);
+    // Set the local user's awareness state
+    provider.awareness.setLocalStateField("user", localUser);
 
-    const handleChange = ({ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] }) => {
-      if (!onChange) return;
-      const states = awareness.getStates();
-      const activeUsers: Array<{ id: number; name: string; color: string }> = [];
-      states.forEach((state, clientId) => {
-        if (state.user) {
-          activeUsers.push({ id: clientId, name: state.user.name, color: state.user.color });
-        }
-      });
-      onChange(activeUsers);
-    };
-
-    awareness.on('change', handleChange);
-
+    // Clean up on component unmount
     return () => {
-      awareness.off('change', handleChange);
-      // Clear local state on unmount so peers know we left
-      awareness.setLocalStateField('user', null);
+      provider.awareness.setLocalStateField("user", null);
+      provider.disconnect();
     };
-  }, [provider, user, onChange]);
-};
+  }, [doc, roomId, wsUrl, localUser]);
+
+  // Return the awareness instance for UI components to subscribe to changes
+  return providerRef.current?.awareness;
+}

@@ -1,97 +1,70 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 
-type ConnectionStatus = "connected" | "disconnected" | "reconnecting";
-
-interface UseWebSocketOptions {
+export interface WebSocketOptions {
   url: string;
-  onMessage?: (event: MessageEvent) => void;
   protocols?: string | string[];
-  maxBackoff?: number; // ms
-  initialBackoff?: number; // ms
+  onMessage: (event: MessageEvent) => void;
+  onOpen?: () => void;
+  onClose?: () => void;
+  onError?: (error: Event) => void;
 }
 
-export function useWebSocket({
-  url,
-  onMessage,
-  protocols,
-  maxBackoff = 30000,
-  initialBackoff = 1000,
-}: UseWebSocketOptions) {
-  const [status, setStatus] = useState<ConnectionStatus>("disconnected");
+/**
+ * Hook that manages a WebSocket connection with automatic reconnection.
+ * It exposes the current readyState and a send function.
+ */
+export function useWebSocket(options: WebSocketOptions) {
+  const { url, protocols, onMessage, onOpen, onClose, onError } = options;
   const wsRef = useRef<WebSocket | null>(null);
-  const backoffRef = useRef<number>(initialBackoff);
-  const reconnectTimeoutRef = useRef<number | null>(null);
-  const isUnmountedRef = useRef(false);
+  const reconnectAttempts = useRef(0);
+  const [readyState, setReadyState] = useState<WebSocket["readyState"]>(WebSocket.CLOSED);
+  const maxDelay = 30000; // 30 seconds
 
-  const clearReconnectTimeout = () => {
-    if (reconnectTimeoutRef.current !== null) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
+  const send = (data: string | ArrayBuffer | Blob) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(data);
     }
   };
 
-  const connect = useCallback(() => {
-    if (isUnmountedRef.current) return;
-    setStatus("reconnecting");
-    const ws = new WebSocket(url, protocols);
-    wsRef.current = ws;
+  const connect = () => {
+    wsRef.current = new WebSocket(url, protocols);
+    setReadyState(WebSocket.CONNECTING);
 
-    ws.onopen = () => {
-      setStatus("connected");
-      backoffRef.current = initialBackoff;
+    wsRef.current.onopen = () => {
+      reconnectAttempts.current = 0;
+      setReadyState(WebSocket.OPEN);
+      onOpen?.();
     };
 
-    ws.onmessage = (event) => {
-      onMessage?.(event);
-    };
+    wsRef.current.onmessage = onMessage;
 
-    const handleClose = () => {
-      setStatus("disconnected");
-      wsRef.current = null;
+    wsRef.current.onclose = (event) => {
+      setReadyState(WebSocket.CLOSED);
+      onClose?.();
       scheduleReconnect();
     };
 
-    ws.onclose = handleClose;
-    ws.onerror = () => {
-      ws.close();
+    wsRef.current.onerror = (event) => {
+      onError?.(event);
+      // onclose will trigger reconnection
     };
-  }, [url, protocols, onMessage, initialBackoff]);
-
-  const scheduleReconnect = () => {
-    clearReconnectTimeout();
-    const backoff = Math.min(backoffRef.current, maxBackoff);
-    // jitter +/-10%
-    const jitter = backoff * (Math.random() * 0.2 - 0.1);
-    const delay = backoff + jitter;
-    reconnectTimeoutRef.current = window.setTimeout(() => {
-      connect();
-    }, delay);
-    backoffRef.current = Math.min(backoff * 2, maxBackoff);
   };
 
-  const sendMessage = useCallback(
-    (data: string | ArrayBuffer | Blob) => {
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(data);
-      } else {
-        console.warn("WebSocket is not open. Message not sent.");
-      }
-    },
-    []
-  );
+  const scheduleReconnect = () => {
+    const delay = Math.min(1000 * 2 ** reconnectAttempts.current, maxDelay);
+    reconnectAttempts.current += 1;
+    setTimeout(() => {
+      connect();
+    }, delay);
+  };
 
   useEffect(() => {
-    isUnmountedRef.current = false;
     connect();
-
     return () => {
-      isUnmountedRef.current = true;
-      clearReconnectTimeout();
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
+      wsRef.current?.close();
     };
-  }, [connect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url]);
 
-  return { status, sendMessage };
+  return { send, readyState };
 }
