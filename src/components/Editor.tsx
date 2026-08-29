@@ -1,59 +1,34 @@
 import React, { useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import { EditorView, basicSetup } from '@codemirror/basic-setup';
-import { EditorState } from '@codemirror/state';
-import { RootState } from '../store';
+import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { html } from '@codemirror/lang-html';
 import { useFormattingDefaults } from '../utils/useFormattingDefaults';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import LanguageSelector from './LanguageSelector';
 
-const Editor: React.FC = () => {
+type Props = {
+  language: 'javascript' | 'python' | 'html';
+};
+
+const Editor: React.FC<Props> = ({ language }) => {
   const editorRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
+  const formattingExtensions = useFormattingDefaults();
+  const shortcutExtension = useKeyboardShortcuts(language);
 
-  const { content, language } = useSelector((state: RootState) => state.editor);
-  const formattingExtensions = useFormattingDefaults(language);
-
-  // Initialize CodeMirror view
   useEffect(() => {
     if (!editorRef.current) return;
-    const startState = EditorState.create({
-      doc: content,
-      extensions: [basicSetup, ...formattingExtensions],
-    });
+    const langExtension =
+      language === 'javascript' ? javascript() : language === 'python' ? python() : html();
+    const extensions = [basicSetup, langExtension, ...formattingExtensions, shortcutExtension];
     const view = new EditorView({
-      state: startState,
+      doc: '',
+      extensions,
       parent: editorRef.current,
     });
-    viewRef.current = view;
-    // Attach keyboard shortcuts
-    useKeyboardShortcuts(view);
-    return () => {
-      view.destroy();
-      viewRef.current = null;
-    };
-    // Re‑initialize only when language changes to apply new extensions
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]);
+    return () => view.destroy();
+  }, [language, formattingExtensions, shortcutExtension]);
 
-  // Sync external content changes (e.g., from remote users)
-  useEffect(() => {
-    const view = viewRef.current;
-    if (!view) return;
-    const currentDoc = view.state.doc.toString();
-    if (currentDoc !== content) {
-      view.dispatch({
-        changes: { from: 0, to: view.state.doc.length, insert: content },
-      });
-    }
-  }, [content]);
-
-  return (
-    <div className="editor-container" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <LanguageSelector />
-      <div ref={editorRef} style={{ flexGrow: 1, overflow: 'auto' }} />
-    </div>
-  );
+  return <div ref={editorRef} className="editor" />;
 };
 
 export default Editor;

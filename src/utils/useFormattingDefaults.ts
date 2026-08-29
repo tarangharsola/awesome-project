@@ -1,17 +1,18 @@
-type FormattingOptions = {
-  indentUnit: number;
-  tabSize: number;
-  lineWrapping: boolean;
-};
+import { EditorView } from '@codemirror/view';
+import { Extension } from '@codemirror/state';
 
-export const getFormattingDefaults = (language: string): FormattingOptions => {
-  switch (language) {
-    case 'javascript':
-    case 'python':
-      return { indentUnit: 2, tabSize: 2, lineWrapping: true };
-    case 'html':
-      return { indentUnit: 2, tabSize: 2, lineWrapping: false };
-    default:
-      return { indentUnit: 2, tabSize: 2, lineWrapping: true };
-  }
-};
+export const useFormattingDefaults = (): Extension[] => [
+  EditorView.lineWrapping,
+  EditorView.theme(
+    {
+      '&': {
+        backgroundColor: '#1e1e1e',
+        color: '#d4d4d4',
+      },
+      '.cm-content': {
+        fontFamily: 'monospace',
+      },
+    },
+    { dark: true }
+  ),
+];
