@@ -1,34 +1,31 @@
-.userList {
-  background-color: #1e1e1e;
-  color: #e0e0e0;
-  padding: 8px;
-  border-radius: 4px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
 .userItem {
   display: flex;
   align-items: center;
-  margin-bottom: 4px;
+  padding: 4px 8px;
+  margin: 2px 0;
+  border-radius: 4px;
+  background-color: var(--user-bg, #2c2c2c);
+  color: var(--user-fg, #e0e0e0);
   font-size: 0.9rem;
-  padding: 2px 4px;
-  border-radius: 3px;
-  cursor: default;
 }
 
-.userItem:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.colorDot {
-  width: 10px;
-  height: 10px;
+.userAvatar {
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   margin-right: 6px;
-  flex-shrink: 0;
+  background-color: var(--user-bg, #555);
 }
 
-.userName {
-  flex-grow: 1;
+.cursorLabel {
+  position: absolute;
+  background-color: var(--cursor-bg, rgba(0, 0, 0, 0.6));
+  color: var(--cursor-fg, #ffffff);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -120%);
+  z-index: 10;
 }

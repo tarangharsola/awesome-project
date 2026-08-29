@@ -1,20 +1,26 @@
 import React from 'react';
-import { useUsers } from '../hooks/useUsers';
+import { User } from '../types';
 import styles from '../styles/user.module.css';
 
-const UserList: React.FC = () => {
-  const users = useUsers();
+interface UserListProps {
+  users: User[];
+}
+
+const UserList: React.FC<UserListProps> = ({ users }) => {
   return (
-    <div className={styles.userList}>
-      {users.map((user) => (
-        <div key={user.id} className={styles.userItem}>
-          <span
-            className={styles.colorDot}
-            style={{ backgroundColor: user.color }}
-          />
-          <span className={styles.userName}>{user.name}</span>
-        </div>
-      ))}
+    <div>
+      {users.map((user) => {
+        const itemStyle: React.CSSProperties = {
+          '--user-bg': user.color,
+          '--user-fg': '#ffffff'
+        } as React.CSSProperties;
+        return (
+          <div key={user.id} className={styles.userItem} style={itemStyle}>
+            <div className={styles.userAvatar} />
+            <span>{user.name}</span>
+          </div>
+        );
+      })}
     </div>
   );
 };
