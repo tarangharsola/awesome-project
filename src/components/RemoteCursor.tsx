@@ -1,27 +1,41 @@
-import React, { useEffect, useRef } from 'react';
-import { RemoteCursorProps } from '../types/editor';
-import styles from '../styles/user.module.css';
+import React from 'react';
+import { CursorData } from '../types/editor';
 
-const RemoteCursor: React.FC<RemoteCursorProps> = ({ user, position }) => {
-  const cursorRef = useRef<HTMLDivElement>(null);
+type Props = {
+  cursor: CursorData;
+};
 
-  useEffect(() => {
-    if (cursorRef.current) {
-      cursorRef.current.style.left = `${position.x}px`;
-      cursorRef.current.style.top = `${position.y}px`;
-    }
-  }, [position]);
+export const RemoteCursor: React.FC<Props> = ({ cursor }) => {
+  const { position, user } = cursor;
+  const style: React.CSSProperties = {
+    position: 'absolute',
+    left: `${position.x}px`,
+    top: `${position.y}px`,
+    pointerEvents: 'none',
+    zIndex: 10,
+  };
 
   const labelStyle: React.CSSProperties = {
-    '--cursor-bg': user.color,
-    '--cursor-fg': '#ffffff'
-  } as React.CSSProperties;
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    color: '#fff',
+    padding: '2px 4px',
+    borderRadius: '3px',
+    fontSize: '0.75rem',
+    whiteSpace: 'nowrap',
+    marginTop: '-1.2em',
+  };
+
+  const cursorStyle: React.CSSProperties = {
+    width: '2px',
+    height: '1.2em',
+    backgroundColor: user.color,
+    marginLeft: '-1px',
+  };
 
   return (
-    <div className={styles.cursorLabel} style={labelStyle} ref={cursorRef}>
-      {user.name}
+    <div style={style}>
+      <div style={cursorStyle} />
+      <div style={labelStyle}>{user.name}</div>
     </div>
   );
 };
-
-export default RemoteCursor;
