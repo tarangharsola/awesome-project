@@ -1,46 +1,39 @@
 import React from "react";
-import { useWebSocket } from "../hooks/useWebSocket";
-import "./ConnectionStatus.css";
+import { ConnectionStatus as Status } from "../hooks/useWebSocket";
 
-// Build the WebSocket URL based on the current location.
-const WS_URL = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`;
+interface Props {
+  status: Status;
+}
 
-export const ConnectionStatus: React.FC = () => {
-  const { status, manualReconnect } = useWebSocket(WS_URL, Infinity);
+const statusColors: Record<Status, string> = {
+  connected: "#4caf50",
+  disconnected: "#f44336",
+  reconnecting: "#ff9800",
+};
 
-  const getColor = () => {
-    switch (status) {
-      case "connected":
-        return "green";
-      case "connecting":
-        return "orange";
-      case "disconnected":
-      case "error":
-        return "red";
-      default:
-        return "gray";
-    }
-  };
-
+export const ConnectionStatus: React.FC<Props> = ({ status }) => {
+  const color = statusColors[status] ?? "#777";
+  const label = status.charAt(0).toUpperCase() + status.slice(1);
   return (
-    <div className="connection-status" style={{ display: "flex", alignItems: "center" }}>
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "0.5rem",
+        color,
+        fontWeight: "bold",
+      }}
+      aria-label={`Connection status: ${label}`}
+    >
       <span
-        className="status-indicator"
         style={{
-          width: 10,
-          height: 10,
+          width: "8px",
+          height: "8px",
           borderRadius: "50%",
-          backgroundColor: getColor(),
-          marginRight: 8,
+          backgroundColor: color,
         }}
-        title={status}
       />
-      <span style={{ marginRight: 12, textTransform: "capitalize" }}>{status}</span>
-      {status !== "connected" && (
-        <button onClick={manualReconnect} className="retry-button">
-          Retry
-        </button>
-      )}
+      <span>{label}</span>
     </div>
   );
 };
