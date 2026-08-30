@@ -1,41 +1,30 @@
-import { useRef, useCallback } from "react";
-import { DocumentChange } from "../types/editor";
-import { applyChange, transformChange } from "../utils/conflictResolver";
+import { useRef, useCallback } from 'react'
+import { ConflictResolver } from '../utils/conflictResolver'
+import { TextOperation } from '../types/conflict'
 
 /**
- * Hook that manages local and remote document changes using the lightweight
- * operational‑transformation utilities defined in `conflictResolver.ts`.
- * It keeps the current content in a ref and exposes helpers for applying
- * local edits (e.g., from the editor) and remote edits (e.g., from other users).
+ * Hook that provides a ConflictResolver instance bound to the component lifecycle.
+ * It returns helpers to apply local and remote operations while keeping pending
+ * local operations in a stable reference.
  */
-export function useConflictResolver(initialContent: string) {
-  const contentRef = useRef<string>(initialContent);
-  const pendingRef = useRef<DocumentChange[]>([]);
+export function useConflictResolver(initialDoc: string) {
+  const resolverRef = useRef(new ConflictResolver(initialDoc))
+  const pendingOpsRef = useRef<TextOperation[]>([])
 
-  const applyRemote = useCallback((remoteChange: DocumentChange) => {
-    // Transform any pending local changes against the incoming remote change.
-    const pending = pendingRef.current;
-    for (let i = 0; i < pending.length; i++) {
-      pending[i] = transformChange(pending[i], remoteChange);
-    }
-    // Apply the remote change to the canonical content.
-    contentRef.current = applyChange(contentRef.current, remoteChange);
-  }, []);
+  const applyLocal = useCallback((op: TextOperation) => {
+    pendingOpsRef.current.push(op)
+    const newDoc = resolverRef.current.applyLocal(op)
+    return newDoc
+  }, [])
 
-  const applyLocal = useCallback((localChange: DocumentChange) => {
-    // Queue the local change so it can be transformed against future remote edits.
-    pendingRef.current.push(localChange);
-    // Optimistically apply it to the local view.
-    contentRef.current = applyChange(contentRef.current, localChange);
-    return localChange;
-  }, []);
+  const applyRemote = useCallback((op: TextOperation) => {
+    const newDoc = resolverRef.current.applyRemote(op, pendingOpsRef.current)
+    // After a remote op is integrated we can clear ops that have been transformed.
+    pendingOpsRef.current = []
+    return newDoc
+  }, [])
 
-  const getContent = useCallback(() => contentRef.current, []);
+  const getDocument = useCallback(() => resolverRef.current.getDocument(), [])
 
-  return {
-    getContent,
-    applyLocal,
-    applyRemote,
-    pendingChanges: pendingRef.current
-  } as const;
+  return { applyLocal, applyRemote, getDocument }
 }
