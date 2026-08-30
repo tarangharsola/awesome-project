@@ -1,18 +1,43 @@
-import { SET_LANGUAGE } from './editorActions';
-import { EditorState } from '../types/editor';
+import { EditorAction, EditorState } from '../types/editor';
+import { resolveConflict, EditOperation } from '../utils/conflictResolver';
 
-export const initialState: EditorState = {
+const initialState: EditorState = {
   content: '',
-  language: 'javascript',
-  // other fields can be added here as needed
+  version: 0,
+  lastEdit: null as EditOperation | null,
 };
 
-export const editorReducer = (state = initialState, action: any): EditorState => {
+export function editorReducer(state = initialState, action: EditorAction): EditorState {
   switch (action.type) {
-    case SET_LANGUAGE:
-      return { ...state, language: action.payload };
-    // other cases can be handled here
+    case 'LOCAL_EDIT': {
+      const newEdit: EditOperation = {
+        content: action.payload.content,
+        timestamp: Date.now(),
+      };
+      return {
+        ...state,
+        content: newEdit.content,
+        version: state.version + 1,
+        lastEdit: newEdit,
+      };
+    }
+    case 'REMOTE_EDIT': {
+      const remoteEdit: EditOperation = {
+        content: action.payload.content,
+        timestamp: action.payload.timestamp,
+      };
+      const resolved = resolveConflict(state.lastEdit as EditOperation, remoteEdit);
+      return {
+        ...state,
+        content: resolved.content,
+        version: state.version + 1,
+        lastEdit: resolved,
+      };
+    }
+    case 'SET_CONTENT': {
+      return { ...state, content: action.payload.content };
+    }
     default:
       return state;
   }
-};
+}

@@ -1,43 +1,76 @@
-import { useEffect, useRef } from "react";
-import * as Y from "yjs";
-import { WebsocketProvider } from "y-websocket";
-import { useWebSocket } from "./useWebSocket";
+import { useEffect, useRef } from 'react';
+import { useWebSocket } from './useWebSocket';
+import { v4 as uuidv4 } from 'uuid';
 
-export interface AwarenessUser {
-  id: string;
-  name: string;
+interface AwarenessOptions {
+  username: string;
   color: string;
+  wsUrl: string;
+  onUsersUpdate: (users: Record<string, { name: string; color: string }>) => void;
 }
 
 /**
- * Hook that sets up Yjs awareness for a collaborative session.
- * It ensures that user presence is broadcast and cleaned up on disconnect.
+ * Hook that manages user presence (awareness) across a collaborative session.
+ * It broadcasts the local user's identity on connection and updates the
+ * consumer with the current list of connected users.
  */
-export function useAwareness(
-  doc: Y.Doc,
-  roomId: string,
-  localUser: AwarenessUser,
-  wsUrl: string
-) {
-  const providerRef = useRef<WebsocketProvider | null>(null);
+export function useAwareness({ username, color, wsUrl, onUsersUpdate }: AwarenessOptions) {
+  const userId = useRef<string>(uuidv4());
+  const users = useRef<Record<string, { name: string; color: string }>>({});
 
+  const { sendMessage, status } = useWebSocket({
+    url: wsUrl,
+    onMessage: (event) => {
+      const data = JSON.parse(event.data);
+      switch (data.type) {
+        case 'presence':
+          // data.payload = { userId, name, color }
+          users.current[data.payload.userId] = { name: data.payload.name, color: data.payload.color };
+          onUsersUpdate({ ...users.current });
+          break;
+        case 'presence-leave':
+          delete users.current[data.payload.userId];
+          onUsersUpdate({ ...users.current });
+          break;
+        case 'sync-response':
+          // Server may send the current user list on sync request
+          if (Array.isArray(data.payload.users)) {
+            users.current = {};
+            data.payload.users.forEach((u: any) => {
+              users.current[u.userId] = { name: u.name, color: u.color };
+            });
+            onUsersUpdate({ ...users.current });
+          }
+          break;
+        default:
+          break;
+      }
+    },
+    onOpen: () => {
+      // Announce presence when the socket is ready
+      sendMessage({
+        type: 'presence',
+        payload: { userId: userId.current, name: username, color },
+      });
+    },
+    onClose: () => {
+      // Inform others that we are leaving (best‑effort, may not reach if network drops)
+      sendMessage({
+        type: 'presence-leave',
+        payload: { userId: userId.current },
+      });
+    },
+  });
+
+  // Re‑announce presence after reconnection
   useEffect(() => {
-    const provider = new WebsocketProvider(wsUrl, roomId, doc, {
-      // Use a dedicated awareness instance to avoid conflicts with other providers
-      awareness: new Y.Awareness(doc),
-    });
-    providerRef.current = provider;
+    if (status === 'connected') {
+      sendMessage({
+        type: 'presence',
+        payload: { userId: userId.current, name: username, color },
+      });
+    }
+  }, [status, sendMessage, username, color]);
 
-    // Set the local user's awareness state
-    provider.awareness.setLocalStateField("user", localUser);
-
-    // Clean up on component unmount
-    return () => {
-      provider.awareness.setLocalStateField("user", null);
-      provider.disconnect();
-    };
-  }, [doc, roomId, wsUrl, localUser]);
-
-  // Return the awareness instance for UI components to subscribe to changes
-  return providerRef.current?.awareness;
+  return { userId: userId.current, users: users.current };
 }

@@ -1,34 +1,68 @@
 import React, { useEffect, useRef } from 'react';
-import { EditorView, basicSetup } from '@codemirror/basic-setup';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { html } from '@codemirror/lang-html';
-import { useFormattingDefaults } from '../utils/useFormattingDefaults';
-import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { useDispatch, useSelector } from 'react-redux';
+import { editorReducer } from '../store/editorReducer';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { useLanguage } from '../utils/useLanguage';
+import { useAwareness } from '../hooks/useAwareness';
+import { RootState } from '../store';
+import { setContent } from '../store/editorActions';
 
-type Props = {
-  language: 'javascript' | 'python' | 'html';
-};
+export const Editor: React.FC = () => {
+  const dispatch = useDispatch();
+  const content = useSelector((state: RootState) => state.editor.content);
+  const language = useSelector((state: RootState) => state.editor.language);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-const Editor: React.FC<Props> = ({ language }) => {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const formattingExtensions = useFormattingDefaults();
-  const shortcutExtension = useKeyboardShortcuts(language);
+  const { sendMessage, status } = useWebSocket({
+    url: `${process.env.REACT_APP_WS_URL}/session/${window.location.pathname.slice(1)}`,
+    onMessage: (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'remote-edit') {
+        dispatch({ type: 'REMOTE_EDIT', payload: { content: data.payload.content, timestamp: data.payload.timestamp } });
+      } else if (data.type === 'sync-response') {
+        dispatch(setContent(data.payload.content));
+      }
+    },
+  });
 
-  useEffect(() => {
-    if (!editorRef.current) return;
-    const langExtension =
-      language === 'javascript' ? javascript() : language === 'python' ? python() : html();
-    const extensions = [basicSetup, langExtension, ...formattingExtensions, shortcutExtension];
-    const view = new EditorView({
-      doc: '',
-      extensions,
-      parent: editorRef.current,
+  // Awareness (cursor & user list) – only needed for side‑effects, UI handled elsewhere
+  useAwareness({
+    username: window.localStorage.getItem('username') || 'Anonymous',
+    color: window.localStorage.getItem('color') || '#'+Math.floor(Math.random()*16777215).toString(16),
+    wsUrl: `${process.env.REACT_APP_WS_URL}/session/${window.location.pathname.slice(1)}`,
+    onUsersUpdate: () => {},
+  });
+
+  // Emit local edits
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    dispatch({ type: 'LOCAL_EDIT', payload: { content: newContent } });
+    sendMessage({
+      type: 'local-edit',
+      payload: { content: newContent, timestamp: Date.now() },
     });
-    return () => view.destroy();
-  }, [language, formattingExtensions, shortcutExtension]);
+  };
 
-  return <div ref={editorRef} className="editor" />;
+  // Sync initial content when component mounts
+  useEffect(() => {
+    if (status === 'connected') {
+      sendMessage({ type: 'sync-request' });
+    }
+  }, [status, sendMessage]);
+
+  // Apply syntax highlighting via simple CSS class (placeholder for real editor like Monaco)
+  const { setLanguage } = useLanguage();
+  useEffect(() => {
+    setLanguage(language);
+  }, [language, setLanguage]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      value={content}
+      onChange={handleChange}
+      className={`editor ${language}`}
+      spellCheck={false}
+    />
+  );
 };
-
-export default Editor;
