@@ -1,35 +1,33 @@
-import { keymap } from '@codemirror/view';
-import { indentWithTab } from '@codemirror/commands';
-import { format } from 'prettier/standalone';
-import parserBabel from 'prettier/parser-babel';
-import parserHTML from 'prettier/parser-html';
-import parserPython from 'prettier/parser-python';
-import { EditorView } from '@codemirror/view';
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { setContent } from '../store/editorActions';
 
-type Language = 'javascript' | 'python' | 'html';
+export const useKeyboardShortcuts = (editorRef: React.RefObject<HTMLElement>) => {
+  const dispatch = useDispatch();
 
-export const useKeyboardShortcuts = (language: Language) => {
-  const formatDoc = (view: EditorView) => {
-    const code = view.state.doc.toString();
-    let parser: any = 'babel';
-    if (language === 'python') parser = 'python';
-    else if (language === 'html') parser = 'html';
-    try {
-      const formatted = format(code, {
-        parser,
-        plugins: [parserBabel, parserHTML, parserPython],
-      });
-      view.dispatch({
-        changes: { from: 0, to: view.state.doc.length, insert: formatted },
-      });
-    } catch (e) {
-      console.error('Formatting error:', e);
-    }
-    return true;
-  };
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+S or Cmd+S -> format (placeholder for actual formatter)
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        // Simple formatting: trim trailing spaces
+        if (editorRef.current) {
+          const text = (editorRef.current as any).innerText || '';
+          const formatted = text.replace(/[ \t]+\n/g, '\n');
+          dispatch(setContent(formatted));
+        }
+      }
+      // Ctrl+Shift+L -> toggle language selector focus (example shortcut)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        const selector = document.getElementById('language-selector');
+        selector?.focus();
+      }
+    };
 
-  return keymap.of([
-    { key: 'Mod-s', run: formatDoc },
-    { key: 'Tab', run: indentWithTab },
-  ]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [dispatch, editorRef]);
 };

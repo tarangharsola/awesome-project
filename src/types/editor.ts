@@ -1,21 +1,7 @@
-export interface DocumentChange {
-  range: {
-    start: number;
-    end: number;
-  };
-  text: string;
-}
+export type Language = 'javascript' | 'python' | 'html';
 
-export interface CursorPosition {
-  line: number;
-  ch: number;
+export interface EditorState {
+  content: string;
+  language: Language;
+  // other editor state fields can be added here
 }
-
-export interface UserCursor {
-  userId: string;
-  name: string;
-  color: string;
-  position: CursorPosition;
-}
-
-export type EditorContent = string;
