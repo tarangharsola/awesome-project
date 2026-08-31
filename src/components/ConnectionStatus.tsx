@@ -1,39 +1,23 @@
 import React from "react";
-import { ConnectionStatus as Status } from "../hooks/useWebSocket";
+import "./ConnectionStatus.css";
 
-interface Props {
-  status: Status;
-}
+type Props = {
+  status: "connected" | "disconnected" | "reconnecting";
+};
 
-const statusColors: Record<Status, string> = {
+const statusColors: Record<Props["status"], string> = {
   connected: "#4caf50",
   disconnected: "#f44336",
   reconnecting: "#ff9800",
 };
 
 export const ConnectionStatus: React.FC<Props> = ({ status }) => {
-  const color = statusColors[status] ?? "#777";
+  const color = statusColors[status];
   const label = status.charAt(0).toUpperCase() + status.slice(1);
   return (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "0.5rem",
-        color,
-        fontWeight: "bold",
-      }}
-      aria-label={`Connection status: ${label}`}
-    >
-      <span
-        style={{
-          width: "8px",
-          height: "8px",
-          borderRadius: "50%",
-          backgroundColor: color,
-        }}
-      />
-      <span>{label}</span>
+    <div className="connection-status" style={{ color }}>
+      <span className="dot" style={{ backgroundColor: color, display: "inline-block", width: 8, height: 8, borderRadius: "50%", marginRight: 4 }} />
+      {label}
     </div>
   );
 };

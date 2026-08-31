@@ -1,87 +1,84 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
-export type ConnectionStatus = "connected" | "disconnected" | "reconnecting";
+export type WebSocketStatus = "connected" | "disconnected" | "reconnecting";
 
 interface UseWebSocketOptions {
   url: string;
   protocols?: string | string[];
   onMessage?: (event: MessageEvent) => void;
-  onOpen?: () => void;
-  onClose?: () => void;
-  onError?: (event: Event) => void;
+  maxBackoff?: number; // ms
 }
 
 export const useWebSocket = ({
   url,
   protocols,
   onMessage,
-  onOpen,
-  onClose,
-  onError,
+  maxBackoff = 30000,
 }: UseWebSocketOptions) => {
-  const socketRef = useRef<WebSocket | null>(null);
-  const [status, setStatus] = useState<ConnectionStatus>("disconnected");
-  const reconnectAttemptsRef = useRef(0);
-  const timeoutRef = useRef<number | null>(null);
+  const [status, setStatus] = useState<WebSocketStatus>("disconnected");
+  const wsRef = useRef<WebSocket | null>(null);
+  const backoffRef = useRef<number>(1000); // start at 1s
+  const reconnectTimeout = useRef<number | null>(null);
+  const isUnmounted = useRef(false);
 
-  const clearTimeoutIfSet = () => {
-    if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+  const clearReconnect = () => {
+    if (reconnectTimeout.current) {
+      clearTimeout(reconnectTimeout.current);
+      reconnectTimeout.current = null;
     }
   };
 
   const connect = useCallback(() => {
+    if (isUnmounted.current) return;
     setStatus("reconnecting");
     const ws = new WebSocket(url, protocols);
-    socketRef.current = ws;
+    wsRef.current = ws;
 
     ws.onopen = () => {
       setStatus("connected");
-      reconnectAttemptsRef.current = 0;
-      onOpen?.();
+      backoffRef.current = 1000; // reset backoff on successful connection
     };
 
     ws.onmessage = (event) => {
       onMessage?.(event);
     };
 
-    ws.onerror = (event) => {
-      onError?.(event);
-    };
-
     ws.onclose = () => {
       setStatus("disconnected");
-      onClose?.();
-      const attempts = reconnectAttemptsRef.current + 1;
-      reconnectAttemptsRef.current = attempts;
-      const delay = Math.min(1000 * 2 ** attempts, 30000); // exponential backoff up to 30s
-      clearTimeoutIfSet();
-      timeoutRef.current = window.setTimeout(() => {
+      clearReconnect();
+      const timeout = backoffRef.current;
+      backoffRef.current = Math.min(backoffRef.current * 2, maxBackoff);
+      reconnectTimeout.current = window.setTimeout(() => {
         connect();
-      }, delay);
+      }, timeout);
     };
-  }, [url, protocols, onMessage, onOpen, onClose, onError]);
+
+    ws.onerror = () => {
+      // Trigger close to start reconnection flow
+      ws.close();
+    };
+  }, [url, protocols, onMessage, maxBackoff]);
 
   useEffect(() => {
+    isUnmounted.current = false;
     connect();
     return () => {
-      clearTimeoutIfSet();
-      socketRef.current?.close();
+      isUnmounted.current = true;
+      clearReconnect();
+      wsRef.current?.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connect]);
 
   const sendMessage = useCallback(
     (data: string | ArrayBuffer | Blob) => {
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-        socketRef.current.send(data);
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(data);
       } else {
-        console.warn("WebSocket is not open. Message not sent.");
+        console.warn("WebSocket not open. Message not sent.");
       }
     },
     []
   );
 
-  return { socket: socketRef.current, sendMessage, status };
+  return { status, sendMessage };
 };
