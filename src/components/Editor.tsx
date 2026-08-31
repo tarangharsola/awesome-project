@@ -1,42 +1,39 @@
-import React, { useRef } from 'react';
-import MonacoEditor, { monaco } from '@monaco-editor/react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store';
-import { setLanguage } from '../store/editorActions';
-import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import React, { useEffect, useRef } from "react";
+import { useDispatch } from "react-redux";
+import { EditorActionType } from "../store/actionTypes";
+import { useEditor } from "../utils/useEditor";
 
 const Editor: React.FC = () => {
   const dispatch = useDispatch();
-  const language = useSelector((state: RootState) => state.editor.language);
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const { editor, applyRemoteOps } = useEditor();
 
-  const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
-    editorRef.current = editor;
-  };
+  useEffect(() => {
+    if (editorRef.current) {
+      const monaco = editor.create(editorRef.current, {
+        language: "javascript",
+        theme: "vs-dark"
+      });
+      monaco.onDidChangeModelContent((e) => {
+        dispatch({
+          type: EditorActionType.UPDATE_DOC,
+          payload: {
+            ops: e.changes,
+            version: Date.now()
+          }
+        });
+      });
+    }
+  }, [editorRef, editor, dispatch]);
 
-  const setLang = (lang: string) => {
-    dispatch(setLanguage(lang));
-  };
+  useEffect(() => {
+    const unsubscribe = applyRemoteOps((ops) => {
+      // Apply remote ops to the editor instance here.
+    });
+    return unsubscribe;
+  }, [applyRemoteOps]);
 
-  // Attach shortcuts (formatting & language cycling)
-  useKeyboardShortcuts(editorRef.current, () => language, setLang);
-
-  return (
-    <MonacoEditor
-      height="100%"
-      language={language}
-      theme="vs-dark"
-      onMount={handleEditorDidMount}
-      options={{
-        automaticLayout: true,
-        tabSize: language === 'python' ? 4 : 2,
-        formatOnPaste: true,
-        formatOnType: true,
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-      }}
-    />
-  );
+  return <div ref={editorRef} className="editor-container" />;
 };
 
 export default Editor;

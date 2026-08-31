@@ -1,14 +1,18 @@
-export const SET_LANGUAGE = 'SET_LANGUAGE' as const;
+import { EditorActionType } from "./actionTypes";
 
-export interface SetLanguageAction {
-  type: typeof SET_LANGUAGE;
-  payload: string;
+export interface UpdateDocAction {
+  type: EditorActionType.UPDATE_DOC;
+  payload: {
+    ops: any[];
+    version: number;
+  };
 }
 
-export const setLanguage = (language: string): SetLanguageAction => ({
-  type: SET_LANGUAGE,
-  payload: language,
-});
+export interface SetCursorAction {
+  type: EditorActionType.SET_CURSOR;
+  payload: {
+    position: number;
+  };
+}
 
-// Export a union type for all editor actions (extend as needed)
-export type EditorAction = SetLanguageAction;
+export type EditorAction = UpdateDocAction | SetCursorAction;
