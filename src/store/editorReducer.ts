@@ -1,17 +1,21 @@
-import { EditorState, Language } from '../types/editor';
-import { SET_CONTENT, SET_LANGUAGE } from './editorActions';
+import { EditorAction, SET_LANGUAGE } from './editorActions';
+
+export interface EditorState {
+  language: string;
+  // other editor state fields can be added here
+}
 
 const initialState: EditorState = {
-  content: '',
   language: 'javascript',
 };
 
-export const editorReducer = (state = initialState, action: any): EditorState => {
+export const editorReducer = (
+  state: EditorState = initialState,
+  action: EditorAction
+): EditorState => {
   switch (action.type) {
-    case SET_CONTENT:
-      return { ...state, content: action.payload };
     case SET_LANGUAGE:
-      return { ...state, language: action.payload as Language };
+      return { ...state, language: action.payload };
     default:
       return state;
   }

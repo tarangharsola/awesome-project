@@ -1,32 +1,28 @@
 import React from 'react';
-import { useLanguage } from '../utils/useLanguage';
+import { useDispatch, useSelector } from 'react-redux';
+import { setLanguage } from '../store/editorActions';
+import { RootState } from '../store';
 
-const languages = [
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'python', label: 'Python' },
-  { value: 'html', label: 'HTML' },
-];
-
-export const LanguageSelector: React.FC = () => {
-  const { language, changeLanguage } = useLanguage();
+const LanguageSelector: React.FC = () => {
+  const dispatch = useDispatch();
+  const language = useSelector((state: RootState) => state.editor.language);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.value as typeof language;
-    changeLanguage(selected);
+    dispatch(setLanguage(e.target.value as any));
   };
 
   return (
     <select
-      id="language-selector"
       value={language}
       onChange={handleChange}
-      style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: 'none', padding: '4px 8px', borderRadius: '4px' }}
+      aria-label="Language selector"
+      style={{ background: 'transparent', color: 'white', border: '1px solid #555', borderRadius: 4, padding: '4px 8px' }}
     >
-      {languages.map((lang) => (
-        <option key={lang.value} value={lang.value}>
-          {lang.label}
-        </option>
-      ))}
+      <option value="javascript">JavaScript</option>
+      <option value="python">Python</option>
+      <option value="html">HTML</option>
     </select>
   );
 };
+
+export default LanguageSelector;

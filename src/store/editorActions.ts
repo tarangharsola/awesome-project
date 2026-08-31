@@ -1,14 +1,14 @@
-import { Language } from '../types/editor';
+export const SET_LANGUAGE = 'SET_LANGUAGE' as const;
 
-export const SET_CONTENT = 'SET_CONTENT';
-export const SET_LANGUAGE = 'SET_LANGUAGE';
+export interface SetLanguageAction {
+  type: typeof SET_LANGUAGE;
+  payload: string;
+}
 
-export const setContent = (content: string) => ({
-  type: SET_CONTENT,
-  payload: content,
-});
-
-export const setLanguage = (language: Language) => ({
+export const setLanguage = (language: string): SetLanguageAction => ({
   type: SET_LANGUAGE,
   payload: language,
 });
+
+// Export a union type for all editor actions (extend as needed)
+export type EditorAction = SetLanguageAction;

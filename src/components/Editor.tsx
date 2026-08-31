@@ -1,74 +1,42 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
+import MonacoEditor, { monaco } from '@monaco-editor/react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
-import { setContent } from '../store/editorActions';
-import { useLanguage } from '../utils/useLanguage';
-import { getFormattingDefaults } from '../utils/useFormattingDefaults';
+import { setLanguage } from '../store/editorActions';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { LanguageSelector } from './LanguageSelector';
-import * as monaco from 'monaco-editor';
 
-export const Editor: React.FC = () => {
+const Editor: React.FC = () => {
   const dispatch = useDispatch();
-  const { language } = useLanguage();
-  const content = useSelector((state: RootState) => state.editor.content);
-  const editorContainerRef = useRef<HTMLDivElement>(null);
-  const editorInstanceRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const language = useSelector((state: RootState) => state.editor.language);
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
-  // Apply formatting defaults when language changes
-  useEffect(() => {
-    const defaults = getFormattingDefaults(language);
-    if (editorInstanceRef.current) {
-      editorInstanceRef.current.updateOptions({
-        tabSize: defaults.tabSize,
-        insertSpaces: defaults.insertSpaces,
-      });
-    }
-  }, [language]);
+  const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    editorRef.current = editor;
+  };
 
-  // Initialize Monaco editor
-  useEffect(() => {
-    if (editorContainerRef.current && !editorInstanceRef.current) {
-      editorInstanceRef.current = monaco.editor.create(editorContainerRef.current, {
-        value: content,
-        language,
-        theme: 'vs-dark',
-        automaticLayout: true,
-      });
+  const setLang = (lang: string) => {
+    dispatch(setLanguage(lang));
+  };
 
-      editorInstanceRef.current.onDidChangeModelContent(() => {
-        const value = editorInstanceRef.current?.getValue() || '';
-        dispatch(setContent(value));
-      });
-    }
-    // Update language when it changes
-    if (editorInstanceRef.current) {
-      const model = editorInstanceRef.current.getModel();
-      if (model) {
-        monaco.editor.setModelLanguage(model, language);
-      }
-    }
-  }, [dispatch, language]);
-
-  // Sync external content changes (e.g., from remote users)
-  useEffect(() => {
-    if (editorInstanceRef.current) {
-      const current = editorInstanceRef.current.getValue();
-      if (current !== content) {
-        editorInstanceRef.current.setValue(content);
-      }
-    }
-  }, [content]);
-
-  // Keyboard shortcuts
-  useKeyboardShortcuts(editorContainerRef);
+  // Attach shortcuts (formatting & language cycling)
+  useKeyboardShortcuts(editorRef.current, () => language, setLang);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ padding: '8px', background: 'var(--bg-primary)' }}>
-        <LanguageSelector />
-      </div>
-      <div ref={editorContainerRef} style={{ flexGrow: 1 }} />
-    </div>
+    <MonacoEditor
+      height="100%"
+      language={language}
+      theme="vs-dark"
+      onMount={handleEditorDidMount}
+      options={{
+        automaticLayout: true,
+        tabSize: language === 'python' ? 4 : 2,
+        formatOnPaste: true,
+        formatOnType: true,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+      }}
+    />
   );
 };
+
+export default Editor;
