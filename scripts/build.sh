@@ -1,3 +1,7 @@
 #!/usr/bin/env bash
-# Simple build script for CI
+set -e
+
+echo "Running build..."
 npm run build
+
+echo "Build completed."
