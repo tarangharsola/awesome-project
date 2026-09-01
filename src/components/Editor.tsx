@@ -1,39 +1,64 @@
-import React, { useEffect, useRef } from "react";
-import { useDispatch } from "react-redux";
-import { EditorActionType } from "../store/actionTypes";
-import { useEditor } from "../utils/useEditor";
+import React, { useEffect, useState, useCallback } from 'react';
+import { Controlled as CodeMirror } from 'react-codemirror2';
+import 'codemirror/lib/codemirror.css';
+import 'codemirror/mode/javascript/javascript';
+import 'codemirror/mode/python/python';
+import 'codemirror/mode/htmlmixed/htmlmixed';
+import useKeyboardShortcuts from '../hooks/useKeyboardShortcuts';
+import formatCode from '../utils/formatCode';
+import { getExtensions } from '../utils/editorExtensions';
+import './Editor.css';
 
-const Editor: React.FC = () => {
-  const dispatch = useDispatch();
-  const editorRef = useRef<HTMLDivElement>(null);
-  const { editor, applyRemoteOps } = useEditor();
+interface EditorProps {
+  language: string;
+  socket: WebSocket | null;
+  awareness: any;
+}
 
-  useEffect(() => {
-    if (editorRef.current) {
-      const monaco = editor.create(editorRef.current, {
-        language: "javascript",
-        theme: "vs-dark"
-      });
-      monaco.onDidChangeModelContent((e) => {
-        dispatch({
-          type: EditorActionType.UPDATE_DOC,
-          payload: {
-            ops: e.changes,
-            version: Date.now()
-          }
-        });
-      });
+const Editor: React.FC<EditorProps> = ({ language, socket, awareness }) => {
+  const [content, setContent] = useState<string>('');
+
+  const handleChange = (editor: any, data: any, value: string) => {
+    setContent(value);
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ type: 'content-update', payload: { content: value } }));
     }
-  }, [editorRef, editor, dispatch]);
+  };
 
+  const formatCurrent = useCallback(() => {
+    const formatted = formatCode(content, language);
+    setContent(formatted);
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ type: 'content-update', payload: { content: formatted } }));
+    }
+  }, [content, language, socket]);
+
+  useKeyboardShortcuts(formatCurrent);
+
+  // Re‑render CodeMirror when language changes to update mode
   useEffect(() => {
-    const unsubscribe = applyRemoteOps((ops) => {
-      // Apply remote ops to the editor instance here.
-    });
-    return unsubscribe;
-  }, [applyRemoteOps]);
+    // No additional side‑effects needed; mode option reacts to prop change.
+  }, [language]);
 
-  return <div ref={editorRef} className="editor-container" />;
+  return (
+    <div className="editor-container">
+      <CodeMirror
+        value={content}
+        options={{
+          mode:
+            language === 'javascript'
+              ? 'javascript'
+              : language === 'python'
+              ? 'python'
+              : 'htmlmixed',
+          theme: 'material',
+          lineNumbers: true,
+          ...getExtensions(language),
+        }}
+        onBeforeChange={handleChange}
+      />
+    </div>
+  );
 };
 
 export default Editor;
