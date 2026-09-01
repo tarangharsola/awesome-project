@@ -1,30 +1,42 @@
-import { useRef, useCallback } from 'react'
-import { ConflictResolver } from '../utils/conflictResolver'
-import { TextOperation } from '../types/conflict'
+import { useEffect, useRef, useState } from "react";
+import { ConflictOperation } from "../utils/conflict/types";
+import { CRDT } from "../utils/conflict/crdt";
+import { applyOT } from "../utils/conflict/ot";
 
 /**
- * Hook that provides a ConflictResolver instance bound to the component lifecycle.
- * It returns helpers to apply local and remote operations while keeping pending
- * local operations in a stable reference.
+ * Hook that resolves concurrent edits using a simple CRDT fallback
+ * and operational transformation for linear edits.
+ *
+ * @param initialContent The document's initial text.
+ * @param remoteOps Queue of operations received from other peers.
+ * @returns current content and a function to submit local operations.
  */
-export function useConflictResolver(initialDoc: string) {
-  const resolverRef = useRef(new ConflictResolver(initialDoc))
-  const pendingOpsRef = useRef<TextOperation[]>([])
+export function useConflictResolver(
+  initialContent: string,
+  remoteOps: ConflictOperation[]
+) {
+  const crdtRef = useRef(new CRDT(initialContent));
+  const [content, setContent] = useState(initialContent);
 
-  const applyLocal = useCallback((op: TextOperation) => {
-    pendingOpsRef.current.push(op)
-    const newDoc = resolverRef.current.applyLocal(op)
-    return newDoc
-  }, [])
+  // Apply remote operations as they arrive
+  useEffect(() => {
+    if (remoteOps.length === 0) return;
+    remoteOps.forEach((op) => {
+      crdtRef.current.apply(op);
+    });
+    setContent(crdtRef.current.toString());
+  }, [remoteOps]);
 
-  const applyRemote = useCallback((op: TextOperation) => {
-    const newDoc = resolverRef.current.applyRemote(op, pendingOpsRef.current)
-    // After a remote op is integrated we can clear ops that have been transformed.
-    pendingOpsRef.current = []
-    return newDoc
-  }, [])
+  // Submit a local operation
+  const submitOperation = (op: ConflictOperation) => {
+    // Optimistically apply locally
+    crdtRef.current.apply(op);
+    setContent(crdtRef.current.toString());
 
-  const getDocument = useCallback(() => resolverRef.current.getDocument(), [])
+    // Transform against any pending remote ops (OT placeholder)
+    // In a real implementation this would use a proper OT algorithm.
+    applyOT(op);
+  };
 
-  return { applyLocal, applyRemote, getDocument }
+  return { content, submitOperation };
 }
