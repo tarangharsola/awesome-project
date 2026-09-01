@@ -1,36 +1,25 @@
 import React from 'react';
+import styles from '../styles/user.module.css';
 import { RemoteCursorProps } from '../types';
 
-export const RemoteCursor: React.FC<RemoteCursorProps> = ({
-  position,
-  color,
-  name,
-}) => {
-  const style: React.CSSProperties = {
-    position: 'absolute',
+export const RemoteCursor: React.FC<RemoteCursorProps> = ({ position, user }) => {
+  const { name, color } = user;
+  const cursorStyle: React.CSSProperties = {
     left: position.x,
     top: position.y,
     borderLeft: `2px solid ${color}`,
-    height: '1em',
-    pointerEvents: 'none',
-  };
-
-  const labelStyle: React.CSSProperties = {
     position: 'absolute',
-    top: '-1.2em',
-    left: '0',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    color: '#fff',
-    padding: '2px 4px',
-    borderRadius: '3px',
-    fontSize: '0.75rem',
-    whiteSpace: 'nowrap',
+    height: '100%',
     pointerEvents: 'none',
   };
-
+  const labelStyle: React.CSSProperties = {
+    backgroundColor: `${color}33`, // semi‑transparent background based on user color
+  };
   return (
-    <div style={style}>
-      <div style={labelStyle}>{name}</div>
+    <div className={styles.remoteCursor} style={cursorStyle}>
+      <div className={styles.cursorLabel} style={labelStyle}>
+        {name}
+      </div>
     </div>
   );
 };
