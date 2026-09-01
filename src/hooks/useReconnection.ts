@@ -1,37 +1,27 @@
-import { useEffect, useState } from "react";
-import { useWebSocket } from "./useWebSocket";
-
-export interface ReconnectionOptions {
-  url: string;
-  protocols?: string | string[];
-}
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { WebSocketClient } from '../utils/websocketClient';
+import { syncDocument } from '../store/editorActions';
+import { EditorState } from '../types/editor';
 
 /**
- * Hook that provides connection status and a manual reconnect trigger.
- * It leverages useWebSocket which already implements exponential backoff.
+ * Hook that ensures the client receives the latest document state after a reconnection.
+ * It listens for SYNC_DOCUMENT messages and dispatches them to the Redux store.
  */
-export function useReconnection(options: ReconnectionOptions) {
-  const { url, protocols } = options;
-  const [connected, setConnected] = useState(false);
-
-  const { send, readyState } = useWebSocket({
-    url,
-    protocols,
-    onMessage: () => {}, // Consumers can attach their own listeners via returned send if needed
-    onOpen: () => setConnected(true),
-    onClose: () => setConnected(false),
-    onError: () => setConnected(false),
-  });
-
-  // Expose a manual reconnect function (optional, can be called to force a new socket)
-  const reconnect = () => {
-    // Force reconnection by briefly closing the socket; the internal hook will retry.
-    // This is a no‑op if the socket is already closed.
-  };
+export function useReconnection(client: WebSocketClient) {
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    setConnected(readyState === WebSocket.OPEN);
-  }, [readyState]);
+    const handleMessage = (msg: any) => {
+      if (msg.type === 'SYNC_DOCUMENT' && msg.payload) {
+        const state: EditorState = msg.payload;
+        dispatch(syncDocument(state));
+      }
+    };
 
-  return { send, connected, reconnect };
+    client.addMessageHandler(handleMessage);
+    return () => {
+      client.removeMessageHandler(handleMessage);
+    };
+  }, [client, dispatch]);
 }

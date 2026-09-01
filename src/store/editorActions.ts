@@ -1,18 +1,23 @@
-import { EditorActionType } from "./actionTypes";
+import { EditorState } from '../types/editor';
+import { INSERT_TEXT, DELETE_TEXT, SET_LANGUAGE, SYNC_DOCUMENT } from './actionTypes';
 
-export interface UpdateDocAction {
-  type: EditorActionType.UPDATE_DOC;
-  payload: {
-    ops: any[];
-    version: number;
-  };
-}
+export const insertText = (position: number, text: string) => ({
+  type: INSERT_TEXT,
+  payload: { position, text },
+});
 
-export interface SetCursorAction {
-  type: EditorActionType.SET_CURSOR;
-  payload: {
-    position: number;
-  };
-}
+export const deleteText = (position: number, length: number) => ({
+  type: DELETE_TEXT,
+  payload: { position, length },
+});
 
-export type EditorAction = UpdateDocAction | SetCursorAction;
+export const setLanguage = (language: string) => ({
+  type: SET_LANGUAGE,
+  payload: language,
+});
+
+// New action creator for syncing the entire document state after reconnection
+export const syncDocument = (state: EditorState) => ({
+  type: SYNC_DOCUMENT,
+  payload: state,
+});

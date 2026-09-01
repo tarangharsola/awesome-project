@@ -1,49 +1,45 @@
-import { useEffect, useRef } from 'react';
-import { useWebSocket } from './useWebSocket';
-import { useReconnection } from './useReconnection';
-import { UserAwareness } from '../types';
+import { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { WebSocketClient } from '../utils/websocketClient';
+import { RootState } from '../store';
+import { updateUserPresence } from '../store/userActions';
 
 /**
- * Hook that manages broadcasting and receiving user awareness information
- * (username, color, cursor position). It ensures that after a reconnection the
- * local user's awareness is re‑sent so that remote peers stay in sync.
+ * Hook that manages user awareness (presence) broadcasting and reception.
+ * It sends the local user's info on join and on every reconnection, and updates the
+ * Redux store when remote presence messages arrive.
  */
-export const useAwareness = (localAwareness: UserAwareness) => {
-  const { socket } = useWebSocket();
-  const { isConnected } = useReconnection();
-  const awarenessRef = useRef<UserAwareness>(localAwareness);
+export function useAwareness(client: WebSocketClient) {
+  const dispatch = useDispatch();
+  const localUser = useSelector((state: RootState) => state.user);
 
-  // Keep the ref up‑to‑date when local awareness changes
   useEffect(() => {
-    awarenessRef.current = localAwareness;
-  }, [localAwareness]);
+    const broadcastPresence = () => {
+      client.send({
+        type: 'USER_PRESENCE',
+        payload: {
+          id: localUser.id,
+          name: localUser.name,
+          color: localUser.color,
+        },
+      });
+    };
 
-  // Broadcast local awareness whenever the socket is open or after reconnection
-  useEffect(() => {
-    if (!socket) return;
-    if (socket.readyState !== WebSocket.OPEN) return;
-    const msg = { type: 'AWARENESS_UPDATE', payload: awarenessRef.current };
-    socket.send(JSON.stringify(msg));
-  }, [socket, isConnected]);
+    // Initial broadcast
+    broadcastPresence();
 
-  // Listen for remote awareness updates
-  useEffect(() => {
-    if (!socket) return;
-    const handleMessage = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'AWARENESS_UPDATE') {
-          // Forward to any subscribed listeners via a custom event
-          const awarenessEvent = new CustomEvent('remoteAwareness', {
-            detail: data.payload,
-          });
-          window.dispatchEvent(awarenessEvent);
-        }
-      } catch (_) {
-        // ignore malformed messages
+    const handleMessage = (msg: any) => {
+      if (msg.type === 'USER_PRESENCE' && msg.payload && msg.payload.id !== localUser.id) {
+        dispatch(updateUserPresence(msg.payload));
       }
     };
-    socket.addEventListener('message', handleMessage);
-    return () => socket.removeEventListener('message', handleMessage);
-  }, [socket]);
-};
+
+    client.addMessageHandler(handleMessage);
+    client.addOpenHandler(broadcastPresence);
+
+    return () => {
+      client.removeMessageHandler(handleMessage);
+      client.removeOpenHandler(broadcastPresence);
+    };
+  }, [client, localUser, dispatch]);
+}
