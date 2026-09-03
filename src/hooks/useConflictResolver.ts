@@ -1,42 +1,54 @@
-import { useEffect, useRef, useState } from "react";
-import { ConflictOperation } from "../utils/conflict/types";
-import { CRDT } from "../utils/conflict/crdt";
-import { applyOT } from "../utils/conflict/ot";
+import { useEffect, useRef } from 'react';
+import WebSocketManager from '../utils/websocketClient';
+import { WebSocketMessage } from '../types/websocketMessage';
+import { useDispatch } from 'react-redux';
+import { applyRemoteOps, applyLocalOp } from '../store/editorActions';
 
 /**
- * Hook that resolves concurrent edits using a simple CRDT fallback
- * and operational transformation for linear edits.
- *
- * @param initialContent The document's initial text.
- * @param remoteOps Queue of operations received from other peers.
- * @returns current content and a function to submit local operations.
+ * Hook that resolves document conflicts using a simple operation queue.
+ * Local operations are sent immediately when the connection is alive; otherwise they are queued.
+ * Upon reconnection the queue is flushed and a state‑sync request is issued to guarantee convergence.
  */
-export function useConflictResolver(
-  initialContent: string,
-  remoteOps: ConflictOperation[]
-) {
-  const crdtRef = useRef(new CRDT(initialContent));
-  const [content, setContent] = useState(initialContent);
+export function useConflictResolver(wsManager: WebSocketManager) {
+  const pendingOps = useRef<WebSocketMessage[]>([]);
+  const dispatch = useDispatch();
 
-  // Apply remote operations as they arrive
   useEffect(() => {
-    if (remoteOps.length === 0) return;
-    remoteOps.forEach((op) => {
-      crdtRef.current.apply(op);
+    const handleMessage = (msg: WebSocketMessage) => {
+      if (msg.type === 'doc-op') {
+        dispatch(applyRemoteOps(msg.payload));
+      } else if (msg.type === 'state-sync') {
+        // Full document state received after reconnection – replace local state.
+        dispatch(applyRemoteOps(msg.payload));
+      }
+    };
+
+    wsManager.addMessageHandler(handleMessage);
+
+    wsManager.onStatusChange((status) => {
+      if (status === 'connected' && pendingOps.current.length) {
+        // Flush queued ops.
+        pendingOps.current.forEach((op) => wsManager.send(op));
+        pendingOps.current = [];
+        // Ask server for the latest authoritative state.
+        wsManager.send({ type: 'state-request', payload: {} });
+      }
     });
-    setContent(crdtRef.current.toString());
-  }, [remoteOps]);
 
-  // Submit a local operation
-  const submitOperation = (op: ConflictOperation) => {
-    // Optimistically apply locally
-    crdtRef.current.apply(op);
-    setContent(crdtRef.current.toString());
+    return () => {
+      wsManager.removeMessageHandler(handleMessage);
+    };
+  }, [wsManager, dispatch]);
 
-    // Transform against any pending remote ops (OT placeholder)
-    // In a real implementation this would use a proper OT algorithm.
-    applyOT(op);
+  const sendLocalOp = (op: any) => {
+    const msg: WebSocketMessage = { type: 'doc-op', payload: op };
+    if (wsManager) {
+      wsManager.send(msg);
+    } else {
+      pendingOps.current.push(msg);
+    }
+    dispatch(applyLocalOp(op));
   };
 
-  return { content, submitOperation };
+  return { sendLocalOp };
 }

@@ -2,36 +2,39 @@ import { WebSocketMessage } from '../types/websocketMessage';
 
 type MessageHandler = (msg: WebSocketMessage) => void;
 
-type OpenHandler = () => void;
-
-export class WebSocketClient {
+export class WebSocketManager {
   private url: string;
   private ws: WebSocket | null = null;
-  private handlers: Set<MessageHandler> = new Set();
-  private openHandlers: Set<OpenHandler> = new Set();
   private reconnectAttempts = 0;
-  private readonly maxBackoff = 30000; // 30 seconds
+  private maxDelay = 30000; // 30 seconds max backoff
+  private messageQueue: WebSocketMessage[] = [];
+  private handlers: Set<MessageHandler> = new Set();
+  private statusCallback: ((status: 'connected' | 'disconnected' | 'connecting') => void) | null = null;
+  private userInfo: { username: string; color: string } | null = null;
 
-  constructor(url: string) {
+  constructor(url: string, userInfo: { username: string; color: string }) {
     this.url = url;
+    this.userInfo = userInfo;
     this.connect();
   }
 
   private connect() {
+    this.updateStatus('connecting');
     this.ws = new WebSocket(this.url);
     this.ws.onopen = () => {
       this.reconnectAttempts = 0;
-      // Notify any open listeners (e.g., hooks that need to rebroadcast presence)
-      this.openHandlers.forEach((h) => h());
-      // Join the room and request the latest document state
-      this.send({ type: 'JOIN' });
-      this.send({ type: 'REQUEST_SYNC' });
+      this.updateStatus('connected');
+      if (this.userInfo) {
+        this.send({ type: 'join', payload: { username: this.userInfo.username, color: this.userInfo.color } });
+      }
+      this.flushQueue();
     };
     this.ws.onmessage = (ev) => {
-      const data: WebSocketMessage = JSON.parse(ev.data);
+      const data = JSON.parse(ev.data) as WebSocketMessage;
       this.handlers.forEach((h) => h(data));
     };
     this.ws.onclose = () => {
+      this.updateStatus('disconnected');
       this.scheduleReconnect();
     };
     this.ws.onerror = () => {
@@ -40,41 +43,47 @@ export class WebSocketClient {
   }
 
   private scheduleReconnect() {
-    const backoff = Math.min(1000 * 2 ** this.reconnectAttempts, this.maxBackoff);
+    const delay = Math.min(1000 * 2 ** this.reconnectAttempts, this.maxDelay);
     setTimeout(() => {
-      this.reconnectAttempts += 1;
+      this.reconnectAttempts++;
       this.connect();
-    }, backoff);
+    }, delay);
   }
 
-  public send(message: WebSocketMessage) {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(message));
+  private flushQueue() {
+    while (this.messageQueue.length && this.ws?.readyState === WebSocket.OPEN) {
+      const msg = this.messageQueue.shift()!;
+      this.ws.send(JSON.stringify(msg));
     }
-    // In a production setting we would queue messages while disconnected.
   }
 
-  public requestSync() {
-    this.send({ type: 'REQUEST_SYNC' });
+  send(msg: WebSocketMessage) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(msg));
+    } else {
+      this.messageQueue.push(msg);
+    }
   }
 
-  public addMessageHandler(handler: MessageHandler) {
+  addMessageHandler(handler: MessageHandler) {
     this.handlers.add(handler);
   }
 
-  public removeMessageHandler(handler: MessageHandler) {
+  removeMessageHandler(handler: MessageHandler) {
     this.handlers.delete(handler);
   }
 
-  public addOpenHandler(handler: OpenHandler) {
-    this.openHandlers.add(handler);
+  private updateStatus(status: 'connected' | 'disconnected' | 'connecting') {
+    if (this.statusCallback) this.statusCallback(status);
   }
 
-  public removeOpenHandler(handler: OpenHandler) {
-    this.openHandlers.delete(handler);
+  onStatusChange(cb: (status: string) => void) {
+    this.statusCallback = cb;
   }
 
-  public isConnected(): boolean {
-    return this.ws?.readyState === WebSocket.OPEN;
+  close() {
+    this.ws?.close();
   }
 }
+
+export default WebSocketManager;

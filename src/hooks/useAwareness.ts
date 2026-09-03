@@ -1,45 +1,50 @@
-import { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { WebSocketClient } from '../utils/websocketClient';
-import { RootState } from '../store';
-import { updateUserPresence } from '../store/userActions';
+import { useEffect, useState } from 'react';
+import WebSocketManager from '../utils/websocketClient';
+import { User } from '../types';
+import { WebSocketMessage } from '../types/websocketMessage';
 
 /**
- * Hook that manages user awareness (presence) broadcasting and reception.
- * It sends the local user's info on join and on every reconnection, and updates the
- * Redux store when remote presence messages arrive.
+ * Hook that maintains a consistent list of active users (awareness) for a collaborative session.
+ * It listens to presence‑related messages from the WebSocketManager and updates local state.
+ * It also provides a helper to broadcast the local cursor position.
  */
-export function useAwareness(client: WebSocketClient) {
-  const dispatch = useDispatch();
-  const localUser = useSelector((state: RootState) => state.user);
+export function useAwareness(wsManager: WebSocketManager) {
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    const broadcastPresence = () => {
-      client.send({
-        type: 'USER_PRESENCE',
-        payload: {
-          id: localUser.id,
-          name: localUser.name,
-          color: localUser.color,
-        },
-      });
-    };
-
-    // Initial broadcast
-    broadcastPresence();
-
-    const handleMessage = (msg: any) => {
-      if (msg.type === 'USER_PRESENCE' && msg.payload && msg.payload.id !== localUser.id) {
-        dispatch(updateUserPresence(msg.payload));
+    const handleMessage = (msg: WebSocketMessage) => {
+      switch (msg.type) {
+        case 'user-joined':
+          setUsers((prev) => [...prev, msg.payload]);
+          break;
+        case 'user-left':
+          setUsers((prev) => prev.filter((u) => u.id !== msg.payload.id));
+          break;
+        case 'cursor-update':
+          setUsers((prev) =>
+            prev.map((u) => (u.id === msg.payload.id ? { ...u, cursor: msg.payload.cursor } : u))
+          );
+          break;
+        case 'presence-sync':
+          setUsers(msg.payload.users);
+          break;
+        default:
+          break;
       }
     };
 
-    client.addMessageHandler(handleMessage);
-    client.addOpenHandler(broadcastPresence);
+    wsManager.addMessageHandler(handleMessage);
+    // Request the current presence snapshot when the hook mounts.
+    wsManager.send({ type: 'presence-request', payload: {} });
 
     return () => {
-      client.removeMessageHandler(handleMessage);
-      client.removeOpenHandler(broadcastPresence);
+      wsManager.removeMessageHandler(handleMessage);
     };
-  }, [client, localUser, dispatch]);
+  }, [wsManager]);
+
+  const updateCursor = (cursor: any) => {
+    wsManager.send({ type: 'cursor-update', payload: { cursor } });
+  };
+
+  return { users, updateCursor };
 }
