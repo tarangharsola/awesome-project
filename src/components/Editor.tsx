@@ -1,64 +1,49 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Controlled as CodeMirror } from 'react-codemirror2';
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/mode/javascript/javascript';
-import 'codemirror/mode/python/python';
-import 'codemirror/mode/htmlmixed/htmlmixed';
-import useKeyboardShortcuts from '../hooks/useKeyboardShortcuts';
-import formatCode from '../utils/formatCode';
-import { getExtensions } from '../utils/editorExtensions';
-import './Editor.css';
+import React, { useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { useFormattingDefaults } from '../utils/useFormattingDefaults';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { initEditor, updateEditorContent } from '../utils/editorHelpers';
 
-interface EditorProps {
-  language: string;
-  socket: WebSocket | null;
-  awareness: any;
-}
+export const Editor: React.FC = () => {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const { content, language } = useSelector((state: RootState) => state.editor);
+  const formattingDefaults = useFormattingDefaults(language);
+  const { bindShortcuts } = useKeyboardShortcuts();
 
-const Editor: React.FC<EditorProps> = ({ language, socket, awareness }) => {
-  const [content, setContent] = useState<string>('');
-
-  const handleChange = (editor: any, data: any, value: string) => {
-    setContent(value);
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ type: 'content-update', payload: { content: value } }));
-    }
-  };
-
-  const formatCurrent = useCallback(() => {
-    const formatted = formatCode(content, language);
-    setContent(formatted);
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ type: 'content-update', payload: { content: formatted } }));
-    }
-  }, [content, language, socket]);
-
-  useKeyboardShortcuts(formatCurrent);
-
-  // Re‑render CodeMirror when language changes to update mode
+  // Initialize editor once
   useEffect(() => {
-    // No additional side‑effects needed; mode option reacts to prop change.
-  }, [language]);
+    if (editorRef.current) {
+      initEditor(editorRef.current, {
+        language,
+        value: content,
+        ...formattingDefaults,
+      });
+    }
+    // Bind global shortcuts (e.g., format, save)
+    const unbind = bindShortcuts();
+    return () => {
+      unbind();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  return (
-    <div className="editor-container">
-      <CodeMirror
-        value={content}
-        options={{
-          mode:
-            language === 'javascript'
-              ? 'javascript'
-              : language === 'python'
-              ? 'python'
-              : 'htmlmixed',
-          theme: 'material',
-          lineNumbers: true,
-          ...getExtensions(language),
-        }}
-        onBeforeChange={handleChange}
-      />
-    </div>
-  );
+  // Update editor when language changes
+  useEffect(() => {
+    if (editorRef.current) {
+      updateEditorContent(editorRef.current, {
+        language,
+        ...formattingDefaults,
+      });
+    }
+  }, [language, formattingDefaults]);
+
+  // Sync content changes from Redux to editor (if needed)
+  useEffect(() => {
+    if (editorRef.current) {
+      updateEditorContent(editorRef.current, { value: content });
+    }
+  }, [content]);
+
+  return <div ref={editorRef} className="editor-container" />;
 };
-
-export default Editor;

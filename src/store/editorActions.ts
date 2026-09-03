@@ -1,23 +1,22 @@
-import { EditorState } from '../types/editor';
-import { INSERT_TEXT, DELETE_TEXT, SET_LANGUAGE, SYNC_DOCUMENT } from './actionTypes';
+export const SET_LANGUAGE = 'SET_LANGUAGE';
+export const FORMAT_DOCUMENT = 'FORMAT_DOCUMENT';
 
-export const insertText = (position: number, text: string) => ({
-  type: INSERT_TEXT,
-  payload: { position, text },
-});
+export interface SetLanguageAction {
+  type: typeof SET_LANGUAGE;
+  payload: string;
+}
 
-export const deleteText = (position: number, length: number) => ({
-  type: DELETE_TEXT,
-  payload: { position, length },
-});
+export interface FormatDocumentAction {
+  type: typeof FORMAT_DOCUMENT;
+}
 
-export const setLanguage = (language: string) => ({
+export const setLanguage = (language: string): SetLanguageAction => ({
   type: SET_LANGUAGE,
   payload: language,
 });
 
-// New action creator for syncing the entire document state after reconnection
-export const syncDocument = (state: EditorState) => ({
-  type: SYNC_DOCUMENT,
-  payload: state,
+export const formatDocument = (): FormatDocumentAction => ({
+  type: FORMAT_DOCUMENT,
 });
+
+export type EditorActionTypes = SetLanguageAction | FormatDocumentAction;

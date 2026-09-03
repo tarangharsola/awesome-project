@@ -1,20 +1,24 @@
-import { Language } from '../types/editor';
+import { EditorFormattingOptions } from '../types/editor';
 
-export interface FormattingOptions {
-  tabSize: number;
-  insertSpaces: boolean;
-  // extend with more options as needed
-}
+export const useFormattingDefaults = (language: string): EditorFormattingOptions => {
+  // Define per-language defaults; can be extended later
+  const defaults: Record<string, EditorFormattingOptions> = {
+    javascript: {
+      tabSize: 2,
+      insertSpaces: true,
+      autoCloseBrackets: true,
+    },
+    python: {
+      tabSize: 4,
+      insertSpaces: true,
+      autoCloseBrackets: true,
+    },
+    html: {
+      tabSize: 2,
+      insertSpaces: true,
+      autoCloseBrackets: true,
+    },
+  };
 
-export const getFormattingDefaults = (language: Language): FormattingOptions => {
-  switch (language) {
-    case 'javascript':
-      return { tabSize: 2, insertSpaces: true };
-    case 'python':
-      return { tabSize: 4, insertSpaces: true };
-    case 'html':
-      return { tabSize: 2, insertSpaces: true };
-    default:
-      return { tabSize: 2, insertSpaces: true };
-  }
+  return defaults[language] || defaults.javascript;
 };

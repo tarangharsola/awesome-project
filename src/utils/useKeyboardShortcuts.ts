@@ -1,48 +1,37 @@
 import { useEffect } from 'react';
-import { editor } from 'monaco-editor';
-import { formatCode } from '../utils/formatCode';
+import { useDispatch } from 'react-redux';
+import { formatDocument } from '../store/editorActions'; // assume an action to format
 
-/**
- * Hook to attach common keyboard shortcuts to the Monaco editor instance.
- * - Ctrl+Shift+F / Cmd+Shift+F: Format the current document using the project's formatter.
- * - Ctrl+L / Cmd+L: Cycle through supported languages (JavaScript → Python → HTML).
- */
-export const useKeyboardShortcuts = (
-  editorInstance: editor.IStandaloneCodeEditor | null,
-  getLanguage: () => string,
-  setLanguage: (lang: string) => void
-) => {
-  useEffect(() => {
-    if (!editorInstance) return;
+export const useKeyboardShortcuts = () => {
+  const dispatch = useDispatch();
 
-    const handler = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const ctrl = isMac ? e.metaKey : e.ctrlKey;
+  const handleKeyDown = (e: KeyboardEvent) => {
+    // Ctrl+S or Cmd+S -> prevent default (could trigger save in future)
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      // Placeholder: could dispatch a save action
+    }
+    // Ctrl+Shift+F / Cmd+Shift+F -> format document
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+      e.preventDefault();
+      dispatch(formatDocument());
+    }
+  };
 
-      // Format shortcut: Ctrl+Shift+F (or Cmd+Shift+F)
-      if (ctrl && e.shiftKey && e.key.toLowerCase() === 'f') {
-        e.preventDefault();
-        const code = editorInstance.getValue();
-        const formatted = formatCode(code, getLanguage());
-        if (formatted !== null) {
-          editorInstance.setValue(formatted);
-        }
-        return;
-      }
-
-      // Language cycle shortcut: Ctrl+L (or Cmd+L)
-      if (ctrl && e.key.toLowerCase() === 'l') {
-        e.preventDefault();
-        const supported = ['javascript', 'python', 'html'];
-        const current = getLanguage();
-        const idx = supported.indexOf(current);
-        const next = supported[(idx + 1) % supported.length];
-        setLanguage(next);
-        return;
-      }
+  const bindShortcuts = () => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
     };
+  };
 
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [editorInstance, getLanguage, setLanguage]);
+  // Optionally bind on mount if component wants automatic binding
+  useEffect(() => {
+    const unbind = bindShortcuts();
+    return () => {
+      unbind();
+    };
+  }, []);
+
+  return { bindShortcuts };
 };
