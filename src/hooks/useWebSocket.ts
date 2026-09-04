@@ -1,37 +1,84 @@
-import { useEffect, useRef, useState } from "react";
-import { WSMessage } from "../types/websocket";
+import { useEffect, useRef, useState, useCallback } from "react";
 
-export const useWebSocket = (url: string) => {
-  const socketRef = useRef<WebSocket | null>(null);
-  const [connected, setConnected] = useState(false);
-  const [lastMessage, setLastMessage] = useState<WSMessage | null>(null);
+type Message = any;
 
-  useEffect(() => {
+type UseWebSocketOptions = {
+  onMessage: (msg: Message) => void;
+  onOpen?: () => void;
+  onClose?: () => void;
+};
+
+export type WebSocketStatus = "connected" | "disconnected" | "reconnecting";
+
+export const useWebSocket = (url: string, options: UseWebSocketOptions) => {
+  const { onMessage, onOpen, onClose } = options;
+  const [status, setStatus] = useState<WebSocketStatus>("disconnected");
+  const wsRef = useRef<WebSocket | null>(null);
+  const pendingRef = useRef<Message[]>([]);
+  const reconnectAttemptsRef = useRef(0);
+  const maxDelay = 30000; // 30 seconds max backoff
+
+  const flushQueue = useCallback(() => {
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      while (pendingRef.current.length) {
+        const msg = pendingRef.current.shift();
+        ws.send(JSON.stringify(msg));
+      }
+    }
+  }, []);
+
+  const sendMessage = useCallback((msg: Message) => {
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(msg));
+    } else {
+      pendingRef.current.push(msg);
+    }
+  }, []);
+
+  const connect = useCallback(() => {
+    setStatus("reconnecting");
     const ws = new WebSocket(url);
-    socketRef.current = ws;
+    wsRef.current = ws;
 
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => setConnected(false);
-    ws.onerror = () => setConnected(false);
+    ws.onopen = () => {
+      setStatus("connected");
+      reconnectAttemptsRef.current = 0;
+      flushQueue();
+      onOpen?.();
+    };
+
     ws.onmessage = (event) => {
       try {
-        const data: WSMessage = JSON.parse(event.data);
-        setLastMessage(data);
+        const data = JSON.parse(event.data);
+        onMessage(data);
       } catch {
         // ignore malformed messages
       }
     };
 
-    return () => {
+    ws.onclose = () => {
+      setStatus("disconnected");
+      onClose?.();
+      // schedule reconnection with exponential backoff
+      const attempts = ++reconnectAttemptsRef.current;
+      const delay = Math.min(1000 * 2 ** attempts, maxDelay);
+      setTimeout(connect, delay);
+    };
+
+    ws.onerror = () => {
       ws.close();
     };
+  }, [url, flushQueue, onMessage, onOpen, onClose]);
+
+  useEffect(() => {
+    connect();
+    return () => {
+      wsRef.current?.close();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
 
-  const sendMessage = (msg: WSMessage) => {
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify(msg));
-    }
-  };
-
-  return { connected, lastMessage, sendMessage };
+  return { sendMessage, status };
 };

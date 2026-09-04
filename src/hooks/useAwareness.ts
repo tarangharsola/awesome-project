@@ -1,35 +1,53 @@
 import { useEffect } from "react";
-import { useWebSocket } from "./useWebSocket";
-import { WSMessage, WSMessageType } from "../types/websocket";
+import { useWebSocket, WebSocketStatus } from "./useWebSocket";
+import { useUsers } from "./useUsers";
+
+type AwarenessPayload = {
+  type: "awareness";
+  userId: string;
+  username: string;
+  color: string;
+  cursor?: { line: number; ch: number };
+};
 
 export const useAwareness = (
-  roomId: string,
+  url: string,
   user: { id: string; name: string; color: string }
 ) => {
-  const { sendMessage, lastMessage } = useWebSocket(
-    `${process.env.REACT_APP_WS_URL}/${roomId}`
-  );
+  const { sendMessage, status } = useWebSocket(url, {
+    onMessage: (msg) => {
+      if (msg.type === "awareness") {
+        updateUserAwareness(msg);
+      }
+    },
+  });
 
-  // Broadcast presence on mount and cleanup on unmount
+  const { updateUserAwareness } = useUsers();
+
+  // Announce presence each time the socket becomes connected
   useEffect(() => {
-    const joinMsg: WSMessage = {
-      type: WSMessageType.USER_JOIN,
-      payload: {
+    if (status === "connected") {
+      const payload: AwarenessPayload = {
+        type: "awareness",
         userId: user.id,
         username: user.name,
-        color: user.color
-      }
-    };
-    sendMessage(joinMsg);
-    return () => {
-      const leaveMsg: WSMessage = {
-        type: WSMessageType.USER_LEAVE,
-        payload: { userId: user.id }
+        color: user.color,
       };
-      sendMessage(leaveMsg);
-    };
-  }, [roomId, user, sendMessage]);
+      sendMessage(payload);
+    }
+  }, [status, sendMessage, user]);
 
-  // Expose the latest incoming message for other hooks/components
-  return { lastMessage };
+  // Helper to broadcast cursor position changes
+  const broadcastCursor = (cursor: { line: number; ch: number }) => {
+    const payload: AwarenessPayload = {
+      type: "awareness",
+      userId: user.id,
+      username: user.name,
+      color: user.color,
+      cursor,
+    };
+    sendMessage(payload);
+  };
+
+  return { broadcastCursor, connectionStatus: status as WebSocketStatus };
 };
