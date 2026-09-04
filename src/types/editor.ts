@@ -1,7 +1,17 @@
-export type Language = 'javascript' | 'python' | 'html';
-
+// src/types/editor.ts
 export interface EditorState {
   content: string;
-  language: Language;
-  // other editor state fields can be added here
+  language: string;
 }
+
+export interface UpdateContentAction {
+  type: 'UPDATE_CONTENT';
+  payload: string;
+}
+
+export interface SetLanguageAction {
+  type: 'SET_LANGUAGE';
+  payload: string;
+}
+
+export type EditorAction = UpdateContentAction | SetLanguageAction;

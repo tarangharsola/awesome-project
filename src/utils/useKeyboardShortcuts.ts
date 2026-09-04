@@ -1,37 +1,26 @@
+// src/utils/useKeyboardShortcuts.ts
 import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { formatDocument } from '../store/editorActions'; // assume an action to format
 
-export const useKeyboardShortcuts = () => {
-  const dispatch = useDispatch();
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    // Ctrl+S or Cmd+S -> prevent default (could trigger save in future)
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-      e.preventDefault();
-      // Placeholder: could dispatch a save action
-    }
-    // Ctrl+Shift+F / Cmd+Shift+F -> format document
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
-      e.preventDefault();
-      dispatch(formatDocument());
-    }
-  };
-
-  const bindShortcuts = () => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  };
-
-  // Optionally bind on mount if component wants automatic binding
+export const useKeyboardShortcuts = (
+  formatCallback: () => void,
+  focusEditor: () => void
+) => {
   useEffect(() => {
-    const unbind = bindShortcuts();
-    return () => {
-      unbind();
+    const handler = (e: KeyboardEvent) => {
+      // Ctrl+Shift+F (or Cmd+Shift+F) to format document
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') {
+        e.preventDefault();
+        formatCallback();
+      }
+      // Ctrl+S (or Cmd+S) to focus editor (or trigger save placeholder)
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        focusEditor();
+      }
     };
-  }, []);
-
-  return { bindShortcuts };
+    window.addEventListener('keydown', handler);
+    return () => {
+      window.removeEventListener('keydown', handler);
+    };
+  }, [formatCallback, focusEditor]);
 };
