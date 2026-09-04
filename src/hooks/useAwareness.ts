@@ -1,50 +1,35 @@
-import { useEffect, useState } from 'react';
-import WebSocketManager from '../utils/websocketClient';
-import { User } from '../types';
-import { WebSocketMessage } from '../types/websocketMessage';
+import { useEffect } from "react";
+import { useWebSocket } from "./useWebSocket";
+import { WSMessage, WSMessageType } from "../types/websocket";
 
-/**
- * Hook that maintains a consistent list of active users (awareness) for a collaborative session.
- * It listens to presence‑related messages from the WebSocketManager and updates local state.
- * It also provides a helper to broadcast the local cursor position.
- */
-export function useAwareness(wsManager: WebSocketManager) {
-  const [users, setUsers] = useState<User[]>([]);
+export const useAwareness = (
+  roomId: string,
+  user: { id: string; name: string; color: string }
+) => {
+  const { sendMessage, lastMessage } = useWebSocket(
+    `${process.env.REACT_APP_WS_URL}/${roomId}`
+  );
 
+  // Broadcast presence on mount and cleanup on unmount
   useEffect(() => {
-    const handleMessage = (msg: WebSocketMessage) => {
-      switch (msg.type) {
-        case 'user-joined':
-          setUsers((prev) => [...prev, msg.payload]);
-          break;
-        case 'user-left':
-          setUsers((prev) => prev.filter((u) => u.id !== msg.payload.id));
-          break;
-        case 'cursor-update':
-          setUsers((prev) =>
-            prev.map((u) => (u.id === msg.payload.id ? { ...u, cursor: msg.payload.cursor } : u))
-          );
-          break;
-        case 'presence-sync':
-          setUsers(msg.payload.users);
-          break;
-        default:
-          break;
+    const joinMsg: WSMessage = {
+      type: WSMessageType.USER_JOIN,
+      payload: {
+        userId: user.id,
+        username: user.name,
+        color: user.color
       }
     };
-
-    wsManager.addMessageHandler(handleMessage);
-    // Request the current presence snapshot when the hook mounts.
-    wsManager.send({ type: 'presence-request', payload: {} });
-
+    sendMessage(joinMsg);
     return () => {
-      wsManager.removeMessageHandler(handleMessage);
+      const leaveMsg: WSMessage = {
+        type: WSMessageType.USER_LEAVE,
+        payload: { userId: user.id }
+      };
+      sendMessage(leaveMsg);
     };
-  }, [wsManager]);
+  }, [roomId, user, sendMessage]);
 
-  const updateCursor = (cursor: any) => {
-    wsManager.send({ type: 'cursor-update', payload: { cursor } });
-  };
-
-  return { users, updateCursor };
-}
+  // Expose the latest incoming message for other hooks/components
+  return { lastMessage };
+};
