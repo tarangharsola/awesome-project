@@ -1,33 +1,44 @@
-import { Operation, ConflictResolutionResult, ConflictStrategy } from './types';
+import { Operation, ConflictResolver } from '../../types/conflict';
 
-export const resolveWithCRDT: ConflictStrategy = (
-  localOps,
-  remoteOps,
-  baseVersion
-) => {
-  // Simple placeholder CRDT merge: concatenate operations preserving order by position
-  const merged = [...localOps, ...remoteOps].sort((a, b) => a.position - b.position);
-  return { operations: merged, version: baseVersion + 1 };
-};
+/**
+ * Simple Operational Transformation (OT) strategy for plain text.
+ * This implementation handles only insert and delete operations and
+ * resolves conflicts based on index positions.
+ */
+export const otStrategy: ConflictResolver = {
+  applyOperation(doc: string, op: Operation): string {
+    switch (op.type) {
+      case 'insert':
+        return doc.slice(0, op.index) + op.text + doc.slice(op.index);
+      case 'delete':
+        return doc.slice(0, op.index) + doc.slice(op.index + op.length);
+    }
+  },
 
-export const resolveWithOT: ConflictStrategy = (
-  localOps,
-  remoteOps,
-  baseVersion
-) => {
-  // Simple OT transform: apply remote ops then local ops adjusting positions
-  const transformed: Operation[] = [];
-  remoteOps.forEach(op => transformed.push(op));
-  localOps.forEach(local => {
-    let adjustedPos = local.position;
-    remoteOps.forEach(remote => {
-      if (remote.type === 'insert' && remote.position <= adjustedPos) {
-        adjustedPos += remote.text?.length ?? 0;
-      } else if (remote.type === 'delete' && remote.position < adjustedPos) {
-        adjustedPos -= Math.min(remote.length ?? 0, adjustedPos - remote.position);
-      }
-    });
-    transformed.push({ ...local, position: adjustedPos });
-  });
-  return { operations: transformed, version: baseVersion + 1 };
+  transform(opA: Operation, opB: Operation): Operation {
+    // If operations are on different sides, they don't affect each other.
+    if (opA.type === 'insert' && opB.type === 'insert') {
+      if (opA.index <= opB.index) return opA;
+      return { ...opA, index: opA.index + opB.text.length };
+    }
+    if (opA.type === 'delete' && opB.type === 'delete') {
+      if (opA.index >= opB.index + opB.length) return opA;
+      if (opA.index + opA.length <= opB.index) return opA;
+      // Overlapping deletes – simplify by removing the overlapping part.
+      const start = Math.min(opA.index, opB.index);
+      const end = Math.max(opA.index + opA.length, opB.index + opB.length);
+      return { type: 'delete', index: start, length: end - start };
+    }
+    if (opA.type === 'insert' && opB.type === 'delete') {
+      if (opA.index <= opB.index) return opA;
+      if (opA.index >= opB.index + opB.length) return { ...opA, index: opA.index - opB.length };
+      // Insert inside a region that was deleted – move it to the delete start.
+      return { ...opA, index: opB.index };
+    }
+    if (opA.type === 'delete' && opB.type === 'insert') {
+      if (opA.index >= opB.index) return { ...opA, index: opA.index + opB.text.length };
+      return opA;
+    }
+    return opA; // Fallback – should never reach here.
+  }
 };
