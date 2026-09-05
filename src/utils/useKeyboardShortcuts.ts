@@ -1,26 +1,39 @@
-// src/utils/useKeyboardShortcuts.ts
 import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { formatCode } from './formatCode';
+import { setContent } from '../store/editorActions';
+import { RootState } from '../store';
 
-export const useKeyboardShortcuts = (
-  formatCallback: () => void,
-  focusEditor: () => void
-) => {
+interface Props {
+  editorRef: React.RefObject<HTMLElement>;
+}
+
+export const useKeyboardShortcuts = ({ editorRef }: Props) => {
+  const dispatch = useDispatch();
+  const content = useSelector((state: RootState) => state.editor.content);
+  const language = useSelector((state: RootState) => state.editor.language);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Ctrl+Shift+F (or Cmd+Shift+F) to format document
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') {
+      // Save shortcut: Ctrl/Cmd + S
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        formatCallback();
+        console.log('Save shortcut triggered');
+        // Placeholder for actual save logic (e.g., send snapshot to server)
       }
-      // Ctrl+S (or Cmd+S) to focus editor (or trigger save placeholder)
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+
+      // Format shortcut: Ctrl/Cmd + Shift + F
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
         e.preventDefault();
-        focusEditor();
+        const formatted = formatCode(content, language);
+        dispatch(setContent(formatted));
+        console.log('Format shortcut applied');
       }
     };
+
     window.addEventListener('keydown', handler);
     return () => {
       window.removeEventListener('keydown', handler);
     };
-  }, [formatCallback, focusEditor]);
+  }, [content, language, dispatch]);
 };

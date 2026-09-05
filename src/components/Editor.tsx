@@ -1,70 +1,55 @@
-import React, { useEffect, useRef } from 'react';
-import { EditorView, basicSetup } from '@codemirror/basic-setup';
+import React, { useCallback, useRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../store';
+import { setContent } from '../store/editorActions';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { basicSetup } from '@codemirror/basic-setup';
+import { EditorView } from '@codemirror/view';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { html } from '@codemirror/lang-html';
-import { useConflictResolver } from '../hooks/useConflictResolver';
-import { useWebSocket } from '../hooks/useWebSocket';
-import type { Operation } from '../types/conflict';
-import type { WebSocketMessage } from '../types/websocketMessage';
+import { useEditor } from '../utils/useEditor';
 
-interface EditorProps {
-  language: 'javascript' | 'python' | 'html';
-  sessionId: string;
-  username: string;
-}
-
-export const Editor: React.FC<EditorProps> = ({ language, sessionId, username }) => {
+export const Editor: React.FC = () => {
+  const dispatch = useDispatch();
+  const content = useSelector((state: RootState) => state.editor.content);
+  const language = useSelector((state: RootState) => state.editor.language);
   const editorRef = useRef<HTMLDivElement>(null);
-  const { applyLocal, applyRemote, getDocument } = useConflictResolver();
-  const { connected, lastMessage, sendMessage } = useWebSocket({
-    url: `${process.env.REACT_APP_WS_URL}/session/${sessionId}`
+
+  const onChange = useCallback(
+    (value: string) => {
+      dispatch(setContent(value));
+    },
+    [dispatch]
+  );
+
+  const languageExtension =
+    language === 'javascript'
+      ? javascript()
+      : language === 'python'
+      ? python()
+      : html();
+
+  const extensions = [
+    basicSetup,
+    languageExtension,
+    EditorView.lineWrapping,
+    EditorView.theme({
+      '&': {
+        backgroundColor: '#1e1e1e',
+        color: '#d4d4d4',
+      },
+    }),
+  ];
+
+  useEditor({
+    parent: editorRef.current,
+    content,
+    extensions,
+    onChange,
   });
 
-  // Initialize CodeMirror editor.
-  useEffect(() => {
-    if (!editorRef.current) return;
-    const langExtension =
-      language === 'javascript'
-        ? javascript()
-        : language === 'python'
-        ? python()
-        : html();
-    const view = new EditorView({
-      doc: getDocument(),
-      extensions: [basicSetup, langExtension],
-      parent: editorRef.current,
-      dispatch: (tr) => {
-        view.update([tr]);
-        if (tr.docChanged) {
-          const changes = tr.changes;
-          changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
-            const op: Operation =
-              inserted.length > 0
-                ? { type: 'insert', index: fromA, text: inserted.toString() }
-                : { type: 'delete', index: fromA, length: toA - fromA };
-            const newDoc = applyLocal(op);
-            view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: newDoc } });
-            sendMessage({ type: 'operation', payload: { op, username } });
-          });
-        }
-      }
-    });
-    return () => view.destroy();
-  }, [language, sessionId, username, applyLocal, sendMessage]);
+  useKeyboardShortcuts({ editorRef });
 
-  // Handle incoming remote operations.
-  useEffect(() => {
-    if (!lastMessage || lastMessage.type !== 'operation') return;
-    const { op, username: remoteUser } = lastMessage.payload as { op: Operation; username: string };
-    if (remoteUser === username) return; // ignore own messages
-    applyRemote(op);
-  }, [lastMessage, applyRemote, username]);
-
-  return (
-    <div className="editor-container" style={{ height: '100%', width: '100%' }}>
-      <div ref={editorRef} style={{ height: '100%' }} />
-      {!connected && <div className="connection-status">Reconnecting…</div>}
-    </div>
-  );
+  return <div ref={editorRef} className="editor-container" />;
 };

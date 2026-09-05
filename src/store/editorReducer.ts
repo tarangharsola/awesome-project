@@ -1,19 +1,25 @@
-// src/store/editorReducer.ts
-import { UPDATE_CONTENT, SET_LANGUAGE } from './editorActions';
-import { EditorState, EditorAction } from '../types/editor';
+import { SET_CONTENT, APPLY_REMOTE_CHANGES, SET_LANGUAGE } from './actionTypes';
+
+export interface EditorState {
+  content: string;
+  language: string;
+}
 
 const initialState: EditorState = {
   content: '',
   language: 'javascript',
 };
 
-export const editorReducer = (state = initialState, action: EditorAction): EditorState => {
+export default function editorReducer(state = initialState, action: any): EditorState {
   switch (action.type) {
-    case UPDATE_CONTENT:
+    case SET_CONTENT:
+      return { ...state, content: action.payload };
+    case APPLY_REMOTE_CHANGES:
+      // In a real implementation, apply OT/CRDT changes here
       return { ...state, content: action.payload };
     case SET_LANGUAGE:
       return { ...state, language: action.payload };
     default:
       return state;
   }
-};
+}

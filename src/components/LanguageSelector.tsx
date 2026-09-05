@@ -1,4 +1,3 @@
-// src/components/LanguageSelector.tsx
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLanguage } from '../store/editorActions';
@@ -12,14 +11,14 @@ const languages = [
 
 export const LanguageSelector: React.FC = () => {
   const dispatch = useDispatch();
-  const language = useSelector((state: RootState) => state.editor.language);
+  const current = useSelector((state: RootState) => state.editor.language);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     dispatch(setLanguage(e.target.value));
   };
 
   return (
-    <select value={language} onChange={handleChange} aria-label="Language selector">
+    <select value={current} onChange={handleChange} aria-label="Language selector">
       {languages.map((lang) => (
         <option key={lang.value} value={lang.value}>
           {lang.label}
@@ -28,5 +27,3 @@ export const LanguageSelector: React.FC = () => {
     </select>
   );
 };
-
-export default LanguageSelector;

@@ -1,19 +1,17 @@
-import * as monaco from 'monaco-editor';
-import { Language } from './useLanguage';
+import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { html } from '@codemirror/lang-html';
+import { Extension } from '@codemirror/state';
 
-/**
- * Configure the Monaco editor instance with the selected language.
- * This helper isolates the editor‑specific API calls, making the component
- * code easier to read and test.
- */
-export const configureEditor = (
-  editor: monaco.editor.IStandaloneCodeEditor,
-  language: Language
-): void => {
-  const model = editor.getModel();
-  if (model) {
-    monaco.editor.setModelLanguage(model, language);
+export const getLanguageExtension = (lang: string): Extension => {
+  switch (lang) {
+    case 'javascript':
+      return javascript();
+    case 'python':
+      return python();
+    case 'html':
+      return html();
+    default:
+      return javascript();
   }
 };
-
-export default configureEditor;
