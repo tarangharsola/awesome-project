@@ -1,53 +1,90 @@
-import { useEffect } from "react";
-import { useWebSocket, WebSocketStatus } from "./useWebSocket";
-import { useUsers } from "./useUsers";
+import { useEffect, useRef, useCallback } from 'react';
+import type { CursorData, UserAwarenessMessage } from '../types/websocketMessage';
+import { useWebSocket } from './useWebSocket';
 
-type AwarenessPayload = {
-  type: "awareness";
-  userId: string;
-  username: string;
-  color: string;
-  cursor?: { line: number; ch: number };
-};
+/**
+ * Hook that manages user awareness (cursor position, selection, etc.)
+ * and guarantees that the latest state is broadcast after reconnection.
+ *
+ * @param userId Unique identifier for the local user.
+ * @param username Display name of the user.
+ * @param color Hex colour assigned to the user.
+ * @param wsUrl WebSocket endpoint.
+ */
+export function useAwareness(
+  userId: string,
+  username: string,
+  color: string,
+  wsUrl: string
+) {
+  const latestCursor = useRef<CursorData | null>(null);
 
-export const useAwareness = (
-  url: string,
-  user: { id: string; name: string; color: string }
-) => {
-  const { sendMessage, status } = useWebSocket(url, {
-    onMessage: (msg) => {
-      if (msg.type === "awareness") {
-        updateUserAwareness(msg);
+  // Initialise WebSocket with a custom onMessage handler that only forwards
+  // awareness messages to the consumer via the returned callback.
+  const { sendMessage, connectionStatus } = useWebSocket(
+    wsUrl,
+    (msg) => {
+      if (msg.type === 'awareness' && msg.payload.userId !== userId) {
+        // Remote awareness – consumer can subscribe via the returned handler.
+        if (onRemoteAwareness.current) onRemoteAwareness.current(msg as UserAwarenessMessage);
       }
     },
-  });
-
-  const { updateUserAwareness } = useUsers();
-
-  // Announce presence each time the socket becomes connected
-  useEffect(() => {
-    if (status === "connected") {
-      const payload: AwarenessPayload = {
-        type: "awareness",
-        userId: user.id,
-        username: user.name,
-        color: user.color,
-      };
-      sendMessage(payload);
+    () => {
+      // On (re)connect we immediately broadcast the current cursor state so
+      // that newly connected peers receive up‑to‑date awareness.
+      if (latestCursor.current) {
+        sendMessage({
+          type: 'awareness',
+          payload: {
+            userId,
+            username,
+            color,
+            cursor: latestCursor.current,
+          },
+        });
+      }
     }
-  }, [status, sendMessage, user]);
+  );
 
-  // Helper to broadcast cursor position changes
-  const broadcastCursor = (cursor: { line: number; ch: number }) => {
-    const payload: AwarenessPayload = {
-      type: "awareness",
-      userId: user.id,
-      username: user.name,
-      color: user.color,
-      cursor,
-    };
-    sendMessage(payload);
-  };
+  // Callback holder for external components to receive remote awareness updates.
+  const onRemoteAwareness = useRef<(msg: UserAwarenessMessage) => void>();
+  const setRemoteAwarenessHandler = useCallback((handler: (msg: UserAwarenessMessage) => void) => {
+    onRemoteAwareness.current = handler;
+  }, []);
 
-  return { broadcastCursor, connectionStatus: status as WebSocketStatus };
-};
+  // Broadcast local cursor changes.
+  const broadcastCursor = useCallback(
+    (cursor: CursorData) => {
+      latestCursor.current = cursor;
+      const message: UserAwarenessMessage = {
+        type: 'awareness',
+        payload: {
+          userId,
+          username,
+          color,
+          cursor,
+        },
+      };
+      sendMessage(message);
+    },
+    [sendMessage, userId, username, color]
+  );
+
+  // When the connection status flips back to "connected" after a disconnect,
+  // ensure the most recent cursor is resent (in case the previous attempt was lost).
+  useEffect(() => {
+    if (connectionStatus === 'connected' && latestCursor.current) {
+      sendMessage({
+        type: 'awareness',
+        payload: {
+          userId,
+          username,
+          color,
+          cursor: latestCursor.current,
+        },
+      });
+    }
+  }, [connectionStatus, sendMessage, userId, username, color]);
+
+  return { broadcastCursor, setRemoteAwarenessHandler, connectionStatus } as const;
+}
