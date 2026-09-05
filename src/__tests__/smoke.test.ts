@@ -1,9 +1,13 @@
 import React from 'react';
-import { render } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
 import App from '../components/App';
 
-test('App renders without crashing', () => {
-  const { container } = render(<App />);
-  expect(container).toBeTruthy();
+describe('App Smoke Test', () => {
+  test('renders without crashing and displays the editor', () => {
+    render(<App />);
+    // Assuming the editor component has a role of textbox or a placeholder text
+    const editorElement = screen.getByRole('textbox');
+    expect(editorElement).toBeInTheDocument();
+  });
 });
