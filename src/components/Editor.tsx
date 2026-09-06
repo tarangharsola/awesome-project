@@ -1,55 +1,64 @@
-import React, { useCallback, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store';
-import { setContent } from '../store/editorActions';
-import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { basicSetup } from '@codemirror/basic-setup';
-import { EditorView } from '@codemirror/view';
+import React, { useEffect, useRef } from 'react';
+import { EditorView, basicSetup } from '@codemirror/basic-setup';
+import { EditorState } from '@codemirror/state';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { html } from '@codemirror/lang-html';
-import { useEditor } from '../utils/useEditor';
+import { useLanguage } from '../utils/useLanguage';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { useFormattingDefaults } from '../utils/useFormattingDefaults';
+import { useReconnection } from '../hooks/useReconnection';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 export const Editor: React.FC = () => {
-  const dispatch = useDispatch();
-  const content = useSelector((state: RootState) => state.editor.content);
-  const language = useSelector((state: RootState) => state.editor.language);
   const editorRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<EditorView | null>(null);
+  const { language } = useLanguage();
+  const formatting = useFormattingDefaults(language);
+  const shortcuts = useKeyboardShortcuts();
+  const { socket } = useWebSocket();
+  useReconnection(socket);
 
-  const onChange = useCallback(
-    (value: string) => {
-      dispatch(setContent(value));
-    },
-    [dispatch]
-  );
+  // Initialize editor once
+  useEffect(() => {
+    if (!editorRef.current) return;
+    const startState = EditorState.create({
+      doc: '',
+      extensions: [
+        basicSetup,
+        formatting,
+        shortcuts,
+        languageExtension(language),
+      ],
+    });
+    viewRef.current = new EditorView({ state: startState, parent: editorRef.current });
+    // Cleanup on unmount
+    return () => {
+      viewRef.current?.destroy();
+      viewRef.current = null;
+    };
+  }, []);
 
-  const languageExtension =
-    language === 'javascript'
-      ? javascript()
-      : language === 'python'
-      ? python()
-      : html();
+  // React to language changes
+  useEffect(() => {
+    if (!viewRef.current) return;
+    viewRef.current.dispatch({
+      effects: EditorState.reconfigure.of(languageExtension(language)),
+    });
+  }, [language]);
 
-  const extensions = [
-    basicSetup,
-    languageExtension,
-    EditorView.lineWrapping,
-    EditorView.theme({
-      '&': {
-        backgroundColor: '#1e1e1e',
-        color: '#d4d4d4',
-      },
-    }),
-  ];
-
-  useEditor({
-    parent: editorRef.current,
-    content,
-    extensions,
-    onChange,
-  });
-
-  useKeyboardShortcuts({ editorRef });
-
-  return <div ref={editorRef} className="editor-container" />;
+  return <div ref={editorRef} className="editor" />;
 };
+
+function languageExtension(lang: string) {
+  switch (lang) {
+    case 'javascript':
+      return javascript();
+    case 'python':
+      return python();
+    case 'html':
+      return html();
+    default:
+      return javascript();
+  }
+}
