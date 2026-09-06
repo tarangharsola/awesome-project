@@ -1,71 +1,45 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useWebSocket } from './useWebSocket';
-import { useUsers } from './useUsers';
-import type { WebSocketMessage } from '../types/websocketMessage';
-import type { User } from '../types';
+import { User } from '../types';
+import { WebSocketMessage, MessageType } from '../types/websocketMessage';
 
 /**
- * Hook that manages user awareness (presence) over the collaborative WebSocket.
- * It broadcasts the local user on connect/reconnect and keeps the remote user list
- * in sync with join/leave messages.
+ * Hook that tracks user presence (join/leave) and provides a list of active users.
  */
-export function useAwareness(roomId: string, localUser: User) {
-  const { ws, status, sendMessage } = useWebSocket(`${process.env.REACT_APP_WS_URL}/${roomId}`);
-  const { users, addUser, removeUser, setUsers } = useUsers();
+export function useAwareness(roomId: string, user: User) {
+  const { status, sendMessage, lastMessage } = useWebSocket(roomId, user);
+  const [users, setUsers] = useState<User[]>([]);
 
-  // Broadcast local presence whenever the socket becomes connected
-  const broadcastPresence = useCallback(() => {
-    if (status !== 'connected') return;
-    const msg: WebSocketMessage = {
-      type: 'presence',
-      payload: { user: localUser }
-    };
-    sendMessage(msg);
-  }, [status, sendMessage, localUser]);
-
-  // Handle incoming awareness messages
-  const handleMessage = useCallback((event: MessageEvent) => {
-    const data: WebSocketMessage = JSON.parse(event.data);
-    switch (data.type) {
-      case 'presence': {
-        const remoteUser: User = data.payload.user;
-        if (remoteUser.id !== localUser.id) {
-          addUser(remoteUser);
-        }
-        break;
-      }
-      case 'presence:leave': {
-        const { userId } = data.payload;
-        removeUser(userId);
-        break;
-      }
-      case 'presence:sync': {
-        // Full user list sync (used after reconnect)
-        const remoteUsers: User[] = data.payload.users;
-        setUsers(remoteUsers.filter(u => u.id !== localUser.id));
-        break;
-      }
-      default:
-        // ignore other messages – they are handled elsewhere
-        break;
-    }
-  }, [addUser, removeUser, setUsers, localUser.id]);
-
-  // Attach listeners and broadcast on (re)connect
-  useEffect(() => {
-    if (!ws) return;
-    ws.addEventListener('message', handleMessage as any);
-    if (status === 'connected') broadcastPresence();
-    return () => {
-      ws.removeEventListener('message', handleMessage as any);
-    };
-  }, [ws, status, broadcastPresence, handleMessage]);
-
-  // When reconnecting, request a full sync of users from the server
+  // Announce our presence when the socket becomes ready
   useEffect(() => {
     if (status === 'connected') {
-      const syncMsg: WebSocketMessage = { type: 'presence:requestSync', payload: {} };
-      sendMessage(syncMsg);
+      const joinMsg: WebSocketMessage = {
+        type: MessageType.JOIN,
+        payload: { userId: user.id, name: user.name, color: user.color }
+      };
+      sendMessage(joinMsg);
     }
-  }, [status, sendMessage]);
+  }, [status, sendMessage, user]);
+
+  // React to incoming presence‑related messages
+  useEffect(() => {
+    if (!lastMessage) return;
+    const { type, payload } = lastMessage;
+    switch (type) {
+      case MessageType.PRESENCE:
+        setUsers(payload.users.map(u => ({ id: u.userId, name: u.name, color: u.color })));
+        break;
+      case MessageType.JOIN:
+        setUsers(prev => [...prev, { id: payload.userId, name: payload.name, color: payload.color }]);
+        break;
+      case MessageType.LEAVE:
+        setUsers(prev => prev.filter(u => u.id !== payload.userId));
+        break;
+      default:
+        // ignore unrelated messages
+        break;
+    }
+  }, [lastMessage]);
+
+  return { status, users };
 }

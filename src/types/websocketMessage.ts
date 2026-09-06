@@ -1,50 +1,39 @@
-export enum WSMessageType {
-  USER_JOIN = "USER_JOIN",
-  USER_LEAVE = "USER_LEAVE",
-  CURSOR_UPDATE = "CURSOR_UPDATE",
-  DOC_UPDATE = "DOC_UPDATE",
-  PRESENCE = "PRESENCE"
+export enum MessageType {
+  JOIN = 'join',
+  LEAVE = 'leave',
+  EDIT = 'edit',
+  CURSOR = 'cursor',
+  PRESENCE = 'presence'
 }
 
-export interface WSMessageBase {
-  type: WSMessageType;
-  payload: unknown;
+export interface JoinPayload {
+  userId: string;
+  name: string;
+  color: string;
 }
 
-export interface UserJoinMessage extends WSMessageBase {
-  type: WSMessageType.USER_JOIN;
-  payload: {
-    userId: string;
-    username: string;
-    color: string;
-  };
+export interface LeavePayload {
+  userId: string;
 }
 
-export interface UserLeaveMessage extends WSMessageBase {
-  type: WSMessageType.USER_LEAVE;
-  payload: {
-    userId: string;
-  };
+export interface EditPayload {
+  ops: any; // TODO: replace with concrete OT/CRDT operation type
+  version: number;
 }
 
-export interface CursorUpdateMessage extends WSMessageBase {
-  type: WSMessageType.CURSOR_UPDATE;
-  payload: {
-    userId: string;
-    position: number;
-  };
+export interface CursorPayload {
+  userId: string;
+  position: number;
+  selection?: { start: number; end: number };
 }
 
-export interface DocUpdateMessage extends WSMessageBase {
-  type: WSMessageType.DOC_UPDATE;
-  payload: {
-    ops: any[];
-    version: number;
-  };
+export interface PresencePayload {
+  users: Array<{ userId: string; name: string; color: string }>;
 }
 
-export type WSMessage =
-  | UserJoinMessage
-  | UserLeaveMessage
-  | CursorUpdateMessage
-  | DocUpdateMessage;
+export type WebSocketMessage =
+  | { type: MessageType.JOIN; payload: JoinPayload }
+  | { type: MessageType.LEAVE; payload: LeavePayload }
+  | { type: MessageType.EDIT; payload: EditPayload }
+  | { type: MessageType.CURSOR; payload: CursorPayload }
+  | { type: MessageType.PRESENCE; payload: PresencePayload };
