@@ -1,76 +1,87 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import type { WebSocketMessage } from '../types/websocketMessage';
+import { useEffect, useRef, useState, useCallback } from "react";
+
+export type WebSocketStatus = "connecting" | "connected" | "disconnected";
+
+interface UseWebSocketOptions {
+  url: string;
+  maxRetries?: number;
+  initialDelayMs?: number;
+  maxDelayMs?: number;
+}
 
 /**
- * Hook that manages a WebSocket connection with automatic reconnection,
- * exponential back‑off and outbound message queueing.
- *
- * It also exposes the current connection status and a sendMessage function.
+ * Hook that manages a WebSocket connection with exponential backoff reconnection.
  */
-export function useWebSocket(url: string) {
-  const [status, setStatus] = useState<'connected' | 'disconnected' | 'connecting'>('disconnected');
+export function useWebSocket(
+  { url, maxRetries = Infinity, initialDelayMs = 1000, maxDelayMs = 30000 }: UseWebSocketOptions
+) {
+  const [status, setStatus] = useState<WebSocketStatus>("connecting");
   const wsRef = useRef<WebSocket | null>(null);
   const retryCountRef = useRef(0);
-  const pendingMessagesRef = useRef<WebSocketMessage[]>([]);
-  const reconnectTimeoutRef = useRef<number | null>(null);
+  const backoffTimeoutRef = useRef<number | null>(null);
 
-  const maxBackoff = 30000; // 30 seconds
+  const clearBackoff = () => {
+    if (backoffTimeoutRef.current !== null) {
+      clearTimeout(backoffTimeoutRef.current);
+      backoffTimeoutRef.current = null;
+    }
+  };
 
   const connect = useCallback(() => {
-    setStatus('connecting');
+    setStatus("connecting");
     const ws = new WebSocket(url);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      setStatus('connected');
+      setStatus("connected");
       retryCountRef.current = 0;
-      // Flush queued messages
-      pendingMessagesRef.current.forEach(msg => ws.send(JSON.stringify(msg)));
-      pendingMessagesRef.current = [];
-    };
-
-    ws.onmessage = (event) => {
-      // Let consumers attach their own listeners via returned wsRef
-      // No-op here – the hook consumer will read wsRef.current
     };
 
     ws.onclose = () => {
-      setStatus('disconnected');
-      scheduleReconnect();
+      setStatus("disconnected");
+      attemptReconnect();
     };
 
     ws.onerror = () => {
+      // Errors also trigger close; ensure we close to start reconnection.
       ws.close();
     };
   }, [url]);
 
-  const scheduleReconnect = useCallback(() => {
-    if (reconnectTimeoutRef.current !== null) return; // already scheduled
-    const backoff = Math.min(1000 * 2 ** retryCountRef.current, maxBackoff);
-    reconnectTimeoutRef.current = window.setTimeout(() => {
-      reconnectTimeoutRef.current = null;
-      retryCountRef.current += 1;
-      connect();
-    }, backoff);
-  }, [connect]);
-
-  const sendMessage = useCallback((msg: WebSocketMessage) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(msg));
-    } else {
-      // Queue until connection is re‑established
-      pendingMessagesRef.current.push(msg);
+  const attemptReconnect = () => {
+    if (retryCountRef.current >= maxRetries) {
+      return;
     }
-  }, []);
+    const delay = Math.min(
+      initialDelayMs * 2 ** retryCountRef.current,
+      maxDelayMs
+    );
+    retryCountRef.current += 1;
+    clearBackoff();
+    backoffTimeoutRef.current = window.setTimeout(() => {
+      connect();
+    }, delay);
+  };
+
+  const sendMessage = useCallback(
+    (msg: string) => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(msg);
+      } else {
+        console.warn("WebSocket not open. Message dropped:", msg);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     connect();
     return () => {
-      if (wsRef.current) wsRef.current.close();
-      if (reconnectTimeoutRef.current !== null) clearTimeout(reconnectTimeoutRef.current);
+      clearBackoff();
+      wsRef.current?.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [connect]);
 
-  return { ws: wsRef.current, status, sendMessage } as const;
+  return { status, sendMessage };
 }
