@@ -1,90 +1,71 @@
-import { useEffect, useRef, useCallback } from 'react';
-import type { CursorData, UserAwarenessMessage } from '../types/websocketMessage';
+import { useEffect, useCallback } from 'react';
 import { useWebSocket } from './useWebSocket';
+import { useUsers } from './useUsers';
+import type { WebSocketMessage } from '../types/websocketMessage';
+import type { User } from '../types';
 
 /**
- * Hook that manages user awareness (cursor position, selection, etc.)
- * and guarantees that the latest state is broadcast after reconnection.
- *
- * @param userId Unique identifier for the local user.
- * @param username Display name of the user.
- * @param color Hex colour assigned to the user.
- * @param wsUrl WebSocket endpoint.
+ * Hook that manages user awareness (presence) over the collaborative WebSocket.
+ * It broadcasts the local user on connect/reconnect and keeps the remote user list
+ * in sync with join/leave messages.
  */
-export function useAwareness(
-  userId: string,
-  username: string,
-  color: string,
-  wsUrl: string
-) {
-  const latestCursor = useRef<CursorData | null>(null);
+export function useAwareness(roomId: string, localUser: User) {
+  const { ws, status, sendMessage } = useWebSocket(`${process.env.REACT_APP_WS_URL}/${roomId}`);
+  const { users, addUser, removeUser, setUsers } = useUsers();
 
-  // Initialise WebSocket with a custom onMessage handler that only forwards
-  // awareness messages to the consumer via the returned callback.
-  const { sendMessage, connectionStatus } = useWebSocket(
-    wsUrl,
-    (msg) => {
-      if (msg.type === 'awareness' && msg.payload.userId !== userId) {
-        // Remote awareness – consumer can subscribe via the returned handler.
-        if (onRemoteAwareness.current) onRemoteAwareness.current(msg as UserAwarenessMessage);
+  // Broadcast local presence whenever the socket becomes connected
+  const broadcastPresence = useCallback(() => {
+    if (status !== 'connected') return;
+    const msg: WebSocketMessage = {
+      type: 'presence',
+      payload: { user: localUser }
+    };
+    sendMessage(msg);
+  }, [status, sendMessage, localUser]);
+
+  // Handle incoming awareness messages
+  const handleMessage = useCallback((event: MessageEvent) => {
+    const data: WebSocketMessage = JSON.parse(event.data);
+    switch (data.type) {
+      case 'presence': {
+        const remoteUser: User = data.payload.user;
+        if (remoteUser.id !== localUser.id) {
+          addUser(remoteUser);
+        }
+        break;
       }
-    },
-    () => {
-      // On (re)connect we immediately broadcast the current cursor state so
-      // that newly connected peers receive up‑to‑date awareness.
-      if (latestCursor.current) {
-        sendMessage({
-          type: 'awareness',
-          payload: {
-            userId,
-            username,
-            color,
-            cursor: latestCursor.current,
-          },
-        });
+      case 'presence:leave': {
+        const { userId } = data.payload;
+        removeUser(userId);
+        break;
       }
+      case 'presence:sync': {
+        // Full user list sync (used after reconnect)
+        const remoteUsers: User[] = data.payload.users;
+        setUsers(remoteUsers.filter(u => u.id !== localUser.id));
+        break;
+      }
+      default:
+        // ignore other messages – they are handled elsewhere
+        break;
     }
-  );
+  }, [addUser, removeUser, setUsers, localUser.id]);
 
-  // Callback holder for external components to receive remote awareness updates.
-  const onRemoteAwareness = useRef<(msg: UserAwarenessMessage) => void>();
-  const setRemoteAwarenessHandler = useCallback((handler: (msg: UserAwarenessMessage) => void) => {
-    onRemoteAwareness.current = handler;
-  }, []);
-
-  // Broadcast local cursor changes.
-  const broadcastCursor = useCallback(
-    (cursor: CursorData) => {
-      latestCursor.current = cursor;
-      const message: UserAwarenessMessage = {
-        type: 'awareness',
-        payload: {
-          userId,
-          username,
-          color,
-          cursor,
-        },
-      };
-      sendMessage(message);
-    },
-    [sendMessage, userId, username, color]
-  );
-
-  // When the connection status flips back to "connected" after a disconnect,
-  // ensure the most recent cursor is resent (in case the previous attempt was lost).
+  // Attach listeners and broadcast on (re)connect
   useEffect(() => {
-    if (connectionStatus === 'connected' && latestCursor.current) {
-      sendMessage({
-        type: 'awareness',
-        payload: {
-          userId,
-          username,
-          color,
-          cursor: latestCursor.current,
-        },
-      });
-    }
-  }, [connectionStatus, sendMessage, userId, username, color]);
+    if (!ws) return;
+    ws.addEventListener('message', handleMessage as any);
+    if (status === 'connected') broadcastPresence();
+    return () => {
+      ws.removeEventListener('message', handleMessage as any);
+    };
+  }, [ws, status, broadcastPresence, handleMessage]);
 
-  return { broadcastCursor, setRemoteAwarenessHandler, connectionStatus } as const;
+  // When reconnecting, request a full sync of users from the server
+  useEffect(() => {
+    if (status === 'connected') {
+      const syncMsg: WebSocketMessage = { type: 'presence:requestSync', payload: {} };
+      sendMessage(syncMsg);
+    }
+  }, [status, sendMessage]);
 }

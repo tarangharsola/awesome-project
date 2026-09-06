@@ -1,16 +1,20 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { WebSocketMessage } from '../types/websocketMessage';
+import type { WebSocketMessage } from '../types/websocketMessage';
 
 /**
- * Hook for managing a WebSocket connection with automatic reconnection using exponential backoff.
- * Returns received messages, a sendMessage function, current connection status, and a manual retry function.
+ * Hook that manages a WebSocket connection with automatic reconnection,
+ * exponential back‑off and outbound message queueing.
+ *
+ * It also exposes the current connection status and a sendMessage function.
  */
-export const useWebSocket = (url: string) => {
+export function useWebSocket(url: string) {
+  const [status, setStatus] = useState<'connected' | 'disconnected' | 'connecting'>('disconnected');
   const wsRef = useRef<WebSocket | null>(null);
-  const [messages, setMessages] = useState<WebSocketMessage[]>([]);
-  const [status, setStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
-  const [retryCount, setRetryCount] = useState(0);
-  const maxDelay = 30000; // 30 seconds max backoff
+  const retryCountRef = useRef(0);
+  const pendingMessagesRef = useRef<WebSocketMessage[]>([]);
+  const reconnectTimeoutRef = useRef<number | null>(null);
+
+  const maxBackoff = 30000; // 30 seconds
 
   const connect = useCallback(() => {
     setStatus('connecting');
@@ -19,54 +23,54 @@ export const useWebSocket = (url: string) => {
 
     ws.onopen = () => {
       setStatus('connected');
-      setRetryCount(0);
+      retryCountRef.current = 0;
+      // Flush queued messages
+      pendingMessagesRef.current.forEach(msg => ws.send(JSON.stringify(msg)));
+      pendingMessagesRef.current = [];
     };
 
-    ws.onmessage = (event: MessageEvent) => {
-      try {
-        const data: WebSocketMessage = JSON.parse(event.data);
-        setMessages(prev => [...prev, data]);
-      } catch (e) {
-        console.error('Failed to parse WebSocket message', e);
-      }
-    };
-
-    ws.onerror = () => {
-      setStatus('error');
+    ws.onmessage = (event) => {
+      // Let consumers attach their own listeners via returned wsRef
+      // No-op here – the hook consumer will read wsRef.current
     };
 
     ws.onclose = () => {
       setStatus('disconnected');
-      // Schedule reconnection with exponential backoff
-      const delay = Math.min(1000 * 2 ** retryCount, maxDelay);
-      const timer = setTimeout(() => {
-        setRetryCount(prev => prev + 1);
-        connect();
-      }, delay);
-      // Cleanup timer if component unmounts before reconnection
-      return () => clearTimeout(timer);
+      scheduleReconnect();
     };
-  }, [url, retryCount]);
 
-  useEffect(() => {
-    connect();
-    return () => {
-      wsRef.current?.close();
+    ws.onerror = () => {
+      ws.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [url]);
+
+  const scheduleReconnect = useCallback(() => {
+    if (reconnectTimeoutRef.current !== null) return; // already scheduled
+    const backoff = Math.min(1000 * 2 ** retryCountRef.current, maxBackoff);
+    reconnectTimeoutRef.current = window.setTimeout(() => {
+      reconnectTimeoutRef.current = null;
+      retryCountRef.current += 1;
+      connect();
+    }, backoff);
+  }, [connect]);
 
   const sendMessage = useCallback((msg: WebSocketMessage) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(msg));
+    } else {
+      // Queue until connection is re‑established
+      pendingMessagesRef.current.push(msg);
     }
   }, []);
 
-  const retry = useCallback(() => {
-    wsRef.current?.close();
-    setRetryCount(0);
+  useEffect(() => {
     connect();
-  }, [connect]);
+    return () => {
+      if (wsRef.current) wsRef.current.close();
+      if (reconnectTimeoutRef.current !== null) clearTimeout(reconnectTimeoutRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  return { messages, sendMessage, status, retry };
-};
+  return { ws: wsRef.current, status, sendMessage } as const;
+}
