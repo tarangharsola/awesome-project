@@ -1,33 +1,63 @@
 import React from "react";
-import { useWebSocket } from "../hooks/useWebSocket";
+import { useWebSocket, WebSocketStatus } from "../hooks/useWebSocket";
 
-// The WebSocket endpoint can be configured via an environment variable.
-const WS_URL = process.env.REACT_APP_WS_URL || "ws://localhost:4000";
+interface ConnectionStatusProps {
+  url: string;
+}
 
-export const ConnectionStatus: React.FC = () => {
-  const { status } = useWebSocket({ url: WS_URL });
+export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ url }) => {
+  const { status, manualReconnect } = useWebSocket({ url });
 
-  const colorMap: Record<string, string> = {
-    connected: "#4caf50",
-    connecting: "#ff9800",
-    disconnected: "#f44336",
+  const getColor = (s: WebSocketStatus) => {
+    switch (s) {
+      case "connected":
+        return "#4caf50"; // green
+      case "connecting":
+        return "#ff9800"; // orange
+      case "disconnected":
+        return "#f44336"; // red
+      default:
+        return "#9e9e9e"; // grey
+    }
   };
-
-  const displayText = status.charAt(0).toUpperCase() + status.slice(1);
 
   return (
     <div
       style={{
-        padding: "4px 8px",
-        backgroundColor: "#222",
-        color: colorMap[status] ?? "#fff",
-        borderRadius: "4px",
-        fontSize: "0.9rem",
-        fontFamily: "sans-serif",
+        display: "flex",
+        alignItems: "center",
+        gap: "0.5rem",
+        padding: "0.5rem",
+        backgroundColor: "#212121",
+        color: "#fff",
       }}
-      aria-label="connection-status"
     >
-      {displayText}
+      <span
+        style={{
+          width: "10px",
+          height: "10px",
+          borderRadius: "50%",
+          backgroundColor: getColor(status),
+          display: "inline-block",
+        }}
+        aria-label={`connection-${status}`}
+      />
+      <span>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+      {status === "disconnected" && (
+        <button
+          onClick={manualReconnect}
+          style={{
+            marginLeft: "auto",
+            background: "none",
+            border: "1px solid #fff",
+            color: "#fff",
+            padding: "0.25rem 0.5rem",
+            cursor: "pointer",
+          }}
+        >
+          Retry
+        </button>
+      )}
     </div>
   );
 };
