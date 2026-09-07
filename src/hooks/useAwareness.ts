@@ -1,45 +1,68 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import type { User } from '../types';
+import type { WebSocketMessage } from '../types/websocketMessage';
 import { useWebSocket } from './useWebSocket';
-import { User } from '../types';
-import { WebSocketMessage, MessageType } from '../types/websocketMessage';
 
 /**
- * Hook that tracks user presence (join/leave) and provides a list of active users.
+ * Hook to keep user awareness (presence & cursor) consistent across reconnections.
  */
-export function useAwareness(roomId: string, user: User) {
-  const { status, sendMessage, lastMessage } = useWebSocket(roomId, user);
-  const [users, setUsers] = useState<User[]>([]);
+export function useAwareness(roomUrl: string, localUser: User) {
+  const { ws, connected, sendMessage } = useWebSocket(roomUrl, localUser);
+  const [users, setUsers] = useState<Record<string, User>>({});
+  const [cursors, setCursors] = useState<Record<string, { line: number; ch: number }>>({});
 
-  // Announce our presence when the socket becomes ready
+  // Broadcast local cursor updates
+  const broadcastCursor = useCallback(
+    (position: { line: number; ch: number }) => {
+      if (!connected) return;
+      const msg: WebSocketMessage = { type: 'cursor', payload: { userId: localUser.id, position } };
+      sendMessage(msg);
+    },
+    [connected, sendMessage, localUser.id]
+  );
+
+  // Handle incoming messages
   useEffect(() => {
-    if (status === 'connected') {
-      const joinMsg: WebSocketMessage = {
-        type: MessageType.JOIN,
-        payload: { userId: user.id, name: user.name, color: user.color }
-      };
-      sendMessage(joinMsg);
-    }
-  }, [status, sendMessage, user]);
+    if (!ws) return;
+    const handleMessage = (event: MessageEvent) => {
+      const msg: WebSocketMessage = JSON.parse(event.data);
+      switch (msg.type) {
+        case 'presence': {
+          const { user } = msg.payload as { user: User };
+          setUsers((prev) => ({ ...prev, [user.id]: user }));
+          break;
+        }
+        case 'presence-leave': {
+          const { userId } = msg.payload as { userId: string };
+          setUsers((prev) => {
+            const { [userId]: _, ...rest } = prev;
+            return rest;
+          });
+          setCursors((prev) => {
+            const { [userId]: _, ...rest } = prev;
+            return rest;
+          });
+          break;
+        }
+        case 'cursor': {
+          const { userId, position } = msg.payload as { userId: string; position: { line: number; ch: number } };
+          setCursors((prev) => ({ ...prev, [userId]: position }));
+          break;
+        }
+        default:
+          break;
+      }
+    };
+    ws.addEventListener('message', handleMessage);
+    return () => ws.removeEventListener('message', handleMessage);
+  }, [ws]);
 
-  // React to incoming presence‑related messages
+  // Re‑announce presence after reconnection
   useEffect(() => {
-    if (!lastMessage) return;
-    const { type, payload } = lastMessage;
-    switch (type) {
-      case MessageType.PRESENCE:
-        setUsers(payload.users.map(u => ({ id: u.userId, name: u.name, color: u.color })));
-        break;
-      case MessageType.JOIN:
-        setUsers(prev => [...prev, { id: payload.userId, name: payload.name, color: payload.color }]);
-        break;
-      case MessageType.LEAVE:
-        setUsers(prev => prev.filter(u => u.id !== payload.userId));
-        break;
-      default:
-        // ignore unrelated messages
-        break;
+    if (connected) {
+      sendMessage({ type: 'presence', payload: { user: localUser } });
     }
-  }, [lastMessage]);
+  }, [connected, sendMessage, localUser]);
 
-  return { status, users };
+  return { users, cursors, broadcastCursor } as const;
 }
