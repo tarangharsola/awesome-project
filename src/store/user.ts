@@ -1,12 +1,15 @@
-{"import { createAction } from 'redux-actions';
+import { v4 as uuidv4 } from 'uuid';
+import { User } from '../types';
 
-export const JOIN_ROOM = 'JOIN_ROOM';
-export const LEAVE_ROOM = 'LEAVE_ROOM';
+// Curated palette of readable, non‑neon colors suitable for dark mode
+const COLORS = ['#1abc9c', '#3498db', '#e67e22', '#e74c3c', '#f1c40f', '#2ecc71'];
 
-export const joinRoom = createAction(JOIN_ROOM);
-export const leaveRoom = createAction(LEAVE_ROOM);
+function getRandomColor(): string {
+  return COLORS[Math.floor(Math.random() * COLORS.length)];
+}
 
-export default {
-  joinRoom,
-  leaveRoom
-};
+export const createUser = (name: string): User => ({
+  id: uuidv4(),
+  name,
+  color: getRandomColor(),
+});

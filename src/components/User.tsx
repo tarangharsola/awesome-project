@@ -1,25 +1,12 @@
-{"import React from 'react';
-import { useTheme } from '@mui/material/styles';
+import React from 'react';
+import { User as UserType } from '../types';
+import styles from '../styles/user.module.css';
 
-interface UserProps {
-  name: string;
-  color: string;
-}
-
-const User: React.FC<UserProps> = ({ name, color }) => {
-  const theme = useTheme();
-  const styles = {
-    backgroundColor: color,
-    color: theme.palette.text.primary,
-    padding: '4px 8px',
-    borderRadius: '4px',
-    display: 'inline-block',
-    margin: '4px',
-  };
-
-  return (
-    <span style={styles}>{name}</span>
-  );
-}
-
-export default User;
+export const User: React.FC<{ user: UserType }> = ({ user }) => (
+  <div
+    className={styles.user}
+    style={{ backgroundColor: user.color, color: '#fff' }}
+  >
+    {user.name}
+  </div>
+);
