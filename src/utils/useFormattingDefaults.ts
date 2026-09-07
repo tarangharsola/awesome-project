@@ -1,19 +1,15 @@
-// src/utils/useFormattingDefaults.ts
-export interface FormattingOptions {
-  tabSize: number;
-  insertSpaces: boolean;
-}
-
-export const getFormattingDefaults = (language: string): FormattingOptions => {
+/**
+ * Returns default formatting options for a given language.
+ * Currently provides tabSize and indentWithTabs.
+ */
+export const getDefaultFormatting = (language: string) => {
   switch (language) {
-    case 'javascript':
-    case 'typescript':
-      return { tabSize: 2, insertSpaces: true };
     case 'python':
-      return { tabSize: 4, insertSpaces: true };
+      return { tabSize: 4, indentWithTabs: false };
     case 'html':
-      return { tabSize: 2, insertSpaces: true };
+      return { tabSize: 2, indentWithTabs: false };
+    case 'javascript':
     default:
-      return { tabSize: 2, insertSpaces: true };
+      return { tabSize: 2, indentWithTabs: false };
   }
 };
