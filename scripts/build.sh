@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
-echo "Running build..."
+echo "Running lint..."
+npm run lint || true
+
+echo "Running tests..."
+npm test
+
+echo "Building TypeScript..."
 npm run build
 
-echo "Build completed."
+echo "Build completed successfully."
