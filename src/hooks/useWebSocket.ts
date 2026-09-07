@@ -1,100 +1,81 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-
-export type WebSocketStatus = "connecting" | "connected" | "disconnected";
+import { useEffect, useRef, useState, useCallback } from 'react';
+import type { WebSocketMessage } from '../types/websocketMessage';
 
 export interface UseWebSocketOptions {
   url: string;
   protocols?: string | string[];
-  onMessage?: (event: MessageEvent) => void;
-  onOpen?: () => void;
-  onClose?: () => void;
-  onError?: (event: Event) => void;
+  reconnectInterval?: number;
+  onMessage?: (msg: WebSocketMessage) => void;
+}
+
+export interface WebSocketState {
+  socket: WebSocket | null;
+  isConnected: boolean;
 }
 
 /**
- * Hook that manages a WebSocket connection with exponential backoff reconnection.
+ * Hook to manage a WebSocket connection with automatic reconnection.
  */
 export function useWebSocket({
   url,
   protocols,
+  reconnectInterval = 3000,
   onMessage,
-  onOpen,
-  onClose,
-  onError,
-}: UseWebSocketOptions) {
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<number | null>(null);
-  const attemptRef = useRef(0);
-  const [status, setStatus] = useState<WebSocketStatus>("connecting");
+}: UseWebSocketOptions): WebSocketState {
+  const [isConnected, setIsConnected] = useState(false);
+  const socketRef = useRef<WebSocket | null>(null);
+  const reconnectTimeout = useRef<number | null>(null);
 
-  const clearReconnectTimeout = () => {
-    if (reconnectTimeoutRef.current !== null) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
+  const cleanup = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.close();
+      socketRef.current = null;
     }
-  };
+    if (reconnectTimeout.current) {
+      clearTimeout(reconnectTimeout.current);
+      reconnectTimeout.current = null;
+    }
+  }, []);
 
   const connect = useCallback(() => {
-    clearReconnectTimeout();
-    setStatus("connecting");
+    cleanup();
+
     const ws = new WebSocket(url, protocols);
-    wsRef.current = ws;
+    ws.binaryType = 'arraybuffer';
 
     ws.onopen = () => {
-      attemptRef.current = 0;
-      setStatus("connected");
-      onOpen?.();
-    };
-
-    ws.onmessage = (event) => {
-      onMessage?.(event);
-    };
-
-    ws.onerror = (event) => {
-      onError?.(event);
+      setIsConnected(true);
     };
 
     ws.onclose = () => {
-      setStatus("disconnected");
-      onClose?.();
-      // schedule reconnection with exponential backoff
-      const delay = Math.min(1000 * 2 ** attemptRef.current, 30000);
-      attemptRef.current += 1;
-      reconnectTimeoutRef.current = window.setTimeout(() => {
-        connect();
-      }, delay);
+      setIsConnected(false);
+      // attempt reconnection
+      reconnectTimeout.current = window.setTimeout(connect, reconnectInterval);
     };
-  }, [url, protocols, onMessage, onOpen, onClose, onError]);
 
-  // initial connection
+    ws.onerror = () => {
+      ws.close();
+    };
+
+    ws.onmessage = (event) => {
+      if (onMessage) {
+        try {
+          const data = JSON.parse(event.data) as WebSocketMessage;
+          onMessage(data);
+        } catch {
+          // ignore malformed messages
+        }
+      }
+    };
+
+    socketRef.current = ws;
+  }, [url, protocols, reconnectInterval, onMessage, cleanup]);
+
   useEffect(() => {
     connect();
-    return () => {
-      clearReconnectTimeout();
-      wsRef.current?.close();
-    };
+    return cleanup;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, protocols]);
+  }, [connect]);
 
-  const sendMessage = useCallback(
-    (data: string) => {
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(data);
-      } else {
-        console.warn("WebSocket is not open. Message not sent.");
-      }
-    },
-    []
-  );
-
-  const manualReconnect = useCallback(() => {
-    if (status !== "connected") {
-      wsRef.current?.close();
-      // reset attempt counter for immediate retry
-      attemptRef.current = 0;
-      connect();
-    }
-  }, [status, connect]);
-
-  return { status, sendMessage, manualReconnect };
+  return { socket: socketRef.current, isConnected };
 }

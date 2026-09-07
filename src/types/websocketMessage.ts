@@ -1,39 +1,37 @@
-export enum MessageType {
-  JOIN = 'join',
-  LEAVE = 'leave',
-  EDIT = 'edit',
-  CURSOR = 'cursor',
-  PRESENCE = 'presence'
+export type MessageType = 'join' | 'leave' | 'cursor' | 'edit' | 'presence';
+
+export interface BaseMessage {
+  type: MessageType;
+  sessionId: string;
+  timestamp: number;
 }
 
-export interface JoinPayload {
+export interface JoinMessage extends BaseMessage {
+  type: 'join';
   userId: string;
-  name: string;
+  username: string;
   color: string;
 }
 
-export interface LeavePayload {
+export interface LeaveMessage extends BaseMessage {
+  type: 'leave';
   userId: string;
 }
 
-export interface EditPayload {
-  ops: any; // TODO: replace with concrete OT/CRDT operation type
-  version: number;
-}
-
-export interface CursorPayload {
+export interface CursorMessage extends BaseMessage {
+  type: 'cursor';
   userId: string;
-  position: number;
-  selection?: { start: number; end: number };
+  position: { line: number; ch: number };
 }
 
-export interface PresencePayload {
-  users: Array<{ userId: string; name: string; color: string }>;
+export interface EditMessage extends BaseMessage {
+  type: 'edit';
+  userId: string;
+  delta: any; // TODO: replace with concrete OT/CRDT delta type
 }
 
 export type WebSocketMessage =
-  | { type: MessageType.JOIN; payload: JoinPayload }
-  | { type: MessageType.LEAVE; payload: LeavePayload }
-  | { type: MessageType.EDIT; payload: EditPayload }
-  | { type: MessageType.CURSOR; payload: CursorPayload }
-  | { type: MessageType.PRESENCE; payload: PresencePayload };
+  | JoinMessage
+  | LeaveMessage
+  | CursorMessage
+  | EditMessage;

@@ -1,27 +1,18 @@
-import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { WebSocketClient } from '../utils/websocketClient';
-import { syncDocument } from '../store/editorActions';
-import { EditorState } from '../types/editor';
+import { useEffect, useRef } from 'react';
+import { useWebSocket, UseWebSocketOptions } from './useWebSocket';
 
 /**
- * Hook that ensures the client receives the latest document state after a reconnection.
- * It listens for SYNC_DOCUMENT messages and dispatches them to the Redux store.
+ * Convenience hook that wraps useWebSocket with reconnection logic.
+ * It forwards all options to the underlying hook.
  */
-export function useReconnection(client: WebSocketClient) {
-  const dispatch = useDispatch();
+export function useReconnection(options: UseWebSocketOptions) {
+  const { socket, isConnected } = useWebSocket(options);
 
+  // Expose a stable reference for consumers that may need the socket instance.
+  const socketRef = useRef<WebSocket | null>(null);
   useEffect(() => {
-    const handleMessage = (msg: any) => {
-      if (msg.type === 'SYNC_DOCUMENT' && msg.payload) {
-        const state: EditorState = msg.payload;
-        dispatch(syncDocument(state));
-      }
-    };
+    socketRef.current = socket;
+  }, [socket]);
 
-    client.addMessageHandler(handleMessage);
-    return () => {
-      client.removeMessageHandler(handleMessage);
-    };
-  }, [client, dispatch]);
+  return { socket: socketRef.current, isConnected };
 }
