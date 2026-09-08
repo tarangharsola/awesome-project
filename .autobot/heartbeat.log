@@ -1126,3 +1126,4 @@
 2026-09-07T12:57:45.958678+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
 2026-09-07T12:58:13.074281+00:00 | Harden realtime collaboration: conflict handling, reconnection, and awareness consistency.
 2026-09-08T11:38:46.374762+00:00 | Add connection status indicator and retry/backoff behavior.
+2026-09-08T11:38:50.128911+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).

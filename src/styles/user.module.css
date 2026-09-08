@@ -1,8 +1,26 @@
-.user {
-  padding: 4px 8px;
-  border-radius: 4px;
-  margin: 2px 0;
-  font-size: 0.9rem;
+.userItem {
   display: flex;
   align-items: center;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+}
+
+.userColorBadge {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  background: #4a90e2; /* soft blue instead of neon purple */
+}
+
+.userName {
+  color: #e0e0e0; /* light gray for readability on dark backgrounds */
+  font-size: 0.9rem;
+}
+
+.activeUsersPanel {
+  background: #1e1e1e; /* dark panel background */
+  color: #cfcfcf;
+  padding: 8px;
+  border-radius: 4px;
 }
