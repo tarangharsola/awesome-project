@@ -1,43 +1,26 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useWebSocket } from './useWebSocket';
-import type { User } from '../types';
+import { useRef, useCallback } from 'react';
 
-/**
- * Hook that abstracts reconnection logic for collaborative sessions.
- * It exposes connection status and a method to manually trigger reconnection.
- */
-export function useReconnection(roomUrl: string, user: User) {
-  const { ws, connected, sendMessage } = useWebSocket(roomUrl, user);
-  const [status, setStatus] = useState<'connected' | 'disconnected' | 'reconnecting'>(
-    connected ? 'connected' : 'disconnected'
-  );
+export default function useReconnection(connectFn: () => void) {
+  const attemptsRef = useRef(0);
+  const timeoutRef = useRef<number | null>(null);
+  const maxDelay = 30000; // 30 seconds
 
-  // Update status based on WebSocket events
-  useEffect(() => {
-    if (!ws) return;
-    const handleOpen = () => setStatus('connected');
-    const handleClose = () => setStatus('reconnecting');
-    ws.addEventListener('open', handleOpen);
-    ws.addEventListener('close', handleClose);
-    return () => {
-      ws.removeEventListener('open', handleOpen);
-      ws.removeEventListener('close', handleClose);
-    };
-  }, [ws]);
+  const scheduleReconnect = useCallback(() => {
+    const delay = Math.min(1000 * 2 ** attemptsRef.current, maxDelay);
+    attemptsRef.current += 1;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = window.setTimeout(() => {
+      connectFn();
+    }, delay);
+  }, [connectFn]);
 
-  const reconnect = useCallback(() => {
-    if (ws && ws.readyState !== WebSocket.OPEN) {
-      ws.close();
+  const reset = useCallback(() => {
+    attemptsRef.current = 0;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
-    // useWebSocket's internal logic will attempt reconnection automatically.
-  }, [ws]);
+  }, []);
 
-  // Ensure presence is re‑sent after reconnection
-  useEffect(() => {
-    if (status === 'connected') {
-      sendMessage({ type: 'presence', payload: { user } });
-    }
-  }, [status, sendMessage, user]);
-
-  return { status, reconnect } as const;
+  return { scheduleReconnect, reset };
 }

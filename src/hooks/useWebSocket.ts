@@ -1,44 +1,60 @@
-import { useEffect, useRef, useState } from 'react';
-import { WebSocketMessage } from '../types/websocketMessage';
-import { connectWebSocket, sendMessage } from '../utils/websocketClient';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import useReconnection from './useReconnection';
+import type { WebSocketMessage } from '../types/websocketMessage';
 
-type UseWebSocketReturn = {
-  connected: boolean;
-  send: (msg: WebSocketMessage) => void;
-};
-
-export const useWebSocket = (
-  url: string,
-  onMessage: (msg: WebSocketMessage) => void
-): UseWebSocketReturn => {
-  const [connected, setConnected] = useState(false);
+export default function useWebSocket(url: string) {
+  const [status, setStatus] = useState<'connecting'|'open'|'closed'>('connecting');
+  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const messageQueue = useRef<WebSocketMessage[]>([]);
+  const { scheduleReconnect, reset } = useReconnection(() => connect());
 
-  useEffect(() => {
-    const ws = connectWebSocket(url, {
-      onOpen: () => setConnected(true),
-      onClose: () => setConnected(false),
-      onMessage: (event) => {
-        try {
-          const data: WebSocketMessage = JSON.parse(event.data);
-          onMessage(data);
-        } catch {
-          // Silently ignore malformed messages
-        }
-      },
-    });
+  const connect = useCallback(() => {
+    const ws = new WebSocket(url);
     wsRef.current = ws;
-    return () => {
+    setStatus('connecting');
+
+    ws.onopen = () => {
+      setStatus('open');
+      reset();
+      while (messageQueue.current.length) {
+        ws.send(JSON.stringify(messageQueue.current.shift()));
+      }
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data) as WebSocketMessage;
+        setLastMessage(data);
+      } catch {
+        // ignore malformed messages
+      }
+    };
+
+    ws.onclose = () => {
+      setStatus('closed');
+      scheduleReconnect();
+    };
+
+    ws.onerror = () => {
       ws.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, onMessage]);
+  }, [url, scheduleReconnect, reset]);
 
-  const send = (msg: WebSocketMessage) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      sendMessage(wsRef.current, msg);
+  useEffect(() => {
+    connect();
+    return () => {
+      wsRef.current?.close();
+    };
+  }, [connect]);
+
+  const sendMessage = useCallback((msg: WebSocketMessage) => {
+    if (status === 'open' && wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(msg));
+    } else {
+      messageQueue.current.push(msg);
     }
-  };
+  }, [status]);
 
-  return { connected, send };
-};
+  return { status, lastMessage, sendMessage };
+}

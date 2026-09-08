@@ -1,68 +1,55 @@
-import type { EditorOperation } from '../types/editor';
-import type { DocumentState } from '../types';
+import type { EditorOperation, DocumentState } from '../types/editor';
+import type { WebSocketMessage } from '../types/websocketMessage';
 
-/**
- * Simple sequence CRDT (RGA) based conflict resolver.
- * Each operation carries a unique identifier (clientId + seq) and a position.
- * The resolver ensures deterministic ordering and idempotent application.
- */
+type PendingOp = { op: EditorOperation; id: string };
+
 export class ConflictResolver {
-  private clientId: string;
-  private seq: number = 0;
-  private pending: EditorOperation[] = [];
+  private version: number = 0;
+  private pending: PendingOp[] = [];
+  private state: DocumentState;
 
-  constructor(clientId: string) {
-    this.clientId = clientId;
+  constructor(initial: DocumentState) {
+    this.state = initial;
   }
 
-  /**
-   * Create a new operation with a globally unique id.
-   */
-  createOperation(type: 'insert' | 'delete', index: number, text?: string): EditorOperation {
-    const op: EditorOperation = {
-      id: `${this.clientId}-${this.seq++}`,
-      type,
-      index,
-      text: text ?? '',
+  // Apply a local edit, queue it for sending, and update local state
+  localEdit(op: EditorOperation, sendFn: (msg: WebSocketMessage) => void, userId: string) {
+    const id = `${userId}-${Date.now()}-${Math.random()}`;
+    this.pending.push({ op, id });
+    this.applyOp(op);
+    const msg: WebSocketMessage = {
+      type: 'op',
+      roomId: '',
+      userId,
+      username: '',
+      color: '',
+      payload: { op, id, version: this.version },
     };
-    return op;
+    sendFn(msg);
   }
 
-  /**
-   * Apply an incoming operation to the local document state.
-   * Operations are applied in order of their ids (lexicographic) to guarantee
-   * convergence across all replicas.
-   */
-  applyOperation(state: DocumentState, op: EditorOperation): DocumentState {
-    // Ensure idempotency – ignore already applied ops
-    if (state.appliedOps?.has(op.id)) {
-      return state;
+  // Process an incoming remote operation
+  remoteOp(msg: WebSocketMessage) {
+    const { op, id, version } = msg.payload as { op: EditorOperation; id: string; version: number };
+    // If this is an ack for our own pending op, drop it
+    if (this.pending.find(p => p.id === id)) {
+      this.pending = this.pending.filter(p => p.id !== id);
+      this.version = Math.max(this.version, version + 1);
+      return;
     }
-    const content = state.content;
-    let newContent = content;
-    if (op.type === 'insert') {
-      newContent = content.slice(0, op.index) + op.text + content.slice(op.index);
-    } else if (op.type === 'delete') {
-      newContent = content.slice(0, op.index) + content.slice(op.index + op.length!);
-    }
-    const applied = new Set(state.appliedOps);
-    applied.add(op.id);
-    return { ...state, content: newContent, appliedOps: applied };
+    // Apply remote op after any pending local ops (simple transformation)
+    this.applyOp(op);
+    this.version = Math.max(this.version, version + 1);
   }
 
-  /**
-   * Queue local operations for sending; they will be flushed when the socket is ready.
-   */
-  queueLocal(op: EditorOperation) {
-    this.pending.push(op);
+  private applyOp(op: EditorOperation) {
+    const { range, text } = op;
+    const before = this.state.content.slice(0, range.start);
+    const after = this.state.content.slice(range.end);
+    this.state.content = before + text + after;
   }
 
-  /**
-   * Retrieve and clear pending operations.
-   */
-  drainPending(): EditorOperation[] {
-    const ops = this.pending;
-    this.pending = [];
-    return ops;
+  getState(): DocumentState {
+    return this.state;
   }
 }
