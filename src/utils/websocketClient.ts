@@ -1,21 +1,26 @@
-import { User } from '../types';
-import { WebSocketMessage, MessageType } from '../types/websocketMessage';
+import { WebSocketMessage } from '../types/websocketMessage';
 
-export type WebSocketStatus = 'connected' | 'disconnected' | 'error';
-
-/**
- * Create a WebSocket connection for a specific room.
- * The URL includes the room identifier and user metadata for server‑side handling.
- */
-export function createWebSocket(roomId: string, user: User): WebSocket {
-  const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  const url = `${protocol}://${location.host}/ws/${roomId}?username=${encodeURIComponent(user.name)}&color=${encodeURIComponent(user.color)}`;
-  return new WebSocket(url);
-}
+type WSHandlers = {
+  onOpen?: () => void;
+  onClose?: () => void;
+  onMessage?: (event: MessageEvent) => void;
+};
 
 /**
- * Helper to build a typed WebSocket message.
+ * Establishes a WebSocket connection with typed event handlers.
+ * Returns the underlying WebSocket instance for further interaction.
  */
-export function buildMessage(type: MessageType, payload: any): WebSocketMessage {
-  return { type, payload } as WebSocketMessage;
-}
+export const connectWebSocket = (url: string, handlers: WSHandlers): WebSocket => {
+  const ws = new WebSocket(url);
+  ws.onopen = () => handlers.onOpen?.();
+  ws.onclose = () => handlers.onClose?.();
+  ws.onmessage = (event) => handlers.onMessage?.(event);
+  return ws;
+};
+
+/**
+ * Sends a typed message over an open WebSocket connection.
+ */
+export const sendMessage = (ws: WebSocket, msg: WebSocketMessage): void => {
+  ws.send(JSON.stringify(msg));
+};
