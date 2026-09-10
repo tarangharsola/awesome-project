@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
-npm install
-npm run build
+
+echo "Running TypeScript type check..."
+npx tsc --noEmit
