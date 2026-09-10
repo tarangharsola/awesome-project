@@ -1,38 +1,33 @@
-import { useEffect, useRef } from 'react';
-import useWebSocket from './useWebSocket';
+// src/hooks/useAwareness.ts
+import { useEffect } from 'react';
+import type { User } from '../types';
+import { useReconnection } from './useReconnection';
 import type { WebSocketMessage } from '../types/websocketMessage';
 
-function generateId() {
-  return Math.random().toString(36).substr(2, 9);
-}
-
-export default function useAwareness(roomId: string, username: string, color: string) {
-  const userId = useRef(generateId());
-  const { status, sendMessage } = useWebSocket(`${process.env.REACT_APP_WS_URL}/${roomId}`);
-
-  const broadcast = (type: 'join'|'leave'|'cursor', payload: any) => {
-    const msg: WebSocketMessage = {
-      type,
-      roomId,
-      userId: userId.current,
-      username,
-      color,
-      payload,
-    };
-    sendMessage(msg);
+export function useAwareness(
+  url: string,
+  user: User,
+  onAwarenessUpdate: (users: Record<string, User>) => void
+) {
+  const handleMessage = (msg: WebSocketMessage) => {
+    if (msg.type === 'awareness') {
+      onAwarenessUpdate(msg.payload);
+    }
   };
 
+  const { connected, send } = useReconnection(url, handleMessage);
+
+  // Announce self and request current awareness on (re)connect
   useEffect(() => {
-    if (status === 'open') {
-      broadcast('join', {});
+    if (connected) {
+      send({ type: 'join', payload: user });
+      send({ type: 'awarenessRequest' });
     }
-  }, [status]);
+  }, [connected, send, user]);
 
-  useEffect(() => {
-    return () => {
-      broadcast('leave', {});
-    };
-  }, []);
+  const broadcastCursor = (cursor: { line: number; ch: number }) => {
+    send({ type: 'cursor', payload: { userId: user.id, cursor } });
+  };
 
-  return { broadcast };
+  return { connected, broadcastCursor };
 }

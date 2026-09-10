@@ -1,26 +1,28 @@
-import { useRef, useCallback } from 'react';
+// src/hooks/useReconnection.ts
+import { useEffect, useState, useRef } from 'react';
+import WSClient from '../utils/websocketClient';
+import type { WebSocketMessage } from '../types/websocketMessage';
 
-export default function useReconnection(connectFn: () => void) {
-  const attemptsRef = useRef(0);
-  const timeoutRef = useRef<number | null>(null);
-  const maxDelay = 30000; // 30 seconds
+export function useReconnection(url: string, onMessage: (msg: WebSocketMessage) => void) {
+  const [connected, setConnected] = useState(false);
+  const clientRef = useRef<WSClient | null>(null);
 
-  const scheduleReconnect = useCallback(() => {
-    const delay = Math.min(1000 * 2 ** attemptsRef.current, maxDelay);
-    attemptsRef.current += 1;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = window.setTimeout(() => {
-      connectFn();
-    }, delay);
-  }, [connectFn]);
+  useEffect(() => {
+    const client = new WSClient({
+      url,
+      onMessage,
+      onOpen: () => setConnected(true),
+      onClose: () => setConnected(false),
+    });
+    clientRef.current = client;
+    return () => {
+      client.close();
+    };
+  }, [url, onMessage]);
 
-  const reset = useCallback(() => {
-    attemptsRef.current = 0;
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  }, []);
+  const send = (msg: any) => {
+    clientRef.current?.send(msg);
+  };
 
-  return { scheduleReconnect, reset };
+  return { connected, send };
 }
