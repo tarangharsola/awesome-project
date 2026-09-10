@@ -1,57 +1,63 @@
 import React, { useEffect, useRef } from 'react';
 import { EditorView } from '@codemirror/view';
-import { basicSetup } from '@codemirror/basic-setup';
-import { useLanguage } from '../utils/useLanguage';
+import { EditorState } from '@codemirror/state';
+import { getBaseExtensions } from '../utils/editorExtensions';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { useWebSocket } from '../hooks/useWebSocket';
+import { useFormattingDefaults } from '../utils/useFormattingDefaults';
 
-type EditorProps = {
+type Props = {
+  value: string;
+  onChange: (val: string) => void;
   language: string;
   onSave?: () => void;
 };
 
-const Editor: React.FC<EditorProps> = ({ language, onSave }) => {
-  const editorRef = useRef<HTMLDivElement>(null);
+export const Editor: React.FC<Props> = ({ value, onChange, language, onSave }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
-  const languageExtensions = useLanguage(language);
-  const { sendMessage } = useWebSocket(); // assume this hook provides a sendMessage function
+  const formatting = useFormattingDefaults();
 
-  // Initialize CodeMirror view
+  // Initialize CodeMirror instance
   useEffect(() => {
-    if (editorRef.current && !viewRef.current) {
-      viewRef.current = new EditorView({
-        doc: '',
-        extensions: [basicSetup, ...languageExtensions],
-        parent: editorRef.current,
-        dispatch: tr => {
-          viewRef.current?.update([tr]);
-          if (tr.docChanged) {
-            const content = viewRef.current?.state.doc.toString() ?? '';
-            sendMessage({ type: 'content-update', payload: { content } });
+    if (!containerRef.current) return;
+    const startState = EditorState.create({
+      doc: value,
+      extensions: [
+        ...getBaseExtensions(language),
+        EditorView.updateListener.of(update => {
+          if (update.docChanged) {
+            onChange(update.state.doc.toString());
           }
-        },
-      });
-    }
-    // Cleanup on unmount
+        }),
+        EditorView.editable.of(true),
+        EditorState.tabSize.of(formatting.tabSize),
+        EditorState.indentUnit.of(formatting.indentUnit),
+      ],
+    });
+    viewRef.current = new EditorView({
+      state: startState,
+      parent: containerRef.current,
+    });
     return () => {
       viewRef.current?.destroy();
       viewRef.current = null;
     };
-  }, [languageExtensions, sendMessage]);
+  }, [containerRef, language]);
 
-  // Apply keyboard shortcuts (save, format)
-  useKeyboardShortcuts(viewRef.current, { onSave, language });
-
-  // Update language extensions when language changes
+  // Keep editor content in sync with external value changes
   useEffect(() => {
-    if (viewRef.current) {
-      viewRef.current.dispatch({
-        effects: EditorView.reconfigure.of([basicSetup, ...languageExtensions]),
+    const view = viewRef.current;
+    if (view && view.state.doc.toString() !== value) {
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: value },
       });
     }
-  }, [languageExtensions]);
+  }, [value]);
 
-  return <div ref={editorRef} className="code-editor" />;
+  // Attach keyboard shortcuts
+  useKeyboardShortcuts(viewRef.current, onSave);
+
+  return <div ref={containerRef} className="editor-container" />;
 };
 
 export default Editor;

@@ -1,49 +1,36 @@
 import { useEffect } from 'react';
-import { EditorView, keymap } from '@codemirror/view';
+import { EditorView } from '@codemirror/view';
 import { formatCode } from './formatCode';
 
-type ShortcutOptions = {
-  onSave?: () => void;
-  language: string;
-};
-
 /**
- * Registers common keyboard shortcuts for the editor instance.
- * - Mod-s: triggers the optional onSave callback.
- * - Mod-Shift-f: formats the current document using the language‑specific formatter.
+ * Hook to attach common keyboard shortcuts to a CodeMirror editor.
+ * - Ctrl+S / Cmd+S: triggers optional onSave callback.
+ * - Ctrl+Shift+F / Cmd+Shift+F: formats the whole document.
  */
-export function useKeyboardShortcuts(view: EditorView | null, options: ShortcutOptions) {
+export const useKeyboardShortcuts = (view: EditorView | null, onSave?: () => void) => {
   useEffect(() => {
-    if (!view) return undefined;
+    if (!view) return;
+    const handler = (event: KeyboardEvent) => {
+      const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      const ctrl = isMac ? event.metaKey : event.ctrlKey;
 
-    const saveCommand = () => {
-      options.onSave?.();
-      return true;
-    };
+      // Save shortcut
+      if (ctrl && event.key === 's') {
+        event.preventDefault();
+        onSave?.();
+        return;
+      }
 
-    const formatCommand = () => {
-      const doc = view.state.doc.toString();
-      const formatted = formatCode(doc, options.language);
-      if (formatted !== doc) {
+      // Format shortcut
+      if (ctrl && event.shiftKey && event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        const formatted = formatCode(view.state.doc.toString());
         view.dispatch({
           changes: { from: 0, to: view.state.doc.length, insert: formatted },
         });
       }
-      return true;
     };
-
-    const shortcuts = keymap.of([
-      { key: 'Mod-s', run: saveCommand },
-      { key: 'Mod-Shift-f', run: formatCommand },
-    ]);
-
-    const transaction = view.state.update({ effects: EditorView.appendConfig.of([shortcuts]) });
-    view.update([transaction]);
-
-    return () => {
-      // Remove the shortcuts when the component unmounts or view changes.
-      const removal = view.state.update({ effects: EditorView.reconfigure.of([]) });
-      view.update([removal]);
-    };
-  }, [view, options.onSave, options.language]);
-}
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [view, onSave]);
+};
