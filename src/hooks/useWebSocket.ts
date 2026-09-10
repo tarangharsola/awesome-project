@@ -1,60 +1,42 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import useReconnection from './useReconnection';
-import type { WebSocketMessage } from '../types/websocketMessage';
+import { useEffect, useRef, useState } from 'react';
+import { WebSocketMessage, WebSocketStatus } from '../types/websocketMessage';
 
-export default function useWebSocket(url: string) {
-  const [status, setStatus] = useState<'connecting'|'open'|'closed'>('connecting');
-  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
+/**
+ * Hook to manage a WebSocket connection.
+ * Returns connection status, the most recent parsed message, and a send function.
+ */
+export function useWebSocket(url: string) {
   const wsRef = useRef<WebSocket | null>(null);
-  const messageQueue = useRef<WebSocketMessage[]>([]);
-  const { scheduleReconnect, reset } = useReconnection(() => connect());
+  const [status, setStatus] = useState<WebSocketStatus>('disconnected');
+  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
 
-  const connect = useCallback(() => {
+  useEffect(() => {
     const ws = new WebSocket(url);
     wsRef.current = ws;
     setStatus('connecting');
 
-    ws.onopen = () => {
-      setStatus('open');
-      reset();
-      while (messageQueue.current.length) {
-        ws.send(JSON.stringify(messageQueue.current.shift()));
-      }
-    };
-
+    ws.onopen = () => setStatus('connected');
+    ws.onclose = () => setStatus('disconnected');
+    ws.onerror = () => setStatus('error');
     ws.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data) as WebSocketMessage;
+        const data: WebSocketMessage = JSON.parse(event.data);
         setLastMessage(data);
       } catch {
-        // ignore malformed messages
+        // Silently ignore malformed messages
       }
     };
 
-    ws.onclose = () => {
-      setStatus('closed');
-      scheduleReconnect();
-    };
-
-    ws.onerror = () => {
+    return () => {
       ws.close();
     };
-  }, [url, scheduleReconnect, reset]);
+  }, [url]);
 
-  useEffect(() => {
-    connect();
-    return () => {
-      wsRef.current?.close();
-    };
-  }, [connect]);
-
-  const sendMessage = useCallback((msg: WebSocketMessage) => {
-    if (status === 'open' && wsRef.current?.readyState === WebSocket.OPEN) {
+  const sendMessage = (msg: WebSocketMessage) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(msg));
-    } else {
-      messageQueue.current.push(msg);
     }
-  }, [status]);
+  };
 
   return { status, lastMessage, sendMessage };
 }
