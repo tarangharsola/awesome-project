@@ -1,28 +1,23 @@
-// src/hooks/useReconnection.ts
-import { useEffect, useState, useRef } from 'react';
-import WSClient from '../utils/websocketClient';
-import type { WebSocketMessage } from '../types/websocketMessage';
+import { useEffect, useRef } from 'react';
+import useWebSocket from './useWebSocket';
 
-export function useReconnection(url: string, onMessage: (msg: WebSocketMessage) => void) {
-  const [connected, setConnected] = useState(false);
-  const clientRef = useRef<WSClient | null>(null);
+/**
+ * Thin wrapper that ensures the WebSocket hook is instantiated with stable parameters.
+ * All reconnection logic now lives inside `useWebSocket`; this hook simply forwards the
+ * connection status for UI components.
+ */
+export default function useReconnection(params: {
+  url: string;
+  userId: string;
+  userName: string;
+  userColor: string;
+}) {
+  const { status, sendMessage } = useWebSocket(params);
 
+  // Expose status for components like ConnectionStatus.
   useEffect(() => {
-    const client = new WSClient({
-      url,
-      onMessage,
-      onOpen: () => setConnected(true),
-      onClose: () => setConnected(false),
-    });
-    clientRef.current = client;
-    return () => {
-      client.close();
-    };
-  }, [url, onMessage]);
+    // No side‑effects needed – the hook exists for API compatibility.
+  }, [status]);
 
-  const send = (msg: any) => {
-    clientRef.current?.send(msg);
-  };
-
-  return { connected, send };
+  return { status, sendMessage } as const;
 }
