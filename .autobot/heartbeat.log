@@ -1140,3 +1140,4 @@
 2026-09-11T11:42:52.132719+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
 2026-09-11T11:43:07.065805+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
 2026-09-11T11:43:52.321782+00:00 | Harden realtime collaboration: conflict handling, reconnection, and awareness consistency.
+2026-09-11T11:45:04.569956+00:00 | Improve editor UX: language switching, formatting defaults, and better keyboard shortcuts.

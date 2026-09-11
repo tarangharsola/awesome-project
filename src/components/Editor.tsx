@@ -1,63 +1,61 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { EditorView } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
-import { getBaseExtensions } from '../utils/editorExtensions';
-import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { basicSetup } from '@codemirror/basic-setup';
+import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { html } from '@codemirror/lang-html';
 import { useFormattingDefaults } from '../utils/useFormattingDefaults';
+import useKeyboardShortcuts from '../utils/useKeyboardShortcuts';
+import { EditorState } from '@codemirror/state';
+import { oneDark } from '@codemirror/theme-one-dark';
 
 type Props = {
-  value: string;
-  onChange: (val: string) => void;
   language: string;
-  onSave?: () => void;
 };
 
-export const Editor: React.FC<Props> = ({ value, onChange, language, onSave }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
-  const formatting = useFormattingDefaults();
+const languageExtension = (lang: string) => {
+  switch (lang) {
+    case 'python':
+      return python();
+    case 'html':
+      return html();
+    case 'javascript':
+    default:
+      return javascript();
+  }
+};
 
-  // Initialize CodeMirror instance
-  useEffect(() => {
-    if (!containerRef.current) return;
+const Editor: React.FC<Props> = ({ language }) => {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const formatting = useFormattingDefaults(language);
+  useKeyboardShortcuts(editorRef, language);
+
+  const extensions = useMemo(() => {
+    return [
+      basicSetup,
+      languageExtension(language),
+      oneDark,
+      EditorView.lineWrapping,
+      EditorState.tabSize.of(formatting.tabSize),
+    ];
+  }, [language, formatting.tabSize]);
+
+  React.useEffect(() => {
+    if (!editorRef.current) return;
     const startState = EditorState.create({
-      doc: value,
-      extensions: [
-        ...getBaseExtensions(language),
-        EditorView.updateListener.of(update => {
-          if (update.docChanged) {
-            onChange(update.state.doc.toString());
-          }
-        }),
-        EditorView.editable.of(true),
-        EditorState.tabSize.of(formatting.tabSize),
-        EditorState.indentUnit.of(formatting.indentUnit),
-      ],
+      doc: '',
+      extensions,
     });
-    viewRef.current = new EditorView({
+    const view = new EditorView({
       state: startState,
-      parent: containerRef.current,
+      parent: editorRef.current,
     });
     return () => {
-      viewRef.current?.destroy();
-      viewRef.current = null;
+      view.destroy();
     };
-  }, [containerRef, language]);
+  }, [extensions]);
 
-  // Keep editor content in sync with external value changes
-  useEffect(() => {
-    const view = viewRef.current;
-    if (view && view.state.doc.toString() !== value) {
-      view.dispatch({
-        changes: { from: 0, to: view.state.doc.length, insert: value },
-      });
-    }
-  }, [value]);
-
-  // Attach keyboard shortcuts
-  useKeyboardShortcuts(viewRef.current, onSave);
-
-  return <div ref={containerRef} className="editor-container" />;
+  return <div className="editor" ref={editorRef} />;
 };
 
 export default Editor;

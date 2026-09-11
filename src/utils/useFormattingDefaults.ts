@@ -1,11 +1,18 @@
-import { EditorState } from '@codemirror/state';
+export type FormattingOptions = {
+  tabSize: number;
+  indentWithTabs: boolean;
+};
 
-/**
- * Provides sensible default formatting settings for the editor.
- * Currently sets tab size and indent unit to 2 spaces.
- */
-export const useFormattingDefaults = () => ({
-  tabSize: 2,
-  indentUnit: 2,
-  insertSpaces: true,
-});
+export const getFormattingDefaults = (language: string): FormattingOptions => {
+  switch (language) {
+    case 'python':
+      return { tabSize: 4, indentWithTabs: false };
+    case 'html':
+      return { tabSize: 2, indentWithTabs: false };
+    case 'javascript':
+    default:
+      return { tabSize: 2, indentWithTabs: false };
+  }
+};
+
+export default getFormattingDefaults;
