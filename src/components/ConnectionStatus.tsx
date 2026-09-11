@@ -1,33 +1,46 @@
 import React from 'react';
-import './ConnectionStatus.css';
 import { useWebSocket } from '../hooks/useWebSocket';
+import './ConnectionStatus.css';
+
+interface ConnectionStatusProps {
+  /** WebSocket endpoint for the collaborative session */
+  url: string;
+}
 
 /**
- * Visual indicator of the WebSocket connection state.
- * Shows different messages for connected, connecting, and disconnected states.
- * Provides a retry button when disconnected.
+ * ConnectionStatus - visual indicator of the WebSocket connection state.
+ * Shows green when connected, orange while reconnecting, and red when disconnected.
  */
-const ConnectionStatus: React.FC = () => {
-  // The WebSocket URL is expected to be provided via an environment variable.
-  const wsUrl = process.env.REACT_APP_WS_URL || '';
-  const { status, manualRetry } = useWebSocket(wsUrl, () => {});
+export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ url }) => {
+  const { status } = useWebSocket(url);
+
+  const getColor = () => {
+    switch (status) {
+      case 'connected':
+        return 'var(--color-success, #28a745)';
+      case 'reconnecting':
+        return 'var(--color-warning, #ffc107)';
+      case 'disconnected':
+      default:
+        return 'var(--color-danger, #dc3545)';
+    }
+  };
+
+  const getLabel = () => {
+    switch (status) {
+      case 'connected':
+        return 'Connected';
+      case 'reconnecting':
+        return 'Reconnecting...';
+      case 'disconnected':
+      default:
+        return 'Disconnected';
+    }
+  };
 
   return (
-    <div className={`connection-status ${status}`}>
-      {status === 'connected' && (
-        <span className="status-indicator connected">✅ Connected</span>
-      )}
-      {status === 'connecting' && (
-        <span className="status-indicator connecting">⏳ Connecting...</span>
-      )}
-      {status === 'disconnected' && (
-        <span className="status-indicator disconnected">
-          ❌ Disconnected
-          <button className="retry-button" onClick={manualRetry}>
-            Retry
-          </button>
-        </span>
-      )}
+    <div className="connection-status" style={{ color: getColor() }}>
+      {getLabel()}
     </div>
   );
 };
