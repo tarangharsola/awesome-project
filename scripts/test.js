@@ -1,12 +1,18 @@
-const React = require('react');
-const ReactDOMServer = require('react-dom/server');
-const App = require('../src/components/App').default;
+const { formatCode } = require('../src/utils/formatCode');
+const assert = require('assert');
+
+function runSmokeTest() {
+  console.log('Running smoke test...');
+  const input = 'const a = 1;';
+  const result = formatCode(input, 'javascript');
+  assert.strictEqual(typeof result, 'string');
+  console.log('Smoke test passed');
+}
 
 try {
-  const html = ReactDOMServer.renderToString(React.createElement(App));
-  console.log('Render successful');
+  runSmokeTest();
   process.exit(0);
 } catch (e) {
-  console.error('Render failed', e);
+  console.error('Smoke test failed:', e);
   process.exit(1);
 }

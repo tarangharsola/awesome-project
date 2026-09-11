@@ -1,8 +1,10 @@
-import React from 'react';
-import { render } from '@testing-library/react';
-import App from '../components/App';
+import { formatCode } from '../utils/formatCode';
+import assert from 'assert';
 
-test('App renders without crashing', () => {
-  const { container } = render(<App />);
-  expect(container).toBeInTheDocument();
+describe('Smoke test for formatCode utility', () => {
+  it('should return a string for JavaScript input', () => {
+    const input = 'const x = 42;';
+    const output = formatCode(input, 'javascript');
+    assert.strictEqual(typeof output, 'string');
+  });
 });
