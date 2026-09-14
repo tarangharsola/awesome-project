@@ -1,32 +1,30 @@
-import { useCallback, useRef } from 'react';
-import { Operation, ConflictResolver } from '../types/conflict';
-import { otStrategy } from '../utils/conflict/strategies';
+import { ConflictStrategy, ConflictOperation } from '../types/conflict';
+import { useCRDT } from './useCRDT';
+import { useOT } from './useOT';
 
 /**
- * Hook that provides a conflict‑free document state using an OT resolver.
- * It keeps a local copy of the document and a queue of pending remote
- * operations. The resolver guarantees that applying operations in any
- * order results in the same final document.
+ * Central hook that selects a conflict‑resolution strategy (CRDT or OT)
+ * and delegates operation handling to the corresponding specialized hook.
  */
-export function useConflictResolver(initialDoc: string = '') {
-  const docRef = useRef<string>(initialDoc);
-  const resolverRef = useRef<ConflictResolver>(otStrategy);
+export const useConflictResolver = (
+  strategy: ConflictStrategy,
+  initialDoc: string
+) => {
+  // Initialise both resolvers once; the unused one remains idle.
+  const crdtResolver = useCRDT(initialDoc);
+  const otResolver = useOT(initialDoc);
 
-  const applyLocal = useCallback((op: Operation) => {
-    const newDoc = resolverRef.current.applyOperation(docRef.current, op);
-    docRef.current = newDoc;
-    return newDoc;
-  }, []);
+  const resolverMap = {
+    [ConflictStrategy.CRDT]: crdtResolver,
+    [ConflictStrategy.OT]: otResolver,
+  } as const;
 
-  const applyRemote = useCallback((remoteOp: Operation) => {
-    // Transform the remote operation against any local pending ops.
-    const transformed = resolverRef.current.transform(remoteOp, { type: 'insert', index: 0, text: '' });
-    const newDoc = resolverRef.current.applyOperation(docRef.current, transformed);
-    docRef.current = newDoc;
-    return newDoc;
-  }, []);
+  const activeResolver = resolverMap[strategy];
 
-  const getDocument = useCallback(() => docRef.current, []);
+  const applyOperation = (op: ConflictOperation) =>
+    activeResolver.applyOperation(op);
 
-  return { applyLocal, applyRemote, getDocument };
-}
+  const getDocument = () => activeResolver.getDocument();
+
+  return { applyOperation, getDocument };
+};

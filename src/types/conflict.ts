@@ -1,16 +1,23 @@
-export type Operation =
-  | { type: 'insert'; index: number; text: string }
-  | { type: 'delete'; index: number; length: number };
+export enum ConflictStrategy {
+  CRDT = 'CRDT',
+  OT = 'OT'
+}
 
-export interface ConflictResolver {
+export interface ConflictOperation {
   /**
-   * Apply an operation to the given document string and return the new document.
+   * The type of operation, e.g., 'insert', 'delete', 'replace'.
    */
-  applyOperation(doc: string, op: Operation): string;
-
+  type: string;
   /**
-   * Transform opA against opB using Operational Transformation rules.
-   * Returns a new operation that can be applied after opB.
+   * Payload containing operation‑specific data.
    */
-  transform(opA: Operation, opB: Operation): Operation;
+  payload: any;
+  /**
+   * Identifier of the user who originated the operation.
+   */
+  userId: string;
+  /**
+   * Unix timestamp (ms) when the operation was created.
+   */
+  timestamp: number;
 }
