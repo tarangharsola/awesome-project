@@ -1,23 +1,24 @@
-import { useEffect, useRef } from 'react';
-import useWebSocket from './useWebSocket';
+import { useRef, useCallback } from 'react';
 
-/**
- * Thin wrapper that ensures the WebSocket hook is instantiated with stable parameters.
- * All reconnection logic now lives inside `useWebSocket`; this hook simply forwards the
- * connection status for UI components.
- */
-export default function useReconnection(params: {
-  url: string;
-  userId: string;
-  userName: string;
-  userColor: string;
-}) {
-  const { status, sendMessage } = useWebSocket(params);
+export const useReconnection = (reconnectFn: () => void) => {
+  const attemptsRef = useRef(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Expose status for components like ConnectionStatus.
-  useEffect(() => {
-    // No side‑effects needed – the hook exists for API compatibility.
-  }, [status]);
+  const scheduleReconnect = useCallback(() => {
+    const delay = Math.min(1000 * 2 ** attemptsRef.current, 30000);
+    attemptsRef.current += 1;
+    timeoutRef.current = setTimeout(() => {
+      reconnectFn();
+    }, delay);
+  }, [reconnectFn]);
 
-  return { status, sendMessage } as const;
-}
+  const cancelReconnect = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    attemptsRef.current = 0;
+  }, []);
+
+  return { scheduleReconnect, cancelReconnect };
+};

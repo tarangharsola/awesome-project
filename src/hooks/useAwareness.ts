@@ -1,72 +1,48 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useWebSocket } from './useWebSocket';
-import type { JoinMessage, LeaveMessage, PresenceMessage, WebSocketMessage } from '../types/websocketMessage';
+import { useUsers } from './useUsers';
+import { useCursor } from './useCursor';
+import { AwarenessMessage, WebSocketMessage } from '../types/websocketMessage';
 
-export interface User {
-  userId: string;
-  username: string;
-  color: string;
-}
+export const useAwareness = (sessionId: string, username: string, color: string) => {
+  const { sendMessage, connected } = useWebSocket(`wss://example.com/${sessionId}`, handleMessage);
+  const { setUsers } = useUsers();
+  const { cursorPosition } = useCursor();
 
-export const useAwareness = (url: string, sessionId: string, localUser: User) => {
-  const { send, lastMessage, readyState } = useWebSocket(url);
-  const [users, setUsers] = useState<User[]>([localUser]);
-
-  // Announce local user join when connection is ready
-  useEffect(() => {
-    if (readyState === WebSocket.OPEN) {
-      const joinMsg: JoinMessage = {
-        type: 'join',
-        sessionId,
-        userId: localUser.userId,
-        username: localUser.username,
-        color: localUser.color,
-        timestamp: Date.now(),
-      };
-      send(joinMsg);
-    }
-  }, [readyState, sessionId, localUser, send]);
-
-  // Handle incoming awareness messages
-  useEffect(() => {
-    if (!lastMessage) return;
-    const msg = lastMessage as WebSocketMessage;
-    switch (msg.type) {
-      case 'join': {
-        const exists = users.some((u) => u.userId === msg.userId);
-        if (!exists) {
-          setUsers((prev) => [...prev, { userId: msg.userId, username: msg.username, color: msg.color }]);
-        }
-        break;
-      }
-      case 'leave': {
-        setUsers((prev) => prev.filter((u) => u.userId !== msg.userId));
-        break;
-      }
-      case 'presence': {
-        const presence = (msg as PresenceMessage).users;
-        setUsers(presence);
-        break;
-      }
-      default:
-        break;
-    }
-  }, [lastMessage, users]);
-
-  // Announce leave on page unload
-  useEffect(() => {
-    const handleUnload = () => {
-      const leaveMsg: LeaveMessage = {
-        type: 'leave',
-        sessionId,
-        userId: localUser.userId,
-        timestamp: Date.now(),
-      };
-      send(leaveMsg);
+  const broadcastAwareness = () => {
+    const msg: AwarenessMessage = {
+      type: 'awareness',
+      payload: {
+        userId: username,
+        name: username,
+        color,
+        cursor: cursorPosition,
+      },
     };
-    window.addEventListener('beforeunload', handleUnload);
-    return () => window.removeEventListener('beforeunload', handleUnload);
-  }, [sessionId, localUser, send]);
+    sendMessage({ type: 'awareness', data: msg });
+  };
 
-  return { users, send, readyState };
+  function handleMessage(message: WebSocketMessage) {
+    if (message.type === 'awareness') {
+      const payload = (message.data as AwarenessMessage).payload;
+      setUsers(prev => ({
+        ...prev,
+        [payload.userId]: {
+          name: payload.name,
+          color: payload.color,
+          cursor: payload.cursor,
+        },
+      }));
+    }
+  }
+
+  // Broadcast when connection is (re)established or cursor moves
+  useEffect(() => {
+    if (connected) {
+      broadcastAwareness();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected, cursorPosition]);
+
+  return { broadcastAwareness };
 };
