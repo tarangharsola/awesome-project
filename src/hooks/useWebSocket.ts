@@ -1,60 +1,93 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { WebSocketMessage } from '../types/websocketMessage';
-import { useReconnection } from './useReconnection';
+import { WebSocketMessage, WebSocketEvent } from '../types/websocketMessage';
 
-export const useWebSocket = (url: string, onMessage: (msg: WebSocketMessage) => void) => {
+export type ConnectionStatus = 'connected' | 'disconnected' | 'connecting';
+
+interface UseWebSocketOptions {
+  url: string;
+  onMessage: (msg: WebSocketMessage) => void;
+  onOpen?: () => void;
+  onClose?: () => void;
+  onError?: (err: Event) => void;
+}
+
+export const useWebSocket = ({ url, onMessage, onOpen, onClose, onError }: UseWebSocketOptions) => {
   const wsRef = useRef<WebSocket | null>(null);
-  const messageQueue = useRef<WebSocketMessage[]>([]);
-  const [connected, setConnected] = useState(false);
-  const { scheduleReconnect, cancelReconnect } = useReconnection(() => connect());
+  const [status, setStatus] = useState<ConnectionStatus>('disconnected');
+  const reconnectAttempts = useRef(0);
+  const reconnectTimeout = useRef<number | null>(null);
+
+  const clearReconnect = () => {
+    if (reconnectTimeout.current !== null) {
+      clearTimeout(reconnectTimeout.current);
+      reconnectTimeout.current = null;
+    }
+  };
+
+  const connect = useCallback(() => {
+    setStatus('connecting');
+    wsRef.current = new WebSocket(url);
+
+    wsRef.current.onopen = () => {
+      setStatus('connected');
+      reconnectAttempts.current = 0;
+      clearReconnect();
+      onOpen && onOpen();
+    };
+
+    wsRef.current.onmessage = (event: MessageEvent) => {
+      try {
+        const data: WebSocketMessage = JSON.parse(event.data);
+        onMessage(data);
+      } catch (e) {
+        console.error('Failed to parse WebSocket message', e);
+      }
+    };
+
+    wsRef.current.onclose = (event: CloseEvent) => {
+      setStatus('disconnected');
+      onClose && onClose();
+      scheduleReconnect();
+    };
+
+    wsRef.current.onerror = (event: Event) => {
+      console.error('WebSocket error', event);
+      onError && onError(event);
+    };
+  }, [url, onMessage, onOpen, onClose, onError]);
+
+  const scheduleReconnect = () => {
+    clearReconnect();
+    const attempt = ++reconnectAttempts.current;
+    const delay = Math.min(1000 * 2 ** attempt, 30000); // exponential backoff, max 30s
+    reconnectTimeout.current = window.setTimeout(() => {
+      connect();
+    }, delay);
+  };
 
   const sendMessage = useCallback((msg: WebSocketMessage) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(msg));
     } else {
-      messageQueue.current.push(msg);
+      console.warn('WebSocket not open. Message not sent.', msg);
     }
   }, []);
 
-  const flushQueue = () => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      messageQueue.current.forEach(m => wsRef.current?.send(JSON.stringify(m)));
-      messageQueue.current = [];
+  const manualRetry = useCallback(() => {
+    if (status !== 'connected') {
+      clearReconnect();
+      connect();
     }
-  };
-
-  const connect = () => {
-    wsRef.current = new WebSocket(url);
-    wsRef.current.onopen = () => {
-      setConnected(true);
-      cancelReconnect();
-      flushQueue();
-    };
-    wsRef.current.onmessage = event => {
-      try {
-        const data: WebSocketMessage = JSON.parse(event.data);
-        onMessage(data);
-      } catch {
-        // ignore malformed messages
-      }
-    };
-    wsRef.current.onclose = () => {
-      setConnected(false);
-      scheduleReconnect();
-    };
-    wsRef.current.onerror = () => {
-      wsRef.current?.close();
-    };
-  };
+  }, [status, connect]);
 
   useEffect(() => {
     connect();
     return () => {
-      wsRef.current?.close();
-      cancelReconnect();
+      clearReconnect();
+      wsRef.current && wsRef.current.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url]);
+  }, []);
 
-  return { sendMessage, connected };
+  return { status, sendMessage, manualRetry } as const;
 };
