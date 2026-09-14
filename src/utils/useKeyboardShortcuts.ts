@@ -1,42 +1,32 @@
 import { useEffect } from 'react';
-import { EditorView } from '@codemirror/view';
-import { toggleComment } from '@codemirror/comment';
-import { formatCode } from './formatCode';
+import { formatCode } from './editorHelpers';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { updateContent } from '../store/editorActions';
 
-/**
- * Hook that attaches common keyboard shortcuts to a CodeMirror editor.
- * - Ctrl+/      : Toggle line comment
- * - Ctrl+Shift+F: Format the entire document using the language‑specific formatter
- */
-const useKeyboardShortcuts = (
-  editorRef: React.RefObject<HTMLElement>,
-  language: string
-) => {
+export const useKeyboardShortcuts = (editorRef: React.RefObject<any>) => {
+  const dispatch = useDispatch();
+  const language = useSelector((state: RootState) => state.editor.language);
+  const content = useSelector((state: RootState) => state.editor.content);
+
   useEffect(() => {
-    const element = editorRef.current;
-    if (!element) return;
-
-    const view = (element as any).cmView as EditorView | undefined;
-    if (!view) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Toggle comment: Ctrl + /
-      if (e.ctrlKey && e.key === '/') {
-        view.dispatch({
-          effects: toggleComment.of(true),
-        });
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
+
+      // Save shortcut (Ctrl/Cmd+S)
+      if (ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
+        console.log('Save shortcut triggered'); // Placeholder for actual save logic
         return;
       }
 
-      // Format document: Ctrl + Shift + F
-      if (e.ctrlKey && e.shiftKey && (e.key === 'F' || e.key === 'f')) {
-        const currentCode = view.state.doc.toString();
-        const formatted = formatCode(currentCode, language);
-        view.dispatch({
-          changes: { from: 0, to: view.state.doc.length, insert: formatted },
-        });
+      // Format shortcut (Ctrl/Cmd+Shift+F)
+      if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') {
         e.preventDefault();
+        const formatted = formatCode(content, language);
+        dispatch(updateContent(formatted));
+        return;
       }
     };
 
@@ -44,7 +34,5 @@ const useKeyboardShortcuts = (
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [editorRef, language]);
+  }, [content, language, dispatch]);
 };
-
-export default useKeyboardShortcuts;

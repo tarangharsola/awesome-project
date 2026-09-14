@@ -1,29 +1,31 @@
 import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { setLanguage } from '../store/editorActions';
+import { Language } from '../types/editor';
+import { RootState } from '../store';
 
-type Props = {
-  currentLanguage: string;
-  onChangeLanguage: (lang: string) => void;
-};
+const languages: Language[] = ['javascript', 'python', 'html'];
 
-const LanguageSelector: React.FC<Props> = ({ currentLanguage, onChangeLanguage }) => {
-  const languages = ['javascript', 'python', 'html'];
+export const LanguageSelector: React.FC = () => {
+  const dispatch = useDispatch();
+  const currentLang = useSelector((state: RootState) => state.editor.language);
+
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const lang = e.target.value as Language;
+    dispatch(setLanguage(lang));
+  };
 
   return (
-    <div className="language-selector">
-      <label htmlFor="language-select">Language:</label>
-      <select
-        id="language-select"
-        value={currentLanguage}
-        onChange={(e) => onChangeLanguage(e.target.value)}
-      >
-        {languages.map((lang) => (
-          <option key={lang} value={lang}>
-            {lang.charAt(0).toUpperCase() + lang.slice(1)}
-          </option>
-        ))}
-      </select>
-    </div>
+    <select
+      value={currentLang}
+      onChange={handleChange}
+      className="language-selector"
+    >
+      {languages.map((lang) => (
+        <option key={lang} value={lang}>
+          {lang}
+        </option>
+      ))}
+    </select>
   );
 };
-
-export default LanguageSelector;
