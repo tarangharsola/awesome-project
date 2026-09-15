@@ -1,21 +1,19 @@
 import React from 'react';
-import { useAwareness } from '../hooks/useAwareness';
-import type { User } from '../hooks/useAwareness';
+import { useUsers } from '../hooks/useUsers';
+import './UserList.css';
 
-interface Props {
-  url: string;
-  sessionId: string;
-  localUser: User;
-}
-
-export const UserList: React.FC<Props> = ({ url, sessionId, localUser }) => {
-  const { users } = useAwareness(url, sessionId, localUser);
+export const UserList: React.FC = () => {
+  const users = useUsers();
 
   return (
     <div className="user-list">
       {users.map((user) => (
-        <div key={user.userId} className="user-item" style={{ color: user.color }}>
-          {user.username}
+        <div key={user.id} className="user-list-item">
+          <span
+            className="user-color-indicator"
+            style={{ backgroundColor: user.color }}
+          />
+          <span className="user-name">{user.name}</span>
         </div>
       ))}
     </div>
