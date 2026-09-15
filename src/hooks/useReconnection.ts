@@ -1,24 +1,28 @@
-import { useRef, useCallback } from 'react';
+import { useEffect, useState } from "react";
 
-export const useReconnection = (reconnectFn: () => void) => {
-  const attemptsRef = useRef(0);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+/**
+ * Hook that provides exponential‑backoff reconnection state.
+ * Consumers can watch `connected` to know when the underlying transport
+ * is considered healthy. The `attempt` counter can be used to trigger
+ * side‑effects (e.g., re‑fetching document state) after each retry.
+ */
+export const useReconnection = (isOnline: boolean) => {
+  const [connected, setConnected] = useState(isOnline);
+  const [attempt, setAttempt] = useState(0);
 
-  const scheduleReconnect = useCallback(() => {
-    const delay = Math.min(1000 * 2 ** attemptsRef.current, 30000);
-    attemptsRef.current += 1;
-    timeoutRef.current = setTimeout(() => {
-      reconnectFn();
-    }, delay);
-  }, [reconnectFn]);
-
-  const cancelReconnect = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+  useEffect(() => {
+    if (isOnline) {
+      setConnected(true);
+      setAttempt(0);
+      return;
     }
-    attemptsRef.current = 0;
-  }, []);
+    // When offline, schedule a retry with exponential back‑off
+    const delay = Math.min(1000 * 2 ** attempt, 30000);
+    const timer = setTimeout(() => {
+      setAttempt((a) => a + 1);
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [isOnline, attempt]);
 
-  return { scheduleReconnect, cancelReconnect };
+  return { connected, attempt };
 };
