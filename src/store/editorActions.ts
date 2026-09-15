@@ -1,12 +1,22 @@
-import { EditorAction } from './actionTypes';
+export const SET_CONTENT = 'SET_CONTENT';
+export const SET_LANGUAGE = 'SET_LANGUAGE';
 
-export const setLanguage = (language: string): EditorAction => ({
-  type: 'SET_LANGUAGE',
-  payload: language,
+export interface SetContentAction {
+  type: typeof SET_CONTENT;
+  payload: string;
+}
+
+export interface SetLanguageAction {
+  type: typeof SET_LANGUAGE;
+  payload: string;
+}
+
+export const setContent = (content: string): SetContentAction => ({
+  type: SET_CONTENT,
+  payload: content,
 });
 
-// Existing action creators (preserved for context)
-// export const setContent = (content: string): EditorAction => ({
-//   type: 'SET_CONTENT',
-//   payload: content,
-// });
+export const setLanguage = (language: string): SetLanguageAction => ({
+  type: SET_LANGUAGE,
+  payload: language,
+});

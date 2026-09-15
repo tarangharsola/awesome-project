@@ -1,14 +1,31 @@
-import { Language } from '../types/editor';
+export interface FormattingStrategy {
+  format: (code: string) => string;
+}
 
-export const getDefaultContent = (language: Language): string => {
+export const getFormattingDefaults = (language: string): FormattingStrategy => {
   switch (language) {
     case 'javascript':
-      return `// JavaScript starter\nfunction main() {\n  console.log('Hello, world!');\n}\n`;
-    case 'python':
-      return `# Python starter\ndef main():\n    print("Hello, world!")\n`;
     case 'html':
-      return `<!-- HTML starter -->\n<!DOCTYPE html>\n<html>\n<head>\n  <title>Collaborative Editor</title>\n</head>\n<body>\n  <h1>Hello, world!</h1>\n</body>\n</html>\n`;
+      return {
+        format: (code: string) => {
+          // Simple line‑trim and 2‑space indentation placeholder
+          return code
+            .split('\n')
+            .map((line) => line.trim())
+            .join('\n');
+        },
+      };
+    case 'python':
+      return {
+        format: (code: string) => {
+          // Convert leading tabs to 4 spaces for Python
+          return code
+            .split('\n')
+            .map((line) => line.replace(/^\t+/, (m) => ' '.repeat(m.length * 4)).trim())
+            .join('\n');
+        },
+      };
     default:
-      return '';
+      return { format: (c) => c };
   }
 };

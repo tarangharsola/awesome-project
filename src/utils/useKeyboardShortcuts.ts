@@ -1,38 +1,28 @@
 import { useEffect } from 'react';
-import { formatCode } from './editorHelpers';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
-import { updateContent } from '../store/editorActions';
 
-export const useKeyboardShortcuts = (editorRef: React.RefObject<any>) => {
-  const dispatch = useDispatch();
-  const language = useSelector((state: RootState) => state.editor.language);
-  const content = useSelector((state: RootState) => state.editor.content);
+interface ShortcutHandlers {
+  onFormat?: () => void;
+  onSave?: () => void;
+}
 
+export const useKeyboardShortcuts = (handlers: ShortcutHandlers) => {
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
-
-      // Save shortcut (Ctrl/Cmd+S)
-      if (ctrlKey && e.key.toLowerCase() === 's') {
+    const listener = (e: KeyboardEvent) => {
+      // Ctrl+Shift+F => format document
+      if (e.ctrlKey && e.shiftKey && e.key === 'F') {
         e.preventDefault();
-        console.log('Save shortcut triggered'); // Placeholder for actual save logic
+        handlers.onFormat?.();
         return;
       }
-
-      // Format shortcut (Ctrl/Cmd+Shift+F)
-      if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') {
+      // Ctrl+S => save (placeholder, can be extended)
+      if (e.ctrlKey && e.key === 's') {
         e.preventDefault();
-        const formatted = formatCode(content, language);
-        dispatch(updateContent(formatted));
-        return;
+        handlers.onSave?.();
       }
     };
-
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', listener);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', listener);
     };
-  }, [content, language, dispatch]);
+  }, [handlers]);
 };

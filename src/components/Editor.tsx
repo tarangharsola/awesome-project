@@ -1,47 +1,49 @@
-import React, { useEffect, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store';
-import { updateContent } from '../store/editorActions';
-import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { getDefaultContent } from '../utils/useFormattingDefaults';
-import { Editor as CodeEditor } from '@uiw/react-codemirror';
+import React, { useEffect, useRef, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { html } from '@codemirror/lang-html';
+import { RootState } from '../store';
+import { setContent } from '../store/editorActions';
+import { getFormattingDefaults } from '../utils/useFormattingDefaults';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
 
 export const Editor: React.FC = () => {
   const dispatch = useDispatch();
-  const { content, language } = useSelector((state: RootState) => state.editor);
+  const language = useSelector((state: RootState) => state.editor.language);
+  const content = useSelector((state: RootState) => state.editor.content);
   const editorRef = useRef<any>(null);
 
-  // Apply keyboard shortcuts to the editor container
-  useKeyboardShortcuts(editorRef);
-
-  // Insert default snippet when language changes and editor is empty
-  useEffect(() => {
-    if (!content) {
-      const defaultCode = getDefaultContent(language);
-      dispatch(updateContent(defaultCode));
+  const extensions = useMemo(() => {
+    switch (language) {
+      case 'javascript':
+        return [javascript()];
+      case 'python':
+        return [python()];
+      case 'html':
+        return [html()];
+      default:
+        return [];
     }
-  }, [language, content, dispatch]);
+  }, [language]);
 
-  const onChange = (value: string) => {
-    dispatch(updateContent(value));
+  const formatDocument = () => {
+    const formatter = getFormattingDefaults(language);
+    const formatted = formatter.format(content);
+    if (formatted !== content) {
+      dispatch(setContent(formatted));
+    }
   };
 
-  const extensions = [
-    language === 'javascript' ? javascript() : null,
-    language === 'python' ? python() : null,
-    language === 'html' ? html() : null,
-  ].filter(Boolean);
+  useKeyboardShortcuts({ onFormat: formatDocument });
 
   return (
-    <CodeEditor
-      ref={editorRef}
+    <CodeMirror
       value={content}
       extensions={extensions}
-      onChange={onChange}
-      height="100%"
+      onChange={(value) => dispatch(setContent(value))}
+      ref={editorRef}
     />
   );
 };
