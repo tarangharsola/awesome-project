@@ -1,22 +1,31 @@
 import React from 'react';
 import './ConnectionStatus.css';
-import { ConnectionStatus } from '../hooks/useWebSocket';
 import { useWebSocket } from '../hooks/useWebSocket';
 
-interface Props {
-  url: string;
-  onMessage: (msg: any) => void;
-}
+const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:4000';
 
-export const ConnectionStatusIndicator: React.FC<Props> = ({ url, onMessage }) => {
-  const { status, manualRetry } = useWebSocket({ url, onMessage });
+export const ConnectionStatus: React.FC = () => {
+  const { status, reconnect } = useWebSocket(WS_URL);
 
-  const getStatusClass = () => {
+  const getLabel = () => {
+    switch (status) {
+      case 'connected':
+        return 'Connected';
+      case 'reconnecting':
+        return 'Reconnecting...';
+      case 'disconnected':
+        return 'Disconnected';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const getClass = () => {
     switch (status) {
       case 'connected':
         return 'status-connected';
-      case 'connecting':
-        return 'status-connecting';
+      case 'reconnecting':
+        return 'status-reconnecting';
       case 'disconnected':
         return 'status-disconnected';
       default:
@@ -25,14 +34,15 @@ export const ConnectionStatusIndicator: React.FC<Props> = ({ url, onMessage }) =
   };
 
   return (
-    <div className="connection-status">
-      <span className={`status-dot ${getStatusClass()}`} />
-      <span className="status-text">{status}</span>
-      {status === 'disconnected' && (
-        <button className="retry-button" onClick={manualRetry}>
+    <div className={`connection-status ${getClass()}`}>
+      <span>{getLabel()}</span>
+      {status !== 'connected' && (
+        <button className="retry-button" onClick={reconnect}>
           Retry
         </button>
       )}
     </div>
   );
 };
+
+export default ConnectionStatus;
