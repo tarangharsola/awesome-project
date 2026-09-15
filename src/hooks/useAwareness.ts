@@ -1,48 +1,38 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import type { User } from '../types';
 import { useWebSocket } from './useWebSocket';
-import { useUsers } from './useUsers';
-import { useCursor } from './useCursor';
-import { AwarenessMessage, WebSocketMessage } from '../types/websocketMessage';
 
-export const useAwareness = (sessionId: string, username: string, color: string) => {
-  const { sendMessage, connected } = useWebSocket(`wss://example.com/${sessionId}`, handleMessage);
-  const { setUsers } = useUsers();
-  const { cursorPosition } = useCursor();
+/**
+ * Hook that tracks user presence (awareness) in a collaborative session.
+ * It broadcasts the local user info and maintains a list of remote users.
+ */
+export function useAwareness(sessionId: string, localUser: User) {
+  const wsUrl = `${window.location.origin.replace(/^http/, 'ws')}/ws/${sessionId}`;
+  const { message, send, connected } = useWebSocket(wsUrl);
+  const [users, setUsers] = useState<Record<string, User>>({ [localUser.id]: localUser });
 
-  const broadcastAwareness = () => {
-    const msg: AwarenessMessage = {
-      type: 'awareness',
-      payload: {
-        userId: username,
-        name: username,
-        color,
-        cursor: cursorPosition,
-      },
-    };
-    sendMessage({ type: 'awareness', data: msg });
-  };
-
-  function handleMessage(message: WebSocketMessage) {
-    if (message.type === 'awareness') {
-      const payload = (message.data as AwarenessMessage).payload;
-      setUsers(prev => ({
-        ...prev,
-        [payload.userId]: {
-          name: payload.name,
-          color: payload.color,
-          cursor: payload.cursor,
-        },
-      }));
-    }
-  }
-
-  // Broadcast when connection is (re)established or cursor moves
+  // Broadcast local user on connect or when user data changes
   useEffect(() => {
     if (connected) {
-      broadcastAwareness();
+      send({ type: 'awareness', payload: localUser });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connected, cursorPosition]);
+  }, [connected, localUser, send]);
 
-  return { broadcastAwareness };
-};
+  // Handle incoming awareness messages
+  useEffect(() => {
+    if (!message) return;
+    if (message.type !== 'awareness') return;
+    const remote: User = message.payload;
+    setUsers((prev) => ({ ...prev, [remote.id]: remote }));
+  }, [message]);
+
+  // Cleanup on unmount: inform others that we left
+  useEffect(() => {
+    return () => {
+      send({ type: 'awareness-leave', payload: { id: localUser.id } });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return { users, connected } as const;
+}
