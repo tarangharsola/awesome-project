@@ -1,27 +1,24 @@
 .user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  padding: 0.5rem;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
 }
-
 .user-list-item {
   display: flex;
   align-items: center;
-  padding: 4px 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  color: #e0e0e0;
-  font-size: 14px;
+  margin-bottom: 0.25rem;
 }
-
 .user-color-indicator {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  margin-right: 6px;
+  margin-right: 0.5rem;
   flex-shrink: 0;
 }
-
 .user-name {
-  flex-grow: 1;
+  font-size: 0.9rem;
+  word-break: break-all;
 }
