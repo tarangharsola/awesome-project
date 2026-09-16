@@ -1,18 +1,35 @@
 import React from 'react';
 import './ConnectionStatus.css';
-import { useWebSocket } from '../hooks/useWebSocket';
+import { ConnectionStatus } from '../hooks/useWebSocket';
 
-const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:4000';
+interface Props {
+  status: ConnectionStatus;
+}
 
-export const ConnectionStatus: React.FC = () => {
-  const { status, reconnect } = useWebSocket(WS_URL);
+/**
+ * Visual indicator of the WebSocket connection status.
+ * Shows a colored dot and text: Connected (green), Connecting (yellow), Disconnected (red).
+ */
+const ConnectionStatusIndicator: React.FC<Props> = ({ status }) => {
+  const getColor = () => {
+    switch (status) {
+      case 'connected':
+        return 'green';
+      case 'connecting':
+        return 'orange';
+      case 'disconnected':
+        return 'red';
+      default:
+        return 'gray';
+    }
+  };
 
   const getLabel = () => {
     switch (status) {
       case 'connected':
         return 'Connected';
-      case 'reconnecting':
-        return 'Reconnecting...';
+      case 'connecting':
+        return 'Connecting...';
       case 'disconnected':
         return 'Disconnected';
       default:
@@ -20,29 +37,16 @@ export const ConnectionStatus: React.FC = () => {
     }
   };
 
-  const getClass = () => {
-    switch (status) {
-      case 'connected':
-        return 'status-connected';
-      case 'reconnecting':
-        return 'status-reconnecting';
-      case 'disconnected':
-        return 'status-disconnected';
-      default:
-        return '';
-    }
-  };
-
   return (
-    <div className={`connection-status ${getClass()}`}>
-      <span>{getLabel()}</span>
-      {status !== 'connected' && (
-        <button className="retry-button" onClick={reconnect}>
-          Retry
-        </button>
-      )}
+    <div className="connection-status">
+      <span
+        className="status-dot"
+        style={{ backgroundColor: getColor() }}
+        aria-label={getLabel()}
+      />
+      <span className="status-text">{getLabel()}</span>
     </div>
   );
 };
 
-export default ConnectionStatus;
+export default ConnectionStatusIndicator;
