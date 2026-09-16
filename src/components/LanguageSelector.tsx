@@ -18,7 +18,7 @@ export const LanguageSelector: React.FC = () => {
   };
 
   return (
-    <select value={current} onChange={handleChange} aria-label="Language selector">
+    <select value={current} onChange={handleChange} aria-label="Select language">
       {languages.map((lang) => (
         <option key={lang.value} value={lang.value}>
           {lang.label}

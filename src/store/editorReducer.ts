@@ -1,7 +1,5 @@
-import { SET_CONTENT, SET_LANGUAGE, SetContentAction, SetLanguageAction } from './editorActions';
+import { EditorAction, UPDATE_CONTENT, SET_LANGUAGE } from './editorActions';
 import { EditorState } from '../types/editor';
-
-export type EditorAction = SetContentAction | SetLanguageAction;
 
 const initialState: EditorState = {
   content: '',
@@ -10,7 +8,7 @@ const initialState: EditorState = {
 
 export const editorReducer = (state = initialState, action: EditorAction): EditorState => {
   switch (action.type) {
-    case SET_CONTENT:
+    case UPDATE_CONTENT:
       return { ...state, content: action.payload };
     case SET_LANGUAGE:
       return { ...state, language: action.payload };

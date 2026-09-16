@@ -1,28 +1,40 @@
 import { useEffect } from 'react';
 
-interface ShortcutHandlers {
-  onFormat?: () => void;
-  onSave?: () => void;
-}
-
-export const useKeyboardShortcuts = (handlers: ShortcutHandlers) => {
+/**
+ * Hook to attach keyboard shortcuts to a textarea/editor.
+ * Currently supports:
+ *   - Ctrl+Shift+F (or Cmd+Shift+F) → format code using provided formatter.
+ */
+export const useKeyboardShortcuts = (
+  editorRef: React.RefObject<HTMLTextAreaElement>,
+  language: string,
+  onFormatted: (formatted: string) => void
+) => {
   useEffect(() => {
-    const listener = (e: KeyboardEvent) => {
-      // Ctrl+Shift+F => format document
-      if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+    const textarea = editorRef.current;
+    if (!textarea) return;
+
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
+
+      // Ctrl+Shift+F => format code
+      if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') {
         e.preventDefault();
-        handlers.onFormat?.();
-        return;
-      }
-      // Ctrl+S => save (placeholder, can be extended)
-      if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        handlers.onSave?.();
+        const original = textarea.value;
+        // Dynamically import formatter to avoid loading on initial render
+        const { formatCode } = await import('./formatCode');
+        const formatted = formatCode(original, language);
+        if (formatted !== original) {
+          textarea.value = formatted;
+          onFormatted(formatted);
+        }
       }
     };
-    window.addEventListener('keydown', listener);
+
+    textarea.addEventListener('keydown', handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', listener);
+      textarea.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handlers]);
+  }, [editorRef, language, onFormatted]);
 };

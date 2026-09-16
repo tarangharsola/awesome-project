@@ -1,49 +1,43 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import CodeMirror from '@uiw/react-codemirror';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { html } from '@codemirror/lang-html';
+import { updateContent } from '../store/editorActions';
 import { RootState } from '../store';
-import { setContent } from '../store/editorActions';
-import { getFormattingDefaults } from '../utils/useFormattingDefaults';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { formatCode } from '../utils/formatCode';
+import './Editor.css';
 
 export const Editor: React.FC = () => {
   const dispatch = useDispatch();
-  const language = useSelector((state: RootState) => state.editor.language);
-  const content = useSelector((state: RootState) => state.editor.content);
-  const editorRef = useRef<any>(null);
+  const { content, language } = useSelector((state: RootState) => state.editor);
+  const editorRef = useRef<HTMLTextAreaElement>(null);
 
-  const extensions = useMemo(() => {
-    switch (language) {
-      case 'javascript':
-        return [javascript()];
-      case 'python':
-        return [python()];
-      case 'html':
-        return [html()];
-      default:
-        return [];
+  // Sync textarea value with Redux state
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.value !== content) {
+      editorRef.current.value = content;
     }
-  }, [language]);
+  }, [content]);
 
-  const formatDocument = () => {
-    const formatter = getFormattingDefaults(language);
-    const formatted = formatter.format(content);
-    if (formatted !== content) {
-      dispatch(setContent(formatted));
-    }
+  // Apply keyboard shortcuts (formatting, etc.)
+  useKeyboardShortcuts(editorRef, language, (formatted) => {
+    dispatch(updateContent(formatted));
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    dispatch(updateContent(e.target.value));
   };
 
-  useKeyboardShortcuts({ onFormat: formatDocument });
+  // Adjust textarea styling based on language for syntax highlighting (simple example)
+  const className = `editor textarea-${language}`;
 
   return (
-    <CodeMirror
-      value={content}
-      extensions={extensions}
-      onChange={(value) => dispatch(setContent(value))}
+    <textarea
       ref={editorRef}
+      className={className}
+      value={content}
+      onChange={handleChange}
+      spellCheck={false}
+      aria-label="Code editor"
     />
   );
 };
