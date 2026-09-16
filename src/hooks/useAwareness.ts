@@ -1,38 +1,57 @@
-import { useEffect, useState } from 'react';
-import type { User } from '../types';
+import { useEffect, useState, useCallback } from 'react';
 import { useWebSocket } from './useWebSocket';
+import type { User } from '../types';
 
 /**
- * Hook that tracks user presence (awareness) in a collaborative session.
- * It broadcasts the local user info and maintains a list of remote users.
+ * Hook to manage user awareness (presence) across the collaborative session.
+ * It ensures that the local user is announced on connect and that remote
+ * users are kept in sync, even after reconnections.
  */
-export function useAwareness(sessionId: string, localUser: User) {
-  const wsUrl = `${window.location.origin.replace(/^http/, 'ws')}/ws/${sessionId}`;
-  const { message, send, connected } = useWebSocket(wsUrl);
-  const [users, setUsers] = useState<Record<string, User>>({ [localUser.id]: localUser });
+export const useAwareness = (roomId: string, localUser: User) => {
+  const { connected, lastMessage, sendMessage } = useWebSocket(`${process.env.REACT_APP_WS_URL}/${roomId}`);
+  const [users, setUsers] = useState<Record<string, User>>({});
 
-  // Broadcast local user on connect or when user data changes
+  // Announce local user when connection becomes active
   useEffect(() => {
     if (connected) {
-      send({ type: 'awareness', payload: localUser });
+      sendMessage({ type: 'awareness', action: 'join', user: localUser });
     }
-  }, [connected, localUser, send]);
+  }, [connected, localUser, sendMessage]);
 
   // Handle incoming awareness messages
   useEffect(() => {
-    if (!message) return;
-    if (message.type !== 'awareness') return;
-    const remote: User = message.payload;
-    setUsers((prev) => ({ ...prev, [remote.id]: remote }));
-  }, [message]);
+    if (!lastMessage) return;
+    const { type, action, user } = lastMessage;
+    if (type !== 'awareness' || !user) return;
+    setUsers(prev => {
+      const updated = { ...prev };
+      if (action === 'join' || action === 'update') {
+        updated[user.id] = user;
+      } else if (action === 'leave') {
+        delete updated[user.id];
+      }
+      return updated;
+    });
+  }, [lastMessage]);
 
-  // Cleanup on unmount: inform others that we left
+  // Clean up on unmount – inform others that we left
   useEffect(() => {
     return () => {
-      send({ type: 'awareness-leave', payload: { id: localUser.id } });
+      if (connected) {
+        sendMessage({ type: 'awareness', action: 'leave', user: localUser });
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { users, connected } as const;
-}
+  const updateCursor = useCallback(
+    (position: { line: number; ch: number }) => {
+      if (connected) {
+        sendMessage({ type: 'awareness', action: 'cursor', user: { ...localUser, cursor: position } });
+      }
+    },
+    [connected, localUser, sendMessage]
+  );
+
+  return { users, updateCursor };
+};

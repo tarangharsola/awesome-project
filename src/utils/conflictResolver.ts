@@ -1,45 +1,29 @@
-import { applyCRDT, mergeCRDT } from "./conflict/strategies/crdt";
-import { applyOT, transformOT } from "./conflict/strategies/ot";
-import type { Change, DocumentState } from "../types/editor";
+import { applyCRDTUpdate, createCRDT } from './conflict/strategies/crdt';
+import { applyOTUpdate, createOT } from './conflict/strategies/ot';
+import type { DocumentState, Update } from '../types/editor';
 
 /**
- * Resolve a single change against the current document state.
- * The default strategy is CRDT because it provides strong convergence
- * guarantees without a central authority. If CRDT processing throws
- * (e.g., due to malformed data), we gracefully fall back to OT.
+ * Resolve incoming updates using a primary CRDT strategy. If the CRDT
+ * cannot apply the update (e.g., due to version mismatch), fall back to
+ * the OT strategy. This hybrid approach maximizes consistency while
+ * keeping latency low.
  */
-export const resolveChange = (
-  state: DocumentState,
-  change: Change,
-  strategy: "crdt" | "ot" = "crdt"
-): DocumentState => {
-  if (strategy === "crdt") {
+export const resolveUpdate = (state: DocumentState, update: Update): DocumentState => {
+  try {
+    // Attempt CRDT merge first
+    const crdt = createCRDT(state.content);
+    const merged = applyCRDTUpdate(crdt, update);
+    return { ...state, content: merged };
+  } catch (crdtError) {
+    console.warn('CRDT merge failed, falling back to OT', crdtError);
     try {
-      return applyCRDT(state, change);
-    } catch {
-      // Fallback to OT on unexpected CRDT failure
-      return applyOT(state, change);
+      const ot = createOT(state.content);
+      const merged = applyOTUpdate(ot, update);
+      return { ...state, content: merged };
+    } catch (otError) {
+      console.error('Both CRDT and OT failed to apply update', otError);
+      // As a last resort, ignore the update to keep UI responsive.
+      return state;
     }
   }
-  // Explicit OT path
-  return applyOT(state, change);
-};
-
-/**
- * Merge two document states that may have diverged (e.g., after a reconnection).
- * CRDT merge is deterministic and order‑independent, making it ideal for
- * reconciling after network partitions. For OT we transform the remote
- * changes against the local state before applying.
- */
-export const mergeStates = (
-  local: DocumentState,
-  remote: DocumentState,
-  strategy: "crdt" | "ot" = "crdt"
-): DocumentState => {
-  if (strategy === "crdt") {
-    return mergeCRDT(local, remote);
-  }
-  // OT merge – transform remote changes against local and apply
-  const transformed = transformOT(remote, local);
-  return applyOT(local, transformed);
 };

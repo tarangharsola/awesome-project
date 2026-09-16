@@ -1,29 +1,13 @@
-// src/utils/websocketClient.ts
-type MessageHandler = (msg: any) => void;
-type StatusHandler = () => void;
-
-interface WSClientOptions {
-  url: string;
-  onMessage: MessageHandler;
-  onOpen?: StatusHandler;
-  onClose?: StatusHandler;
-}
-
-class WSClient {
+class WebSocketClient {
   private url: string;
-  private onMessage: MessageHandler;
-  private onOpen?: StatusHandler;
-  private onClose?: StatusHandler;
   private socket: WebSocket | null = null;
-  private messageQueue: string[] = [];
   private reconnectAttempts = 0;
-  private readonly maxBackoff = 30000; // 30s
+  private maxReconnectAttempts = 10;
+  private reconnectDelay = 1000; // start with 1s
+  private listeners: { [event: string]: ((...args: any[]) => void)[] } = {};
 
-  constructor(opts: WSClientOptions) {
-    this.url = opts.url;
-    this.onMessage = opts.onMessage;
-    this.onOpen = opts.onOpen;
-    this.onClose = opts.onClose;
+  constructor(url: string) {
+    this.url = url;
     this.connect();
   }
 
@@ -32,60 +16,89 @@ class WSClient {
     this.socket.addEventListener('open', this.handleOpen);
     this.socket.addEventListener('message', this.handleMessage);
     this.socket.addEventListener('close', this.handleClose);
-    this.socket.addEventListener('error', this.handleClose);
+    this.socket.addEventListener('error', this.handleError);
   }
 
   private handleOpen = () => {
     this.reconnectAttempts = 0;
-    this.flushQueue();
-    if (this.onOpen) this.onOpen();
+    this.emit('open');
   };
 
   private handleMessage = (event: MessageEvent) => {
-    try {
-      const data = JSON.parse(event.data);
-      this.onMessage(data);
-    } catch {
-      // ignore malformed messages
-    }
+    this.emit('message', event.data);
   };
 
   private handleClose = () => {
-    if (this.onClose) this.onClose();
+    this.emit('close');
     this.scheduleReconnect();
   };
 
+  private handleError = (err: Event) => {
+    this.emit('error', err);
+    // Errors also trigger close; reconnection handled there.
+  };
+
   private scheduleReconnect() {
-    this.reconnectAttempts += 1;
-    const backoff = Math.min(1000 * 2 ** this.reconnectAttempts, this.maxBackoff);
-    setTimeout(() => this.connect(), backoff);
-  }
-
-  private flushQueue() {
-    while (this.messageQueue.length && this.socket && this.socket.readyState === WebSocket.OPEN) {
-      const msg = this.messageQueue.shift()!;
-      this.socket.send(msg);
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.error('WebSocket: max reconnection attempts reached');
+      return;
     }
+    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
+    this.reconnectAttempts++;
+    setTimeout(() => {
+      console.info('WebSocket: attempting reconnection', this.reconnectAttempts);
+      this.connect();
+    }, delay);
   }
 
-  public send(msg: any) {
-    const payload = JSON.stringify(msg);
+  send(data: string) {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(payload);
+      this.socket.send(data);
     } else {
-      this.messageQueue.push(payload);
+      console.warn('WebSocket: send called while socket not open, queuing message');
+      this.once('open', () => this.send(data));
     }
   }
 
-  public close() {
+  close() {
     if (this.socket) {
       this.socket.removeEventListener('open', this.handleOpen);
       this.socket.removeEventListener('message', this.handleMessage);
       this.socket.removeEventListener('close', this.handleClose);
-      this.socket.removeEventListener('error', this.handleClose);
+      this.socket.removeEventListener('error', this.handleError);
       this.socket.close();
     }
   }
+
+  on(event: string, callback: (...args: any[]) => void) {
+    if (!this.listeners[event]) this.listeners[event] = [];
+    this.listeners[event].push(callback);
+  }
+
+  off(event: string, callback: (...args: any[]) => void) {
+    if (!this.listeners[event]) return;
+    this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
+  }
+
+  once(event: string, callback: (...args: any[]) => void) {
+    const wrapper = (...args: any[]) => {
+      callback(...args);
+      this.off(event, wrapper);
+    };
+    this.on(event, wrapper);
+  }
+
+  private emit(event: string, ...args: any[]) {
+    if (!this.listeners[event]) return;
+    this.listeners[event].forEach(cb => cb(...args));
+  }
 }
 
-export default WSClient;
+// Export a singleton that can be re-instantiated with a new URL when needed.
+let client: WebSocketClient | null = null;
+export const initWebSocketClient = (url: string) => {
+  if (client) client.close();
+  client = new WebSocketClient(url);
+  return client;
+};
+export const getWebSocketClient = () => client;
