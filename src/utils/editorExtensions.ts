@@ -1,27 +1,27 @@
-import { EditorView } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { html } from '@codemirror/lang-html';
-import { indentOnInput } from '@codemirror/language';
-import { defaultKeymap } from '@codemirror/commands';
-import { keymap } from '@codemirror/view';
+import prettier from 'prettier/standalone';
+import parserBabel from 'prettier/parser-babel';
+import parserHTML from 'prettier/parser-html';
+import parserPython from 'prettier/parser-python';
 
-export const getLanguageExtension = (language: string) => {
+export const getDefaultFormattingOptions = (language: string) => {
   switch (language) {
     case 'javascript':
-      return javascript();
-    case 'python':
-      return python();
+      return { parser: 'babel', plugins: [parserBabel] };
     case 'html':
-      return html();
+      return { parser: 'html', plugins: [parserHTML] };
+    case 'python':
+      return { parser: 'python', plugins: [parserPython] };
     default:
-      return [];
+      return { parser: 'babel', plugins: [parserBabel] };
   }
 };
 
-export const getBaseExtensions = (language: string) => [
-  indentOnInput(),
-  getLanguageExtension(language),
-  keymap.of([...defaultKeymap]),
-];
+export const formatCode = (code: string, language: string): string => {
+  const options = getDefaultFormattingOptions(language);
+  try {
+    return prettier.format(code, { ...options, singleQuote: true, trailingComma: 'es5' });
+  } catch (e) {
+    console.error('Formatting error:', e);
+    return code;
+  }
+};

@@ -1,7 +1,10 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { setLanguage } from '../store/editorActions';
-import { RootState } from '../store';
+import { useTranslation } from 'react-i18next';
+
+interface LanguageSelectorProps {
+  selectedLanguage: string;
+  onLanguageChange: (lang: string) => void;
+}
 
 const languages = [
   { value: 'javascript', label: 'JavaScript' },
@@ -9,21 +12,24 @@ const languages = [
   { value: 'html', label: 'HTML' },
 ];
 
-export const LanguageSelector: React.FC = () => {
-  const dispatch = useDispatch();
-  const current = useSelector((state: RootState) => state.editor.language);
+export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ selectedLanguage, onLanguageChange }) => {
+  const { t } = useTranslation();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    dispatch(setLanguage(e.target.value));
+    const newLang = e.target.value;
+    onLanguageChange(newLang);
   };
 
   return (
-    <select value={current} onChange={handleChange} aria-label="Select language">
-      {languages.map((lang) => (
-        <option key={lang.value} value={lang.value}>
-          {lang.label}
-        </option>
-      ))}
-    </select>
+    <div className="language-selector">
+      <label htmlFor="language-select">{t('language')}:</label>
+      <select id="language-select" value={selectedLanguage} onChange={handleChange}>
+        {languages.map((lang) => (
+          <option key={lang.value} value={lang.value}>
+            {lang.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 };

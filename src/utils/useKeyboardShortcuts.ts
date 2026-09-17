@@ -1,40 +1,37 @@
 import { useEffect } from 'react';
+import { EditorInstance } from '../types/editor';
 
-/**
- * Hook to attach keyboard shortcuts to a textarea/editor.
- * Currently supports:
- *   - Ctrl+Shift+F (or Cmd+Shift+F) → format code using provided formatter.
- */
-export const useKeyboardShortcuts = (
-  editorRef: React.RefObject<HTMLTextAreaElement>,
-  language: string,
-  onFormatted: (formatted: string) => void
-) => {
+interface ShortcutParams {
+  editor: EditorInstance | null;
+  formatDocument: () => void;
+}
+
+export const useKeyboardShortcuts = ({ editor, formatDocument }: ShortcutParams) => {
   useEffect(() => {
-    const textarea = editorRef.current;
-    if (!textarea) return;
-
-    const handleKeyDown = async (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().includes('MAC');
       const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
 
-      // Ctrl+Shift+F => format code
-      if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') {
+      // Format document: Ctrl/Cmd + S
+      if (ctrlKey && e.key === 's') {
         e.preventDefault();
-        const original = textarea.value;
-        // Dynamically import formatter to avoid loading on initial render
-        const { formatCode } = await import('./formatCode');
-        const formatted = formatCode(original, language);
-        if (formatted !== original) {
-          textarea.value = formatted;
-          onFormatted(formatted);
+        formatDocument();
+        return;
+      }
+
+      // Trigger autocomplete: Ctrl/Cmd + Space
+      if (ctrlKey && e.key === ' ') {
+        e.preventDefault();
+        if (editor && typeof editor.triggerAutocomplete === 'function') {
+          editor.triggerAutocomplete();
         }
+        return;
       }
     };
 
-    textarea.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      textarea.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [editorRef, language, onFormatted]);
+  }, [editor, formatDocument]);
 };

@@ -1,43 +1,37 @@
-import React, { useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { updateContent } from '../store/editorActions';
-import { RootState } from '../store';
+import React, { useEffect, useRef, useState } from 'react';
+import { useEditor } from '../utils/useEditor';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { formatCode } from '../utils/formatCode';
-import './Editor.css';
+import { getDefaultFormattingOptions } from '../utils/editorExtensions';
+import { LanguageSelector } from './LanguageSelector';
 
 export const Editor: React.FC = () => {
-  const dispatch = useDispatch();
-  const { content, language } = useSelector((state: RootState) => state.editor);
-  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [language, setLanguage] = useState<string>('javascript');
+  const { editor, initializeEditor, formatDocument } = useEditor();
 
-  // Sync textarea value with Redux state
+  // Initialize editor once
   useEffect(() => {
-    if (editorRef.current && editorRef.current.value !== content) {
-      editorRef.current.value = content;
+    if (editorRef.current && !editor) {
+      initializeEditor(editorRef.current, language);
     }
-  }, [content]);
+  }, [editorRef, editor, initializeEditor, language]);
 
-  // Apply keyboard shortcuts (formatting, etc.)
-  useKeyboardShortcuts(editorRef, language, (formatted) => {
-    dispatch(updateContent(formatted));
-  });
+  // Apply language change dynamically
+  useEffect(() => {
+    if (editor) {
+      editor.setModelLanguage(language);
+      const formattingOpts = getDefaultFormattingOptions(language);
+      editor.updateOptions({ formatting: formattingOpts });
+    }
+  }, [language, editor]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    dispatch(updateContent(e.target.value));
-  };
-
-  // Adjust textarea styling based on language for syntax highlighting (simple example)
-  const className = `editor textarea-${language}`;
+  // Keyboard shortcuts (formatting, etc.)
+  useKeyboardShortcuts({ editor, formatDocument });
 
   return (
-    <textarea
-      ref={editorRef}
-      className={className}
-      value={content}
-      onChange={handleChange}
-      spellCheck={false}
-      aria-label="Code editor"
-    />
+    <div className="editor-container">
+      <LanguageSelector selectedLanguage={language} onLanguageChange={setLanguage} />
+      <div ref={editorRef} className="code-editor" />
+    </div>
   );
 };
