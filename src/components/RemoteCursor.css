@@ -1,19 +1,23 @@
 .remote-cursor {
   position: absolute;
   pointer-events: none;
-  z-index: 10;
+  border-left: 2px solid var(--cursor-color, #fff);
+  height: 1.2em;
+  animation: fadeIn 0.2s ease-out;
 }
-.remote-cursor .cursor-label {
-  background-color: rgba(50, 50, 50, 0.9);
-  color: #f0f0f0;
+.remote-cursor::after {
+  content: attr(data-username);
+  position: absolute;
+  top: -1.4em;
+  left: -1px;
+  background: var(--cursor-bg, rgba(0, 0, 0, 0.7));
+  color: var(--cursor-text, #fff);
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 0.75rem;
   white-space: nowrap;
-  margin-top: -1.5em;
 }
-.remote-cursor .cursor-indicator {
-  width: 2px;
-  background-color: currentColor;
-  height: 1.2em;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

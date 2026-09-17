@@ -3,22 +3,19 @@
   color: #e0e0e0;
   padding: 0.5rem;
   border-radius: 4px;
-  max-height: 300px;
-  overflow-y: auto;
 }
-.user-list-item {
+.user-item {
   display: flex;
   align-items: center;
   margin-bottom: 0.25rem;
 }
-.user-color-indicator {
+.user-color {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   margin-right: 0.5rem;
-  flex-shrink: 0;
+  background-color: var(--user-color, #888);
 }
 .user-name {
   font-size: 0.9rem;
-  word-break: break-all;
 }
