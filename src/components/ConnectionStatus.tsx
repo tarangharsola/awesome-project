@@ -1,15 +1,34 @@
 import React from 'react';
+import { useWebSocket } from '../hooks/useWebSocket';
 import './ConnectionStatus.css';
 
 type Props = {
-  connected: boolean;
-  reconnectAttempts: number;
+  /**
+   * WebSocket endpoint for the collaborative session.
+   */
+  url: string;
 };
 
-export const ConnectionStatus: React.FC<Props> = ({ connected, reconnectAttempts }) => {
-  const statusClass = connected ? 'connected' : 'disconnected';
-  const message = connected
-    ? 'Connected'
-    : `Disconnected (retries: ${reconnectAttempts})`;
-  return <div className={`connection-status ${statusClass}`}>{message}</div>;
+/**
+ * Visual indicator of the WebSocket connection state. Shows one of three
+ * statuses: Connected, Connecting…, or Disconnected – retrying…
+ */
+export const ConnectionStatus: React.FC<Props> = ({ url }) => {
+  const { status } = useWebSocket(url);
+
+  let text = '';
+  let className = 'connection-status';
+
+  if (status === 'connected') {
+    text = 'Connected';
+    className += ' connected';
+  } else if (status === 'connecting') {
+    text = 'Connecting…';
+    className += ' connecting';
+  } else {
+    text = 'Disconnected – retrying…';
+    className += ' disconnected';
+  }
+
+  return <div className={className}>{text}</div>;
 };
