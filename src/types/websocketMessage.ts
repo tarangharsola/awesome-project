@@ -1,36 +1,49 @@
-export type MessageType = 'join' | 'leave' | 'edit' | 'cursor' | 'presence';
+export enum MessageType {
+  JOIN = 'join',
+  LEAVE = 'leave',
+  EDIT = 'edit',
+  CURSOR = 'cursor',
+  PRESENCE = 'presence',
+  SYNC = 'sync'
+}
 
 export interface BaseMessage {
   type: MessageType;
-  sessionId: string;
+  roomId: string;
   userId: string;
   timestamp: number;
 }
 
 export interface JoinMessage extends BaseMessage {
-  type: 'join';
+  type: MessageType.JOIN;
   username: string;
   color: string;
 }
 
 export interface LeaveMessage extends BaseMessage {
-  type: 'leave';
+  type: MessageType.LEAVE;
 }
 
 export interface EditMessage extends BaseMessage {
-  type: 'edit';
+  type: MessageType.EDIT;
   delta: string; // representation of the edit operation (OT/CRDT)
 }
 
 export interface CursorMessage extends BaseMessage {
-  type: 'cursor';
+  type: MessageType.CURSOR;
   position: number;
-  selectionLength?: number;
+  selectionStart?: number;
+  selectionEnd?: number;
 }
 
 export interface PresenceMessage extends BaseMessage {
-  type: 'presence';
+  type: MessageType.PRESENCE;
   users: Array<{ userId: string; username: string; color: string }>;
+}
+
+export interface SyncMessage extends BaseMessage {
+  type: MessageType.SYNC;
+  document: string;
 }
 
 export type WebSocketMessage =
@@ -38,4 +51,5 @@ export type WebSocketMessage =
   | LeaveMessage
   | EditMessage
   | CursorMessage
-  | PresenceMessage;
+  | PresenceMessage
+  | SyncMessage;
