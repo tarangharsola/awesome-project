@@ -1163,3 +1163,4 @@
 2026-09-16T11:58:19.002121+00:00 | Harden realtime collaboration: conflict handling, reconnection, and awareness consistency.
 2026-09-17T11:58:36.680198+00:00 | Add connection status indicator and retry/backoff behavior.
 2026-09-17T11:58:39.465197+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
+2026-09-17T11:58:41.660142+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.

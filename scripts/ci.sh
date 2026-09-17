@@ -4,7 +4,7 @@ set -e
 # Install dependencies
 npm ci
 
-# Build the project
+# Build the application
 npm run build
 
 # Run tests
