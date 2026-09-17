@@ -1,57 +1,103 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useWebSocket } from './useWebSocket';
-import type { User } from '../types';
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useWebSocket } from "./useWebSocket";
+import { v4 as uuidv4 } from "uuid";
+
+type Cursor = { line: number; ch: number };
+
+type User = {
+  id: string;
+  name: string;
+  color: string;
+  cursor?: Cursor;
+};
 
 /**
- * Hook to manage user awareness (presence) across the collaborative session.
- * It ensures that the local user is announced on connect and that remote
- * users are kept in sync, even after reconnections.
+ * Hook that manages presence (join/leave) and cursor awareness for a collaborative room.
+ * It guarantees that the local user's identity and latest cursor are re‑broadcast after any reconnection.
  */
-export const useAwareness = (roomId: string, localUser: User) => {
-  const { connected, lastMessage, sendMessage } = useWebSocket(`${process.env.REACT_APP_WS_URL}/${roomId}`);
+export function useAwareness(roomId: string, username: string, color: string) {
+  const wsUrl = `${process.env.REACT_APP_WS_URL}/${roomId}`;
+  const { status, sendMessage } = useWebSocket(wsUrl);
   const [users, setUsers] = useState<Record<string, User>>({});
+  const userIdRef = useRef<string>(uuidv4());
 
-  // Announce local user when connection becomes active
+  // Send a join/presence message whenever the socket becomes connected.
+  const broadcastJoin = useCallback(() => {
+    const joinMsg = {
+      type: "join",
+      payload: {
+        id: userIdRef.current,
+        name: username,
+        color,
+      },
+    };
+    sendMessage(joinMsg);
+  }, [sendMessage, username, color]);
+
   useEffect(() => {
-    if (connected) {
-      sendMessage({ type: 'awareness', action: 'join', user: localUser });
+    if (status === "connected") {
+      broadcastJoin();
     }
-  }, [connected, localUser, sendMessage]);
+  }, [status, broadcastJoin]);
 
-  // Handle incoming awareness messages
+  // Listen for all incoming WebSocket messages and update local awareness state.
   useEffect(() => {
-    if (!lastMessage) return;
-    const { type, action, user } = lastMessage;
-    if (type !== 'awareness' || !user) return;
-    setUsers(prev => {
-      const updated = { ...prev };
-      if (action === 'join' || action === 'update') {
-        updated[user.id] = user;
-      } else if (action === 'leave') {
-        delete updated[user.id];
+    const handler = (e: Event) => {
+      const raw = (e as CustomEvent).detail;
+      let msg: any;
+      try {
+        msg = JSON.parse(raw);
+      } catch {
+        return; // ignore malformed messages
       }
-      return updated;
-    });
-  }, [lastMessage]);
-
-  // Clean up on unmount – inform others that we left
-  useEffect(() => {
-    return () => {
-      if (connected) {
-        sendMessage({ type: 'awareness', action: 'leave', user: localUser });
+      const { type, payload } = msg;
+      switch (type) {
+        case "join":
+        case "presence":
+          setUsers((prev) => ({
+            ...prev,
+            [payload.id]: { ...(prev[payload.id] || {}), ...payload },
+          }));
+          break;
+        case "cursor":
+          setUsers((prev) => ({
+            ...prev,
+            [payload.id]: {
+              ...(prev[payload.id] || {}),
+              cursor: payload.cursor,
+            },
+          }));
+          break;
+        case "leave":
+          setUsers((prev) => {
+            const copy = { ...prev };
+            delete copy[payload.id];
+            return copy;
+          });
+          break;
+        default:
+          // ignore unknown message types
+          break;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    window.addEventListener("ws-message", handler);
+    return () => window.removeEventListener("ws-message", handler);
   }, []);
 
-  const updateCursor = useCallback(
-    (position: { line: number; ch: number }) => {
-      if (connected) {
-        sendMessage({ type: 'awareness', action: 'cursor', user: { ...localUser, cursor: position } });
-      }
+  // Public API to broadcast the local cursor position.
+  const broadcastCursor = useCallback(
+    (cursor: Cursor) => {
+      const cursorMsg = {
+        type: "cursor",
+        payload: {
+          id: userIdRef.current,
+          cursor,
+        },
+      };
+      sendMessage(cursorMsg);
     },
-    [connected, localUser, sendMessage]
+    [sendMessage]
   );
 
-  return { users, updateCursor };
-};
+  return { users, broadcastCursor, connectionStatus: status } as const;
+}
