@@ -1,64 +1,56 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { WebSocketMessage } from "../types/websocketMessage";
+import { useEffect, useRef, useState } from 'react';
 
-export type WebSocketStatus = "connected" | "connecting" | "disconnected";
+export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected';
+
+interface UseWebSocketResult {
+  sendMessage: (msg: unknown) => void;
+  status: ConnectionStatus;
+}
 
 /**
- * Hook that manages a WebSocket connection with automatic reconnection.
- * It exposes the connection status and a safe sendMessage function.
+ * Hook that manages a WebSocket connection with automatic reconnection using
+ * exponential backoff. It exposes a sendMessage function and the current
+ * connection status.
  */
-export const useWebSocket = (
-  url: string,
-  onMessage: (msg: WebSocketMessage) => void
-) => {
-  const [status, setStatus] = useState<WebSocketStatus>("connecting");
+export const useWebSocket = (url: string): UseWebSocketResult => {
+  const [status, setStatus] = useState<ConnectionStatus>('disconnected');
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectAttempts = useRef(0);
+  const retryCountRef = useRef(0);
   const maxDelay = 30000; // 30 seconds max backoff
 
-  const sendMessage = useCallback((msg: WebSocketMessage) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(msg));
-    }
-  }, []);
-
-  const connect = useCallback(() => {
-    setStatus("connecting");
+  const connect = () => {
+    setStatus('connecting');
     const ws = new WebSocket(url);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      setStatus("connected");
-      reconnectAttempts.current = 0;
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data: WebSocketMessage = JSON.parse(event.data);
-        onMessage(data);
-      } catch {
-        // Silently ignore malformed messages
-      }
+      setStatus('connected');
+      retryCountRef.current = 0;
     };
 
     ws.onclose = () => {
-      setStatus("disconnected");
+      setStatus('disconnected');
       scheduleReconnect();
     };
 
     ws.onerror = () => {
+      // Close will trigger onclose which schedules reconnection
       ws.close();
     };
-  }, [url, onMessage]);
 
-  const scheduleReconnect = useCallback(() => {
-    const attempts = reconnectAttempts.current + 1;
-    reconnectAttempts.current = attempts;
-    const delay = Math.min(1000 * 2 ** attempts, maxDelay);
+    ws.onmessage = (event) => {
+      // Consumers can attach their own listeners via the returned wsRef if needed.
+      // This hook purposefully does not handle incoming messages to stay generic.
+    };
+  };
+
+  const scheduleReconnect = () => {
+    const delay = Math.min(1000 * 2 ** retryCountRef.current, maxDelay);
+    retryCountRef.current += 1;
     setTimeout(() => {
       connect();
     }, delay);
-  }, [connect]);
+  };
 
   useEffect(() => {
     connect();
@@ -68,5 +60,11 @@ export const useWebSocket = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
 
-  return { status, sendMessage } as const;
+  const sendMessage = (msg: unknown) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(msg));
+    }
+  };
+
+  return { sendMessage, status };
 };

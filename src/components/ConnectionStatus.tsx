@@ -1,34 +1,41 @@
 import React from 'react';
-import { useWebSocket } from '../hooks/useWebSocket';
 import './ConnectionStatus.css';
 
-type Props = {
-  /**
-   * WebSocket endpoint for the collaborative session.
-   */
-  url: string;
-};
+export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected';
+
+interface Props {
+  status: ConnectionStatus;
+}
 
 /**
- * Visual indicator of the WebSocket connection state. Shows one of three
- * statuses: Connected, Connecting…, or Disconnected – retrying…
+ * Visual indicator of the WebSocket connection status.
+ * Shows green when connected, orange while connecting, and red when disconnected.
  */
-export const ConnectionStatus: React.FC<Props> = ({ url }) => {
-  const { status } = useWebSocket(url);
+const ConnectionStatus: React.FC<Props> = ({ status }) => {
+  let color = '';
+  let label = '';
 
-  let text = '';
-  let className = 'connection-status';
-
-  if (status === 'connected') {
-    text = 'Connected';
-    className += ' connected';
-  } else if (status === 'connecting') {
-    text = 'Connecting…';
-    className += ' connecting';
-  } else {
-    text = 'Disconnected – retrying…';
-    className += ' disconnected';
+  switch (status) {
+    case 'connected':
+      color = 'var(--color-success, #4caf50)';
+      label = 'Connected';
+      break;
+    case 'connecting':
+      color = 'var(--color-warning, #ff9800)';
+      label = 'Connecting...';
+      break;
+    case 'disconnected':
+    default:
+      color = 'var(--color-error, #f44336)';
+      label = 'Disconnected';
+      break;
   }
 
-  return <div className={className}>{text}</div>;
+  return (
+    <div className="connection-status" style={{ color }} title={label}>
+      ● {label}
+    </div>
+  );
 };
+
+export default ConnectionStatus;
