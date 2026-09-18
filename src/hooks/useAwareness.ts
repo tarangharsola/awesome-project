@@ -1,103 +1,85 @@
-import { useEffect, useState, useCallback, useRef } from "react";
-import { useWebSocket } from "./useWebSocket";
-import { v4 as uuidv4 } from "uuid";
-
-type Cursor = { line: number; ch: number };
-
-type User = {
-  id: string;
-  name: string;
-  color: string;
-  cursor?: Cursor;
-};
+import { useEffect } from "react";
+import { useWebSocket, WebSocketStatus } from "./useWebSocket";
+import { useUsers } from "./useUsers";
+import { useCursor } from "./useCursor";
+import { WebSocketMessage, MessageType } from "../types/websocketMessage";
 
 /**
- * Hook that manages presence (join/leave) and cursor awareness for a collaborative room.
- * It guarantees that the local user's identity and latest cursor are re‑broadcast after any reconnection.
+ * Hook that synchronises user presence (join/leave) and cursor positions across
+ * all participants in a room. It relies on the resilient WebSocket hook.
  */
-export function useAwareness(roomId: string, username: string, color: string) {
-  const wsUrl = `${process.env.REACT_APP_WS_URL}/${roomId}`;
-  const { status, sendMessage } = useWebSocket(wsUrl);
-  const [users, setUsers] = useState<Record<string, User>>({});
-  const userIdRef = useRef<string>(uuidv4());
+export const useAwareness = (
+  roomId: string,
+  username: string,
+  color: string
+) => {
+  const { status, sendMessage } = useWebSocket(
+    `wss://example.com/rooms/${roomId}`,
+    handleMessage
+  );
+  const { users, addUser, updateUser, removeUser } = useUsers();
+  const { cursor, setCursor } = useCursor();
 
-  // Send a join/presence message whenever the socket becomes connected.
-  const broadcastJoin = useCallback(() => {
-    const joinMsg = {
-      type: "join",
-      payload: {
-        id: userIdRef.current,
-        name: username,
-        color,
-      },
-    };
-    sendMessage(joinMsg);
-  }, [sendMessage, username, color]);
-
+  // Broadcast own join information once the socket is ready
   useEffect(() => {
     if (status === "connected") {
-      broadcastJoin();
+      const joinMsg: WebSocketMessage = {
+        type: MessageType.JOIN,
+        payload: { username, color, cursor },
+      };
+      sendMessage(joinMsg);
     }
-  }, [status, broadcastJoin]);
+  }, [status, username, color, cursor, sendMessage]);
 
-  // Listen for all incoming WebSocket messages and update local awareness state.
+  // Broadcast cursor updates (debounced to avoid flooding)
   useEffect(() => {
-    const handler = (e: Event) => {
-      const raw = (e as CustomEvent).detail;
-      let msg: any;
-      try {
-        msg = JSON.parse(raw);
-      } catch {
-        return; // ignore malformed messages
-      }
-      const { type, payload } = msg;
-      switch (type) {
-        case "join":
-        case "presence":
-          setUsers((prev) => ({
-            ...prev,
-            [payload.id]: { ...(prev[payload.id] || {}), ...payload },
-          }));
-          break;
-        case "cursor":
-          setUsers((prev) => ({
-            ...prev,
-            [payload.id]: {
-              ...(prev[payload.id] || {}),
-              cursor: payload.cursor,
-            },
-          }));
-          break;
-        case "leave":
-          setUsers((prev) => {
-            const copy = { ...prev };
-            delete copy[payload.id];
-            return copy;
-          });
-          break;
-        default:
-          // ignore unknown message types
-          break;
-      }
-    };
-    window.addEventListener("ws-message", handler);
-    return () => window.removeEventListener("ws-message", handler);
-  }, []);
-
-  // Public API to broadcast the local cursor position.
-  const broadcastCursor = useCallback(
-    (cursor: Cursor) => {
-      const cursorMsg = {
-        type: "cursor",
-        payload: {
-          id: userIdRef.current,
-          cursor,
-        },
+    if (status !== "connected") return;
+    const timer = setTimeout(() => {
+      const cursorMsg: WebSocketMessage = {
+        type: MessageType.CURSOR,
+        payload: { username, color, cursor },
       };
       sendMessage(cursorMsg);
-    },
-    [sendMessage]
-  );
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [cursor, status, username, color, sendMessage]);
 
-  return { users, broadcastCursor, connectionStatus: status } as const;
-}
+  function handleMessage(msg: WebSocketMessage) {
+    switch (msg.type) {
+      case MessageType.JOIN:
+        addUser(msg.payload);
+        break;
+      case MessageType.LEAVE:
+        removeUser(msg.payload.username);
+        break;
+      case MessageType.CURSOR:
+        updateUser(msg.payload);
+        break;
+      case MessageType.SYNC:
+        // Document sync is handled by editor hooks; no action needed here
+        break;
+      default:
+        break;
+    }
+  }
+
+  // Notify server when the local user leaves (unmount)
+  useEffect(() => {
+    return () => {
+      if (status === "connected") {
+        const leaveMsg: WebSocketMessage = {
+          type: MessageType.LEAVE,
+          payload: { username },
+        };
+        sendMessage(leaveMsg);
+      }
+    };
+  }, [status, username, sendMessage]);
+
+  return {
+    users,
+    cursor,
+    setCursor,
+    connectionStatus: status as WebSocketStatus,
+  } as const;
+};

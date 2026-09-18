@@ -1,51 +1,59 @@
-import { Operation } from '../../types/conflict';
+import { CRDTOperation, CRDTState } from "../../types/conflict";
 
 /**
- * Simple CRDT merge implementation that guarantees idempotent application of operations.
- * Each operation must contain a unique `id` (e.g., `${clientId}-${timestamp}`) and the
- * text to insert/delete along with its position. The algorithm:
- *   1. Deduplicate operations using a Set of ids.
- *   2. Sort operations by their `id` to achieve deterministic ordering across clients.
- *   3. Apply operations sequentially to the base content.
- * This approach works for line‑oriented editors and avoids conflict loops.
+ * Apply a local operation to the CRDT state. Generates a unique id and timestamp
+ * for deterministic ordering.
  */
-export function mergeOperations(base: string, ops: Operation[]): string {
-  // Deduplicate based on operation id
+export const applyLocalOperation = (
+  state: CRDTState,
+  op: Omit<CRDTOperation, "id" | "timestamp">
+): CRDTState => {
+  const enriched: CRDTOperation = {
+    ...op,
+    id: generateId(),
+    timestamp: Date.now(),
+  };
+  return { ...state, operations: [...state.operations, enriched] };
+};
+
+/**
+ * Apply a remote operation. Duplicate operations are ignored. Operations are
+ * inserted in timestamp order to guarantee convergence.
+ */
+export const applyRemoteOperation = (
+  state: CRDTState,
+  op: CRDTOperation
+): CRDTState => {
+  // Ignore if we already have this operation
+  if (state.operations.some((existing) => existing.id === op.id)) {
+    return state;
+  }
+  const merged = [...state.operations, op].sort((a, b) => a.timestamp - b.timestamp);
+  return { ...state, operations: merged };
+};
+
+/**
+ * Merge two CRDT states (e.g., after reconnection). The algorithm removes
+ * duplicates and sorts by timestamp, ensuring both peers converge to the same
+ * operation sequence.
+ */
+export const mergeStates = (
+  local: CRDTState,
+  remote: CRDTState
+): CRDTState => {
+  const combined = [...local.operations, ...remote.operations];
+  const unique: CRDTOperation[] = [];
   const seen = new Set<string>();
-  const uniqueOps: Operation[] = [];
-  for (const op of ops) {
-    if (!op.id) continue; // ignore malformed ops
+  for (const op of combined) {
     if (!seen.has(op.id)) {
       seen.add(op.id);
-      uniqueOps.push(op);
+      unique.push(op);
     }
   }
+  unique.sort((a, b) => a.timestamp - b.timestamp);
+  return { ...local, operations: unique };
+};
 
-  // Deterministic order – lexical sort of ids (clientId‑timestamp ensures total order)
-  uniqueOps.sort((a, b) => (a.id! > b.id! ? 1 : -1));
-
-  // Apply operations. For simplicity we support only insert and delete.
-  let result = base;
-  for (const op of uniqueOps) {
-    if (op.type === 'insert') {
-      const before = result.slice(0, op.position);
-      const after = result.slice(op.position);
-      result = before + op.text + after;
-    } else if (op.type === 'delete') {
-      const before = result.slice(0, op.position);
-      const after = result.slice(op.position + op.length);
-      result = before + after;
-    }
-    // Unknown operation types are ignored safely.
-  }
-  return result;
-}
-
-/**
- * Exported resolver that integrates with the store. It receives remote operations,
- * merges them with the current editor state using `mergeOperations`, and returns the
- * new content. The function is pure and can be unit‑tested.
- */
-export function resolveConflicts(current: string, remoteOps: Operation[]): string {
-  return mergeOperations(current, remoteOps);
-}
+/** Simple unique identifier generator for operations */
+const generateId = (): string =>
+  `${Math.random().toString(36).substr(2, 9)}-${Date.now()}`;
