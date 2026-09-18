@@ -3,19 +3,21 @@
   color: #e0e0e0;
   padding: 0.5rem;
   border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
 }
+
 .user-item {
   display: flex;
   align-items: center;
   margin-bottom: 0.25rem;
+  font-size: 0.9rem;
 }
+
 .user-color {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   margin-right: 0.5rem;
   background-color: var(--user-color, #888);
-}
-.user-name {
-  font-size: 0.9rem;
 }
