@@ -1,10 +1,10 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import './LanguageSelector.css';
 
-interface LanguageSelectorProps {
-  selectedLanguage: string;
-  onLanguageChange: (lang: string) => void;
-}
+type Props = {
+  selected: string;
+  onChange: (lang: string) => void;
+};
 
 const languages = [
   { value: 'javascript', label: 'JavaScript' },
@@ -12,24 +12,22 @@ const languages = [
   { value: 'html', label: 'HTML' },
 ];
 
-export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ selectedLanguage, onLanguageChange }) => {
-  const { t } = useTranslation();
+const LanguageSelector: React.FC<Props> = ({ selected, onChange }) => (
+  <div className="language-selector">
+    <label htmlFor="language-select">Language:</label>
+    <select
+      id="language-select"
+      value={selected}
+      onChange={(e) => onChange(e.target.value)}
+      aria-label="Select programming language"
+    >
+      {languages.map((lang) => (
+        <option key={lang.value} value={lang.value}>
+          {lang.label}
+        </option>
+      ))}
+    </select>
+  </div>
+);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLang = e.target.value;
-    onLanguageChange(newLang);
-  };
-
-  return (
-    <div className="language-selector">
-      <label htmlFor="language-select">{t('language')}:</label>
-      <select id="language-select" value={selectedLanguage} onChange={handleChange}>
-        {languages.map((lang) => (
-          <option key={lang.value} value={lang.value}>
-            {lang.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-};
+export default LanguageSelector;
