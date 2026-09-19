@@ -1,70 +1,59 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import type { WebSocketMessage } from '../types/websocketMessage';
 
-export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected';
-
-interface UseWebSocketResult {
-  sendMessage: (msg: unknown) => void;
-  status: ConnectionStatus;
+export interface UseWebSocketOptions {
+  url: string;
+  reconnectInterval?: number;
 }
 
-/**
- * Hook that manages a WebSocket connection with automatic reconnection using
- * exponential backoff. It exposes a sendMessage function and the current
- * connection status.
- */
-export const useWebSocket = (url: string): UseWebSocketResult => {
-  const [status, setStatus] = useState<ConnectionStatus>('disconnected');
+export interface WebSocketState {
+  connected: boolean;
+  lastMessage?: WebSocketMessage<any>;
+}
+
+export function useWebSocket<T = any>(options: UseWebSocketOptions) {
+  const { url, reconnectInterval = 3000 } = options;
   const wsRef = useRef<WebSocket | null>(null);
-  const retryCountRef = useRef(0);
-  const maxDelay = 30000; // 30 seconds max backoff
+  const [state, setState] = useState<WebSocketState>({ connected: false });
 
-  const connect = () => {
-    setStatus('connecting');
-    const ws = new WebSocket(url);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      setStatus('connected');
-      retryCountRef.current = 0;
-    };
-
-    ws.onclose = () => {
-      setStatus('disconnected');
-      scheduleReconnect();
-    };
-
-    ws.onerror = () => {
-      // Close will trigger onclose which schedules reconnection
-      ws.close();
-    };
-
-    ws.onmessage = (event) => {
-      // Consumers can attach their own listeners via the returned wsRef if needed.
-      // This hook purposefully does not handle incoming messages to stay generic.
-    };
-  };
-
-  const scheduleReconnect = () => {
-    const delay = Math.min(1000 * 2 ** retryCountRef.current, maxDelay);
-    retryCountRef.current += 1;
-    setTimeout(() => {
-      connect();
-    }, delay);
-  };
-
-  useEffect(() => {
-    connect();
-    return () => {
-      wsRef.current?.close();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url]);
-
-  const sendMessage = (msg: unknown) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
+  const sendMessage = useCallback((msg: WebSocketMessage<T>) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(msg));
     }
-  };
+  }, []);
 
-  return { sendMessage, status };
-};
+  useEffect(() => {
+    let isMounted = true;
+    const connect = () => {
+      wsRef.current = new WebSocket(url);
+      wsRef.current.onopen = () => {
+        if (!isMounted) return;
+        setState({ connected: true });
+      };
+      wsRef.current.onmessage = (event) => {
+        if (!isMounted) return;
+        try {
+          const data: WebSocketMessage<any> = JSON.parse(event.data);
+          setState((prev) => ({ ...prev, lastMessage: data }));
+        } catch {
+          // ignore malformed messages
+        }
+      };
+      wsRef.current.onclose = () => {
+        if (!isMounted) return;
+        setState({ connected: false });
+        setTimeout(connect, reconnectInterval);
+      };
+      wsRef.current.onerror = () => {
+        wsRef.current?.close();
+      };
+    };
+    connect();
+    return () => {
+      isMounted = false;
+      wsRef.current?.close();
+    };
+  }, [url, reconnectInterval]);
+
+  return { ...state, sendMessage };
+}

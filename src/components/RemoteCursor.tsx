@@ -1,45 +1,23 @@
 import React from 'react';
+import type { CursorData } from '../types/editor';
 import './RemoteCursor.css';
 
-type RemoteCursorProps = {
-  userId: string;
-  userName: string;
-  color: string;
-  x: number;
-  y: number;
-};
+interface Props {
+  cursor: CursorData;
+}
 
-export const RemoteCursor: React.FC<RemoteCursorProps> = ({ userId, userName, color, x, y }) => {
-  const cursorStyle: React.CSSProperties = {
-    position: 'absolute',
-    left: x,
-    top: y,
-    transform: 'translate(-50%, -100%)',
-    pointerEvents: 'none',
-    zIndex: 10,
+export const RemoteCursor: React.FC<Props> = ({ cursor }) => {
+  const { position, color, name } = cursor;
+  const style: React.CSSProperties = {
+    left: `${position.column * 8}px`,
+    top: `${position.line * 18}px`,
+    borderColor: color
   };
-
-  const caretStyle: React.CSSProperties = {
-    width: '2px',
-    height: '1.2em',
-    backgroundColor: color,
-    animation: 'blink 1s step-start infinite',
-  };
-
-  const labelStyle: React.CSSProperties = {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    color: '#fff',
-    padding: '2px 4px',
-    borderRadius: '3px',
-    fontSize: '0.75rem',
-    whiteSpace: 'nowrap',
-    marginTop: '-1.5em',
-  };
-
   return (
-    <div style={cursorStyle} data-user-id={userId}>
-      <div style={caretStyle} />
-      <div style={labelStyle}>{userName}</div>
+    <div className="remote-cursor" style={style}>
+      <span className="cursor-label" style={{ backgroundColor: color }}>
+        {name}
+      </span>
     </div>
   );
 };

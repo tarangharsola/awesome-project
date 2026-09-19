@@ -1,20 +1,36 @@
-import { ConflictOperation } from '../types/conflict';
-import applyCRDT from '../utils/conflict/strategies/crdt';
+import { useEffect, useState, useCallback } from 'react';
+import { useWebSocket } from './useWebSocket';
+import type { WebSocketMessage, MessageType } from '../types/websocketMessage';
 
-/**
- * Hook that encapsulates CRDT‑based conflict resolution.
- * It maintains an internal document string and applies incoming operations
- * using the CRDT strategy implementation.
- */
-export const useCRDT = (initialDoc: string) => {
-  let doc = initialDoc;
+export function useCRDT(roomId: string, initialContent: string) {
+  const { connected, lastMessage, sendMessage } = useWebSocket<string>({
+    url: `${process.env.REACT_APP_WS_URL}?room=${roomId}`
+  });
 
-  const applyOperation = (op: ConflictOperation): string => {
-    doc = applyCRDT(doc, op);
-    return doc;
-  };
+  const [content, setContent] = useState(initialContent);
 
-  const getDocument = (): string => doc;
+  // Apply remote edits
+  useEffect(() => {
+    if (!lastMessage) return;
+    const { type, payload } = lastMessage as WebSocketMessage<string>;
+    if (type === MessageType.EDIT && typeof payload === 'string') {
+      setContent(payload);
+    }
+  }, [lastMessage]);
 
-  return { applyOperation, getDocument };
-};
+  const applyLocalEdit = useCallback(
+    (newContent: string) => {
+      setContent(newContent);
+      if (connected) {
+        sendMessage({
+          type: MessageType.EDIT,
+          payload: newContent,
+          timestamp: Date.now()
+        });
+      }
+    },
+    [connected, sendMessage]
+  );
+
+  return { content, applyLocalEdit, connected };
+}
