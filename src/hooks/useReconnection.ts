@@ -1,28 +1,24 @@
-import { useState, useEffect } from 'react';
-import { getWebSocketClient } from '../utils/websocketClient';
+import { useRef } from 'react';
 
 /**
- * Hook exposing reconnection attempt count for UI feedback.
+ * Hook providing exponential backoff reconnection strategy.
+ * Returns a function to attempt reconnection and a reset function to clear backoff state.
  */
-export const useReconnection = () => {
-  const [attempts, setAttempts] = useState(0);
+export function useReconnection() {
+  const attemptsRef = useRef(0);
+  const maxDelay = 30000; // 30 seconds max backoff
 
-  useEffect(() => {
-    const client = getWebSocketClient();
-    if (!client) return;
-    const handleClose = () => {
-      setAttempts(prev => prev + 1);
-    };
-    const handleOpen = () => {
-      setAttempts(0);
-    };
-    client.on('close', handleClose);
-    client.on('open', handleOpen);
-    return () => {
-      client.off('close', handleClose);
-      client.off('open', handleOpen);
-    };
-  }, []);
+  const attemptReconnect = (connectFn: () => void) => {
+    const delay = Math.min(1000 * 2 ** attemptsRef.current, maxDelay);
+    attemptsRef.current += 1;
+    setTimeout(() => {
+      connectFn();
+    }, delay);
+  };
 
-  return attempts;
-};
+  const reset = () => {
+    attemptsRef.current = 0;
+  };
+
+  return { attemptReconnect, reset };
+}

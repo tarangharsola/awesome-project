@@ -1,85 +1,75 @@
-import { useEffect } from "react";
-import { useWebSocket, WebSocketStatus } from "./useWebSocket";
-import { useUsers } from "./useUsers";
-import { useCursor } from "./useCursor";
-import { WebSocketMessage, MessageType } from "../types/websocketMessage";
+import { useEffect, useCallback } from 'react';
+import { useWebSocket } from './useWebSocket';
+import { useUsers } from './useUsers';
+import { useCursor } from './useCursor';
 
 /**
- * Hook that synchronises user presence (join/leave) and cursor positions across
- * all participants in a room. It relies on the resilient WebSocket hook.
+ * Hook that synchronizes user presence (join/leave) and cursor positions
+ * across all participants. It relies on the WebSocket hook for transport.
  */
-export const useAwareness = (
-  roomId: string,
-  username: string,
-  color: string
-) => {
-  const { status, sendMessage } = useWebSocket(
-    `wss://example.com/rooms/${roomId}`,
-    handleMessage
+export function useAwareness(
+  url: string,
+  userInfo: { username: string; color: string }
+) {
+  const { users, addUser, removeUser, updateUserCursor } = useUsers();
+  const { setLocalCursor } = useCursor();
+
+  const handleMessage = useCallback(
+    (msg: { type: string; payload?: any }) => {
+      switch (msg.type) {
+        case 'join':
+          if (msg.payload && msg.payload.username !== userInfo.username) {
+            addUser(msg.payload);
+          }
+          break;
+        case 'leave':
+          if (msg.payload && msg.payload.username) {
+            removeUser(msg.payload.username);
+          }
+          break;
+        case 'cursor_update':
+          if (msg.payload && msg.payload.username !== userInfo.username) {
+            updateUserCursor(msg.payload.username, msg.payload.position);
+          }
+          break;
+        case 'sync_state':
+          // Full state sync after reconnection
+          if (msg.payload) {
+            const { users: remoteUsers, document } = msg.payload;
+            remoteUsers.forEach((u: any) => addUser(u));
+            // Document sync is handled elsewhere (editor hook)
+          }
+          break;
+        default:
+          break;
+      }
+    },
+    [addUser, removeUser, updateUserCursor, userInfo.username]
   );
-  const { users, addUser, updateUser, removeUser } = useUsers();
-  const { cursor, setCursor } = useCursor();
 
-  // Broadcast own join information once the socket is ready
+  const { sendMessage } = useWebSocket(url, userInfo, handleMessage);
+
+  // Broadcast local cursor changes
+  const broadcastCursor = useCallback(
+    (position: any) => {
+      sendMessage({ type: 'cursor_update', payload: { username: userInfo.username, position } });
+    },
+    [sendMessage, userInfo.username]
+  );
+
+  // Hook into local cursor changes
   useEffect(() => {
-    if (status === "connected") {
-      const joinMsg: WebSocketMessage = {
-        type: MessageType.JOIN,
-        payload: { username, color, cursor },
-      };
-      sendMessage(joinMsg);
-    }
-  }, [status, username, color, cursor, sendMessage]);
+    const unsubscribe = setLocalCursor(broadcastCursor);
+    return () => unsubscribe();
+  }, [broadcastCursor, setLocalCursor]);
 
-  // Broadcast cursor updates (debounced to avoid flooding)
-  useEffect(() => {
-    if (status !== "connected") return;
-    const timer = setTimeout(() => {
-      const cursorMsg: WebSocketMessage = {
-        type: MessageType.CURSOR,
-        payload: { username, color, cursor },
-      };
-      sendMessage(cursorMsg);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [cursor, status, username, color, sendMessage]);
-
-  function handleMessage(msg: WebSocketMessage) {
-    switch (msg.type) {
-      case MessageType.JOIN:
-        addUser(msg.payload);
-        break;
-      case MessageType.LEAVE:
-        removeUser(msg.payload.username);
-        break;
-      case MessageType.CURSOR:
-        updateUser(msg.payload);
-        break;
-      case MessageType.SYNC:
-        // Document sync is handled by editor hooks; no action needed here
-        break;
-      default:
-        break;
-    }
-  }
-
-  // Notify server when the local user leaves (unmount)
+  // Notify others when we disconnect (cleanup)
   useEffect(() => {
     return () => {
-      if (status === "connected") {
-        const leaveMsg: WebSocketMessage = {
-          type: MessageType.LEAVE,
-          payload: { username },
-        };
-        sendMessage(leaveMsg);
-      }
+      sendMessage({ type: 'leave', payload: { username: userInfo.username } });
     };
-  }, [status, username, sendMessage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  return {
-    users,
-    cursor,
-    setCursor,
-    connectionStatus: status as WebSocketStatus,
-  } as const;
-};
+  return { users };
+}
