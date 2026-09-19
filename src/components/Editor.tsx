@@ -1,109 +1,86 @@
 import React, { useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { EditorView, keymap } from '@codemirror/view';
-import { basicSetup } from '@codemirror/basic-setup';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { html } from '@codemirror/lang-html';
-import { indentUnit } from '@codemirror/language';
-import { formattingDefaults } from '../utils/useFormattingDefaults';
+import * as monaco from 'monaco-editor';
+import useFormattingDefaults from '../utils/useFormattingDefaults';
+import useKeyboardShortcuts from '../utils/useKeyboardShortcuts';
 import formatCode from '../utils/formatCode';
-import { updateContent } from '../store/editorActions';
-import { RootState } from '../store';
 import './Editor.css';
 
 type Props = {
   language: string;
+  socket: WebSocket | null;
 };
 
-const languageExtension = (lang: string) => {
-  switch (lang) {
-    case 'python':
-      return python();
-    case 'html':
-      return html();
-    case 'javascript':
-    default:
-      return javascript();
-  }
-};
+const Editor: React.FC<Props> = ({ language, socket }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
-const Editor: React.FC<Props> = ({ language }) => {
-  const dispatch = useDispatch();
-  const content = useSelector((state: RootState) => state.editor.content);
-  const editorRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
+  // Apply language‑specific formatting defaults
+  const formattingOptions = useFormattingDefaults(language);
 
-  // Initialize CodeMirror
+  // Initialize Monaco editor
   useEffect(() => {
-    if (editorRef.current && !viewRef.current) {
-      viewRef.current = new EditorView({
-        doc: content,
-        extensions: [
-          basicSetup,
-          languageExtension(language),
-          indentUnit.of(' '.repeat(formattingDefaults.indentSize)),
-          keymap.of([
-            {
-              key: 'Ctrl-Shift-f',
-              run: () => {
-                const current = viewRef.current?.state.doc.toString() || '';
-                const formatted = formatCode(current, language);
-                if (formatted !== current) {
-                  dispatch(updateContent(formatted));
-                  viewRef.current?.dispatch({
-                    changes: { from: 0, to: viewRef.current.state.doc.length, insert: formatted },
-                  });
-                }
-                return true;
-              },
-            },
-          ]),
-        ],
-        parent: editorRef.current,
+    if (containerRef.current && !editorRef.current) {
+      editorRef.current = monaco.editor.create(containerRef.current, {
+        value: '',
+        language,
+        theme: 'vs-dark',
+        automaticLayout: true,
+        ...formattingOptions,
       });
+    } else if (editorRef.current) {
+      monaco.editor.setModelLanguage(editorRef.current.getModel()!, language);
     }
-    // Update language when prop changes
-    if (viewRef.current) {
-      viewRef.current.dispatch({
-        effects: EditorView.reconfigure.of([
-          basicSetup,
-          languageExtension(language),
-          indentUnit.of(' '.repeat(formattingDefaults.indentSize)),
-        ]),
-      });
-    }
-  }, [language]);
+  }, [language, formattingOptions]);
 
-  // Sync external content changes (e.g., remote updates)
-  useEffect(() => {
-    if (viewRef.current && viewRef.current.state.doc.toString() !== content) {
-      viewRef.current.dispatch({
-        changes: { from: 0, to: viewRef.current.state.doc.length, insert: content },
-      });
-    }
-  }, [content]);
+  // Keyboard shortcuts: Save (Ctrl/Cmd+S) and Format (Ctrl/Cmd+Shift+F)
+  const handleSave = () => {
+    const code = editorRef.current?.getValue() ?? '';
+    navigator.clipboard.writeText(code).catch(() => {});
+  };
 
-  // Global keyboard shortcut for formatting (fallback for browsers that don't pass through CodeMirror keymap)
+  const handleFormat = async () => {
+    const code = editorRef.current?.getValue() ?? '';
+    try {
+      const formatted = await formatCode(code, language);
+      editorRef.current?.setValue(formatted);
+    } catch (e) {
+      console.error('Formatting failed', e);
+    }
+  };
+
+  useKeyboardShortcuts(editorRef.current, { save: handleSave, format: handleFormat });
+
+  // Basic WebSocket sync (simplified for illustration)
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') {
-        e.preventDefault();
-        const current = viewRef.current?.state.doc.toString() || '';
-        const formatted = formatCode(current, language);
-        if (formatted !== current) {
-          dispatch(updateContent(formatted));
-          viewRef.current?.dispatch({
-            changes: { from: 0, to: viewRef.current.state.doc.length, insert: formatted },
-          });
+    if (!socket || !editorRef.current) return;
+    const editor = editorRef.current;
+    const model = editor.getModel();
+    if (!model) return;
+
+    const onMessage = (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'content' && typeof data.payload === 'string') {
+        const current = model.getValue();
+        if (current !== data.payload) {
+          model.pushEditOperations([], [{ range: model.getFullModelRange(), text: data.payload }]);
         }
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [language, dispatch]);
+    socket.addEventListener('message', onMessage);
 
-  return <div className="code-editor" ref={editorRef} />;
+    const onChange = () => {
+      const content = model.getValue();
+      socket.send(JSON.stringify({ type: 'content', payload: content }));
+    };
+    const disposable = model.onDidChangeContent(onChange);
+
+    return () => {
+      socket.removeEventListener('message', onMessage);
+      disposable.dispose();
+    };
+  }, [socket, language]);
+
+  return <div className="editor-container" ref={containerRef} />;
 };
 
 export default Editor;

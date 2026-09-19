@@ -1,37 +1,46 @@
 import { useEffect } from 'react';
-import { EditorInstance } from '../types/editor';
 
-interface ShortcutParams {
-  editor: EditorInstance | null;
-  formatDocument: () => void;
-}
+type Callbacks = {
+  save?: () => void;
+  format?: () => void;
+};
 
-export const useKeyboardShortcuts = ({ editor, formatDocument }: ShortcutParams) => {
+/**
+ * Attaches keyboard shortcuts to a Monaco editor instance.
+ * - Ctrl/Cmd+S → save (copies current code to clipboard)
+ * - Ctrl/Cmd+Shift+F → format (runs the provided format callback)
+ */
+export default function useKeyboardShortcuts(
+  editor: monaco.editor.IStandaloneCodeEditor | null,
+  callbacks: Callbacks
+) {
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().includes('MAC');
+    if (!editor) return;
+    const domNode = editor.getDomNode();
+    if (!domNode) return;
+
+    const handler = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
 
-      // Format document: Ctrl/Cmd + S
-      if (ctrlKey && e.key === 's') {
+      // Save shortcut
+      if (ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        formatDocument();
+        callbacks.save?.();
         return;
       }
 
-      // Trigger autocomplete: Ctrl/Cmd + Space
-      if (ctrlKey && e.key === ' ') {
+      // Format shortcut (Ctrl/Cmd+Shift+F)
+      if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') {
         e.preventDefault();
-        if (editor && typeof editor.triggerAutocomplete === 'function') {
-          editor.triggerAutocomplete();
-        }
+        callbacks.format?.();
         return;
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    domNode.addEventListener('keydown', handler);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      domNode.removeEventListener('keydown', handler);
     };
-  }, [editor, formatDocument]);
-};
+  }, [editor, callbacks]);
+}
