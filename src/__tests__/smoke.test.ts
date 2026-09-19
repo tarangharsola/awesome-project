@@ -1,10 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom/extend-expect';
 import App from '../components/App';
 
-test('renders language selector', () => {
+test('renders App component without crashing', () => {
   render(<App />);
-  const selector = screen.getByLabelText(/language/i);
-  expect(selector).toBeInTheDocument();
+  const titleElement = screen.getByText(/collaborative code editor/i);
+  expect(titleElement).toBeInTheDocument();
 });

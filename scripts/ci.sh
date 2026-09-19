@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 set -e
-
 # Install dependencies
 npm ci
-
-# Build the application
+# Run the build script (defined in package.json)
 npm run build
-
-# Run tests
+# Execute test suite
 npm test
