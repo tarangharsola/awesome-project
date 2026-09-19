@@ -1,41 +1,29 @@
 import React from 'react';
+import { useWebSocket } from '../hooks/useWebSocket';
 import './ConnectionStatus.css';
 
-export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected';
+type Props = {
+  roomId: string;
+};
 
-interface Props {
-  status: ConnectionStatus;
-}
+export const ConnectionStatus: React.FC<Props> = ({ roomId }) => {
+  const { connectionStatus, manualRetry } = useWebSocket(roomId);
 
-/**
- * Visual indicator of the WebSocket connection status.
- * Shows green when connected, orange while connecting, and red when disconnected.
- */
-const ConnectionStatus: React.FC<Props> = ({ status }) => {
-  let color = '';
-  let label = '';
-
-  switch (status) {
-    case 'connected':
-      color = 'var(--color-success, #4caf50)';
-      label = 'Connected';
-      break;
-    case 'connecting':
-      color = 'var(--color-warning, #ff9800)';
-      label = 'Connecting...';
-      break;
-    case 'disconnected':
-    default:
-      color = 'var(--color-error, #f44336)';
-      label = 'Disconnected';
-      break;
-  }
+  const getColor = () => {
+    switch (connectionStatus) {
+      case 'connected':
+        return 'green';
+      case 'connecting':
+        return 'orange';
+      default:
+        return 'red';
+    }
+  };
 
   return (
-    <div className="connection-status" style={{ color }} title={label}>
-      ● {label}
+    <div className="connection-status" onClick={manualRetry} title="Click to retry">
+      <span className="status-indicator" style={{ backgroundColor: getColor() }} />
+      <span className="status-text">{connectionStatus}</span>
     </div>
   );
 };
-
-export default ConnectionStatus;

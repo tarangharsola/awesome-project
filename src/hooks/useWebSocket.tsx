@@ -1,76 +1,87 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { useReconnection } from './useReconnection';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { WebSocketMessage } from '../types/websocketMessage';
+import { WS_URL } from '../utils/websocketClient';
 
-export interface WebSocketMessage {
-  type: string;
-  payload?: any;
-}
+type ConnectionStatus = 'connected' | 'disconnected' | 'connecting';
 
-/**
- * Hook managing a WebSocket connection with automatic reconnection and
- * initial session handshake (join + sync request).
- */
-export function useWebSocket(
-  url: string,
-  userInfo: { username: string; color: string },
-  onMessage: (msg: WebSocketMessage) => void,
-  onStatusChange?: (connected: boolean) => void
-) {
-  const wsRef = useRef<WebSocket | null>(null);
-  const { attemptReconnect, reset } = useReconnection();
+export const useWebSocket = (roomId: string) => {
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
+  const backoffRef = useRef<number>(1000);
+  const maxBackoff = 30000;
+  const reconnectAttempts = useRef<number>(0);
+  const timeoutRef = useRef<number | null>(null);
 
-  const sendMessage = useCallback((msg: WebSocketMessage) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(msg));
+  const connect = useCallback(() => {
+    setConnectionStatus('connecting');
+    const ws = new WebSocket(`${WS_URL}?room=${roomId}`);
+
+    ws.onopen = () => {
+      setConnectionStatus('connected');
+      backoffRef.current = 1000;
+      reconnectAttempts.current = 0;
+    };
+
+    ws.onmessage = (event) => {
+      const data: WebSocketMessage = JSON.parse(event.data);
+      // TODO: dispatch data to store or relevant listeners
+    };
+
+    ws.onclose = () => {
+      setConnectionStatus('disconnected');
+      scheduleReconnect();
+    };
+
+    ws.onerror = () => {
+      ws.close();
+    };
+
+    setSocket(ws);
+  }, [roomId]);
+
+  const scheduleReconnect = () => {
+    if (timeoutRef.current) return;
+    const delay = Math.min(backoffRef.current, maxBackoff);
+    timeoutRef.current = window.setTimeout(() => {
+      timeoutRef.current = null;
+      reconnectAttempts.current += 1;
+      backoffRef.current *= 2;
+      connect();
+    }, delay);
+  };
+
+  const sendMessage = useCallback(
+    (msg: WebSocketMessage) => {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(msg));
+      }
+    },
+    [socket]
+  );
+
+  const manualRetry = useCallback(() => {
+    if (socket?.readyState !== WebSocket.OPEN) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      backoffRef.current = 1000;
+      connect();
     }
-  }, []);
+  }, [socket, connect]);
 
   useEffect(() => {
-    let isMounted = true;
-    const connect = () => {
-      const ws = new WebSocket(url);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        if (!isMounted) return;
-        reset();
-        onStatusChange?.(true);
-        // Handshake: announce self and request latest document state
-        sendMessage({ type: 'join', payload: { username: userInfo.username, color: userInfo.color } });
-        sendMessage({ type: 'sync_request' });
-      };
-
-      ws.onmessage = (event) => {
-        if (!isMounted) return;
-        try {
-          const data: WebSocketMessage = JSON.parse(event.data);
-          onMessage(data);
-        } catch (e) {
-          console.error('Invalid WS message', e);
-        }
-      };
-
-      ws.onclose = () => {
-        if (!isMounted) return;
-        onStatusChange?.(false);
-        // Attempt reconnection with backoff
-        attemptReconnect(connect);
-      };
-
-      ws.onerror = () => {
-        // Close will trigger reconnection logic
-        ws.close();
-      };
-    };
-
     connect();
-
     return () => {
-      isMounted = false;
-      wsRef.current?.close();
+      if (socket) {
+        socket.close();
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, userInfo.username, userInfo.color]);
+  }, [connect]);
 
-  return { sendMessage };
-}
+  return { socket, sendMessage, connectionStatus, manualRetry };
+};
