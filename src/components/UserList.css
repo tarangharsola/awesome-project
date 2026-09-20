@@ -1,34 +1,48 @@
 .user-list {
-  background: #1e1e1e;
+  background-color: #1e1e1e;
   color: #e0e0e0;
-  padding: 8px;
+  padding: 0.5rem;
   border-radius: 4px;
   max-height: 300px;
   overflow-y: auto;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.user-list h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: #ffffff;
 }
 
 .user-item {
   display: flex;
   align-items: center;
-  padding: 4px 6px;
-  margin: 2px 0;
-  border-radius: 3px;
-  cursor: default;
-}
-
-.user-item:hover {
-  background: #2a2a2a;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
 }
 
 .user-color {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  margin-right: 8px;
-  flex-shrink: 0;
+  margin-right: 0.5rem;
+  border: 1px solid #444;
 }
 
 .user-name {
-  font-size: 0.9rem;
-  color: inherit;
+  color: #e0e0e0;
+}
+
+/* Scrollbar styling for dark mode */
+.user-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.user-list::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+.user-list::-webkit-scrollbar-thumb {
+  background-color: #555;
+  border-radius: 4px;
 }
