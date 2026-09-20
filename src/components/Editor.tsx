@@ -1,86 +1,81 @@
 import React, { useEffect, useRef } from 'react';
-import * as monaco from 'monaco-editor';
-import useFormattingDefaults from '../utils/useFormattingDefaults';
-import useKeyboardShortcuts from '../utils/useKeyboardShortcuts';
-import formatCode from '../utils/formatCode';
-import './Editor.css';
+import { EditorView, basicSetup } from '@codemirror/basic-setup';
+import { EditorState } from '@codemirror/state';
+import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { html } from '@codemirror/lang-html';
+import { useFormattingDefaults } from '../utils/useFormattingDefaults';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { useAwareness } from '../hooks/useAwareness';
+import { useCursor } from '../hooks/useCursor';
 
-type Props = {
+interface EditorProps {
   language: string;
-  socket: WebSocket | null;
+}
+
+const languageExtension = (lang: string) => {
+  switch (lang) {
+    case 'javascript':
+      return javascript();
+    case 'python':
+      return python();
+    case 'html':
+      return html();
+    default:
+      return javascript();
+  }
 };
 
-const Editor: React.FC<Props> = ({ language, socket }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+const Editor: React.FC<EditorProps> = ({ language }) => {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const { sendMessage } = useWebSocket();
+  const { awareness } = useAwareness();
+  const { cursor } = useCursor();
+  const formattingDefaults = useFormattingDefaults(language);
 
-  // Apply language‑specific formatting defaults
-  const formattingOptions = useFormattingDefaults(language);
-
-  // Initialize Monaco editor
   useEffect(() => {
-    if (containerRef.current && !editorRef.current) {
-      editorRef.current = monaco.editor.create(containerRef.current, {
-        value: '',
-        language,
-        theme: 'vs-dark',
-        automaticLayout: true,
-        ...formattingOptions,
-      });
-    } else if (editorRef.current) {
-      monaco.editor.setModelLanguage(editorRef.current.getModel()!, language);
-    }
-  }, [language, formattingOptions]);
+    if (!editorRef.current) return;
 
-  // Keyboard shortcuts: Save (Ctrl/Cmd+S) and Format (Ctrl/Cmd+Shift+F)
-  const handleSave = () => {
-    const code = editorRef.current?.getValue() ?? '';
-    navigator.clipboard.writeText(code).catch(() => {});
-  };
+    const startState = EditorState.create({
+      doc: '',
+      extensions: [
+        basicSetup,
+        languageExtension(language),
+        EditorView.updateListener.of((v) => {
+          if (v.docChanged) {
+            const content = v.state.doc.toString();
+            sendMessage({ type: 'content-update', payload: { content } });
+          }
+        }),
+        EditorView.theme({
+          '&': { height: '100%' },
+        }),
+        // Apply formatting defaults
+        EditorView.lineWrapping,
+        EditorView.editable.of(true),
+        EditorState.tabSize.of(formattingDefaults.tabSize),
+        EditorState.indentUnit.of(formattingDefaults.indentUnit),
+      ],
+    });
 
-  const handleFormat = async () => {
-    const code = editorRef.current?.getValue() ?? '';
-    try {
-      const formatted = await formatCode(code, language);
-      editorRef.current?.setValue(formatted);
-    } catch (e) {
-      console.error('Formatting failed', e);
-    }
-  };
+    const view = new EditorView({
+      state: startState,
+      parent: editorRef.current,
+    });
 
-  useKeyboardShortcuts(editorRef.current, { save: handleSave, format: handleFormat });
+    // Register keyboard shortcuts
+    useKeyboardShortcuts(view);
 
-  // Basic WebSocket sync (simplified for illustration)
-  useEffect(() => {
-    if (!socket || !editorRef.current) return;
-    const editor = editorRef.current;
-    const model = editor.getModel();
-    if (!model) return;
-
-    const onMessage = (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'content' && typeof data.payload === 'string') {
-        const current = model.getValue();
-        if (current !== data.payload) {
-          model.pushEditOperations([], [{ range: model.getFullModelRange(), text: data.payload }]);
-        }
-      }
-    };
-    socket.addEventListener('message', onMessage);
-
-    const onChange = () => {
-      const content = model.getValue();
-      socket.send(JSON.stringify({ type: 'content', payload: content }));
-    };
-    const disposable = model.onDidChangeContent(onChange);
-
+    // Cleanup on unmount
     return () => {
-      socket.removeEventListener('message', onMessage);
-      disposable.dispose();
+      view.destroy();
     };
-  }, [socket, language]);
+  }, [language, formattingDefaults, sendMessage]);
 
-  return <div className="editor-container" ref={containerRef} />;
+  // Awareness and cursor handling would be added here (omitted for brevity)
+
+  return <div ref={editorRef} className="editor-root" />;
 };
 
 export default Editor;

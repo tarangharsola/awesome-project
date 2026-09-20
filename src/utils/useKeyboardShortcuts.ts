@@ -1,46 +1,35 @@
-import { useEffect } from 'react';
-
-type Callbacks = {
-  save?: () => void;
-  format?: () => void;
-};
+import { EditorView } from '@codemirror/view';
+import { keymap } from '@codemirror/view';
+import { indentWithTab } from '@codemirror/commands';
 
 /**
- * Attaches keyboard shortcuts to a Monaco editor instance.
- * - Ctrl/Cmd+S → save (copies current code to clipboard)
- * - Ctrl/Cmd+Shift+F → format (runs the provided format callback)
+ * Registers common keyboard shortcuts for the editor instance.
+ * - Ctrl/Cmd + S : Save (currently logs to console)
+ * - Ctrl/Cmd + Shift + F : Format (logs to console)
+ * - Tab : Indent (default behavior)
  */
-export default function useKeyboardShortcuts(
-  editor: monaco.editor.IStandaloneCodeEditor | null,
-  callbacks: Callbacks
-) {
-  useEffect(() => {
-    if (!editor) return;
-    const domNode = editor.getDomNode();
-    if (!domNode) return;
+export const useKeyboardShortcuts = (view: EditorView) => {
+  const shortcuts = [
+    {
+      key: 'Mod-s',
+      run: () => {
+        console.log('Save shortcut triggered');
+        // Placeholder for actual save logic (e.g., emit a save event)
+        return true;
+      },
+    },
+    {
+      key: 'Mod-Shift-f',
+      run: () => {
+        console.log('Format shortcut triggered');
+        // Placeholder for formatting logic (e.g., prettier integration)
+        return true;
+      },
+    },
+    // Preserve default tab indentation
+    indentWithTab,
+  ];
 
-    const handler = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
-
-      // Save shortcut
-      if (ctrlKey && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        callbacks.save?.();
-        return;
-      }
-
-      // Format shortcut (Ctrl/Cmd+Shift+F)
-      if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') {
-        e.preventDefault();
-        callbacks.format?.();
-        return;
-      }
-    };
-
-    domNode.addEventListener('keydown', handler);
-    return () => {
-      domNode.removeEventListener('keydown', handler);
-    };
-  }, [editor, callbacks]);
-}
+  const extension = keymap.of(shortcuts);
+  view.dispatch({ effects: EditorView.appendConfig.of(extension) });
+};

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Editor from './Editor';
 import LanguageSelector from './LanguageSelector';
 import UserList from './UserList';
@@ -7,24 +7,25 @@ import { useWebSocket } from '../hooks/useWebSocket';
 
 const App: React.FC = () => {
   const [language, setLanguage] = useState<string>('javascript');
-  const { socket, isConnected } = useWebSocket();
+  const { connectionStatus } = useWebSocket();
+
+  const handleLanguageChange = useCallback((lang: string) => {
+    setLanguage(lang);
+  }, []);
 
   return (
     <div className="app-container">
       <header className="app-header">
         <h1>Collaborative Code Editor</h1>
-        <ConnectionStatus connected={isConnected} />
+        <ConnectionStatus status={connectionStatus} />
       </header>
       <div className="app-body">
         <aside className="sidebar">
           <UserList />
-          <LanguageSelector
-            selectedLanguage={language}
-            onLanguageChange={setLanguage}
-          />
+          <LanguageSelector selected={language} onChange={handleLanguageChange} />
         </aside>
         <main className="editor-pane">
-          <Editor language={language} socket={socket} />
+          <Editor language={language} />
         </main>
       </div>
     </div>

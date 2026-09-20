@@ -1,26 +1,29 @@
-/**
- * Returns language‑specific formatting defaults for the Monaco editor.
- * Currently configures tab size and whether to insert spaces.
- */
-export default function useFormattingDefaults(language: string) {
-  const defaults: monaco.editor.IStandaloneEditorConstructionOptions = {
-    insertSpaces: true,
-    automaticLayout: true,
-    tabSize: 2,
-  };
-
-  switch (language) {
-    case 'python':
-      defaults.tabSize = 4;
-      break;
-    case 'html':
-      defaults.tabSize = 2;
-      break;
-    case 'javascript':
-    default:
-      defaults.tabSize = 2;
-      break;
-  }
-
-  return defaults;
+export interface FormattingDefaults {
+  tabSize: number;
+  indentUnit: string;
 }
+
+/**
+ * Returns sensible formatting defaults for supported languages.
+ * Currently supports JavaScript, Python, and HTML.
+ */
+export const getFormattingDefaults = (language: string): FormattingDefaults => {
+  switch (language) {
+    case 'javascript':
+      return { tabSize: 2, indentUnit: '  ' };
+    case 'python':
+      return { tabSize: 4, indentUnit: '    ' };
+    case 'html':
+      return { tabSize: 2, indentUnit: '  ' };
+    default:
+      return { tabSize: 2, indentUnit: '  ' };
+  }
+};
+
+/**
+ * Hook wrapper for convenience inside React components.
+ */
+import { useMemo } from 'react';
+export const useFormattingDefaults = (language: string) => {
+  return useMemo(() => getFormattingDefaults(language), [language]);
+};
