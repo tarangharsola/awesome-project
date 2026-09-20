@@ -1,10 +1,16 @@
-class WebSocketClient {
+import { WebSocketMessage } from '../types/websocketMessage';
+
+type MessageHandler = (msg: WebSocketMessage) => void;
+type StatusHandler = (status: 'connected' | 'disconnected' | 'reconnecting') => void;
+
+export class WebSocketClient {
   private url: string;
-  private socket: WebSocket | null = null;
+  private ws: WebSocket | null = null;
+  private messageQueue: WebSocketMessage[] = [];
+  private handlers: Set<MessageHandler> = new Set();
+  private statusHandlers: Set<StatusHandler> = new Set();
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 10;
-  private reconnectDelay = 1000; // start with 1s
-  private listeners: { [event: string]: ((...args: any[]) => void)[] } = {};
+  private readonly maxReconnectDelay = 30000;
 
   constructor(url: string) {
     this.url = url;
@@ -12,93 +18,70 @@ class WebSocketClient {
   }
 
   private connect() {
-    this.socket = new WebSocket(this.url);
-    this.socket.addEventListener('open', this.handleOpen);
-    this.socket.addEventListener('message', this.handleMessage);
-    this.socket.addEventListener('close', this.handleClose);
-    this.socket.addEventListener('error', this.handleError);
+    this.ws = new WebSocket(this.url);
+    this.ws.binaryType = 'arraybuffer';
+    this.ws.onopen = () => {
+      this.reconnectAttempts = 0;
+      this.flushQueue();
+      this.emitStatus('connected');
+    };
+    this.ws.onmessage = (ev) => {
+      const data = typeof ev.data === 'string' ? JSON.parse(ev.data) : ev.data;
+      this.handlers.forEach((h) => h(data as WebSocketMessage));
+    };
+    this.ws.onclose = () => {
+      this.emitStatus('disconnected');
+      this.scheduleReconnect();
+    };
+    this.ws.onerror = () => {
+      this.ws?.close();
+    };
   }
-
-  private handleOpen = () => {
-    this.reconnectAttempts = 0;
-    this.emit('open');
-  };
-
-  private handleMessage = (event: MessageEvent) => {
-    this.emit('message', event.data);
-  };
-
-  private handleClose = () => {
-    this.emit('close');
-    this.scheduleReconnect();
-  };
-
-  private handleError = (err: Event) => {
-    this.emit('error', err);
-    // Errors also trigger close; reconnection handled there.
-  };
 
   private scheduleReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('WebSocket: max reconnection attempts reached');
-      return;
-    }
-    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
-    this.reconnectAttempts++;
-    setTimeout(() => {
-      console.info('WebSocket: attempting reconnection', this.reconnectAttempts);
-      this.connect();
-    }, delay);
+    this.reconnectAttempts += 1;
+    const delay = Math.min(1000 * 2 ** this.reconnectAttempts, this.maxReconnectDelay);
+    this.emitStatus('reconnecting');
+    setTimeout(() => this.connect(), delay);
   }
 
-  send(data: string) {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(data);
-    } else {
-      console.warn('WebSocket: send called while socket not open, queuing message');
-      this.once('open', () => this.send(data));
+  private flushQueue() {
+    while (this.messageQueue.length) {
+      const msg = this.messageQueue.shift()!;
+      this.send(msg);
     }
+  }
+
+  send(msg: WebSocketMessage) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(msg));
+    } else {
+      this.messageQueue.push(msg);
+    }
+  }
+
+  addMessageHandler(handler: MessageHandler) {
+    this.handlers.add(handler);
+  }
+
+  removeMessageHandler(handler: MessageHandler) {
+    this.handlers.delete(handler);
+  }
+
+  addStatusHandler(handler: StatusHandler) {
+    this.statusHandlers.add(handler);
+  }
+
+  removeStatusHandler(handler: StatusHandler) {
+    this.statusHandlers.delete(handler);
+  }
+
+  private emitStatus(status: 'connected' | 'disconnected' | 'reconnecting') {
+    this.statusHandlers.forEach((h) => h(status));
   }
 
   close() {
-    if (this.socket) {
-      this.socket.removeEventListener('open', this.handleOpen);
-      this.socket.removeEventListener('message', this.handleMessage);
-      this.socket.removeEventListener('close', this.handleClose);
-      this.socket.removeEventListener('error', this.handleError);
-      this.socket.close();
-    }
-  }
-
-  on(event: string, callback: (...args: any[]) => void) {
-    if (!this.listeners[event]) this.listeners[event] = [];
-    this.listeners[event].push(callback);
-  }
-
-  off(event: string, callback: (...args: any[]) => void) {
-    if (!this.listeners[event]) return;
-    this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
-  }
-
-  once(event: string, callback: (...args: any[]) => void) {
-    const wrapper = (...args: any[]) => {
-      callback(...args);
-      this.off(event, wrapper);
-    };
-    this.on(event, wrapper);
-  }
-
-  private emit(event: string, ...args: any[]) {
-    if (!this.listeners[event]) return;
-    this.listeners[event].forEach(cb => cb(...args));
+    this.ws?.close();
+    this.ws = null;
   }
 }
-
-// Export a singleton that can be re-instantiated with a new URL when needed.
-let client: WebSocketClient | null = null;
-export const initWebSocketClient = (url: string) => {
-  if (client) client.close();
-  client = new WebSocketClient(url);
-  return client;
-};
-export const getWebSocketClient = () => client;
