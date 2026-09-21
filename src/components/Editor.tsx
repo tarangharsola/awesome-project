@@ -1,20 +1,70 @@
 import React, { useEffect, useRef } from 'react';
-import { EditorView, basicSetup } from '@codemirror/basic-setup';
-import { EditorState } from '@codemirror/state';
+import { EditorView, keymap } from '@codemirror/view';
+import { basicSetup } from '@codemirror/basic-setup';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { html } from '@codemirror/lang-html';
-import { useFormattingDefaults } from '../utils/useFormattingDefaults';
+import { defaultEditorExtensions } from '../utils/editorExtensions';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { useWebSocket } from '../hooks/useWebSocket';
-import { useAwareness } from '../hooks/useAwareness';
-import { useCursor } from '../hooks/useCursor';
 
-interface EditorProps {
-  language: string;
+type Language = 'javascript' | 'python' | 'html';
+
+interface Props {
+  value: string;
+  onChange: (value: string) => void;
+  language: Language;
+  onSave?: () => void;
+  onFormat?: () => void;
 }
 
-const languageExtension = (lang: string) => {
+export const Editor: React.FC<Props> = ({ value, onChange, language, onSave, onFormat }) => {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<EditorView | null>(null);
+
+  // Register keyboard shortcuts (Ctrl+S, Ctrl+Shift+F)
+  useKeyboardShortcuts({ viewRef, onSave, onFormat });
+
+  // Initialize editor
+  useEffect(() => {
+    if (editorRef.current && !viewRef.current) {
+      const extensions = [
+        basicSetup,
+        ...defaultEditorExtensions,
+        languageExtension(language),
+        EditorView.updateListener.of((v) => {
+          if (v.docChanged) {
+            const doc = v.state.doc.toString();
+            onChange(doc);
+          }
+        })
+      ];
+
+      viewRef.current = new EditorView({
+        doc: value,
+        extensions,
+        parent: editorRef.current,
+      });
+    } else if (viewRef.current) {
+      // Update content when external value changes
+      viewRef.current.dispatch({
+        changes: { from: 0, to: viewRef.current.state.doc.length, insert: value },
+      });
+    }
+  }, [editorRef, language]);
+
+  // Reconfigure language when prop changes
+  useEffect(() => {
+    if (viewRef.current) {
+      viewRef.current.dispatch({
+        effects: languageExtension(language).reconfigure(),
+      });
+    }
+  }, [language]);
+
+  return <div ref={editorRef} className="editor-container" />;
+};
+
+function languageExtension(lang: Language) {
   switch (lang) {
     case 'javascript':
       return javascript();
@@ -23,59 +73,6 @@ const languageExtension = (lang: string) => {
     case 'html':
       return html();
     default:
-      return javascript();
+      return [];
   }
-};
-
-const Editor: React.FC<EditorProps> = ({ language }) => {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const { sendMessage } = useWebSocket();
-  const { awareness } = useAwareness();
-  const { cursor } = useCursor();
-  const formattingDefaults = useFormattingDefaults(language);
-
-  useEffect(() => {
-    if (!editorRef.current) return;
-
-    const startState = EditorState.create({
-      doc: '',
-      extensions: [
-        basicSetup,
-        languageExtension(language),
-        EditorView.updateListener.of((v) => {
-          if (v.docChanged) {
-            const content = v.state.doc.toString();
-            sendMessage({ type: 'content-update', payload: { content } });
-          }
-        }),
-        EditorView.theme({
-          '&': { height: '100%' },
-        }),
-        // Apply formatting defaults
-        EditorView.lineWrapping,
-        EditorView.editable.of(true),
-        EditorState.tabSize.of(formattingDefaults.tabSize),
-        EditorState.indentUnit.of(formattingDefaults.indentUnit),
-      ],
-    });
-
-    const view = new EditorView({
-      state: startState,
-      parent: editorRef.current,
-    });
-
-    // Register keyboard shortcuts
-    useKeyboardShortcuts(view);
-
-    // Cleanup on unmount
-    return () => {
-      view.destroy();
-    };
-  }, [language, formattingDefaults, sendMessage]);
-
-  // Awareness and cursor handling would be added here (omitted for brevity)
-
-  return <div ref={editorRef} className="editor-root" />;
-};
-
-export default Editor;
+}

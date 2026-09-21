@@ -1,35 +1,34 @@
-import { EditorView } from '@codemirror/view';
-import { keymap } from '@codemirror/view';
-import { indentWithTab } from '@codemirror/commands';
+import { useEffect } from 'react';
+import { EditorView, keymap } from '@codemirror/view';
 
-/**
- * Registers common keyboard shortcuts for the editor instance.
- * - Ctrl/Cmd + S : Save (currently logs to console)
- * - Ctrl/Cmd + Shift + F : Format (logs to console)
- * - Tab : Indent (default behavior)
- */
-export const useKeyboardShortcuts = (view: EditorView) => {
-  const shortcuts = [
-    {
-      key: 'Mod-s',
-      run: () => {
-        console.log('Save shortcut triggered');
-        // Placeholder for actual save logic (e.g., emit a save event)
-        return true;
-      },
-    },
-    {
-      key: 'Mod-Shift-f',
-      run: () => {
-        console.log('Format shortcut triggered');
-        // Placeholder for formatting logic (e.g., prettier integration)
-        return true;
-      },
-    },
-    // Preserve default tab indentation
-    indentWithTab,
-  ];
+type ShortcutCallback = () => void;
 
-  const extension = keymap.of(shortcuts);
-  view.dispatch({ effects: EditorView.appendConfig.of(extension) });
+interface Props {
+  viewRef: React.MutableRefObject<EditorView | null>;
+  onSave?: ShortcutCallback;
+  onFormat?: ShortcutCallback;
+}
+
+export const useKeyboardShortcuts = ({ viewRef, onSave, onFormat }: Props) => {
+  useEffect(() => {
+    if (!viewRef.current) return;
+
+    const saveCommand = () => {
+      onSave?.();
+      return true; // Prevent default
+    };
+
+    const formatCommand = () => {
+      onFormat?.();
+      return true;
+    };
+
+    const shortcuts = keymap.of([
+      { key: 'Mod-s', run: saveCommand },
+      { key: 'Mod-Shift-f', run: formatCommand },
+    ]);
+
+    // Apply shortcuts to the editor view
+    viewRef.current.dispatch({ effects: shortcuts.reconfigure() });
+  }, [viewRef, onSave, onFormat]);
 };

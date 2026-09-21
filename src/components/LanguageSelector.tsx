@@ -1,43 +1,23 @@
 import React from 'react';
-import './LanguageSelector.css';
 
-type LanguageOption = {
-  label: string;
-  value: string;
-};
+type Language = 'javascript' | 'python' | 'html';
 
-const options: LanguageOption[] = [
-  { label: 'JavaScript', value: 'javascript' },
-  { label: 'Python', value: 'python' },
-  { label: 'HTML', value: 'html' },
-];
+interface Props {
+  language: Language;
+  onChange: (lang: Language) => void;
+}
 
-type Props = {
-  selectedLanguage: string;
-  onLanguageChange: (lang: string) => void;
-};
-
-const LanguageSelector: React.FC<Props> = ({ selectedLanguage, onLanguageChange }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onLanguageChange(e.target.value);
-  };
-
+export const LanguageSelector: React.FC<Props> = ({ language, onChange }) => {
   return (
-    <div className="language-selector">
-      <label htmlFor="language-select">Language:</label>
-      <select
-        id="language-select"
-        value={selectedLanguage}
-        onChange={handleChange}
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </div>
+    <select
+      value={language}
+      onChange={(e) => onChange(e.target.value as Language)}
+      aria-label="Select language"
+      className="language-selector"
+    >
+      <option value="javascript">JavaScript</option>
+      <option value="python">Python</option>
+      <option value="html">HTML</option>
+    </select>
   );
 };
-
-export default LanguageSelector;
