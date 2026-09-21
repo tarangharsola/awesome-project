@@ -1,38 +1,36 @@
-import type { CRDTOperation, OTOperation } from '../../types/conflict';
-import type { EditorState } from '../../types/editor';
+import type { Operation } from '../types/conflict';
+import type { DocumentState } from '../types/editor';
+import { applyCRDT } from './conflict/strategies/crdt';
+import { applyOT } from './conflict/strategies/ot';
 
-type Strategy = 'crdt' | 'ot';
-
-export function resolveConflict(
-  state: EditorState,
-  operation: CRDTOperation | OTOperation,
-  strategy: Strategy = 'crdt'
-): EditorState {
-  if (strategy === 'crdt') {
-    const op = operation as CRDTOperation;
-    return applyCRDTOperation(state, op);
-  } else {
-    const op = operation as OTOperation;
-    return applyOTOperation(state, op);
+/**
+ * Attempts to apply an operation using the preferred strategy. If the operation
+ * throws, it falls back to the alternative strategy to keep the document in a
+ * consistent state.
+ */
+export function resolveOperation(
+  operation: Operation,
+  doc: DocumentState,
+  preferred: 'crdt' | 'ot' = 'crdt'
+): DocumentState {
+  try {
+    if (preferred === 'crdt') {
+      return applyCRDT(operation, doc);
+    }
+    return applyOT(operation, doc);
+  } catch (e) {
+    console.warn('Preferred conflict strategy failed, falling back:', e);
+    // Fallback to the other strategy
+    try {
+      if (preferred === 'crdt') {
+        return applyOT(operation, doc);
+      }
+      return applyCRDT(operation, doc);
+    } catch (fallbackError) {
+      console.error('Both conflict strategies failed', fallbackError);
+      // As a last resort, return the original document unchanged to avoid
+      // corrupting the shared state.
+      return doc;
+    }
   }
-}
-
-function applyCRDTOperation(state: EditorState, op: CRDTOperation): EditorState {
-  const { content } = state;
-  if (op.type === 'insert' && op.text) {
-    const before = content.slice(0, op.position);
-    const after = content.slice(op.position);
-    return { ...state, content: before + op.text + after };
-  }
-  if (op.type === 'delete' && op.length) {
-    const before = content.slice(0, op.position);
-    const after = content.slice(op.position + op.length);
-    return { ...state, content: before + after };
-  }
-  return state;
-}
-
-function applyOTOperation(state: EditorState, op: OTOperation): EditorState {
-  // Reuse CRDT logic as OT operations share the same shape for this simplified resolver
-  return applyCRDTOperation(state, op as unknown as CRDTOperation);
 }

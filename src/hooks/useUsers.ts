@@ -1,44 +1,95 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useWebSocket } from './useWebSocket';
-import { User, WebSocketMessage } from '../types';
+import type { User } from '../types';
+import type { WebSocketMessage } from '../types/websocketMessage';
 
-export interface UseUsersOptions {
-  roomId: string;
+interface UseUsersOptions {
+  sessionId: string;
   username: string;
   color: string;
 }
 
-export function useUsers({ roomId, username, color }: UseUsersOptions) {
-  const { status, sendMessage, latestMessage } = useWebSocket({ url: `${process.env.REACT_APP_WS_URL}/${roomId}` });
-  const [users, setUsers] = useState<User[]>([]);
+/**
+ * Hook that tracks user presence and cursor awareness for a collaborative session.
+ * It ensures consistency across reconnects by requesting the current user list
+ * from the server whenever the socket (re)connects.
+ */
+export function useUsers({ sessionId, username, color }: UseUsersOptions) {
+  const [users, setUsers] = useState<Record<string, User>>({});
 
-  // Notify server of new user
+  const handleMessage = useCallback(
+    (msg: WebSocketMessage) => {
+      switch (msg.type) {
+        case 'user-joined': {
+          const { id, name, color: userColor } = msg.payload;
+          setUsers((prev) => ({ ...prev, [id]: { id, name, color: userColor, cursor: null } }));
+          break;
+        }
+        case 'user-left': {
+          const { id } = msg.payload;
+          setUsers((prev) => {
+            const { [id]: _, ...rest } = prev;
+            return rest;
+          });
+          break;
+        }
+        case 'cursor-update': {
+          const { id, position } = msg.payload;
+          setUsers((prev) => {
+            const user = prev[id];
+            if (!user) return prev;
+            return { ...prev, [id]: { ...user, cursor: position } };
+          });
+          break;
+        }
+        case 'users-list': {
+          // Full snapshot from server (used after reconnect)
+          const list: User[] = msg.payload;
+          const map: Record<string, User> = {};
+          list.forEach((u) => (map[u.id] = u));
+          setUsers(map);
+          break;
+        }
+        default:
+          // ignore unrelated messages
+          break;
+      }
+    },
+    []
+  );
+
+  const { sendMessage, isConnected } = useWebSocket({
+    url: `${process.env.REACT_APP_WS_URL}/${sessionId}`,
+    onMessage: handleMessage,
+    onOpen: () => {
+      // Announce ourselves on (re)connect
+      sendMessage({
+        type: 'user-joined',
+        payload: { name: username, color },
+      });
+      // Request the current user snapshot to sync state after a reconnect
+      sendMessage({ type: 'request-users' });
+    },
+  });
+
+  // Broadcast local cursor changes
+  const broadcastCursor = useCallback(
+    (position: { line: number; ch: number }) => {
+      if (!isConnected) return;
+      sendMessage({ type: 'cursor-update', payload: { position } });
+    },
+    [isConnected, sendMessage]
+  );
+
+  // Cleanup on unmount – inform server we are leaving
   useEffect(() => {
-    if (status === 'CONNECTED') {
-      const joinMsg: WebSocketMessage = { type: 'JOIN', payload: { username, color } };
-      sendMessage(joinMsg);
-    }
+    return () => {
+      if (isConnected) {
+        sendMessage({ type: 'user-left' });
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, []);
 
-  // Handle incoming messages
-  useEffect(() => {
-    if (!latestMessage) return;
-    const { type, payload } = latestMessage;
-    switch (type) {
-      case 'USER_LIST':
-        setUsers(payload as User[]);
-        break;
-      case 'USER_JOIN':
-        setUsers((prev) => [...prev, payload as User]);
-        break;
-      case 'USER_LEAVE':
-        setUsers((prev) => prev.filter((u) => u.id !== (payload as User).id));
-        break;
-      default:
-        break;
-    }
-  }, [latestMessage]);
-
-  return { users, connectionStatus: status };
+  return { users, broadcastCursor, isConnected };
 }
