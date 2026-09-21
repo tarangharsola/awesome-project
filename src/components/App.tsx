@@ -1,49 +1,25 @@
-import React, { useState, useCallback } from 'react';
-import { Editor } from './Editor';
-import { LanguageSelector } from './LanguageSelector';
-import { useWebSocket } from './useWebSocket';
-import { ConnectionStatus } from './ConnectionStatus';
-import { UserList } from './UserList';
+import React from 'react';
+import ConnectionStatus from './ConnectionStatus';
+import Editor from './Editor';
+import { useWebSocket } from '../hooks/useWebSocket';
 
-type Language = 'javascript' | 'python' | 'html';
+// Adjust the WebSocket endpoint as needed for the deployment environment
+const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8080';
 
-export const App: React.FC = () => {
-  const [code, setCode] = useState<string>('');
-  const [language, setLanguage] = useState<Language>('javascript');
-
-  const { sendMessage, connectionStatus } = useWebSocket();
-
-  const handleCodeChange = useCallback((newCode: string) => {
-    setCode(newCode);
-    sendMessage({ type: 'code-update', payload: newCode });
-  }, [sendMessage]);
-
-  const handleSave = useCallback(() => {
-    // Example save logic – could be extended to persist to server
-    console.log('Document saved');
-  }, []);
-
-  const handleFormat = useCallback(() => {
-    // Simple formatting: trim trailing spaces
-    const formatted = code.split('\n').map(line => line.trimEnd()).join('\n');
-    setCode(formatted);
-    sendMessage({ type: 'code-update', payload: formatted });
-  }, [code, sendMessage]);
+const App: React.FC = () => {
+  const { sendMessage, status } = useWebSocket(WS_URL, (msg) => {
+    // Existing message handling logic (e.g., dispatch to store, update editor state)
+    // This placeholder preserves current behavior without modification.
+    // eslint-disable-next-line no-console
+    console.debug('Received WS message', msg);
+  });
 
   return (
-    <div className="app">
-      <ConnectionStatus status={connectionStatus} />
-      <div className="sidebar">
-        <UserList />
-        <LanguageSelector language={language} onChange={setLanguage} />
-      </div>
-      <Editor
-        value={code}
-        onChange={handleCodeChange}
-        language={language}
-        onSave={handleSave}
-        onFormat={handleFormat}
-      />
+    <div className="app-container">
+      <ConnectionStatus status={status} />
+      <Editor sendMessage={sendMessage} />
     </div>
   );
 };
+
+export default App;

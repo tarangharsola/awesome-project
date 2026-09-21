@@ -1,29 +1,26 @@
-import React from "react";
-import "./ConnectionStatus.css";
+import React from 'react';
+import './ConnectionStatus.css';
 
 type Props = {
-  status: "connected" | "disconnected" | "reconnecting";
+  status: 'connected' | 'disconnected' | 'connecting';
 };
 
-export const ConnectionStatus: React.FC<Props> = ({ status }) => {
-  let text = "";
-  let className = "connection-status";
+const ConnectionStatus: React.FC<Props> = ({ status }) => {
+  let text = '';
+  let className = 'connection-status';
 
-  switch (status) {
-    case "connected":
-      text = "Connected";
-      className += " connected";
-      break;
-    case "reconnecting":
-      text = "Reconnecting...";
-      className += " reconnecting";
-      break;
-    case "disconnected":
-    default:
-      text = "Disconnected";
-      className += " disconnected";
-      break;
+  if (status === 'connected') {
+    text = 'Connected';
+    className += ' connected';
+  } else if (status === 'connecting') {
+    text = 'Connecting...';
+    className += ' connecting';
+  } else {
+    text = 'Disconnected';
+    className += ' disconnected';
   }
 
   return <div className={className}>{text}</div>;
 };
+
+export default ConnectionStatus;
