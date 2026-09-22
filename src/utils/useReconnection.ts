@@ -1,32 +1,20 @@
-import { useState, useCallback } from 'react';
-
-interface ReconnectionConfig {
-  maxAttempts?: number;
-  baseDelay?: number; // milliseconds
-}
+import { useEffect, useRef } from 'react';
+import { getWebSocketClient } from './websocketClient';
 
 /**
- * Hook providing exponential backoff reconnection scheduling.
+ * Hook that ensures a WebSocket connection with exponential backoff reconnection.
+ * It returns the client instance for the caller to attach listeners.
  */
-export default function useReconnection({ maxAttempts = 10, baseDelay = 500 }: ReconnectionConfig = {}) {
-  const [attempt, setAttempt] = useState(0);
+export const useReconnection = (url: string) => {
+  const clientRef = useRef<any>(null);
 
-  const scheduleReconnect = useCallback(
-    (reconnectFn: () => void) => {
-      if (attempt >= maxAttempts) {
-        console.warn('Maximum reconnection attempts reached');
-        return;
-      }
-      const delay = baseDelay * Math.pow(2, attempt);
-      setTimeout(() => {
-        setAttempt((a) => a + 1);
-        reconnectFn();
-      }, delay);
-    },
-    [attempt, maxAttempts, baseDelay]
-  );
+  useEffect(() => {
+    clientRef.current = getWebSocketClient(url);
+    // No additional logic needed because the client itself handles reconnection.
+    return () => {
+      clientRef.current?.close();
+    };
+  }, [url]);
 
-  const resetAttempts = useCallback(() => setAttempt(0), []);
-
-  return { attempt, scheduleReconnect, resetAttempts };
-}
+  return clientRef.current;
+};

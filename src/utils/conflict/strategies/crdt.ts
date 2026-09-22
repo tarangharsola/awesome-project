@@ -1,59 +1,73 @@
-import { CRDTOperation, CRDTState } from "../../types/conflict";
-
 /**
- * Apply a local operation to the CRDT state. Generates a unique id and timestamp
- * for deterministic ordering.
+ * Simple sequence CRDT (RGA – Replicated Growable Array) implementation for text.
+ * Each character is stored with a unique identifier (siteId + counter).
+ * Operations are insert and delete. The algorithm guarantees convergence
+ * without central coordination.
  */
-export const applyLocalOperation = (
-  state: CRDTState,
-  op: Omit<CRDTOperation, "id" | "timestamp">
-): CRDTState => {
-  const enriched: CRDTOperation = {
-    ...op,
-    id: generateId(),
-    timestamp: Date.now(),
-  };
-  return { ...state, operations: [...state.operations, enriched] };
-};
 
-/**
- * Apply a remote operation. Duplicate operations are ignored. Operations are
- * inserted in timestamp order to guarantee convergence.
- */
-export const applyRemoteOperation = (
-  state: CRDTState,
-  op: CRDTOperation
-): CRDTState => {
-  // Ignore if we already have this operation
-  if (state.operations.some((existing) => existing.id === op.id)) {
-    return state;
-  }
-  const merged = [...state.operations, op].sort((a, b) => a.timestamp - b.timestamp);
-  return { ...state, operations: merged };
-};
+type SiteId = string;
 
-/**
- * Merge two CRDT states (e.g., after reconnection). The algorithm removes
- * duplicates and sorts by timestamp, ensuring both peers converge to the same
- * operation sequence.
- */
-export const mergeStates = (
-  local: CRDTState,
-  remote: CRDTState
-): CRDTState => {
-  const combined = [...local.operations, ...remote.operations];
-  const unique: CRDTOperation[] = [];
-  const seen = new Set<string>();
-  for (const op of combined) {
-    if (!seen.has(op.id)) {
-      seen.add(op.id);
-      unique.push(op);
+type CharId = { site: SiteId; counter: number };
+
+type Char = { id: CharId; value: string; visible: boolean };
+
+export class TextCRDT {
+  private siteId: SiteId;
+  private counter: number = 0;
+  private sequence: Char[] = [];
+
+  constructor(siteId: SiteId, initial?: string) {
+    this.siteId = siteId;
+    if (initial) {
+      for (const ch of initial) this.localInsert(ch, this.sequence.length);
     }
   }
-  unique.sort((a, b) => a.timestamp - b.timestamp);
-  return { ...local, operations: unique };
-};
 
-/** Simple unique identifier generator for operations */
-const generateId = (): string =>
-  `${Math.random().toString(36).substr(2, 9)}-${Date.now()}`;
+  private nextId(): CharId {
+    this.counter += 1;
+    return { site: this.siteId, counter: this.counter };
+  }
+
+  // Local insert returns the operation to broadcast
+  public localInsert(value: string, index: number) {
+    const id = this.nextId();
+    const char: Char = { id, value, visible: true };
+    this.sequence.splice(index, 0, char);
+    return { type: 'insert', char } as const;
+  }
+
+  public localDelete(index: number) {
+    const char = this.sequence[index];
+    if (!char) return null;
+    char.visible = false;
+    return { type: 'delete', id: char.id } as const;
+  }
+
+  // Apply remote operation (insert/delete) ensuring total order by id
+  public applyRemote(op: any) {
+    if (op.type === 'insert') {
+      const { char } = op;
+      // Find correct position using identifier ordering
+      let pos = 0;
+      while (pos < this.sequence.length && this.compareIds(this.sequence[pos].id, char.id) < 0) {
+        pos++;
+      }
+      this.sequence.splice(pos, 0, { ...char, visible: true });
+    } else if (op.type === 'delete') {
+      const { id } = op;
+      const idx = this.sequence.findIndex((c) => this.compareIds(c.id, id) === 0);
+      if (idx !== -1) this.sequence[idx].visible = false;
+    }
+  }
+
+  // Helper to compare two CharIds deterministically
+  private compareIds(a: CharId, b: CharId): number {
+    if (a.counter !== b.counter) return a.counter - b.counter;
+    return a.site < b.site ? -1 : a.site > b.site ? 1 : 0;
+  }
+
+  // Export current visible string
+  public value(): string {
+    return this.sequence.filter((c) => c.visible).map((c) => c.value).join('');
+  }
+}
