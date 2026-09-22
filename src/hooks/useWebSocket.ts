@@ -1,77 +1,77 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type { WebSocketMessage } from '../types/websocketMessage';
+import { WebSocketMessage } from '../types/websocketMessage';
 
-type Options = {
-  reconnectAttempts?: number;
-  reconnectInterval?: number;
-};
+export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
 
 /**
- * useWebSocket – a lightweight hook for managing a WebSocket connection with
- * automatic reconnection and typed message handling.
- *
- * @param url - The WebSocket endpoint URL.
- * @param onMessage - Callback invoked with parsed messages.
- * @param options - Optional reconnection configuration.
- * @returns Connection status and a sendMessage function.
+ * Hook to manage a WebSocket connection with automatic reconnection using exponential backoff.
+ * Returns the current socket instance, connection status, a sendMessage helper, and a manual retry function.
  */
-export const useWebSocket = (
-  url: string,
-  onMessage: (msg: WebSocketMessage) => void,
-  options: Options = {}
-) => {
-  const { reconnectAttempts = 5, reconnectInterval = 2000 } = options;
-  const [isConnected, setIsConnected] = useState(false);
+export const useWebSocket = (url: string) => {
+  const [status, setStatus] = useState<ConnectionStatus>('disconnected');
   const wsRef = useRef<WebSocket | null>(null);
-  const attemptsRef = useRef(0);
+  const retryCountRef = useRef(0);
   const timeoutRef = useRef<number | null>(null);
 
   const connect = useCallback(() => {
-    wsRef.current = new WebSocket(url);
-    wsRef.current.onopen = () => {
-      setIsConnected(true);
-      attemptsRef.current = 0;
+    setStatus('reconnecting');
+    const ws = new WebSocket(url);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      setStatus('connected');
+      retryCountRef.current = 0;
     };
-    wsRef.current.onmessage = (event) => {
-      try {
-        const data: WebSocketMessage = JSON.parse(event.data);
-        onMessage(data);
-      } catch {
-        // Silently ignore malformed messages.
-      }
+
+    ws.onmessage = (event: MessageEvent) => {
+      // Placeholder for message handling – callers can attach their own listeners via wsRef.current
     };
-    wsRef.current.onclose = () => {
-      setIsConnected(false);
-      if (attemptsRef.current < reconnectAttempts) {
-        attemptsRef.current += 1;
-        timeoutRef.current = window.setTimeout(connect, reconnectInterval);
-      }
+
+    ws.onclose = () => {
+      setStatus('disconnected');
+      scheduleReconnect();
     };
-    wsRef.current.onerror = () => {
-      wsRef.current?.close();
+
+    ws.onerror = () => {
+      // Force close to trigger reconnection logic
+      ws.close();
     };
-  }, [url, onMessage, reconnectAttempts, reconnectInterval]);
+  }, [url]);
+
+  const scheduleReconnect = () => {
+    const attempt = retryCountRef.current + 1;
+    retryCountRef.current = attempt;
+    const delay = Math.min(1000 * 2 ** (attempt - 1), 30000); // cap at 30s
+    timeoutRef.current = window.setTimeout(() => {
+      connect();
+    }, delay);
+  };
+
+  const retry = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    connect();
+  }, [connect]);
 
   useEffect(() => {
     connect();
     return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      wsRef.current?.close();
     };
-  }, [connect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const sendMessage = useCallback(
-    (msg: WebSocketMessage) => {
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify(msg));
-      }
-    },
-    []
-  );
+  const sendMessage = (msg: WebSocketMessage) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(msg));
+    }
+  };
 
-  return { isConnected, sendMessage } as const;
+  return { socket: wsRef.current, status, sendMessage, retry };
 };
-
-export default useWebSocket;

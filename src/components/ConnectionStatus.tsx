@@ -1,26 +1,27 @@
 import React from 'react';
 import './ConnectionStatus.css';
+import { useWebSocket } from '../hooks/useWebSocket';
 
-type Props = {
-  status: 'connected' | 'disconnected' | 'connecting';
+export const ConnectionStatus: React.FC = () => {
+  const { status, retry } = useWebSocket();
+
+  const getClass = () => {
+    switch (status) {
+      case 'connected':
+        return 'status-connected';
+      case 'reconnecting':
+        return 'status-reconnecting';
+      default:
+        return 'status-disconnected';
+    }
+  };
+
+  return (
+    <div className={`connection-status ${getClass()}`}>
+      <span>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+      {status !== 'connected' && (
+        <button className="retry-button" onClick={retry}>Retry</button>
+      )}
+    </div>
+  );
 };
-
-const ConnectionStatus: React.FC<Props> = ({ status }) => {
-  let text = '';
-  let className = 'connection-status';
-
-  if (status === 'connected') {
-    text = 'Connected';
-    className += ' connected';
-  } else if (status === 'connecting') {
-    text = 'Connecting...';
-    className += ' connecting';
-  } else {
-    text = 'Disconnected';
-    className += ' disconnected';
-  }
-
-  return <div className={className}>{text}</div>;
-};
-
-export default ConnectionStatus;
