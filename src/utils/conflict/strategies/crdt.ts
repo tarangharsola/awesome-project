@@ -1,73 +1,92 @@
 /**
- * Simple sequence CRDT (RGA – Replicated Growable Array) implementation for text.
- * Each character is stored with a unique identifier (siteId + counter).
- * Operations are insert and delete. The algorithm guarantees convergence
- * without central coordination.
+ * Simple sequence CRDT (RGA – Replicated Growable Array) implementation.
+ * Each character is stored with a globally unique identifier (siteId, counter).
+ * Operations are insert or delete referencing the identifier of the preceding
+ * character (or null for the beginning of the document).
  */
 
 type SiteId = string;
+interface CharId {
+  site: SiteId;
+  counter: number;
+}
+interface CharNode {
+  id: CharId;
+  value: string;
+  visible: boolean;
+  prev: CharId | null;
+}
 
-type CharId = { site: SiteId; counter: number };
+export interface CRDTState {
+  chars: Map<string, CharNode>; // key = `${site}:${counter}`
+  head: CharId | null; // virtual head (null prev)
+  siteId: SiteId;
+  localCounter: number;
+}
 
-type Char = { id: CharId; value: string; visible: boolean };
+function idToString(id: CharId | null): string {
+  return id ? `${id.site}:${id.counter}` : 'null';
+}
 
-export class TextCRDT {
-  private siteId: SiteId;
-  private counter: number = 0;
-  private sequence: Char[] = [];
+export function createCRDT(siteId: SiteId): CRDTState {
+  return {
+    chars: new Map(),
+    head: null,
+    siteId,
+    localCounter: 0,
+  };
+}
 
-  constructor(siteId: SiteId, initial?: string) {
-    this.siteId = siteId;
-    if (initial) {
-      for (const ch of initial) this.localInsert(ch, this.sequence.length);
-    }
-  }
+export function localInsert(state: CRDTState, value: string, afterId: CharId | null): CharId {
+  const newId: CharId = { site: state.siteId, counter: ++state.localCounter };
+  const node: CharNode = { id: newId, value, visible: true, prev: afterId };
+  state.chars.set(idToString(newId), node);
+  return newId;
+}
 
-  private nextId(): CharId {
-    this.counter += 1;
-    return { site: this.siteId, counter: this.counter };
-  }
+export function localDelete(state: CRDTState, targetId: CharId): void {
+  const key = idToString(targetId);
+  const node = state.chars.get(key);
+  if (node) node.visible = false;
+}
 
-  // Local insert returns the operation to broadcast
-  public localInsert(value: string, index: number) {
-    const id = this.nextId();
-    const char: Char = { id, value, visible: true };
-    this.sequence.splice(index, 0, char);
-    return { type: 'insert', char } as const;
-  }
+export function remoteInsert(state: CRDTState, char: CharNode): void {
+  const key = idToString(char.id);
+  if (state.chars.has(key)) return; // idempotent
+  state.chars.set(key, { ...char, visible: true });
+}
 
-  public localDelete(index: number) {
-    const char = this.sequence[index];
-    if (!char) return null;
-    char.visible = false;
-    return { type: 'delete', id: char.id } as const;
-  }
+export function remoteDelete(state: CRDTState, targetId: CharId): void {
+  const key = idToString(targetId);
+  const node = state.chars.get(key);
+  if (node) node.visible = false;
+}
 
-  // Apply remote operation (insert/delete) ensuring total order by id
-  public applyRemote(op: any) {
-    if (op.type === 'insert') {
-      const { char } = op;
-      // Find correct position using identifier ordering
-      let pos = 0;
-      while (pos < this.sequence.length && this.compareIds(this.sequence[pos].id, char.id) < 0) {
-        pos++;
+/**
+ * Convert the CRDT state into a plain string for rendering.
+ */
+export function render(state: CRDTState): string {
+  // Build a linked list based on prev references.
+  const order: CharNode[] = [];
+  const visited = new Set<string>();
+  const findNext = (prev: CharId | null): CharNode | undefined => {
+    for (const node of state.chars.values()) {
+      if (node.prev && idToString(node.prev) === idToString(prev) && !visited.has(idToString(node.id))) {
+        return node;
       }
-      this.sequence.splice(pos, 0, { ...char, visible: true });
-    } else if (op.type === 'delete') {
-      const { id } = op;
-      const idx = this.sequence.findIndex((c) => this.compareIds(c.id, id) === 0);
-      if (idx !== -1) this.sequence[idx].visible = false;
+      if (!node.prev && prev === null && !visited.has(idToString(node.id))) {
+        return node;
+      }
     }
+    return undefined;
+  };
+  let cursor: CharId | null = null;
+  while (true) {
+    const next = findNext(cursor);
+    if (!next) break;
+    visited.add(idToString(next.id));
+    if (next.visible) order.push(next);
+    cursor = next.id;
   }
-
-  // Helper to compare two CharIds deterministically
-  private compareIds(a: CharId, b: CharId): number {
-    if (a.counter !== b.counter) return a.counter - b.counter;
-    return a.site < b.site ? -1 : a.site > b.site ? 1 : 0;
-  }
-
-  // Export current visible string
-  public value(): string {
-    return this.sequence.filter((c) => c.visible).map((c) => c.value).join('');
-  }
+  return order.map((n) => n.value).join('');
 }
