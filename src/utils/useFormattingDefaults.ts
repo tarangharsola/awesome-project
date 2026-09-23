@@ -1,29 +1,14 @@
-export interface FormattingDefaults {
-  tabSize: number;
-  indentUnit: string;
-}
+import { Extension } from '@codemirror/state';
+import { indentUnit } from '@codemirror/language';
+import { lineNumbers, highlightActiveLineGutter } from '@codemirror/gutter';
+import { highlightActiveLine } from '@codemirror/view';
 
-/**
- * Returns sensible formatting defaults for supported languages.
- * Currently supports JavaScript, Python, and HTML.
- */
-export const getFormattingDefaults = (language: string): FormattingDefaults => {
-  switch (language) {
-    case 'javascript':
-      return { tabSize: 2, indentUnit: '  ' };
-    case 'python':
-      return { tabSize: 4, indentUnit: '    ' };
-    case 'html':
-      return { tabSize: 2, indentUnit: '  ' };
-    default:
-      return { tabSize: 2, indentUnit: '  ' };
-  }
-};
-
-/**
- * Hook wrapper for convenience inside React components.
- */
-import { useMemo } from 'react';
-export const useFormattingDefaults = (language: string) => {
-  return useMemo(() => getFormattingDefaults(language), [language]);
+// Provides a consistent set of default editor extensions for formatting and UI.
+export const useFormattingDefaults = (): Extension => {
+  return [
+    lineNumbers(),
+    highlightActiveLineGutter(),
+    highlightActiveLine(),
+    indentUnit.of('  '), // 2 spaces indentation
+  ];
 };

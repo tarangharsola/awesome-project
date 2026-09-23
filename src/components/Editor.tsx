@@ -1,64 +1,57 @@
-import React, { useEffect, useRef } from "react";
-import * as Y from "yjs";
-import { MonacoEditor } from "./MonacoEditor"; // Assumes a Monaco wrapper component exists
-import { useCollaboration } from "../hooks/useCollaboration";
+import React, { useEffect, useRef } from 'react';
+import { EditorView, basicSetup } from '@codemirror/basic-setup';
+import { EditorState } from '@codemirror/state';
+import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { html } from '@codemirror/lang-html';
+import { useCollaboration } from '../hooks/useCollaboration';
+import { useFormattingDefaults } from '../utils/useFormattingDefaults';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { getLanguageExtension } from '../utils/editorExtensions';
 
-interface EditorProps {
-  /** Unique room identifier extracted from the shareable URL */
-  sessionId: string;
-  /** Display name entered by the user */
-  username: string;
-  /** Randomly assigned colour for cursor/awareness */
-  color: string;
-}
+type Props = {
+  language: string;
+};
 
-/**
- * Editor component wired to Yjs for real‑time collaboration.
- * It renders a Monaco editor instance and synchronises its content
- * with a shared Y.Text type via the useCollaboration hook.
- */
-export const Editor: React.FC<EditorProps> = ({ sessionId, username, color }) => {
-  const collab = useCollaboration(sessionId, username, color);
-  const editorRef = useRef<any>(null);
+const Editor: React.FC<Props> = ({ language }) => {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const { doc, applyRemoteChanges, sendLocalChange } = useCollaboration();
+  const formattingDefaults = useFormattingDefaults();
+  const keyboardShortcuts = useKeyboardShortcuts(sendLocalChange);
 
   useEffect(() => {
-    if (!collab?.ydoc) return;
-    const yText = collab.ydoc.getText("shared");
-    const monacoInstance = editorRef.current?.editor;
-    if (!monacoInstance) return;
+    if (!editorRef.current) return;
 
-    // Initialise editor content from Yjs.
-    monacoInstance.setValue(yText.toString());
-
-    // Local edits -> Yjs.
-    const modelChangeDisposable = monacoInstance.onDidChangeModelContent(event => {
-      collab.ydoc?.transact(() => {
-        event.changes.forEach((change: any) => {
-          const { rangeOffset, rangeLength, text } = change;
-          yText.delete(rangeOffset, rangeLength);
-          yText.insert(rangeOffset, text);
-        });
-      });
+    const startState = EditorState.create({
+      doc,
+      extensions: [
+        basicSetup,
+        formattingDefaults,
+        keyboardShortcuts,
+        getLanguageExtension(language),
+        EditorView.updateListener.of((v) => {
+          if (v.docChanged) {
+            const newDoc = v.state.doc.toString();
+            sendLocalChange(newDoc);
+          }
+        }),
+      ],
     });
 
-    // Remote Yjs updates -> Monaco.
-    const observer = (event: Y.YTextEvent) => {
-      // Simple approach: replace whole content. For production, a diff‑based update is preferable.
-      monacoInstance.setValue(yText.toString());
-    };
-    yText.observe(observer);
+    const view = new EditorView({ state: startState, parent: editorRef.current });
+
+    const unsubscribe = applyRemoteChanges((remoteDoc: string) => {
+      const transaction = view.state.update({ changes: { from: 0, to: view.state.doc.length, insert: remoteDoc } });
+      view.dispatch(transaction);
+    });
 
     return () => {
-      modelChangeDisposable.dispose();
-      yText.unobserve(observer);
+      view.destroy();
+      unsubscribe();
     };
-  }, [collab?.ydoc]);
+  }, [language, doc, formattingDefaults, keyboardShortcuts, applyRemoteChanges, sendLocalChange]);
 
-  const connectionClass = collab?.connected ? "connected" : "disconnected";
-
-  return (
-    <div className={`editor ${connectionClass}`}>
-      <MonacoEditor ref={editorRef} language="javascript" />
-    </div>
-  );
+  return <div className="code-editor" ref={editorRef} />;
 };
+
+export default Editor;

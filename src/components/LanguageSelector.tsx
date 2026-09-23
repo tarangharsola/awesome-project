@@ -1,27 +1,37 @@
 import React from 'react';
-import { Language } from '../types/editor';
 
-interface LanguageSelectorProps {
-  currentLanguage: Language;
-  onLanguageChange: (lang: Language) => void;
+type LanguageOption = {
+  label: string;
+  value: string;
+};
+
+const options: LanguageOption[] = [
+  { label: 'JavaScript', value: 'javascript' },
+  { label: 'Python', value: 'python' },
+  { label: 'HTML', value: 'html' },
+];
+
+interface Props {
+  selected: string;
+  onChange: (lang: string) => void;
 }
 
-const languages: Language[] = ['javascript', 'python', 'html'];
-
-const LanguageSelector: React.FC<LanguageSelectorProps> = ({ currentLanguage, onLanguageChange }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.value as Language;
-    onLanguageChange(selected);
+const LanguageSelector: React.FC<Props> = ({ selected, onChange }) => {
+  const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onChange(e.target.value);
   };
 
   return (
-    <select value={currentLanguage} onChange={handleChange} className="language-selector">
-      {languages.map((lang) => (
-        <option key={lang} value={lang}>
-          {lang.charAt(0).toUpperCase() + lang.slice(1)}
-        </option>
-      ))}
-    </select>
+    <div className="language-selector">
+      <label htmlFor="language-select">Language:</label>
+      <select id="language-select" value={selected} onChange={handleSelect}>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 };
 

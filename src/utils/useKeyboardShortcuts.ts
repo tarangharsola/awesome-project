@@ -1,43 +1,29 @@
-import { useEffect } from 'react';
+import { keymap } from '@codemirror/view';
+import { formatCode } from './formatCode';
+import { commentLine } from '@codemirror/comment';
 
-type ShortcutHandler = () => void;
-
-interface ShortcutMap {
-  format?: ShortcutHandler; // Typically Ctrl+Shift+F or Cmd+Shift+F
-  save?: ShortcutHandler;   // Typically Ctrl+S or Cmd+S
-  [key: string]: ShortcutHandler | undefined;
-}
-
-/**
- * Hook that registers global keyboard shortcuts for the editor.
- * It listens for keydown events and triggers the appropriate handler.
- *
- * Supported shortcuts (cross‑platform):
- *   - Format:   Ctrl+Shift+F / Cmd+Shift+F
- *   - Save:     Ctrl+S / Cmd+S
- */
-export const useKeyboardShortcuts = (handlers: ShortcutMap) => {
-  useEffect(() => {
-    const listener = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().includes('MAC');
-      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
-
-      // Format shortcut
-      if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') {
-        e.preventDefault();
-        handlers.format && handlers.format();
-        return;
-      }
-
-      // Save shortcut
-      if (ctrlKey && !e.shiftKey && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        handlers.save && handlers.save();
-        return;
-      }
+// Hook that returns a CodeMirror keymap extension handling common shortcuts.
+export const useKeyboardShortcuts = (sendChange: (doc: string) => void) => {
+  const format = () => {
+    // Assuming the editor instance will call this via the keymap context.
+    // The keymap receives the view, we can format the whole document.
+    return (view: any) => {
+      const formatted = formatCode(view.state.doc.toString());
+      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: formatted } });
+      sendChange(formatted);
+      return true;
     };
+  };
 
-    window.addEventListener('keydown', listener);
-    return () => window.removeEventListener('keydown', listener);
-  }, [handlers]);
+  const toggleComment = () => {
+    return (view: any) => {
+      commentLine(view);
+      return true;
+    };
+  };
+
+  return keymap.of([
+    { key: 'Mod-Shift-f', run: format() }, // Format document (Ctrl+Shift+F / Cmd+Shift+F)
+    { key: 'Mod-/', run: toggleComment() }, // Toggle line comment (Ctrl+/)
+  ]);
 };
