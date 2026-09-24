@@ -1,55 +1,67 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useWebSocketConnection } from './useWebSocketConnection';
-import { User, Cursor, DocumentState } from '../types/collaboration';
-import { WebSocketMessage } from '../types/websocketMessage';
+import { useEffect, useRef, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useWebSocketConnection } from "./useWebSocketConnection";
+import type { RootState } from "../store";
+import { setDocument, applyRemoteOperation } from "../store/editorActions";
+import type { CollaborationMessage } from "../types/collaboration";
 
-export const useCollaboration = (roomId: string, localUser: User) => {
-  const { send, isConnected, ws } = useWebSocketConnection(`${process.env.REACT_APP_WS_URL}/${roomId}`);
-  const [users, setUsers] = useState<Record<string, User>>({});
-  const [cursors, setCursors] = useState<Record<string, Cursor>>({});
-  const [doc, setDoc] = useState<DocumentState>({ content: '', version: 0 });
+export function useCollaboration(sessionId: string, username: string) {
+  const dispatch = useDispatch();
+  const editorState = useSelector((state: RootState) => state.editor);
+  const pendingOpsRef = useRef<CollaborationMessage[]>([]);
 
   const handleMessage = useCallback(
-    (event: MessageEvent) => {
-      const msg: WebSocketMessage = JSON.parse(event.data);
+    (msg: CollaborationMessage) => {
       switch (msg.type) {
-        case 'presence':
-          setUsers(prev => ({ ...prev, [msg.user.id]: msg.user }));
+        case "full-sync":
+          dispatch(setDocument(msg.payload));
           break;
-        case 'cursor':
-          setCursors(prev => ({ ...prev, [msg.userId]: { userId: msg.userId, position: msg.position } }));
+        case "operation":
+          dispatch(applyRemoteOperation(msg.payload));
           break;
-        case 'document':
-          if (msg.version > doc.version) {
-            setDoc({ content: msg.content, version: msg.version });
-          }
+        case "presence":
+          // Presence updates are handled by the user slice elsewhere
           break;
         default:
           break;
       }
     },
-    [doc.version]
+    [dispatch]
   );
 
+  const { send, connected } = useWebSocketConnection({
+    url: `${process.env.REACT_APP_WS_URL}?session=${sessionId}&user=${encodeURIComponent(username)}`,
+    onMessage: handleMessage,
+    reconnectAttempts: Infinity,
+    reconnectDelay: 500,
+  });
+
+  const sendOperation = useCallback(
+    (op) => {
+      const msg = { type: "operation", payload: op } as CollaborationMessage;
+      if (connected) {
+        send(msg);
+      } else {
+        pendingOpsRef.current.push(msg);
+      }
+    },
+    [send, connected]
+  );
+
+  // Flush pending ops and request latest state after reconnection
   useEffect(() => {
-    if (!isConnected || !ws) return;
-    ws.addEventListener('message', handleMessage);
-    // announce presence on connect
-    send({ type: 'presence', user: localUser });
-    return () => {
-      ws.removeEventListener('message', handleMessage);
-    };
-  }, [isConnected, ws, handleMessage, send, localUser]);
-
-  const broadcastCursor = (position: number) => {
-    send({ type: 'cursor', userId: localUser.id, position });
-  };
-
-  const applyRemoteEdit = (content: string, version: number) => {
-    if (version > doc.version) {
-      setDoc({ content, version });
+    if (connected && pendingOpsRef.current.length) {
+      pendingOpsRef.current.forEach(send);
+      pendingOpsRef.current = [];
+      send({ type: "request-sync", payload: null } as CollaborationMessage);
     }
-  };
+  }, [connected, send]);
 
-  return { users, cursors, doc, isConnected, broadcastCursor, applyRemoteEdit };
-};
+  // Broadcast presence on mount / username change
+  useEffect(() => {
+    const presence = { type: "presence", payload: { username, color: "" } } as CollaborationMessage;
+    send(presence);
+  }, [send, username]);
+
+  return { sendOperation };
+}
