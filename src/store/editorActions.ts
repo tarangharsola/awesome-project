@@ -1,26 +1,11 @@
-import { EditorActionTypes } from './actionTypes';
+import { UPDATE_CONTENT, SET_LANGUAGE } from './actionTypes';
 
-export const UPDATE_CONTENT = 'UPDATE_CONTENT';
-export const SET_LANGUAGE = 'SET_LANGUAGE';
-
-export interface UpdateContentAction {
-  type: typeof UPDATE_CONTENT;
-  payload: string;
-}
-
-export interface SetLanguageAction {
-  type: typeof SET_LANGUAGE;
-  payload: string;
-}
-
-export type EditorAction = UpdateContentAction | SetLanguageAction;
-
-export const updateContent = (content: string): UpdateContentAction => ({
+export const updateContent = (content: string) => ({
   type: UPDATE_CONTENT,
   payload: content,
 });
 
-export const setLanguage = (language: string): SetLanguageAction => ({
+export const setLanguage = (language: string) => ({
   type: SET_LANGUAGE,
   payload: language,
 });

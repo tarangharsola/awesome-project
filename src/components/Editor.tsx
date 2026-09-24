@@ -1,43 +1,62 @@
 import React, { useEffect, useRef } from 'react';
-import { Editor as MonacoEditor } from '@monaco-editor/react';
-import { useCollaboration } from '../hooks/useCollaboration';
-import { useLanguage } from '../utils/useLanguage';
-import { User } from '../types/collaboration';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { useEditor } from '../utils/useEditor';
+import { useFormattingDefaults } from '../utils/useFormattingDefaults';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
 
-interface EditorProps {
-  roomId: string;
-  user: User;
-}
+export const Editor: React.FC = () => {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const { content, language } = useSelector((state: RootState) => state.editor);
+  const formattingDefaults = useFormattingDefaults();
 
-export const Editor: React.FC<EditorProps> = ({ roomId, user }) => {
-  const { doc, broadcastCursor, applyRemoteEdit } = useCollaboration(roomId, user);
-  const editorRef = useRef<any>(null);
-  const { language } = useLanguage();
+  const { setContent, getEditorInstance } = useEditor({
+    container: editorRef.current,
+    initialContent: content,
+    language,
+    formatting: formattingDefaults,
+  });
 
-  const handleEditorDidMount = (editor: any) => {
-    editorRef.current = editor;
-    editor.onDidChangeModelContent(() => {
-      const content = editor.getValue();
-      applyRemoteEdit(content, doc.version + 1);
-    });
-    editor.onDidChangeCursorPosition((e: any) => {
-      broadcastCursor(e.position.offset);
-    });
-  };
-
+  // Sync Redux content changes to the editor instance
   useEffect(() => {
-    if (editorRef.current && doc.content !== editorRef.current.getValue()) {
-      editorRef.current.setValue(doc.content);
+    const editor = getEditorInstance();
+    if (editor && editor.getValue() !== content) {
+      editor.setValue(content);
     }
-  }, [doc.content]);
+  }, [content, getEditorInstance]);
 
-  return (
-    <MonacoEditor
-      height="100%"
-      language={language}
-      value={doc.content}
-      onMount={handleEditorDidMount}
-      theme="vs-dark"
-    />
-  );
+  // Update Redux when editor content changes
+  useEffect(() => {
+    const editor = getEditorInstance();
+    if (!editor) return;
+    const handleChange = () => {
+      const newValue = editor.getValue();
+      if (newValue !== content) {
+        setContent(newValue);
+      }
+    };
+    editor.on('change', handleChange);
+    return () => {
+      editor.off('change', handleChange);
+    };
+  }, [content, getEditorInstance, setContent]);
+
+  // Keyboard shortcuts (save, format)
+  useKeyboardShortcuts({
+    onSave: () => {
+      // Placeholder: could trigger a download or server save
+      console.log('Document saved');
+    },
+    onFormat: () => {
+      const editor = getEditorInstance();
+      if (editor) {
+        // Assuming the editor instance provides a format method
+        if (typeof (editor as any).format === 'function') {
+          (editor as any).format();
+        }
+      }
+    },
+  });
+
+  return <div ref={editorRef} className="editor-container" />;
 };

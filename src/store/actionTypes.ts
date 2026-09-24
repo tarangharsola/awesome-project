@@ -1,3 +1,7 @@
-export const SET_CONTENT = 'SET_CONTENT';
-export const APPLY_REMOTE_CHANGES = 'APPLY_REMOTE_CHANGES';
+export const UPDATE_CONTENT = 'UPDATE_CONTENT';
+export const SET_USERS = 'SET_USERS';
+export const USER_JOINED = 'USER_JOINED';
+export const USER_LEFT = 'USER_LEFT';
+export const SET_CURSOR = 'SET_CURSOR';
+export const SET_CONNECTION_STATUS = 'SET_CONNECTION_STATUS';
 export const SET_LANGUAGE = 'SET_LANGUAGE';

@@ -1,29 +1,40 @@
-import { keymap } from '@codemirror/view';
-import { formatCode } from './formatCode';
-import { commentLine } from '@codemirror/comment';
+import { useEffect } from 'react';
 
-// Hook that returns a CodeMirror keymap extension handling common shortcuts.
-export const useKeyboardShortcuts = (sendChange: (doc: string) => void) => {
-  const format = () => {
-    // Assuming the editor instance will call this via the keymap context.
-    // The keymap receives the view, we can format the whole document.
-    return (view: any) => {
-      const formatted = formatCode(view.state.doc.toString());
-      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: formatted } });
-      sendChange(formatted);
-      return true;
+interface ShortcutHandlers {
+  onSave?: () => void;
+  onFormat?: () => void;
+  // Extend with more handlers as needed
+}
+
+/**
+ * Attaches global keyboard shortcuts for the editor.
+ * - Ctrl+S / Cmd+S : Save (calls onSave)
+ * - Ctrl+Shift+F / Cmd+Shift+F : Format (calls onFormat)
+ */
+export const useKeyboardShortcuts = ({ onSave, onFormat }: ShortcutHandlers) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
+
+      // Save shortcut
+      if (ctrlKey && !e.shiftKey && e.key === 's') {
+        e.preventDefault();
+        if (onSave) onSave();
+        return;
+      }
+
+      // Format shortcut
+      if (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        if (onFormat) onFormat();
+        return;
+      }
     };
-  };
 
-  const toggleComment = () => {
-    return (view: any) => {
-      commentLine(view);
-      return true;
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  };
-
-  return keymap.of([
-    { key: 'Mod-Shift-f', run: format() }, // Format document (Ctrl+Shift+F / Cmd+Shift+F)
-    { key: 'Mod-/', run: toggleComment() }, // Toggle line comment (Ctrl+/)
-  ]);
+  }, [onSave, onFormat]);
 };

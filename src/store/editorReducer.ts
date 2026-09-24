@@ -1,28 +1,18 @@
-import { DocumentState } from '../types/collaboration';
-import { EDIT_CONTENT, SET_CONTENT } from './actionTypes';
+import { UPDATE_CONTENT, SET_LANGUAGE } from '../store/actionTypes';
+import { EditorState } from '../types/editor';
 
-interface Action {
-  type: string;
-  payload?: any;
-}
-
-const initialState: DocumentState = {
+const initialState: EditorState = {
   content: '',
-  version: 0,
+  language: 'javascript',
+  // other editor related state can be added here
 };
 
-export const editorReducer = (state = initialState, action: Action): DocumentState => {
+export const editorReducer = (state = initialState, action: any): EditorState => {
   switch (action.type) {
-    case EDIT_CONTENT:
-      return {
-        content: action.payload.content,
-        version: state.version + 1,
-      };
-    case SET_CONTENT:
-      return {
-        content: action.payload.content,
-        version: action.payload.version,
-      };
+    case UPDATE_CONTENT:
+      return { ...state, content: action.payload };
+    case SET_LANGUAGE:
+      return { ...state, language: action.payload };
     default:
       return state;
   }
