@@ -1,57 +1,43 @@
 import React, { useEffect, useRef } from 'react';
-import { EditorView, basicSetup } from '@codemirror/basic-setup';
-import { EditorState } from '@codemirror/state';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { html } from '@codemirror/lang-html';
+import { Editor as MonacoEditor } from '@monaco-editor/react';
 import { useCollaboration } from '../hooks/useCollaboration';
-import { useFormattingDefaults } from '../utils/useFormattingDefaults';
-import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { getLanguageExtension } from '../utils/editorExtensions';
+import { useLanguage } from '../utils/useLanguage';
+import { User } from '../types/collaboration';
 
-type Props = {
-  language: string;
-};
+interface EditorProps {
+  roomId: string;
+  user: User;
+}
 
-const Editor: React.FC<Props> = ({ language }) => {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const { doc, applyRemoteChanges, sendLocalChange } = useCollaboration();
-  const formattingDefaults = useFormattingDefaults();
-  const keyboardShortcuts = useKeyboardShortcuts(sendLocalChange);
+export const Editor: React.FC<EditorProps> = ({ roomId, user }) => {
+  const { doc, broadcastCursor, applyRemoteEdit } = useCollaboration(roomId, user);
+  const editorRef = useRef<any>(null);
+  const { language } = useLanguage();
+
+  const handleEditorDidMount = (editor: any) => {
+    editorRef.current = editor;
+    editor.onDidChangeModelContent(() => {
+      const content = editor.getValue();
+      applyRemoteEdit(content, doc.version + 1);
+    });
+    editor.onDidChangeCursorPosition((e: any) => {
+      broadcastCursor(e.position.offset);
+    });
+  };
 
   useEffect(() => {
-    if (!editorRef.current) return;
+    if (editorRef.current && doc.content !== editorRef.current.getValue()) {
+      editorRef.current.setValue(doc.content);
+    }
+  }, [doc.content]);
 
-    const startState = EditorState.create({
-      doc,
-      extensions: [
-        basicSetup,
-        formattingDefaults,
-        keyboardShortcuts,
-        getLanguageExtension(language),
-        EditorView.updateListener.of((v) => {
-          if (v.docChanged) {
-            const newDoc = v.state.doc.toString();
-            sendLocalChange(newDoc);
-          }
-        }),
-      ],
-    });
-
-    const view = new EditorView({ state: startState, parent: editorRef.current });
-
-    const unsubscribe = applyRemoteChanges((remoteDoc: string) => {
-      const transaction = view.state.update({ changes: { from: 0, to: view.state.doc.length, insert: remoteDoc } });
-      view.dispatch(transaction);
-    });
-
-    return () => {
-      view.destroy();
-      unsubscribe();
-    };
-  }, [language, doc, formattingDefaults, keyboardShortcuts, applyRemoteChanges, sendLocalChange]);
-
-  return <div className="code-editor" ref={editorRef} />;
+  return (
+    <MonacoEditor
+      height="100%"
+      language={language}
+      value={doc.content}
+      onMount={handleEditorDidMount}
+      theme="vs-dark"
+    />
+  );
 };
-
-export default Editor;
