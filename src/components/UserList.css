@@ -1,36 +1,30 @@
 .user-list {
   background-color: #1e1e1e;
   color: #e0e0e0;
-  padding: 0.5rem;
+  padding: 8px;
   border-radius: 4px;
   max-height: 300px;
   overflow-y: auto;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .user-item {
   display: flex;
   align-items: center;
-  margin-bottom: 0.4rem;
-  padding: 0.2rem 0.4rem;
-  border-radius: 3px;
-  transition: background-color 0.2s;
-}
-
-.user-item:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  margin-bottom: 6px;
+  font-size: 14px;
 }
 
 .user-color {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  margin-right: 0.5rem;
+  margin-right: 8px;
+  background-color: var(--user-color, #fff);
   flex-shrink: 0;
 }
 
 .user-name {
-  font-size: 0.9rem;
+  flex-grow: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -4,21 +4,22 @@
   z-index: 10;
 }
 
-.remote-cursor .cursor-label {
-  background-color: rgba(30, 30, 30, 0.85);
-  color: #f0f0f0;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 0.75rem;
-  line-height: 1;
-  white-space: nowrap;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-  margin-top: -1.5em;
+.remote-cursor .cursor {
+  width: 2px;
+  height: 100%;
+  background-color: var(--cursor-color, #fff);
+  opacity: 0.9;
 }
 
-.remote-cursor .cursor-indicator {
-  width: 2px;
-  height: 1.2em;
-  background-color: currentColor;
-  margin-left: -1px;
+.remote-cursor .cursor-label {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  background: rgba(30, 30, 30, 0.85);
+  color: #e0e0e0;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
