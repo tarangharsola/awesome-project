@@ -1,15 +1,32 @@
-import { applyCRDTOperation, getTextFromCRDT } from "./conflict/strategies/crdt";
-import type { Operation } from "./types/editor";
-import type { CRDTState } from "./conflict/strategies/types";
+import { applyCRDTOperation } from './conflict/strategies/crdt';
+import { applyOTOperation } from './conflict/strategies/ot';
+import { ConflictStrategy } from './conflict/types';
 
-/**
- * Resolve a sequence of operations using the CRDT strategy.
- * Returns the final document text.
- */
-export function resolveOperations(ops: Operation[], initialState: CRDTState): string {
-  let state: CRDTState = { ...initialState };
-  ops.forEach((op) => {
-    state = applyCRDTOperation(state, op);
-  });
-  return getTextFromCRDT(state);
-}
+type Resolver = {
+  applyLocal: (op: any) => any;
+  applyRemote: (op: any) => any;
+};
+
+export const useConflictResolver = (
+  strategy: ConflictStrategy = 'crdt'
+): Resolver => {
+  const applyLocal = (op: any) => {
+    // Local operations are sent unchanged; merging happens on remote side.
+    return op;
+  };
+
+  const applyRemote = (op: any) => {
+    try {
+      if (strategy === 'crdt') {
+        return applyCRDTOperation(op);
+      }
+      return applyOTOperation(op);
+    } catch (e) {
+      // If CRDT fails, fall back to OT to keep collaboration alive.
+      console.error('CRDT apply failed, falling back to OT', e);
+      return applyOTOperation(op);
+    }
+  };
+
+  return { applyLocal, applyRemote };
+};
