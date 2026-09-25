@@ -1,62 +1,54 @@
 import React, { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store';
-import { useEditor } from '../utils/useEditor';
-import { useFormattingDefaults } from '../utils/useFormattingDefaults';
+import { AppState } from '../store';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { createEditor, EditorView } from '@codemirror/basic-setup';
+import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { html } from '@codemirror/lang-html';
+import { getDefaultContent } from '../utils/useFormattingDefaults';
 
 export const Editor: React.FC = () => {
   const editorRef = useRef<HTMLDivElement>(null);
-  const { content, language } = useSelector((state: RootState) => state.editor);
-  const formattingDefaults = useFormattingDefaults();
+  const viewRef = useRef<EditorView | null>(null);
+  const language = useSelector((state: AppState) => state.editor.language);
+  const { sendMessage } = useWebSocket();
 
-  const { setContent, getEditorInstance } = useEditor({
-    container: editorRef.current,
-    initialContent: content,
-    language,
-    formatting: formattingDefaults,
-  });
-
-  // Sync Redux content changes to the editor instance
+  // Initialize editor
   useEffect(() => {
-    const editor = getEditorInstance();
-    if (editor && editor.getValue() !== content) {
-      editor.setValue(content);
+    if (editorRef.current && !viewRef.current) {
+      const startDoc = getDefaultContent(language);
+      const extensions = [
+        language === 'javascript' ? javascript() : null,
+        language === 'python' ? python() : null,
+        language === 'html' ? html() : null,
+      ].filter(Boolean);
+
+      viewRef.current = new EditorView({
+        doc: startDoc,
+        extensions,
+        parent: editorRef.current,
+        dispatch: (tr) => {
+          viewRef.current?.update([tr]);
+          if (tr.docChanged) {
+            const content = viewRef.current?.state.doc.toString() ?? '';
+            sendMessage({ type: 'content', payload: content });
+          }
+        },
+      });
     }
-  }, [content, getEditorInstance]);
+    // Update language extensions when language changes
+    if (viewRef.current) {
+      const newExt = language === 'javascript' ? javascript() : language === 'python' ? python() : html();
+      viewRef.current.dispatch({
+        effects: EditorView.reconfigure.of([newExt]),
+      });
+    }
+  }, [language, sendMessage]);
 
-  // Update Redux when editor content changes
-  useEffect(() => {
-    const editor = getEditorInstance();
-    if (!editor) return;
-    const handleChange = () => {
-      const newValue = editor.getValue();
-      if (newValue !== content) {
-        setContent(newValue);
-      }
-    };
-    editor.on('change', handleChange);
-    return () => {
-      editor.off('change', handleChange);
-    };
-  }, [content, getEditorInstance, setContent]);
+  // Attach keyboard shortcuts
+  useKeyboardShortcuts(viewRef);
 
-  // Keyboard shortcuts (save, format)
-  useKeyboardShortcuts({
-    onSave: () => {
-      // Placeholder: could trigger a download or server save
-      console.log('Document saved');
-    },
-    onFormat: () => {
-      const editor = getEditorInstance();
-      if (editor) {
-        // Assuming the editor instance provides a format method
-        if (typeof (editor as any).format === 'function') {
-          (editor as any).format();
-        }
-      }
-    },
-  });
-
-  return <div ref={editorRef} className="editor-container" />;
+  return <div className="editor" ref={editorRef} />;
 };

@@ -1,11 +1,6 @@
-import { UPDATE_CONTENT, SET_LANGUAGE } from './actionTypes';
+export const SET_LANGUAGE = 'SET_LANGUAGE';
 
-export const updateContent = (content: string) => ({
-  type: UPDATE_CONTENT,
-  payload: content,
-});
-
-export const setLanguage = (language: string) => ({
+export const setLanguage = (language: 'javascript' | 'python' | 'html') => ({
   type: SET_LANGUAGE,
   payload: language,
 });
