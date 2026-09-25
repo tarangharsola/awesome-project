@@ -1,46 +1,32 @@
 .user-list {
-  background-color: #2b2b2b;
-  color: #e0e0e0;
-  padding: 12px;
-  border-radius: 8px;
-  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: #1e1e1e;
+  border-radius: 4px;
+  max-height: 60vh;
   overflow-y: auto;
-  font-family: var(--font-family, sans-serif);
 }
 
 .user-item {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
-  font-size: 14px;
+  font-size: 0.9rem;
+  color: #e0e0e0;
 }
 
-.user-color {
-  width: 12px;
-  height: 12px;
+.user-color-indicator {
+  width: 0.9rem;
+  height: 0.9rem;
   border-radius: 50%;
-  margin-right: 8px;
+  margin-right: 0.5rem;
   flex-shrink: 0;
-  background-color: var(--user-color, #777);
-  border: 1px solid #444;
+  border: 1px solid #555;
 }
 
-.user-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Scrollbar styling for dark mode */
-.user-list::-webkit-scrollbar {
-  width: 8px;
-}
-
-.user-list::-webkit-scrollbar-track {
-  background: #1e1e1e;
-}
-
-.user-list::-webkit-scrollbar-thumb {
-  background-color: #555;
-  border-radius: 4px;
+/* Ensure hover state is clear without neon colors */
+.user-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
 }
