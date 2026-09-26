@@ -1,56 +1,32 @@
-import React, { useState, useEffect } from "react";
-import { useWebSocketConnection } from "../hooks/useWebSocketConnection";
-import { WebSocketMessage, WSMessageType } from "../types/websocketMessage";
-import UserList from "./UserList";
-import Editor from "./Editor";
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { useCollaboration } from '../hooks/useCollaboration';
+import Editor from './Editor';
+import UserList from './UserList';
+import LanguageSelector from './LanguageSelector';
+import ConnectionStatus from './ConnectionStatus';
 
-interface RoomProps {
-  roomId: string;
-  username: string;
-  color: string;
-}
-
-const Room: React.FC<RoomProps> = ({ roomId, username, color }) => {
-  const [users, setUsers] = useState<Array<{ id: string; name: string; color: string }>>([]);
-  const [connected, setConnected] = useState(false);
-
-  const handleMessage = (msg: WebSocketMessage) => {
-    switch (msg.type) {
-      case WSMessageType.USER_JOIN:
-        setUsers((prev) => [...prev, msg.payload]);
-        break;
-      case WSMessageType.USER_LEAVE:
-        setUsers((prev) => prev.filter((u) => u.id !== msg.payload.id));
-        break;
-      case WSMessageType.USER_LIST:
-        setUsers(msg.payload);
-        break;
-      default:
-        break;
-    }
-  };
-
-  const { sendMessage } = useWebSocketConnection({
-    url: `${process.env.REACT_APP_WS_URL}/${roomId}`,
-    onMessage: handleMessage,
-    onOpen: () => setConnected(true),
-    onClose: () => setConnected(false),
-  });
-
-  // Notify server of current user when connection is ready
-  useEffect(() => {
-    if (connected) {
-      sendMessage({
-        type: WSMessageType.USER_JOIN,
-        payload: { id: roomId, name: username, color },
-      });
-    }
-  }, [connected, sendMessage, roomId, username, color]);
+const Room: React.FC = () => {
+  const { roomId } = useParams<{ roomId: string }>();
+  const { socket, status } = useWebSocket(roomId);
+  const { document, applyRemoteChange, users, setLanguage } = useCollaboration(socket);
 
   return (
-    <div className="room">
-      <UserList users={users} />
-      <Editor roomId={roomId} username={username} color={color} sendMessage={sendMessage} />
+    <div className="room-container">
+      <ConnectionStatus status={status} />
+      <div className="main">
+        <Editor
+          content={document.content}
+          onChange={applyRemoteChange}
+          language={document.language}
+          users={users}
+        />
+        <aside className="sidebar">
+          <UserList users={users} />
+          <LanguageSelector current={document.language} onSelect={setLanguage} />
+        </aside>
+      </div>
     </div>
   );
 };

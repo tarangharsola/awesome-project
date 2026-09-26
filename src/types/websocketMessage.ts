@@ -1,28 +1,46 @@
 export enum WSMessageType {
-  USER_JOIN = "USER_JOIN",
-  USER_LEAVE = "USER_LEAVE",
-  USER_LIST = "USER_LIST",
-  DOCUMENT_CHANGE = "DOCUMENT_CHANGE",
-  CURSOR_UPDATE = "CURSOR_UPDATE",
+  JOIN = 'join',
+  LEAVE = 'leave',
+  CHANGE = 'change',
+  CURSOR = 'cursor',
+  PRESENCE = 'presence',
+  LANGUAGE = 'language'
 }
 
-export interface WSUser {
-  id: string;
-  name: string;
+export interface WSBaseMessage {
+  type: WSMessageType;
+  roomId: string;
+  userId: string;
+}
+
+export interface WSJoinMessage extends WSBaseMessage {
+  type: WSMessageType.JOIN;
+  username: string;
   color: string;
 }
 
-export interface WSDocumentChange {
-  content: string;
-  version: number;
+export interface WSLeaveMessage extends WSBaseMessage {
+  type: WSMessageType.LEAVE;
 }
 
-export interface WSCursorUpdate {
-  userId: string;
-  position: number;
+export interface WSChangeMessage extends WSBaseMessage {
+  type: WSMessageType.CHANGE;
+  delta: any; // TODO: replace with concrete delta type
 }
 
-export interface WebSocketMessage {
-  type: WSMessageType;
-  payload: any;
+export interface WSCursorMessage extends WSBaseMessage {
+  type: WSMessageType.CURSOR;
+  position: { line: number; ch: number };
 }
+
+export interface WSLanguageMessage extends WSBaseMessage {
+  type: WSMessageType.LANGUAGE;
+  language: string;
+}
+
+export type WSMessage =
+  | WSJoinMessage
+  | WSLeaveMessage
+  | WSChangeMessage
+  | WSCursorMessage
+  | WSLanguageMessage;

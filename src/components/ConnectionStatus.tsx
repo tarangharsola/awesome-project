@@ -1,35 +1,22 @@
 import React from 'react';
-import './ConnectionStatus.css';
-import { ConnectionStatus } from '../hooks/useWebSocket';
+import { ConnectionStatus as ConnStatus } from '../types/connection';
 
-type Props = {
-  status: ConnectionStatus;
-};
+interface Props {
+  status: ConnStatus;
+}
 
-/**
- * Visual indicator of the WebSocket connection state.
- * Shows a colored dot and a textual label.
- */
-export const ConnectionStatus: React.FC<Props> = ({ status }) => {
-  const getLabel = () => {
-    switch (status) {
-      case 'connected':
-        return 'Connected';
-      case 'connecting':
-        return 'Connecting...';
-      case 'disconnected':
-        return 'Disconnected';
-      default:
-        return 'Unknown';
-    }
-  };
-
-  const getClass = () => `connection-status ${status}`;
-
+const ConnectionStatus: React.FC<Props> = ({ status }) => {
+  const color =
+    status === 'connected'
+      ? 'green'
+      : status === 'connecting'
+      ? 'orange'
+      : 'red';
   return (
-    <div className={getClass()}>
-      <span className="dot" />
-      <span className="label">{getLabel()}</span>
+    <div className="connection-status" style={{ color }}>
+      {status}
     </div>
   );
 };
+
+export default ConnectionStatus;
