@@ -1,89 +1,78 @@
-import { useEffect, useRef } from 'react';
-import { useWebSocket } from './useWebSocket';
-import { useConflictResolver } from './useConflictResolver';
-import { User } from '../types';
-import { WebSocketMessage } from '../types/websocketMessage';
+import { useEffect, useRef, useState } from "react";
+import { useWebSocket } from "./useWebSocket";
+import { resolveConflict, Operation } from "../utils/conflictResolver";
+import { User, Cursor } from "../types";
 
-type CollaborationOptions = {
-  roomId: string;
-  user: User;
-  onDocumentChange: (content: string) => void;
-  onRemoteCursors: (
-    cursors: Record<string, { position: number; color: string; name: string }>
-  ) => void;
-};
+export function useCollaboration(roomId: string, username: string, color: string) {
+  const { sendMessage, addMessageListener, status } = useWebSocket(`${process.env.REACT_APP_WS_URL}/${roomId}`);
+  const [doc, setDoc] = useState<string>("");
+  const [users, setUsers] = useState<Record<string, User>>({});
+  const pendingOpsRef = useRef<Operation[]>([]);
 
-export const useCollaboration = ({
-  roomId,
-  user,
-  onDocumentChange,
-  onRemoteCursors,
-}: CollaborationOptions) => {
-  const { sendMessage, connected } = useWebSocket(
-    `${process.env.REACT_APP_WS_URL}/${roomId}`,
-    { onMessage: handleMessage }
-  );
-
-  const { applyLocal, applyRemote } = useConflictResolver();
-
-  const pendingOpsRef = useRef<WebSocketMessage[]>([]);
-
-  function handleMessage(msg: WebSocketMessage) {
-    switch (msg.type) {
-      case 'document':
-        onDocumentChange(msg.payload.content);
-        break;
-      case 'operation':
-        applyRemote(msg.payload);
-        break;
-      case 'presence':
-        onRemoteCursors(msg.payload);
-        break;
-      case 'sync-request':
-        // server will respond with full document
-        break;
-      default:
-        break;
-    }
-  }
-
-  const sendLocalOperation = (op: any) => {
-    const msg: WebSocketMessage = { type: 'operation', payload: op };
-    if (connected) {
-      sendMessage(msg);
-    } else {
-      pendingOpsRef.current.push(msg);
-    }
-  };
-
-  const broadcastPresence = () => {
-    const msg: WebSocketMessage = {
-      type: 'presence',
-      payload: {
-        userId: user.id,
-        name: user.name,
-        color: user.color,
-        position: 0,
-      },
-    };
-    sendMessage(msg);
-  };
-
-  const requestSync = () => {
-    const msg: WebSocketMessage = { type: 'sync-request', payload: {} };
-    sendMessage(msg);
-  };
-
-  // When connection (initial or after reconnection) is established, broadcast presence,
-  // request the latest document state, and flush any queued operations.
+  // Join room when connected
   useEffect(() => {
-    if (connected) {
-      broadcastPresence();
-      requestSync();
-      pendingOpsRef.current.forEach((msg) => sendMessage(msg));
-      pendingOpsRef.current = [];
+    if (status === "connected") {
+      sendMessage({ type: "join", username, color, userId: generateId() });
     }
-  }, [connected, user]);
+  }, [status, username, color, sendMessage]);
 
-  return { applyLocal, sendLocalOperation };
-};
+  // Listen for incoming messages
+  useEffect(() => {
+    const unsubscribe = addMessageListener((msg) => {
+      switch (msg.type) {
+        case "join":
+          setUsers((prev) => ({ ...prev, [msg.userId]: { username: msg.username, color: msg.color, cursor: null } }));
+          break;
+        case "leave":
+          setUsers((prev) => {
+            const copy = { ...prev };
+            delete copy[msg.userId];
+            return copy;
+          });
+          break;
+        case "cursor":
+          setUsers((prev) => ({
+            ...prev,
+            [msg.userId]: { ...(prev[msg.userId] || {}), cursor: msg.cursor },
+          }));
+          break;
+        case "operation":
+          setDoc((current) => resolveConflict(current, msg.operation));
+          break;
+        case "sync_request":
+          sendMessage({ type: "sync_response", doc, users });
+          break;
+        case "sync_response":
+          setDoc(msg.doc);
+          setUsers(msg.users);
+          break;
+        default:
+          break;
+      }
+    });
+    return unsubscribe;
+  }, [addMessageListener, sendMessage, doc, users]);
+
+  // Request full sync after reconnection
+  useEffect(() => {
+    if (status === "connected") {
+      sendMessage({ type: "sync_request" });
+    }
+  }, [status, sendMessage]);
+
+  const applyLocalOperation = (op: Operation) => {
+    setDoc((current) => resolveConflict(current, op));
+    pendingOpsRef.current.push(op);
+    sendMessage({ type: "operation", operation: op });
+  };
+
+  const updateCursor = (cursor: Cursor) => {
+    sendMessage({ type: "cursor", cursor });
+  };
+
+  return { doc, users, applyLocalOperation, updateCursor, status };
+}
+
+function generateId() {
+  return Math.random().toString(36).substr(2, 9);
+}

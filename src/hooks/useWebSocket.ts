@@ -1,77 +1,71 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from "react";
 
-type ConnectionStatus = 'connected' | 'connecting' | 'disconnected';
+type Message = any;
+type Status = "connected" | "connecting" | "disconnected";
 
-type WebSocketMessage = any; // adjust as needed
+export function useWebSocket(url: string) {
+  const wsRef = useRef<WebSocket | null>(null);
+  const [status, setStatus] = useState<Status>("connecting");
+  const pendingRef = useRef<Message[]>([]);
+  const reconnectAttemptsRef = useRef(0);
+  const maxDelay = 30000;
 
-interface UseWebSocketReturn {
-  socket: WebSocket | null;
-  status: ConnectionStatus;
-  sendMessage: (msg: WebSocketMessage) => void;
-}
+  const sendMessage = useCallback((msg: Message) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(msg));
+    } else {
+      pendingRef.current.push(msg);
+    }
+  }, []);
 
-/**
- * Hook that manages a WebSocket connection with exponential backoff reconnection.
- * @param url The WebSocket endpoint URL.
- */
-export function useWebSocket(url: string): UseWebSocketReturn {
-  const [status, setStatus] = useState<ConnectionStatus>('connecting');
-  const socketRef = useRef<WebSocket | null>(null);
-  const backoffRef = useRef<number>(1000); // start with 1s
-  const maxBackoff = 30000; // 30s
-
-  const clearSocket = useCallback(() => {
-    if (socketRef.current) {
-      socketRef.current.onopen = null;
-      socketRef.current.onclose = null;
-      socketRef.current.onerror = null;
-      socketRef.current.onmessage = null;
-      socketRef.current.close();
-      socketRef.current = null;
+  const flushPending = useCallback(() => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      pendingRef.current.forEach((msg) => wsRef.current?.send(JSON.stringify(msg)));
+      pendingRef.current = [];
     }
   }, []);
 
   const connect = useCallback(() => {
-    setStatus('connecting');
-    const ws = new WebSocket(url);
-    socketRef.current = ws;
+    setStatus("connecting");
+    wsRef.current = new WebSocket(url);
 
-    ws.onopen = () => {
-      setStatus('connected');
-      backoffRef.current = 1000; // reset backoff on success
+    wsRef.current.onopen = () => {
+      setStatus("connected");
+      reconnectAttemptsRef.current = 0;
+      flushPending();
     };
 
-    ws.onclose = () => {
-      setStatus('disconnected');
-      // schedule reconnection with backoff
-      const timeout = backoffRef.current;
-      backoffRef.current = Math.min(backoffRef.current * 2, maxBackoff);
-      setTimeout(() => {
-        connect();
-      }, timeout);
+    wsRef.current.onclose = () => {
+      setStatus("disconnected");
+      const attempt = ++reconnectAttemptsRef.current;
+      const delay = Math.min(1000 * 2 ** attempt, maxDelay);
+      setTimeout(connect, delay);
     };
 
-    ws.onerror = () => {
-      // Errors also trigger close which will handle reconnection
-      ws.close();
+    wsRef.current.onerror = () => {
+      wsRef.current?.close();
     };
-  }, [url]);
-
-  const sendMessage = useCallback((msg: WebSocketMessage) => {
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify(msg));
-    } else {
-      console.warn('WebSocket not open. Message not sent:', msg);
-    }
-  }, []);
+  }, [url, flushPending]);
 
   useEffect(() => {
     connect();
     return () => {
-      clearSocket();
+      wsRef.current?.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connect]);
+
+  const addMessageListener = useCallback((handler: (msg: any) => void) => {
+    const listener = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        handler(data);
+      } catch {
+        // ignore malformed messages
+      }
+    };
+    wsRef.current?.addEventListener("message", listener);
+    return () => wsRef.current?.removeEventListener("message", listener);
   }, []);
 
-  return { socket: socketRef.current, status, sendMessage };
+  return { sendMessage, addMessageListener, status };
 }
