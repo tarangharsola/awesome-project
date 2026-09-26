@@ -1,7 +1,11 @@
-export const UPDATE_CONTENT = 'UPDATE_CONTENT';
-export const SET_USERS = 'SET_USERS';
-export const USER_JOINED = 'USER_JOINED';
-export const USER_LEFT = 'USER_LEFT';
-export const SET_CURSOR = 'SET_CURSOR';
-export const SET_CONNECTION_STATUS = 'SET_CONNECTION_STATUS';
-export const SET_LANGUAGE = 'SET_LANGUAGE';
+// src/store/actionTypes.ts
+export enum EditorActionTypes {
+  UPDATE_CONTENT = 'UPDATE_CONTENT',
+  SET_LANGUAGE = 'SET_LANGUAGE',
+  FORMAT_DOCUMENT = 'FORMAT_DOCUMENT',
+  // ... other action types
+}
+
+export enum UserActionTypes {
+  // ... user action types
+}

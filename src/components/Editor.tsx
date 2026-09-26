@@ -1,54 +1,58 @@
+// src/components/Editor.tsx
 import React, { useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { AppState } from '../store';
-import { useWebSocket } from '../hooks/useWebSocket';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateContent, formatDocument } from '../store/editorActions';
+import { EditorState } from '../store/editorReducer';
 import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { createEditor, EditorView } from '@codemirror/basic-setup';
+import { useFormattingDefaults } from '../utils/useFormattingDefaults';
+import { Controlled as ControlledEditor } from '@codemirror/react'; // Assuming CodeMirror React wrapper
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { html } from '@codemirror/lang-html';
-import { getDefaultContent } from '../utils/useFormattingDefaults';
 
 export const Editor: React.FC = () => {
+  const dispatch = useDispatch();
   const editorRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
-  const language = useSelector((state: AppState) => state.editor.language);
-  const { sendMessage } = useWebSocket();
+  const { content, language } = useSelector< { editor: EditorState }, EditorState>((state) => state.editor);
 
-  // Initialize editor
+  // Apply keyboard shortcuts (e.g., Ctrl+S to format)
+  useKeyboardShortcuts(editorRef, dispatch);
+
+  // Update formatting defaults when language changes
+  const formattingDefaults = useFormattingDefaults(language);
+
+  // Effect to apply formatting defaults to the editor instance if needed
   useEffect(() => {
-    if (editorRef.current && !viewRef.current) {
-      const startDoc = getDefaultContent(language);
-      const extensions = [
-        language === 'javascript' ? javascript() : null,
-        language === 'python' ? python() : null,
-        language === 'html' ? html() : null,
-      ].filter(Boolean);
+    // This placeholder assumes the editor instance can accept formatting options via a method.
+    // The actual implementation depends on the editor library used.
+    // For CodeMirror, you might configure extensions here.
+  }, [language, formattingDefaults]);
 
-      viewRef.current = new EditorView({
-        doc: startDoc,
-        extensions,
-        parent: editorRef.current,
-        dispatch: (tr) => {
-          viewRef.current?.update([tr]);
-          if (tr.docChanged) {
-            const content = viewRef.current?.state.doc.toString() ?? '';
-            sendMessage({ type: 'content', payload: content });
-          }
-        },
-      });
+  const handleChange = (value: string) => {
+    dispatch(updateContent(value));
+  };
+
+  const getExtensions = () => {
+    switch (language) {
+      case 'javascript':
+        return [javascript()];
+      case 'python':
+        return [python()];
+      case 'html':
+        return [html()];
+      default:
+        return [];
     }
-    // Update language extensions when language changes
-    if (viewRef.current) {
-      const newExt = language === 'javascript' ? javascript() : language === 'python' ? python() : html();
-      viewRef.current.dispatch({
-        effects: EditorView.reconfigure.of([newExt]),
-      });
-    }
-  }, [language, sendMessage]);
+  };
 
-  // Attach keyboard shortcuts
-  useKeyboardShortcuts(viewRef);
-
-  return <div className="editor" ref={editorRef} />;
+  return (
+    <div ref={editorRef} className="editor-container">
+      <ControlledEditor
+        value={content}
+        extensions={getExtensions()}
+        onChange={(value) => handleChange(value)}
+        // Additional props such as lineNumbers, theme, etc., can be added here.
+      />
+    </div>
+  );
 };

@@ -1,41 +1,35 @@
-import { useEffect } from 'react';
-import { EditorView } from '@codemirror/view';
-import { formatCode } from './formatCode';
+// src/utils/useKeyboardShortcuts.ts
+import { Dispatch } from 'react';
+import { formatDocument } from '../store/editorActions';
+import { AnyAction } from 'redux';
 
 /**
- * Hook that attaches common keyboard shortcuts to a CodeMirror editor view.
- * - Ctrl+S / Cmd+S : Prevent default and emit a "save" event via WebSocket.
- * - Ctrl+Shift+F / Cmd+Shift+F : Format the current document.
+ * Registers common keyboard shortcuts for the collaborative editor.
+ * Currently supports:
+ *   - Ctrl/Cmd + S : Format the document using the configured formatter.
+ *   - Ctrl/Cmd + Z : Undo (handled by the editor library itself).
+ *   - Ctrl/Cmd + Y / Shift + Ctrl/Cmd + Z : Redo (handled by the editor library).
  */
-export const useKeyboardShortcuts = (viewRef: React.MutableRefObject<EditorView | null>) => {
-  useEffect(() => {
-    const view = viewRef.current;
-    if (!view) return;
+export const useKeyboardShortcuts = (
+  editorContainerRef: React.RefObject<HTMLElement>,
+  dispatch: Dispatch<AnyAction>
+) => {
+  React.useEffect(() => {
+    const target = editorContainerRef.current ?? window;
+    const handler = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
 
-    const keydown = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().includes('MAC');
-      const ctrl = isMac ? e.metaKey : e.ctrlKey;
-
-      // Save shortcut
-      if (ctrl && e.key === 's') {
+      // Format document shortcut: Ctrl/Cmd + S
+      if (ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        // Emit a custom event that higher level components can listen to.
-        const saveEvent = new CustomEvent('editor-save', { detail: { content: view.state.doc.toString() } });
-        window.dispatchEvent(saveEvent);
+        dispatch(formatDocument());
         return;
       }
-
-      // Format shortcut
-      if (ctrl && e.shiftKey && e.key.toLowerCase() === 'f') {
-        e.preventDefault();
-        const formatted = formatCode(view.state.doc.toString(), view.state.facet);
-        view.dispatch({
-          changes: { from: 0, to: view.state.doc.length, insert: formatted },
-        });
-      }
+      // Additional shortcuts can be added here.
     };
 
-    window.addEventListener('keydown', keydown);
-    return () => window.removeEventListener('keydown', keydown);
-  }, [viewRef]);
+    target.addEventListener('keydown', handler);
+    return () => target.removeEventListener('keydown', handler);
+  }, [editorContainerRef, dispatch]);
 };
