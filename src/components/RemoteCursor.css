@@ -1,29 +1,29 @@
 .remote-cursor {
   position: absolute;
   pointer-events: none;
-  z-index: 10;
 }
 
-.cursor-label {
+.remote-cursor .cursor-label {
   position: absolute;
-  top: -1.4em;
+  top: -1.5em;
   left: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
   padding: 2px 4px;
-  font-size: 0.75rem;
-  background-color: rgba(30, 30, 30, 0.9);
-  color: #e0e0e0;
   border-radius: 3px;
+  font-size: 0.75rem;
   white-space: nowrap;
-  border: 1px solid #555;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
-/* Cursor caret styling */
-.remote-cursor::after {
-  content: '';
-  display: block;
+.remote-cursor .cursor-indicator {
   width: 2px;
   height: 1.2em;
-  background-color: currentColor;
-  margin-left: -1px;
+  background: var(--user-color, #888);
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }

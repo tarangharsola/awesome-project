@@ -1,32 +1,47 @@
 .user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background-color: #1e1e1e;
+  background: #1e1e1e;
+  color: #dddddd;
+  padding: 8px;
   border-radius: 4px;
-  max-height: 60vh;
+  max-height: 300px;
   overflow-y: auto;
 }
 
 .user-item {
   display: flex;
   align-items: center;
+  margin-bottom: 6px;
   font-size: 0.9rem;
-  color: #e0e0e0;
 }
 
-.user-color-indicator {
-  width: 0.9rem;
-  height: 0.9rem;
+.user-color {
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  margin-right: 0.5rem;
+  background: var(--user-color, #888);
+  margin-right: 8px;
   flex-shrink: 0;
-  border: 1px solid #555;
 }
 
-/* Ensure hover state is clear without neon colors */
-.user-item:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
+.user-name {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4caf50; /* online */
+  margin-left: 8px;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .user-list {
+    background: #2b2b2b;
+    color: #e0e0e0;
+  }
 }
