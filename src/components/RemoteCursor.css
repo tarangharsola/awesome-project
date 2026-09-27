@@ -1,29 +1,17 @@
 .remote-cursor {
   position: absolute;
   pointer-events: none;
+  font-size: 0.9rem;
+  z-index: 10;
 }
 
 .remote-cursor .cursor-label {
-  position: absolute;
-  top: -1.5em;
-  left: 0;
-  background: rgba(0, 0, 0, 0.6);
-  color: #ffffff;
+  display: inline-block;
   padding: 2px 4px;
   border-radius: 3px;
-  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-weight: 500;
   white-space: nowrap;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-}
-
-.remote-cursor .cursor-indicator {
-  width: 2px;
-  height: 1.2em;
-  background: var(--user-color, #888);
-  animation: blink 1s step-start infinite;
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+  margin-left: 2px;
 }
