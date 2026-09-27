@@ -1,78 +1,64 @@
-import { useEffect, useRef, useState } from "react";
-import { useWebSocket } from "./useWebSocket";
-import { resolveConflict, Operation } from "../utils/conflictResolver";
-import { User, Cursor } from "../types";
+import { useEffect, useState } from 'react';
+import { WebSocketMessage } from '../types/websocketMessage';
+import { CollaborationMessage } from '../types/collaborationMessage';
+import useWebSocket from './useWebSocket';
 
-export function useCollaboration(roomId: string, username: string, color: string) {
-  const { sendMessage, addMessageListener, status } = useWebSocket(`${process.env.REACT_APP_WS_URL}/${roomId}`);
-  const [doc, setDoc] = useState<string>("");
-  const [users, setUsers] = useState<Record<string, User>>({});
-  const pendingOpsRef = useRef<Operation[]>([]);
+export interface CollaborationState {
+  content: string;
+  cursors: Record<string, number>;
+  users: Record<string, { color: string }>;
+}
 
-  // Join room when connected
+export const useCollaboration = (sessionId: string, username: string, color: string) => {
+  const { sendMessage, lastMessage, readyState } = useWebSocket(`wss://example.com/${sessionId}`);
+  const [state, setState] = useState<CollaborationState>({
+    content: '',
+    cursors: {},
+    users: { [username]: { color } },
+  });
+
+  // announce presence when connection opens
   useEffect(() => {
-    if (status === "connected") {
-      sendMessage({ type: "join", username, color, userId: generateId() });
+    if (readyState === WebSocket.OPEN) {
+      const joinMsg: CollaborationMessage = { type: 'join', username, color };
+      sendMessage({ sessionId, payload: joinMsg });
     }
-  }, [status, username, color, sendMessage]);
+  }, [readyState, sendMessage, sessionId, username, color]);
 
-  // Listen for incoming messages
+  // handle inbound messages
   useEffect(() => {
-    const unsubscribe = addMessageListener((msg) => {
+    if (!lastMessage) return;
+    const msg = (lastMessage as WebSocketMessage).payload as CollaborationMessage;
+    setState(prev => {
+      const next = { ...prev };
       switch (msg.type) {
-        case "join":
-          setUsers((prev) => ({ ...prev, [msg.userId]: { username: msg.username, color: msg.color, cursor: null } }));
+        case 'join':
+          next.users[msg.username] = { color: msg.color };
           break;
-        case "leave":
-          setUsers((prev) => {
-            const copy = { ...prev };
-            delete copy[msg.userId];
-            return copy;
-          });
+        case 'leave':
+          delete next.users[msg.username];
+          delete next.cursors[msg.username];
           break;
-        case "cursor":
-          setUsers((prev) => ({
-            ...prev,
-            [msg.userId]: { ...(prev[msg.userId] || {}), cursor: msg.cursor },
-          }));
+        case 'cursor':
+          next.cursors[msg.username] = msg.position;
           break;
-        case "operation":
-          setDoc((current) => resolveConflict(current, msg.operation));
-          break;
-        case "sync_request":
-          sendMessage({ type: "sync_response", doc, users });
-          break;
-        case "sync_response":
-          setDoc(msg.doc);
-          setUsers(msg.users);
-          break;
-        default:
+        case 'content':
+          next.content = msg.delta; // simple replace; real merging handled elsewhere
           break;
       }
+      return next;
     });
-    return unsubscribe;
-  }, [addMessageListener, sendMessage, doc, users]);
+  }, [lastMessage]);
 
-  // Request full sync after reconnection
-  useEffect(() => {
-    if (status === "connected") {
-      sendMessage({ type: "sync_request" });
-    }
-  }, [status, sendMessage]);
-
-  const applyLocalOperation = (op: Operation) => {
-    setDoc((current) => resolveConflict(current, op));
-    pendingOpsRef.current.push(op);
-    sendMessage({ type: "operation", operation: op });
+  const broadcastCursor = (position: number) => {
+    const cursorMsg: CollaborationMessage = { type: 'cursor', username, position };
+    sendMessage({ sessionId, payload: cursorMsg });
   };
 
-  const updateCursor = (cursor: Cursor) => {
-    sendMessage({ type: "cursor", cursor });
+  const broadcastContent = (delta: string, version: number) => {
+    const contentMsg: CollaborationMessage = { type: 'content', delta, version };
+    sendMessage({ sessionId, payload: contentMsg });
   };
 
-  return { doc, users, applyLocalOperation, updateCursor, status };
-}
-
-function generateId() {
-  return Math.random().toString(36).substr(2, 9);
-}
+  return { state, broadcastCursor, broadcastContent, readyState };
+};

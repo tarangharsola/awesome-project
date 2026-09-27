@@ -1,30 +1,14 @@
-import { ConflictStrategy, ConflictOperation } from '../types/conflict';
-import { useCRDT } from './useCRDT';
-import { useOT } from './useOT';
+import { CRDTStrategy } from '../utils/conflict/strategies/crdt';
+import { OTStrategy } from '../utils/conflict/strategies/ot';
+import { ConflictStrategy } from '../utils/conflict/types';
 
-/**
- * Central hook that selects a conflict‑resolution strategy (CRDT or OT)
- * and delegates operation handling to the corresponding specialized hook.
- */
-export const useConflictResolver = (
-  strategy: ConflictStrategy,
-  initialDoc: string
-) => {
-  // Initialise both resolvers once; the unused one remains idle.
-  const crdtResolver = useCRDT(initialDoc);
-  const otResolver = useOT(initialDoc);
+export type ResolveFn = (local: string, remote: string) => string;
 
-  const resolverMap = {
-    [ConflictStrategy.CRDT]: crdtResolver,
-    [ConflictStrategy.OT]: otResolver,
-  } as const;
-
-  const activeResolver = resolverMap[strategy];
-
-  const applyOperation = (op: ConflictOperation) =>
-    activeResolver.applyOperation(op);
-
-  const getDocument = () => activeResolver.getDocument();
-
-  return { applyOperation, getDocument };
+export const createResolver = (strategy: ConflictStrategy = 'crdt'): ResolveFn => {
+  if (strategy === 'crdt') {
+    const crdt = new CRDTStrategy();
+    return (local, remote) => crdt.apply(local, remote);
+  }
+  const ot = new OTStrategy();
+  return (local, remote) => ot.transform(local, remote);
 };
