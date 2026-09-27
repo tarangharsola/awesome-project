@@ -1,12 +1,13 @@
-import { crdtApply } from "./conflict/strategies/crdt";
-import { otApply } from "./conflict/strategies/ot";
+import { applyOperationOT } from './conflict/strategies/ot';
+import { applyOperationCRDT } from './conflict/strategies/crdt';
+import { EditorOperation } from '../types/editor';
 
-export type Operation = any;
-
-export function resolveConflict(current: string, operation: Operation): string {
+export const applyRemoteOperation = (op: EditorOperation) => {
   try {
-    return crdtApply(current, operation);
-  } catch {
-    return otApply(current, operation);
+    applyOperationOT(op);
+  } catch (e) {
+    // If OT fails (e.g., due to out‑of‑order ops), fall back to CRDT merge
+    console.warn('Operational Transform failed, falling back to CRDT', e);
+    applyOperationCRDT(op);
   }
-}
+};

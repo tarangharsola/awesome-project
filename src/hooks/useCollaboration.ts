@@ -1,64 +1,71 @@
-import { useEffect, useState } from 'react';
-import { WebSocketMessage } from '../types/websocketMessage';
+import { useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useWebSocket } from './useWebSocket';
+import { applyRemoteOperation } from '../utils/conflictResolver';
+import { setDocumentContent } from '../store/editorActions';
+import { addUser, removeUser, updateUserPresence } from '../store/users';
+import { RootState } from '../store';
 import { CollaborationMessage } from '../types/collaborationMessage';
-import useWebSocket from './useWebSocket';
+import { getUserInfo } from '../store/user';
 
-export interface CollaborationState {
-  content: string;
-  cursors: Record<string, number>;
-  users: Record<string, { color: string }>;
-}
+export const useCollaboration = () => {
+  const dispatch = useDispatch();
+  const user = getUserInfo();
+  const pendingOps = useRef<CollaborationMessage[]>([]);
 
-export const useCollaboration = (sessionId: string, username: string, color: string) => {
-  const { sendMessage, lastMessage, readyState } = useWebSocket(`wss://example.com/${sessionId}`);
-  const [state, setState] = useState<CollaborationState>({
-    content: '',
-    cursors: {},
-    users: { [username]: { color } },
-  });
-
-  // announce presence when connection opens
-  useEffect(() => {
-    if (readyState === WebSocket.OPEN) {
-      const joinMsg: CollaborationMessage = { type: 'join', username, color };
-      sendMessage({ sessionId, payload: joinMsg });
+  const handleMessage = (msg: CollaborationMessage) => {
+    switch (msg.type) {
+      case 'operation':
+        applyRemoteOperation(msg.payload);
+        break;
+      case 'presence':
+        if (msg.payload.username !== user.name) {
+          dispatch(updateUserPresence(msg.payload));
+        }
+        break;
+      case 'sync':
+        dispatch(setDocumentContent(msg.payload.content));
+        break;
+      case 'join':
+        dispatch(addUser(msg.payload));
+        break;
+      case 'leave':
+        dispatch(removeUser(msg.payload.username));
+        break;
+      default:
+        break;
     }
-  }, [readyState, sendMessage, sessionId, username, color]);
+  };
 
-  // handle inbound messages
+  const { connected, send } = useWebSocket(handleMessage);
+
+  // Flush queued operations when connection is (re)established
   useEffect(() => {
-    if (!lastMessage) return;
-    const msg = (lastMessage as WebSocketMessage).payload as CollaborationMessage;
-    setState(prev => {
-      const next = { ...prev };
-      switch (msg.type) {
-        case 'join':
-          next.users[msg.username] = { color: msg.color };
-          break;
-        case 'leave':
-          delete next.users[msg.username];
-          delete next.cursors[msg.username];
-          break;
-        case 'cursor':
-          next.cursors[msg.username] = msg.position;
-          break;
-        case 'content':
-          next.content = msg.delta; // simple replace; real merging handled elsewhere
-          break;
-      }
-      return next;
-    });
-  }, [lastMessage]);
+    if (connected) {
+      pendingOps.current.forEach((op) => send(op));
+      pendingOps.current = [];
+    }
+  }, [connected, send]);
 
-  const broadcastCursor = (position: number) => {
-    const cursorMsg: CollaborationMessage = { type: 'cursor', username, position };
-    sendMessage({ sessionId, payload: cursorMsg });
+  const broadcastOperation = (op: any) => {
+    const msg: CollaborationMessage = { type: 'operation', payload: op };
+    if (connected) {
+      send(msg);
+    } else {
+      pendingOps.current.push(msg);
+    }
   };
 
-  const broadcastContent = (delta: string, version: number) => {
-    const contentMsg: CollaborationMessage = { type: 'content', delta, version };
-    sendMessage({ sessionId, payload: contentMsg });
-  };
+  // On reconnect request full document sync and re‑announce presence
+  useEffect(() => {
+    if (connected) {
+      send({ type: 'requestSync', payload: {} });
+      send({
+        type: 'presence',
+        payload: { username: user.name, color: user.color, cursor: null }
+      });
+    }
+  }, [connected, send, user]);
 
-  return { state, broadcastCursor, broadcastContent, readyState };
+  return { broadcastOperation };
 };
