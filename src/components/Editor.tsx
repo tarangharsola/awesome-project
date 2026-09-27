@@ -1,58 +1,71 @@
-// src/components/Editor.tsx
 import React, { useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { updateContent, formatDocument } from '../store/editorActions';
-import { EditorState } from '../store/editorReducer';
-import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { useFormattingDefaults } from '../utils/useFormattingDefaults';
-import { Controlled as ControlledEditor } from '@codemirror/react'; // Assuming CodeMirror React wrapper
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { html } from '@codemirror/lang-html';
+import { Editor as MonacoEditor, OnMount } from '@monaco-editor/react';
+import { useCollaboration } from '../hooks/useCollaboration';
+import registerKeyboardShortcuts from '../utils/useKeyboardShortcuts';
+import getDefaultContent from '../utils/useFormattingDefaults';
 
-export const Editor: React.FC = () => {
-  const dispatch = useDispatch();
-  const editorRef = useRef<HTMLDivElement>(null);
-  const { content, language } = useSelector< { editor: EditorState }, EditorState>((state) => state.editor);
+type EditorProps = {
+  language: string;
+  roomId: string;
+};
 
-  // Apply keyboard shortcuts (e.g., Ctrl+S to format)
-  useKeyboardShortcuts(editorRef, dispatch);
+const Editor: React.FC<EditorProps> = ({ language, roomId }) => {
+  const { content, setContent, remoteChanges } = useCollaboration(roomId);
+  const editorRef = useRef<any>(null);
 
-  // Update formatting defaults when language changes
-  const formattingDefaults = useFormattingDefaults(language);
-
-  // Effect to apply formatting defaults to the editor instance if needed
-  useEffect(() => {
-    // This placeholder assumes the editor instance can accept formatting options via a method.
-    // The actual implementation depends on the editor library used.
-    // For CodeMirror, you might configure extensions here.
-  }, [language, formattingDefaults]);
-
-  const handleChange = (value: string) => {
-    dispatch(updateContent(value));
+  const handleEditorDidMount: OnMount = (editor, monaco) => {
+    editorRef.current = editor;
+    // Load default content if editor is empty
+    if (!content) {
+      const defaultCode = getDefaultContent(language);
+      editor.setValue(defaultCode);
+      setContent(defaultCode);
+    }
+    // Register keyboard shortcuts
+    registerKeyboardShortcuts(editor, language);
   };
 
-  const getExtensions = () => {
-    switch (language) {
-      case 'javascript':
-        return [javascript()];
-      case 'python':
-        return [python()];
-      case 'html':
-        return [html()];
-      default:
-        return [];
+  // Update editor language when prop changes
+  useEffect(() => {
+    if (editorRef.current) {
+      const model = editorRef.current.getModel();
+      if (model) {
+        const monaco = editorRef.current._standaloneKeybindingService?._editor?.monaco || (window as any).monaco;
+        monaco?.editor?.setModelLanguage?.(model, language);
+      }
+    }
+  }, [language]);
+
+  // Apply remote changes
+  useEffect(() => {
+    if (editorRef.current && remoteChanges !== undefined) {
+      const model = editorRef.current.getModel();
+      if (model && model.getValue() !== remoteChanges) {
+        model.pushEditOperations(
+          [],
+          [{ range: model.getFullModelRange(), text: remoteChanges }],
+          () => null
+        );
+      }
+    }
+  }, [remoteChanges]);
+
+  const onChange = (value: string | undefined) => {
+    if (value !== undefined) {
+      setContent(value);
     }
   };
 
   return (
-    <div ref={editorRef} className="editor-container">
-      <ControlledEditor
-        value={content}
-        extensions={getExtensions()}
-        onChange={(value) => handleChange(value)}
-        // Additional props such as lineNumbers, theme, etc., can be added here.
-      />
-    </div>
+    <MonacoEditor
+      height="100%"
+      defaultLanguage={language}
+      defaultValue={content}
+      onMount={handleEditorDidMount}
+      onChange={onChange}
+      theme="vs-dark"
+    />
   );
 };
+
+export default Editor;

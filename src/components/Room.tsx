@@ -1,31 +1,23 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
-import { useWebSocket } from '../hooks/useWebSocket';
-import { useCollaboration } from '../hooks/useCollaboration';
+import React, { useState } from 'react';
 import Editor from './Editor';
-import UserList from './UserList';
 import LanguageSelector from './LanguageSelector';
-import ConnectionStatus from './ConnectionStatus';
+import UserList from './UserList';
 
-const Room: React.FC = () => {
-  const { roomId } = useParams<{ roomId: string }>();
-  const { socket, status } = useWebSocket(roomId);
-  const { document, applyRemoteChange, users, setLanguage } = useCollaboration(socket);
+type RoomProps = {
+  roomId: string;
+};
+
+const Room: React.FC<RoomProps> = ({ roomId }) => {
+  const [language, setLanguage] = useState<string>('javascript');
 
   return (
-    <div className="room-container">
-      <ConnectionStatus status={status} />
-      <div className="main">
-        <Editor
-          content={document.content}
-          onChange={applyRemoteChange}
-          language={document.language}
-          users={users}
-        />
-        <aside className="sidebar">
-          <UserList users={users} />
-          <LanguageSelector current={document.language} onSelect={setLanguage} />
-        </aside>
+    <div className="room-container" style={{ display: 'flex', height: '100vh' }}>
+      <div className="sidebar" style={{ width: '200px', borderRight: '1px solid #444' }}>
+        <LanguageSelector language={language} onChange={setLanguage} />
+        <UserList roomId={roomId} />
+      </div>
+      <div className="editor-pane" style={{ flexGrow: 1 }}>
+        <Editor language={language} roomId={roomId} />
       </div>
     </div>
   );

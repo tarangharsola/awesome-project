@@ -1,31 +1,12 @@
-// src/utils/useFormattingDefaults.ts
-/**
- * Provides language‑specific formatting defaults used when a user switches the editor language.
- * The defaults are simple key/value pairs that can be consumed by the editor component or a formatter.
- */
-export const getFormattingDefaults = (language: string): Record<string, any> => {
+export default function getDefaultContent(language: string): string {
   switch (language) {
     case 'javascript':
-      return {
-        tabSize: 2,
-        useTabs: false,
-        semi: true,
-        singleQuote: true,
-        trailingComma: 'es5',
-      };
+      return `// JavaScript starter\nfunction main() {\n  console.log('Hello, world!');\n}\n\nmain();\n`;
     case 'python':
-      return {
-        tabSize: 4,
-        useTabs: false,
-        trailingComma: false,
-      };
+      return `# Python starter\ndef main():\n    print(\"Hello, world!\")\n\nif __name__ == \"__main__\":\n    main()\n`;
     case 'html':
-      return {
-        tabSize: 2,
-        useTabs: false,
-        wrapLineLength: 80,
-      };
+      return `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Document</title>\n</head>\n<body>\n  <h1>Hello, world!</h1>\n</body>\n</html>\n`;
     default:
-      return {};
+      return '';
   }
-};
+}

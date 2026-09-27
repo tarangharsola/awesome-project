@@ -1,35 +1,24 @@
-// src/utils/useKeyboardShortcuts.ts
-import { Dispatch } from 'react';
-import { formatDocument } from '../store/editorActions';
-import { AnyAction } from 'redux';
+import * as monaco from 'monaco-editor';
+
+type EditorInstance = monaco.editor.IStandaloneCodeEditor;
 
 /**
- * Registers common keyboard shortcuts for the collaborative editor.
- * Currently supports:
- *   - Ctrl/Cmd + S : Format the document using the configured formatter.
- *   - Ctrl/Cmd + Z : Undo (handled by the editor library itself).
- *   - Ctrl/Cmd + Y / Shift + Ctrl/Cmd + Z : Redo (handled by the editor library).
+ * Registers common keyboard shortcuts for the editor.
+ * - Ctrl/Cmd + S : Save (currently logs to console; can be wired to actual save logic)
+ * - Ctrl/Cmd + Shift + F : Format document using the built‑in formatter
  */
-export const useKeyboardShortcuts = (
-  editorContainerRef: React.RefObject<HTMLElement>,
-  dispatch: Dispatch<AnyAction>
-) => {
-  React.useEffect(() => {
-    const target = editorContainerRef.current ?? window;
-    const handler = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
+export default function registerKeyboardShortcuts(editor: EditorInstance, _language: string): void {
+  const { KeyMod, KeyCode } = monaco;
 
-      // Format document shortcut: Ctrl/Cmd + S
-      if (ctrlKey && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        dispatch(formatDocument());
-        return;
-      }
-      // Additional shortcuts can be added here.
-    };
+  // Save shortcut (Ctrl/Cmd+S)
+  editor.addCommand(KeyMod.CtrlCmd | KeyCode.KEY_S, () => {
+    // Prevent default browser save dialog
+    console.log('Save shortcut triggered');
+  });
 
-    target.addEventListener('keydown', handler);
-    return () => target.removeEventListener('keydown', handler);
-  }, [editorContainerRef, dispatch]);
-};
+  // Format shortcut (Ctrl/Cmd+Shift+F)
+  editor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_F, () => {
+    const formatAction = editor.getAction('editor.action.formatDocument');
+    formatAction?.run();
+  });
+}

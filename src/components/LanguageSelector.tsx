@@ -1,8 +1,9 @@
-// src/components/LanguageSelector.tsx
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { setLanguage } from '../store/editorActions';
-import { EditorState } from '../store/editorReducer';
+
+type LanguageSelectorProps = {
+  language: string;
+  onChange: (lang: string) => void;
+};
 
 const languages = [
   { value: 'javascript', label: 'JavaScript' },
@@ -10,22 +11,18 @@ const languages = [
   { value: 'html', label: 'HTML' },
 ];
 
-export const LanguageSelector: React.FC = () => {
-  const dispatch = useDispatch();
-  const currentLanguage = useSelector< { editor: EditorState }, string>((state) => state.editor.language);
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({ language, onChange }) => (
+  <select
+    value={language}
+    onChange={(e) => onChange(e.target.value)}
+    className="language-selector"
+  >
+    {languages.map((lang) => (
+      <option key={lang.value} value={lang.value}>
+        {lang.label}
+      </option>
+    ))}
+  </select>
+);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLang = e.target.value;
-    dispatch(setLanguage(newLang));
-  };
-
-  return (
-    <select value={currentLanguage} onChange={handleChange} className="language-selector">
-      {languages.map((lang) => (
-        <option key={lang.value} value={lang.value}>
-          {lang.label}
-        </option>
-      ))}
-    </select>
-  );
-};
+export default LanguageSelector;
