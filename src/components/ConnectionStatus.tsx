@@ -1,22 +1,21 @@
-import React from 'react';
-import { ConnectionStatus as ConnStatus } from '../types/connection';
+import React from "react";
+import "./ConnectionStatus.css";
 
-interface Props {
-  status: ConnStatus;
-}
+type Props = {
+  status: "connected" | "connecting" | "disconnected";
+};
 
-const ConnectionStatus: React.FC<Props> = ({ status }) => {
-  const color =
-    status === 'connected'
-      ? 'green'
-      : status === 'connecting'
-      ? 'orange'
-      : 'red';
+export const ConnectionStatus: React.FC<Props> = ({ status }) => {
+  const label = {
+    connected: "Connected",
+    connecting: "Connecting...",
+    disconnected: "Disconnected",
+  }[status];
+
   return (
-    <div className="connection-status" style={{ color }}>
-      {status}
+    <div className="connection-status">
+      <span className={`status-indicator status-${status}`} />
+      <span className="status-text">{label}</span>
     </div>
   );
 };
-
-export default ConnectionStatus;
