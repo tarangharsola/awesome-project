@@ -1,24 +1,55 @@
-import * as monaco from 'monaco-editor';
+import { useEffect } from "react";
+import { formatCode } from "./formatCode";
 
-type EditorInstance = monaco.editor.IStandaloneCodeEditor;
+type SetLanguage = (lang: string) => void;
 
 /**
- * Registers common keyboard shortcuts for the editor.
- * - Ctrl/Cmd + S : Save (currently logs to console; can be wired to actual save logic)
- * - Ctrl/Cmd + Shift + F : Format document using the built‑in formatter
+ * Registers global keyboard shortcuts for the collaborative editor.
+ *
+ * - Ctrl+Shift+F : Format the current document using the appropriate formatter.
+ * - Ctrl+1       : Switch language to JavaScript.
+ * - Ctrl+2       : Switch language to Python.
+ * - Ctrl+3       : Switch language to HTML.
  */
-export default function registerKeyboardShortcuts(editor: EditorInstance, _language: string): void {
-  const { KeyMod, KeyCode } = monaco;
+export const useKeyboardShortcuts = (
+  editor: any,
+  setLanguage: SetLanguage
+) => {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Format code: Ctrl+Shift+F
+      if (e.ctrlKey && e.shiftKey && e.key === "F") {
+        e.preventDefault();
+        if (editor) {
+          const raw = editor.getValue ? editor.getValue() : "";
+          const mode =
+            (editor.getOption && editor.getOption("mode")) || "javascript";
+          const formatted = formatCode(raw, mode);
+          if (editor.setValue) {
+            editor.setValue(formatted);
+          }
+        }
+        return;
+      }
 
-  // Save shortcut (Ctrl/Cmd+S)
-  editor.addCommand(KeyMod.CtrlCmd | KeyCode.KEY_S, () => {
-    // Prevent default browser save dialog
-    console.log('Save shortcut triggered');
-  });
+      // Language switching: Ctrl+1 / Ctrl+2 / Ctrl+3
+      if (e.ctrlKey && !e.shiftKey && !e.altKey) {
+        if (e.key === "1") {
+          e.preventDefault();
+          setLanguage("javascript");
+        } else if (e.key === "2") {
+          e.preventDefault();
+          setLanguage("python");
+        } else if (e.key === "3") {
+          e.preventDefault();
+          setLanguage("html");
+        }
+      }
+    };
 
-  // Format shortcut (Ctrl/Cmd+Shift+F)
-  editor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_F, () => {
-    const formatAction = editor.getAction('editor.action.formatDocument');
-    formatAction?.run();
-  });
-}
+    window.addEventListener("keydown", handler);
+    return () => {
+      window.removeEventListener("keydown", handler);
+    };
+  }, [editor, setLanguage]);
+};

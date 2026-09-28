@@ -1,12 +1,22 @@
-export default function getDefaultContent(language: string): string {
+export type FormattingOptions = {
+  indentSize: number;
+  useTabs: boolean;
+  maxLineLength: number;
+};
+
+/**
+ * Returns sensible default formatting options for supported languages.
+ * These defaults are applied when the user switches the editor language.
+ */
+export const getFormattingDefaults = (language: string): FormattingOptions => {
   switch (language) {
-    case 'javascript':
-      return `// JavaScript starter\nfunction main() {\n  console.log('Hello, world!');\n}\n\nmain();\n`;
-    case 'python':
-      return `# Python starter\ndef main():\n    print(\"Hello, world!\")\n\nif __name__ == \"__main__\":\n    main()\n`;
-    case 'html':
-      return `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Document</title>\n</head>\n<body>\n  <h1>Hello, world!</h1>\n</body>\n</html>\n`;
+    case "javascript":
+      return { indentSize: 2, useTabs: false, maxLineLength: 80 };
+    case "python":
+      return { indentSize: 4, useTabs: false, maxLineLength: 79 };
+    case "html":
+      return { indentSize: 2, useTabs: false, maxLineLength: 120 };
     default:
-      return '';
+      return { indentSize: 2, useTabs: false, maxLineLength: 80 };
   }
-}
+};
