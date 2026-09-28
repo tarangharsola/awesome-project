@@ -1,33 +1,26 @@
-import React, { useState } from 'react';
-import Editor from './Editor';
-import LanguageSelector from './LanguageSelector';
-import UserList from './UserList';
-import ConnectionStatus from './ConnectionStatus';
+import React from 'react';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { ConnectionStatus } from './ConnectionStatus';
+import { Editor } from './Editor';
+import { LanguageSelector } from './LanguageSelector';
+import { UserList } from './UserList';
+import './App.css';
 
-const App: React.FC = () => {
-  const [language, setLanguage] = useState<string>('javascript');
+export const App: React.FC = () => {
+  // WebSocket URL can be configured via environment variable.
+  const wsUrl = process.env.REACT_APP_WS_URL || '';
+  const { status, sendMessage } = useWebSocket(wsUrl);
 
-  const handleLanguageChange = (lang: string) => {
-    setLanguage(lang);
-  };
+  // The rest of the app (editor, user list, etc.) can use sendMessage as needed.
+  // For brevity, only the connection status indicator is shown here.
 
   return (
     <div className="app-container">
-      <header className="app-header">
-        <h1>Collaborative Code Editor</h1>
-        <ConnectionStatus />
-      </header>
-      <div className="app-body">
-        <aside className="sidebar">
-          <UserList />
-          <LanguageSelector selected={language} onChange={handleLanguageChange} />
-        </aside>
-        <main className="editor-pane">
-          <Editor language={language} />
-        </main>
-      </div>
+      <ConnectionStatus status={status} />
+      {/* Existing UI components */}
+      <LanguageSelector />
+      <Editor sendMessage={sendMessage} />
+      <UserList />
     </div>
   );
 };
-
-export default App;

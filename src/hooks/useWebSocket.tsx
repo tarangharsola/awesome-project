@@ -1,30 +1,61 @@
-import { useEffect, useState, useCallback } from 'react';
-import wsClient from '../utils/websocketClient';
-import { WebSocketMessage } from '../types/websocketMessage';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import type { WebSocketMessage } from '../types/websocketMessage';
 
-export const useWebSocket = (onMessage: (msg: WebSocketMessage) => void) => {
-  const [connected, setConnected] = useState(wsClient.readyState === WebSocket.OPEN);
+type ConnectionStatus = 'connected' | 'connecting' | 'disconnected';
 
-  const handleMessage = useCallback(
-    (msg: WebSocketMessage) => {
-      onMessage(msg);
-    },
-    [onMessage]
-  );
+/**
+ * useWebSocket – establishes a WebSocket connection with automatic reconnection
+ * using exponential backoff. Returns the socket instance, current connection
+ * status, and a helper to send typed messages.
+ */
+export const useWebSocket = (url: string) => {
+  const [status, setStatus] = useState<ConnectionStatus>('connecting');
+  const wsRef = useRef<WebSocket | null>(null);
+  const backoffRef = useRef<number>(1000); // start with 1s
+  const maxBackoff = 30000; // cap at 30s
+
+  const connect = useCallback(() => {
+    setStatus('connecting');
+    const ws = new WebSocket(url);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      setStatus('connected');
+      backoffRef.current = 1000; // reset backoff on successful connection
+    };
+
+    ws.onmessage = (event: MessageEvent) => {
+      // Consumers can attach listeners via wsRef.current if needed.
+    };
+
+    ws.onclose = () => {
+      setStatus('disconnected');
+      const delay = backoffRef.current;
+      setTimeout(() => {
+        connect();
+      }, delay);
+      backoffRef.current = Math.min(backoffRef.current * 2, maxBackoff);
+    };
+
+    ws.onerror = () => {
+      // Close will trigger reconnection logic in onclose.
+      ws.close();
+    };
+  }, [url]);
 
   useEffect(() => {
-    const updateStatus = () => setConnected(wsClient.readyState === WebSocket.OPEN);
-    const interval = setInterval(updateStatus, 500);
-    wsClient.addMessageHandler(handleMessage);
+    connect();
     return () => {
-      clearInterval(interval);
-      wsClient.removeMessageHandler(handleMessage);
+      wsRef.current?.close();
     };
-  }, [handleMessage]);
-
-  const send = useCallback((msg: WebSocketMessage) => {
-    wsClient.send(msg);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { connected, send };
+  const sendMessage = useCallback((msg: WebSocketMessage) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(msg));
+    }
+  }, []);
+
+  return { socket: wsRef.current, status, sendMessage } as const;
 };

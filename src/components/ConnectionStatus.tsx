@@ -1,21 +1,30 @@
-import React from "react";
-import "./ConnectionStatus.css";
+import React from 'react';
+import './ConnectionStatus.css';
 
 type Props = {
-  status: "connected" | "connecting" | "disconnected";
+  status: 'connected' | 'connecting' | 'disconnected';
 };
 
 export const ConnectionStatus: React.FC<Props> = ({ status }) => {
-  const label = {
-    connected: "Connected",
-    connecting: "Connecting...",
-    disconnected: "Disconnected",
-  }[status];
+  let text = '';
+  let className = 'connection-status';
 
-  return (
-    <div className="connection-status">
-      <span className={`status-indicator status-${status}`} />
-      <span className="status-text">{label}</span>
-    </div>
-  );
+  switch (status) {
+    case 'connected':
+      text = 'Connected';
+      className += ' connected';
+      break;
+    case 'connecting':
+      text = 'Connecting...';
+      className += ' connecting';
+      break;
+    case 'disconnected':
+      text = 'Disconnected. Reconnecting...';
+      className += ' disconnected';
+      break;
+    default:
+      text = 'Unknown';
+  }
+
+  return <div className={className}>{text}</div>;
 };
