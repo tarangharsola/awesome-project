@@ -1,17 +1,1 @@
-.remote-cursor {
-  position: absolute;
-  pointer-events: none;
-  font-size: 0.9rem;
-  z-index: 10;
-}
-
-.remote-cursor .cursor-label {
-  display: inline-block;
-  padding: 2px 4px;
-  border-radius: 3px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  font-weight: 500;
-  white-space: nowrap;
-  margin-left: 2px;
-}
+.remote-cursor {\n  position: absolute;\n  pointer-events: none;\n  z-index: 10;\n}\n.remote-cursor .cursor-label {\n  background-color: rgba(0, 0, 0, 0.75);\n  color: #f5f5f5;\n  padding: 2px 4px;\n  border-radius: 3px;\n  font-size: 0.75rem;\n  white-space: nowrap;\n  border: 1px solid currentColor;\n}\n.remote-cursor .cursor-bar {\n  width: 2px;\n  background-color: currentColor;\n  opacity: 0.9;\n}
