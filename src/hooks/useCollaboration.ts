@@ -1,71 +1,44 @@
-import { useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useWebSocket } from './useWebSocket';
-import { applyRemoteOperation } from '../utils/conflictResolver';
-import { setDocumentContent } from '../store/editorActions';
-import { addUser, removeUser, updateUserPresence } from '../store/users';
-import { RootState } from '../store';
-import { CollaborationMessage } from '../types/collaborationMessage';
-import { getUserInfo } from '../store/user';
+import { useEffect } from 'react';
+import useWebSocket from './useWebSocket';
+import useConflictResolver from './useConflictResolver';
+import usePresence from './usePresence';
+import { EditorChange } from '../types/editor';
+import { UserPresence } from '../types/presence';
 
-export const useCollaboration = () => {
-  const dispatch = useDispatch();
-  const user = getUserInfo();
-  const pendingOps = useRef<CollaborationMessage[]>([]);
+export default function useCollaboration(
+  sessionId: string,
+  localUser: UserPresence,
+  onChange: (change: EditorChange) => void
+) {
+  const ws = useWebSocket(sessionId);
+  const { applyRemoteChange, getLocalChange } = useConflictResolver();
+  const { users, updateCursor } = usePresence(sessionId, localUser);
 
-  const handleMessage = (msg: CollaborationMessage) => {
-    switch (msg.type) {
-      case 'operation':
-        applyRemoteOperation(msg.payload);
-        break;
-      case 'presence':
-        if (msg.payload.username !== user.name) {
-          dispatch(updateUserPresence(msg.payload));
+  // Send local document changes to the server
+  useEffect(() => {
+    if (!ws) return;
+    const handle = (change: EditorChange) => {
+      ws.send(JSON.stringify({ type: 'doc-change', payload: change }));
+    };
+    const unsubscribe = getLocalChange(handle);
+    return unsubscribe;
+  }, [ws, getLocalChange]);
+
+  // Receive remote document changes from the server
+  useEffect(() => {
+    if (!ws) return;
+    const listener = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'doc-change') {
+          applyRemoteChange(data.payload);
+          onChange(data.payload);
         }
-        break;
-      case 'sync':
-        dispatch(setDocumentContent(msg.payload.content));
-        break;
-      case 'join':
-        dispatch(addUser(msg.payload));
-        break;
-      case 'leave':
-        dispatch(removeUser(msg.payload.username));
-        break;
-      default:
-        break;
-    }
-  };
+      } catch {}
+    };
+    ws.addEventListener('message', listener);
+    return () => ws.removeEventListener('message', listener);
+  }, [ws, applyRemoteChange, onChange]);
 
-  const { connected, send } = useWebSocket(handleMessage);
-
-  // Flush queued operations when connection is (re)established
-  useEffect(() => {
-    if (connected) {
-      pendingOps.current.forEach((op) => send(op));
-      pendingOps.current = [];
-    }
-  }, [connected, send]);
-
-  const broadcastOperation = (op: any) => {
-    const msg: CollaborationMessage = { type: 'operation', payload: op };
-    if (connected) {
-      send(msg);
-    } else {
-      pendingOps.current.push(msg);
-    }
-  };
-
-  // On reconnect request full document sync and re‑announce presence
-  useEffect(() => {
-    if (connected) {
-      send({ type: 'requestSync', payload: {} });
-      send({
-        type: 'presence',
-        payload: { username: user.name, color: user.color, cursor: null }
-      });
-    }
-  }, [connected, send, user]);
-
-  return { broadcastOperation };
-};
+  return { users, updateCursor };
+}
