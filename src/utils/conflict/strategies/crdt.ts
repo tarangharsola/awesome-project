@@ -1,16 +1,32 @@
-export interface CRDTOperation {
-  id: string;
-  pos: number;
-  insert?: string;
-  delete?: number;
+import { Operation, Document } from "../../types/collaboration";
+
+/**
+ * Apply a single CRDT operation to the document using a simple last‑writer‑wins rule.
+ * Each operation must contain a unique id and a monotonically increasing timestamp.
+ */
+export function applyCrdtOperation(doc: Document, op: Operation): Document {
+  const existing = doc[op.position];
+  if (!existing || op.timestamp >= existing.timestamp) {
+    return {
+      ...doc,
+      [op.position]: { char: op.char, timestamp: op.timestamp, id: op.id },
+    };
+  }
+  return doc;
 }
 
-export function crdtApply(text: string, op: CRDTOperation): string {
-  if (op.insert) {
-    return text.slice(0, op.pos) + op.insert + text.slice(op.pos);
+/**
+ * Merge a remote document state into the local one.
+ * For each position we keep the operation with the highest timestamp.
+ */
+export function mergeDocuments(local: Document, remote: Document): Document {
+  const merged: Document = { ...local };
+  for (const pos in remote) {
+    const remoteOp = remote[pos];
+    const localOp = merged[pos];
+    if (!localOp || remoteOp.timestamp > localOp.timestamp) {
+      merged[pos] = remoteOp;
+    }
   }
-  if (op.delete) {
-    return text.slice(0, op.pos) + text.slice(op.pos + op.delete);
-  }
-  return text;
+  return merged;
 }

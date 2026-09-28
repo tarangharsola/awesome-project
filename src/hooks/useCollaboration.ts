@@ -1,44 +1,50 @@
-import { useEffect } from 'react';
-import useWebSocket from './useWebSocket';
-import useConflictResolver from './useConflictResolver';
-import usePresence from './usePresence';
-import { EditorChange } from '../types/editor';
-import { UserPresence } from '../types/presence';
+import { useEffect, useRef } from "react";
+import { useDispatch } from "react-redux";
+import { useWebSocket } from "./useWebSocket";
+import { applyRemoteOperation, setDocument } from "../store/editorActions";
 
-export default function useCollaboration(
-  sessionId: string,
-  localUser: UserPresence,
-  onChange: (change: EditorChange) => void
-) {
-  const ws = useWebSocket(sessionId);
-  const { applyRemoteChange, getLocalChange } = useConflictResolver();
-  const { users, updateCursor } = usePresence(sessionId, localUser);
+export function useCollaboration(sessionId: string, user: { name: string; color: string }) {
+  const dispatch = useDispatch();
+  const { sendMessage, isConnected } = useWebSocket(
+    `${process.env.REACT_APP_WS_URL}?session=${sessionId}`,
+    (msg) => {
+      switch (msg.type) {
+        case "operation":
+          dispatch(applyRemoteOperation(msg.payload));
+          break;
+        case "fullSync":
+          dispatch(setDocument(msg.payload));
+          break;
+        default:
+          break;
+      }
+    }
+  );
 
-  // Send local document changes to the server
+  // Queue of local operations that have been sent but may need retransmission
+  const pendingOps = useRef<any[]>([]);
+
+  const submitOperation = (op: any) => {
+    pendingOps.current.push(op);
+    sendMessage({ type: "operation", payload: op });
+  };
+
+  // When the connection (re)establishes, request a fresh document state and resend pending ops
   useEffect(() => {
-    if (!ws) return;
-    const handle = (change: EditorChange) => {
-      ws.send(JSON.stringify({ type: 'doc-change', payload: change }));
-    };
-    const unsubscribe = getLocalChange(handle);
-    return unsubscribe;
-  }, [ws, getLocalChange]);
+    if (isConnected) {
+      sendMessage({ type: "requestFullSync" });
+      pendingOps.current.forEach((op) => {
+        sendMessage({ type: "operation", payload: op });
+      });
+    }
+  }, [isConnected, sendMessage]);
 
-  // Receive remote document changes from the server
+  // Broadcast presence on (re)connect
   useEffect(() => {
-    if (!ws) return;
-    const listener = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'doc-change') {
-          applyRemoteChange(data.payload);
-          onChange(data.payload);
-        }
-      } catch {}
-    };
-    ws.addEventListener('message', listener);
-    return () => ws.removeEventListener('message', listener);
-  }, [ws, applyRemoteChange, onChange]);
+    if (isConnected) {
+      sendMessage({ type: "presence", payload: { user } });
+    }
+  }, [isConnected, user, sendMessage]);
 
-  return { users, updateCursor };
+  return { submitOperation };
 }
