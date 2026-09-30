@@ -1,18 +1,42 @@
-/**
- * Very lightweight formatter that normalizes indentation to 2 spaces
- * and trims trailing whitespace. It does not attempt full language parsing
- * to keep dependencies minimal.
- */
-export const formatCode = (code: string, _facet?: any): string => {
-  const lines = code.split('\n');
-  const formatted = lines
-    .map((line) => line.replace(/\s+$/g, '')) // trim trailing spaces
-    .map((line) => {
-      const leading = line.match(/^\s*/)?.[0] ?? '';
-      const spaces = leading.replace(/\t/g, '  ');
-      const normalized = spaces.replace(/ {4}/g, '  ');
-      return normalized + line.slice(leading.length);
-    })
-    .join('\n');
-  return formatted.trimEnd();
+import prettier from 'prettier/standalone';
+import parserBabel from 'prettier/parser-babel';
+import parserHTML from 'prettier/parser-html';
+import parserPython from 'prettier/parser-python';
+import { Language } from '../types/editor';
+
+export const formatCode = (code: string, language: Language): string => {
+  let parser: prettier.BuiltInParserName;
+  let plugins: any[] = [];
+
+  switch (language) {
+    case 'javascript':
+      parser = 'babel';
+      plugins = [parserBabel];
+      break;
+    case 'html':
+      parser = 'html';
+      plugins = [parserHTML];
+      break;
+    case 'python':
+      parser = 'python';
+      plugins = [parserPython];
+      break;
+    default:
+      parser = 'babel';
+      plugins = [parserBabel];
+  }
+
+  try {
+    return prettier.format(code, {
+      parser,
+      plugins,
+      tabWidth: 2,
+      useTabs: false,
+      semi: true,
+      singleQuote: true,
+    });
+  } catch {
+    // Return original code if formatting fails
+    return code;
+  }
 };

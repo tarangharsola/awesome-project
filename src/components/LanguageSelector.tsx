@@ -1,22 +1,25 @@
-import React from "react";
+import React from 'react';
+import { Language } from '../types/editor';
 
 type Props = {
-  language: string;
-  onChange: (lang: string) => void;
+  language: Language;
+  onChange: (lang: Language) => void;
 };
 
-const LanguageSelector: React.FC<Props> = ({ language, onChange }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange(e.target.value);
-  };
+const languages: Language[] = ['javascript', 'python', 'html'];
 
+export const LanguageSelector: React.FC<Props> = ({ language, onChange }) => {
   return (
-    <select value={language} onChange={handleChange} aria-label="Select language">
-      <option value="javascript">JavaScript</option>
-      <option value="python">Python</option>
-      <option value="html">HTML</option>
+    <select
+      value={language}
+      onChange={e => onChange(e.target.value as Language)}
+      aria-label="Select language"
+    >
+      {languages.map(lang => (
+        <option key={lang} value={lang}>
+          {lang.charAt(0).toUpperCase() + lang.slice(1)}
+        </option>
+      ))}
     </select>
   );
 };
-
-export default LanguageSelector;

@@ -1,45 +1,65 @@
-import React, { useEffect, useState } from "react";
-import LanguageSelector from "./LanguageSelector";
-import { useKeyboardShortcuts } from "../utils/useKeyboardShortcuts";
-import { useEditor } from "../utils/useEditor";
-import { getFormattingDefaults } from "../utils/useFormattingDefaults";
+import React, { useRef, useEffect } from 'react';
+import MonacoEditor, { monaco } from '@monaco-editor/react';
+import { Language } from '../types/editor';
+import { formatCode } from '../utils/formatCode';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
 
-const Editor: React.FC = () => {
-  const editor = useEditor();
-  const [language, setLanguage] = useState<string>("javascript");
-
-  // Apply language mode to the underlying editor instance
-  useEffect(() => {
-    if (!editor) return;
-    // CodeMirror API
-    if (typeof editor.setOption === "function") {
-      editor.setOption("mode", language);
-    }
-    // Monaco API
-    else if (typeof editor.updateOptions === "function") {
-      editor.updateOptions({ language });
-    }
-  }, [editor, language]);
-
-  // Apply formatting defaults when language changes
-  useEffect(() => {
-    if (!editor) return;
-    const defaults = getFormattingDefaults(language);
-    if (typeof editor.setOption === "function") {
-      editor.setOption("indentUnit", defaults.indentSize);
-      editor.setOption("indentWithTabs", defaults.useTabs);
-    }
-  }, [editor, language]);
-
-  // Register global keyboard shortcuts
-  useKeyboardShortcuts(editor, setLanguage);
-
-  return (
-    <div className="editor-container">
-      <LanguageSelector language={language} onChange={setLanguage} />
-      <div id="editor" />
-    </div>
-  );
+type Props = {
+  value: string;
+  language: Language;
+  onChange: (value: string) => void;
+  onSave?: () => void;
 };
 
-export default Editor;
+export const Editor: React.FC<Props> = ({ value, language, onChange, onSave }) => {
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+
+  const handleEditorDidMount = (
+    editor: monaco.editor.IStandaloneCodeEditor,
+    _: typeof monaco
+  ) => {
+    editorRef.current = editor;
+    // Format shortcut: Ctrl/Cmd + Shift + F
+    editor.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_F,
+      () => {
+        const formatted = formatCode(editor.getValue(), language);
+        editor.setValue(formatted);
+      }
+    );
+    // Save shortcut: Ctrl/Cmd + S
+    editor.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S,
+      () => {
+        onSave?.();
+      }
+    );
+  };
+
+  // Update editor language when prop changes
+  useEffect(() => {
+    if (editorRef.current) {
+      monaco.editor.setModelLanguage(editorRef.current.getModel()!, language);
+    }
+  }, [language]);
+
+  // Global shortcuts (e.g., when editor not focused)
+  useKeyboardShortcuts({ editorRef, onSave });
+
+  return (
+    <MonacoEditor
+      height="100%"
+      defaultLanguage={language}
+      language={language}
+      value={value}
+      onChange={onChange}
+      onMount={handleEditorDidMount}
+      theme="vs-dark"
+      options={{
+        automaticLayout: true,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+      }}
+    />
+  );
+};
