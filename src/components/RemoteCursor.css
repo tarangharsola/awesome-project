@@ -1,1 +1,23 @@
-.remote-cursor {\n  position: absolute;\n  pointer-events: none;\n  z-index: 10;\n}\n.remote-cursor .cursor-label {\n  background-color: rgba(0, 0, 0, 0.75);\n  color: #f5f5f5;\n  padding: 2px 4px;\n  border-radius: 3px;\n  font-size: 0.75rem;\n  white-space: nowrap;\n  border: 1px solid currentColor;\n}\n.remote-cursor .cursor-bar {\n  width: 2px;\n  background-color: currentColor;\n  opacity: 0.9;\n}
+.remote-cursor {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.cursor-label {
+  display: inline-block;
+  padding: 2px 6px;
+  margin-top: -1.5em;
+  font-size: 0.75rem;
+  border-radius: 3px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #e0e0e0;
+  white-space: nowrap;
+  backdrop-filter: blur(2px);
+}
+
+/* Ensure the label is readable regardless of the user-assigned color */
+.remote-cursor[data-color] .cursor-label {
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+}
