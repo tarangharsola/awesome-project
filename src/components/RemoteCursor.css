@@ -4,20 +4,22 @@
   z-index: 10;
 }
 
-.cursor-label {
-  display: inline-block;
-  padding: 2px 6px;
-  margin-top: -1.5em;
-  font-size: 0.75rem;
+.remote-cursor .cursor-label {
+  background: rgba(50, 50, 50, 0.9);
+  color: #f0f0f0;
+  padding: 2px 4px;
   border-radius: 3px;
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #e0e0e0;
+  font-size: 0.75rem;
   white-space: nowrap;
-  backdrop-filter: blur(2px);
+  margin-top: -1.5em;
 }
 
-/* Ensure the label is readable regardless of the user-assigned color */
-.remote-cursor[data-color] .cursor-label {
-  background-color: rgba(0, 0, 0, 0.6);
-  color: #fff;
+.remote-cursor .cursor-bar {
+  width: 2px;
+  background-color: currentColor;
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to { visibility: hidden; }
 }

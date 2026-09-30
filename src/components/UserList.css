@@ -1,4 +1,4 @@
-.user-list {
+.userList {
   background-color: #1e1e1e;
   color: #e0e0e0;
   padding: 0.5rem;
@@ -7,38 +7,17 @@
   overflow-y: auto;
 }
 
-.user-item {
+.userItem {
   display: flex;
   align-items: center;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.25rem;
   font-size: 0.9rem;
 }
 
-.user-color {
-  width: 10px;
-  height: 10px;
+.userColor {
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   margin-right: 0.5rem;
   flex-shrink: 0;
-}
-
-.user-name {
-  flex-grow: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Dark mode friendly scroll bar */
-.user-list::-webkit-scrollbar {
-  width: 8px;
-}
-
-.user-list::-webkit-scrollbar-track {
-  background: #2a2a2a;
-}
-
-.user-list::-webkit-scrollbar-thumb {
-  background-color: #555;
-  border-radius: 4px;
 }

@@ -1239,3 +1239,4 @@
 2026-09-30T12:54:45.925247+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
 2026-09-30T12:54:48.981872+00:00 | Add basic tests or smoke checks and a build script so CI can validate the app.
 2026-09-30T12:54:53.362898+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
+2026-09-30T12:55:57.005278+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
