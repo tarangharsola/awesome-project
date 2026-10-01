@@ -1,21 +1,36 @@
 import { useEffect } from 'react';
-import * as monaco from 'monaco-editor';
 
-type Params = {
-  editorRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
-  onSave?: () => void;
-};
-
-export const useKeyboardShortcuts = ({ editorRef, onSave }: Params) => {
+/**
+ * Registers global keyboard shortcuts for the editor.
+ * - Ctrl/Cmd + S → dispatches a custom "editor-save" event with current content.
+ * - Ctrl/Cmd + Shift + F → dispatches a custom "editor-format" event.
+ * The editor instance is expected to expose a `state.doc.toString()` method.
+ */
+export const useKeyboardShortcuts = (editor: any) => {
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      // Prevent browser's default Save dialog and trigger custom save
+    if (!editor) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Save shortcut
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        onSave?.();
+        const content = editor.state?.doc?.toString?.() ?? '';
+        const saveEvent = new CustomEvent('editor-save', { detail: { content } });
+        window.dispatchEvent(saveEvent);
+        return;
+      }
+
+      // Format shortcut (Ctrl/Cmd + Shift + F)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        const formatEvent = new Event('editor-format');
+        window.dispatchEvent(formatEvent);
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onSave]);
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [editor]);
 };

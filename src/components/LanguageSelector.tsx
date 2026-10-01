@@ -1,25 +1,29 @@
 import React from 'react';
-import { Language } from '../types/editor';
+import { useLanguage, Language } from '../utils/useLanguage';
 
-type Props = {
-  language: Language;
-  onChange: (lang: Language) => void;
-};
+/**
+ * Dropdown allowing the user to switch the editor language.
+ * The selected language is stored via the `useLanguage` hook.
+ */
+const LanguageSelector: React.FC = () => {
+  const [language, setLanguage] = useLanguage();
 
-const languages: Language[] = ['javascript', 'python', 'html'];
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLanguage(e.target.value as Language);
+  };
 
-export const LanguageSelector: React.FC<Props> = ({ language, onChange }) => {
   return (
     <select
       value={language}
-      onChange={e => onChange(e.target.value as Language)}
-      aria-label="Select language"
+      onChange={handleChange}
+      aria-label="Select programming language"
+      style={{ marginLeft: '1rem', padding: '0.25rem' }}
     >
-      {languages.map(lang => (
-        <option key={lang} value={lang}>
-          {lang.charAt(0).toUpperCase() + lang.slice(1)}
-        </option>
-      ))}
+      <option value="javascript">JavaScript</option>
+      <option value="python">Python</option>
+      <option value="html">HTML</option>
     </select>
   );
 };
+
+export default LanguageSelector;

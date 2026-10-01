@@ -1,26 +1,36 @@
 import React from 'react';
-import { useWebSocket } from '../hooks/useWebSocket';
-import { ConnectionStatus } from './ConnectionStatus';
-import { Editor } from './Editor';
-import { LanguageSelector } from './LanguageSelector';
-import { UserList } from './UserList';
-import './App.css';
+import Editor from './Editor';
+import LanguageSelector from './LanguageSelector';
+import UserList from './UserList';
+import ConnectionStatus from './ConnectionStatus';
 
-export const App: React.FC = () => {
-  // WebSocket URL can be configured via environment variable.
-  const wsUrl = process.env.REACT_APP_WS_URL || '';
-  const { status, sendMessage } = useWebSocket(wsUrl);
-
-  // The rest of the app (editor, user list, etc.) can use sendMessage as needed.
-  // For brevity, only the connection status indicator is shown here.
-
-  return (
-    <div className="app-container">
-      <ConnectionStatus status={status} />
-      {/* Existing UI components */}
+/**
+ * Root component assembling the UI.
+ * Includes the language selector, connection status indicator,
+ * the collaborative editor, and the active users panel.
+ */
+const App: React.FC = () => (
+  <div className="app-container" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <header
+      className="app-header"
+      style={{ display: 'flex', alignItems: 'center', padding: '0.5rem', background: '#1e1e1e', color: '#fff' }}
+    >
+      <h1 style={{ margin: 0, fontSize: '1.25rem' }}>Collaborative Code Editor</h1>
       <LanguageSelector />
-      <Editor sendMessage={sendMessage} />
-      <UserList />
-    </div>
-  );
-};
+      <ConnectionStatus />
+    </header>
+    <main
+      className="app-main"
+      style={{ display: 'flex', flex: 1, overflow: 'hidden' }}
+    >
+      <section style={{ flex: 1, position: 'relative' }}>
+        <Editor />
+      </section>
+      <aside style={{ width: '200px', borderLeft: '1px solid #333', background: '#2d2d2d', color: '#fff' }}>
+        <UserList />
+      </aside>
+    </main>
+  </div>
+);
+
+export default App;

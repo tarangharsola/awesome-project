@@ -1,20 +1,26 @@
-import { Extension } from '@codemirror/state';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { html } from '@codemirror/lang-html';
+import { useState, useEffect } from 'react';
 
-// Mapping of language identifiers to their respective CodeMirror extensions.
-const languageMap: Record<string, Extension[]> = {
-  javascript: [javascript()],
-  python: [python()],
-  html: [html()],
-};
+export type Language = 'javascript' | 'python' | 'html';
 
 /**
- * Returns an array of CodeMirror extensions appropriate for the given language.
- * Falls back to JavaScript extensions if the language is unknown.
+ * Hook to manage the current programming language for the editor.
+ * Persists the selection in localStorage so it survives page reloads.
  */
-export function useLanguage(lang: string): Extension[] {
-  const key = lang.toLowerCase();
-  return languageMap[key] ?? languageMap['javascript'];
-}
+export const useLanguage = (): [Language, (lang: Language) => void] => {
+  const [language, setLanguage] = useState<Language>('javascript');
+
+  // Load persisted language on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('collab-editor-language') as Language | null;
+    if (stored) {
+      setLanguage(stored);
+    }
+  }, []);
+
+  const updateLanguage = (lang: Language) => {
+    setLanguage(lang);
+    localStorage.setItem('collab-editor-language', lang);
+  };
+
+  return [language, updateLanguage];
+};
