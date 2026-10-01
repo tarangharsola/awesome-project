@@ -47,7 +47,6 @@ export const useWebSocket = ({ url, onMessage }: UseWebSocketOptions) => {
     };
 
     ws.onerror = () => {
-      // Errors also trigger onclose, so we just close to unify handling
       ws.close();
     };
   }, [url, onMessage, scheduleReconnect]);
