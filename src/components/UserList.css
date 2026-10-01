@@ -1,23 +1,29 @@
-.userList {
-  background-color: #1e1e1e;
-  color: #e0e0e0;
-  padding: 0.5rem;
-  border-radius: 4px;
-  max-height: 300px;
-  overflow-y: auto;
+.user-list {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  background: #1e1e1e;
+  color: #fff;
 }
 
-.userItem {
+.user-item {
   display: flex;
   align-items: center;
-  margin-bottom: 0.25rem;
+  padding: 6px 10px;
+  margin: 2px 0;
+  border-left: 4px solid var(--user-color, #888);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
   font-size: 0.9rem;
+  color: #e0e0e0;
 }
 
-.userColor {
-  width: 12px;
-  height: 12px;
+.user-item .avatar {
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  margin-right: 0.5rem;
-  flex-shrink: 0;
+  background: var(--user-color, #888);
+  margin-right: 8px;
 }
