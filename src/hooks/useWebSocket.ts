@@ -1,74 +1,73 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { WebSocketMessage } from '../types/websocketMessage';
+import { useEffect, useRef, useState } from 'react';
+import type { WebSocketMessage } from '../types/websocketMessage';
 
-export type ConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 'retrying';
-
-type UseWebSocketOptions = {
+export interface UseWebSocketOptions {
+  /** WebSocket endpoint URL */
   url: string;
+  /** Callback invoked for every parsed incoming message */
   onMessage: (msg: WebSocketMessage) => void;
-};
+  /** Milliseconds between reconnection attempts (default: 3000) */
+  reconnectInterval?: number;
+}
 
-export const useWebSocket = ({ url, onMessage }: UseWebSocketOptions) => {
+/**
+ * Hook that manages a WebSocket connection with automatic reconnection.
+ * Returns the connection status and a typed send function.
+ */
+export const useWebSocket = ({
+  url,
+  onMessage,
+  reconnectInterval = 3000,
+}: UseWebSocketOptions) => {
+  const [connected, setConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
-  const [status, setStatus] = useState<ConnectionStatus>('disconnected');
-  const reconnectAttempts = useRef(0);
-  const maxDelay = 30000; // 30 seconds max backoff
+  const reconnectTimer = useRef<number | null>(null);
 
-  const scheduleReconnect = useCallback(() => {
-    reconnectAttempts.current += 1;
-    const delay = Math.min(1000 * 2 ** reconnectAttempts.current, maxDelay);
-    setTimeout(() => {
-      connect();
-    }, delay);
-  }, []);
-
-  const connect = useCallback(() => {
-    setStatus(reconnectAttempts.current === 0 ? 'connecting' : 'retrying');
-    const ws = new WebSocket(url);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      setStatus('connected');
-      reconnectAttempts.current = 0;
-    };
-
-    ws.onmessage = (event: MessageEvent) => {
-      try {
-        const data: WebSocketMessage = JSON.parse(event.data);
-        onMessage(data);
-      } catch (e) {
-        console.error('Failed to parse WebSocket message', e);
-      }
-    };
-
-    ws.onclose = () => {
-      setStatus('disconnected');
-      scheduleReconnect();
-    };
-
-    ws.onerror = () => {
-      // Errors also trigger onclose, so we just close to unify handling
-      ws.close();
-    };
-  }, [url, onMessage, scheduleReconnect]);
-
-  const sendMessage = useCallback((msg: WebSocketMessage) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+  const sendMessage = (msg: WebSocketMessage) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(msg));
-    } else {
-      console.warn('WebSocket is not open. Message not sent:', msg);
     }
-  }, []);
+  };
 
   useEffect(() => {
+    const connect = () => {
+      wsRef.current = new WebSocket(url);
+
+      wsRef.current.onopen = () => {
+        setConnected(true);
+      };
+
+      wsRef.current.onclose = () => {
+        setConnected(false);
+        // Schedule reconnection
+        reconnectTimer.current = window.setTimeout(connect, reconnectInterval);
+      };
+
+      wsRef.current.onerror = () => {
+        // Force close to trigger reconnection logic
+        wsRef.current?.close();
+      };
+
+      wsRef.current.onmessage = (event: MessageEvent) => {
+        try {
+          const data: WebSocketMessage = JSON.parse(event.data);
+          onMessage(data);
+        } catch {
+          // Silently ignore malformed messages
+        }
+      };
+    };
+
     connect();
+
     return () => {
+      if (reconnectTimer.current) {
+        clearTimeout(reconnectTimer.current);
+      }
       wsRef.current?.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps – url and onMessage are stable in usage contexts
+  }, [url, onMessage, reconnectInterval]);
 
-  return { sendMessage, status };
+  return { connected, sendMessage } as const;
 };
-
-export default useWebSocket;
