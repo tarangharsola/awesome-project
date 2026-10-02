@@ -6,31 +6,42 @@ type Props = {
   status: ConnectionStatus;
 };
 
+/**
+ * Visual indicator of WebSocket connection status.
+ * Green = connected, Orange = connecting, Red = disconnected (reconnecting).
+ */
 const ConnectionStatusIndicator: React.FC<Props> = ({ status }) => {
-  let label = '';
-  let className = 'connection-status';
+  const getColor = () => {
+    switch (status) {
+      case 'connected':
+        return 'var(--color-success)';
+      case 'connecting':
+        return 'var(--color-warning)';
+      case 'disconnected':
+        return 'var(--color-danger)';
+      default:
+        return 'inherit';
+    }
+  };
 
-  switch (status) {
-    case 'connected':
-      label = 'Connected';
-      className += ' connected';
-      break;
-    case 'connecting':
-      label = 'Connecting...';
-      className += ' connecting';
-      break;
-    case 'retrying':
-      label = 'Reconnecting...';
-      className += ' retrying';
-      break;
-    case 'disconnected':
-    default:
-      label = 'Disconnected';
-      className += ' disconnected';
-      break;
-  }
+  const getLabel = () => {
+    switch (status) {
+      case 'connected':
+        return 'Connected';
+      case 'connecting':
+        return 'Connecting...';
+      case 'disconnected':
+        return 'Disconnected – Reconnecting';
+      default:
+        return '';
+    }
+  };
 
-  return <div className={className}>{label}</div>;
+  return (
+    <div className="connection-status" style={{ color: getColor() }}>
+      {getLabel()}
+    </div>
+  );
 };
 
 export default ConnectionStatusIndicator;
