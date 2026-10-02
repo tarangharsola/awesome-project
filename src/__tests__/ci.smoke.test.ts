@@ -1,9 +1,9 @@
 import React from 'react';
-import { render } from '@testing-library/react';
-import '@testing-library/jest-dom/extend-expect';
+import { render, screen } from '@testing-library/react';
 import App from '../components/App';
 
-test('App renders without crashing', () => {
-  const { container } = render(<App />);
-  expect(container).toBeInTheDocument();
+test('CI smoke test: App renders with language selector', () => {
+  render(<App />);
+  const selector = screen.getByLabelText(/language/i);
+  expect(selector).toBeInTheDocument();
 });
