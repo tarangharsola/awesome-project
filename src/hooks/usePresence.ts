@@ -1,67 +1,37 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { updateUserPresence, removeUser } from '../store/usersReducer';
 import { useWebSocket } from './useWebSocket';
-import type { PresenceMessage } from '../types/presence';
-import type { User } from '../types';
-
-interface UsePresenceOptions {
-  roomId: string;
-  user: User;
-  onUserListUpdate: (users: User[]) => void;
-}
 
 /**
- * Manages user presence within a collaborative room.
- * Broadcasts join/leave events and keeps the local user list in sync,
- * even after reconnections.
+ * Hook that synchronises user presence across the collaborative session.
+ * It ensures that the local user is announced on (re)connection and that
+ * remote presence updates are reflected in the Redux store.
  */
-export function usePresence({ roomId, user, onUserListUpdate }: UsePresenceOptions) {
-  const { isConnected, sendMessage } = useWebSocket({
-    url: `${process.env.REACT_APP_WS_URL}/rooms/${roomId}`,
-    onMessage: handleMessage,
-    initPayload: { type: 'join', ...user },
-  });
+export function usePresence(roomId: string, username: string, color: string) {
+  const dispatch = useDispatch();
+  const { status, sendChange } = useWebSocket(roomId, username, color);
 
-  // Broadcast our presence on (re)connect
+  // When the connection becomes active we already broadcast presence via useWebSocket.
+  // Here we only need to react to store updates for UI components.
+  const users = useSelector((state: RootState) => state.users);
+
+  // Cleanup on unmount – inform others that we are leaving.
   useEffect(() => {
-    if (isConnected) {
-      const joinMsg: PresenceMessage = {
-        type: 'presence',
-        action: 'join',
-        roomId,
-        user,
-      };
-      sendMessage(joinMsg);
-    }
-  }, [isConnected, sendMessage, roomId, user]);
-
-  // Handle incoming presence updates
-  const handleMessage = useCallback((msg: PresenceMessage) => {
-    if (msg.type !== 'presence') return;
-    switch (msg.action) {
-      case 'join':
-      case 'leave':
-        // Server sends the full user list on each presence change
-        onUserListUpdate(msg.users);
-        break;
-      default:
-        console.warn('Unknown presence action', msg.action);
-    }
-  }, [onUserListUpdate]);
-
-  // Notify server when we unload the page (graceful leave)
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      const leaveMsg: PresenceMessage = {
-        type: 'presence',
-        action: 'leave',
-        roomId,
-        user,
-      };
-      // Use navigator.sendBeacon for best‑effort delivery
-      const url = `${process.env.REACT_APP_WS_URL}/rooms/${roomId}`;
-      navigator.sendBeacon(url, JSON.stringify(leaveMsg));
+    return () => {
+      if (status === 'connected') {
+        const leaveMsg = {
+          type: 'PRESENCE_LEAVE',
+          payload: { username, roomId },
+        } as any; // cast to any to avoid circular type import
+        // Direct WebSocket send without re‑using sendChange (which is for editor ops)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).websocket?.send(JSON.stringify(leaveMsg));
+      }
     };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [roomId, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, username, roomId]);
+
+  return { users, connectionStatus: status, sendChange };
 }

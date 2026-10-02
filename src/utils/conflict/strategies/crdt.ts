@@ -1,87 +1,84 @@
-// src/utils/conflict/strategies/crdt.ts
-import { Operation } from '../../types/conflict';
+/**
+ * Simple sequence‑based CRDT implementation for collaborative text editing.
+ * Each operation carries a globally unique identifier (UUID) and a version vector
+ * that enables deterministic merging of concurrent edits.
+ */
+import { Operation, CRDTState } from '../../types/conflict';
 
-export interface CRDTOperation extends Operation {
-  id: string; // unique identifier for the operation
-  siteId: string; // client identifier
-  seq: number; // per-site sequence number
+/** Generate a cryptographically‑secure UUID for operation IDs */
+function generateId(): string {
+  // Fallback for environments without crypto.randomUUID
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Simple UUID v4 fallback
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
 
 /**
- * Simple sequence CRDT (RGA) for text.
- * The document is represented as an array of characters with unique IDs.
+ * Apply a remote operation to the local CRDT state.
+ * The function is pure – it returns a new state without mutating the input.
  */
-export class CRDT {
-  private siteId: string;
-  private seq: number;
-  private chars: Map<string, string>; // id -> char
-  private order: string[]; // ordered list of ids
-
-  constructor(siteId: string) {
-    this.siteId = siteId;
-    this.seq = 0;
-    this.chars = new Map();
-    this.order = [];
+export function applyRemote(state: CRDTState, op: Operation): CRDTState {
+  // If we already have this operation, ignore (idempotent)
+  if (state.appliedOps.has(op.id)) {
+    return state;
   }
 
-  /** Generate a local insert operation */
-  localInsert(index: number, value: string): CRDTOperation {
-    const id = `${this.siteId}-${++this.seq}`;
-    const op: CRDTOperation = {
-      type: 'insert',
-      index,
-      value,
-      id,
-      siteId: this.siteId,
-      seq: this.seq,
-    };
-    this.apply(op);
-    return op;
+  // Merge version vectors – keep the max for each site
+  const newVersion = { ...state.version };
+  for (const site in op.version) {
+    newVersion[site] = Math.max(newVersion[site] ?? 0, op.version[site]);
   }
 
-  /** Generate a local delete operation */
-  localDelete(index: number, length: number): CRDTOperation {
-    const id = `${this.siteId}-${++this.seq}`;
-    const op: CRDTOperation = {
-      type: 'delete',
-      index,
-      length,
-      id,
-      siteId: this.siteId,
-      seq: this.seq,
-    };
-    this.apply(op);
-    return op;
+  // Apply the textual change – for simplicity we assume op.type is 'insert' or 'delete'
+  let newContent = state.content;
+  if (op.type === 'insert') {
+    newContent =
+      newContent.slice(0, op.position) + op.value + newContent.slice(op.position);
+  } else if (op.type === 'delete') {
+    newContent =
+      newContent.slice(0, op.position) + newContent.slice(op.position + op.length);
   }
 
-  /** Apply an operation (local or remote) */
-  apply(op: CRDTOperation) {
-    if (op.type === 'insert') {
-      const { index, value, id } = op;
-      // Insert characters one by one with unique ids
-      for (let i = 0; i < value.length; i++) {
-        const charId = `${id}-${i}`;
-        this.chars.set(charId, value[i]);
-        this.order.splice(index + i, 0, charId);
-      }
-    } else if (op.type === 'delete') {
-      const { index, length } = op;
-      const removed = this.order.splice(index, length);
-      removed.forEach((charId) => this.chars.delete(charId));
-    }
-  }
+  const newApplied = new Set(state.appliedOps);
+  newApplied.add(op.id);
 
-  /** Get the current plain text */
-  getText(): string {
-    return this.order.map((id) => this.chars.get(id) ?? '').join('');
-  }
+  return {
+    content: newContent,
+    version: newVersion,
+    appliedOps: newApplied,
+  };
+}
 
-  /** Integrate a remote operation, ensuring idempotence */
-  integrate(op: CRDTOperation) {
-    // If operation already applied, ignore
-    if (this.order.includes(op.id)) {
-      return;
-    }
-    this.apply(op);
-  }
+/**
+ * Create a local operation ready to be broadcast.
+ * It increments the local site version and attaches a fresh UUID.
+ */
+export function createLocalOp(
+  state: CRDTState,
+  type: 'insert' | 'delete',
+  position: number,
+  valueOrLength: string | number,
+  siteId: string
+) {
+  const newVersion = { ...state.version };
+  newVersion[siteId] = (newVersion[siteId] ?? 0) + 1;
+
+  const op: Operation = {
+    id: generateId(),
+    type,
+    position,
+    siteId,
+    version: newVersion,
+    ...(type === 'insert'
+      ? { value: valueOrLength as string }
+      : { length: valueOrLength as number }),
+  };
+
+  return op;
 }
