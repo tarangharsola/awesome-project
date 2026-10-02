@@ -1,16 +1,19 @@
-/**
- * Returns sensible formatting defaults for supported languages.
- * Currently used to configure the editor's tab size and indentation style.
- */
-export const getFormattingDefaults = (language: string) => {
+export type FormattingOptions = {
+  tabWidth?: number;
+  useTabs?: boolean;
+  semi?: boolean;
+  singleQuote?: boolean;
+};
+
+export const getFormattingDefaults = (language: string): FormattingOptions => {
   switch (language) {
     case 'javascript':
-      return { tabSize: 2, insertSpaces: true };
+      return { tabWidth: 2, useTabs: false, semi: true, singleQuote: true };
     case 'python':
-      return { tabSize: 4, insertSpaces: true };
+      return { tabWidth: 4, useTabs: false };
     case 'html':
-      return { tabSize: 2, insertSpaces: true };
+      return { tabWidth: 2, useTabs: false };
     default:
-      return { tabSize: 2, insertSpaces: true };
+      return {};
   }
 };

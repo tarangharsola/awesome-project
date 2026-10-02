@@ -1,29 +1,26 @@
 import React from 'react';
-import { useLanguage, Language } from '../utils/useLanguage';
+import { useCollaboration } from '../hooks/useCollaboration';
 
-/**
- * Dropdown allowing the user to switch the editor language.
- * The selected language is stored via the `useLanguage` hook.
- */
-const LanguageSelector: React.FC = () => {
-  const [language, setLanguage] = useLanguage();
+const languages = [
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'python', label: 'Python' },
+  { value: 'html', label: 'HTML' }
+];
+
+export const LanguageSelector: React.FC = () => {
+  const { language, setLanguage } = useCollaboration();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setLanguage(e.target.value as Language);
+    setLanguage(e.target.value as any);
   };
 
   return (
-    <select
-      value={language}
-      onChange={handleChange}
-      aria-label="Select programming language"
-      style={{ marginLeft: '1rem', padding: '0.25rem' }}
-    >
-      <option value="javascript">JavaScript</option>
-      <option value="python">Python</option>
-      <option value="html">HTML</option>
+    <select value={language} onChange={handleChange} aria-label="Language selector">
+      {languages.map((lang) => (
+        <option key={lang.value} value={lang.value}>
+          {lang.label}
+        </option>
+      ))}
     </select>
   );
 };
-
-export default LanguageSelector;

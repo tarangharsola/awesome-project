@@ -1253,3 +1253,4 @@
 2026-10-01T13:47:41.329662+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
 2026-10-02T13:01:36.915274+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
 2026-10-02T13:02:08.024085+00:00 | Harden realtime collaboration: conflict handling, reconnection, and awareness consistency.
+2026-10-02T13:02:24.865760+00:00 | Improve editor UX: language switching, formatting defaults, and better keyboard shortcuts.
