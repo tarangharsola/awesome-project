@@ -1,37 +1,61 @@
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
-import { updateUserPresence, removeUser } from '../store/usersReducer';
+import { useEffect, useMemo, useState } from 'react';
 import { useWebSocket } from './useWebSocket';
+import { PresenceMessage, UserPresence } from '../types/presence';
+import { generateRandomColor } from '../utils';
 
-/**
- * Hook that synchronises user presence across the collaborative session.
- * It ensures that the local user is announced on (re)connection and that
- * remote presence updates are reflected in the Redux store.
- */
-export function usePresence(roomId: string, username: string, color: string) {
-  const dispatch = useDispatch();
-  const { status, sendChange } = useWebSocket(roomId, username, color);
+type UsePresenceProps = {
+  roomId: string;
+  username: string;
+};
 
-  // When the connection becomes active we already broadcast presence via useWebSocket.
-  // Here we only need to react to store updates for UI components.
-  const users = useSelector((state: RootState) => state.users);
+export function usePresence({ roomId, username }: UsePresenceProps) {
+  const [users, setUsers] = useState<UserPresence[]>([]);
+  const color = useMemo(() => generateRandomColor(), []);
 
-  // Cleanup on unmount – inform others that we are leaving.
+  const { sendMessage, status } = useWebSocket(
+    `${process.env.REACT_APP_WS_URL}/rooms/${roomId}`,
+    (msg: PresenceMessage) => {
+      switch (msg.type) {
+        case 'presence':
+          setUsers(msg.users);
+          break;
+        case 'join':
+          setUsers((prev) => [...prev, msg.user]);
+          break;
+        case 'leave':
+          setUsers((prev) => prev.filter((u) => u.id !== msg.user.id));
+          break;
+        default:
+          // ignore unknown messages
+          break;
+      }
+    }
+  );
+
+  // Announce self when connection becomes active
+  useEffect(() => {
+    if (status === 'connected') {
+      const joinMsg: PresenceMessage = {
+        type: 'join',
+        user: { id: username, name: username, color },
+        roomId,
+      };
+      sendMessage(joinMsg);
+    }
+  }, [status, sendMessage, username, color, roomId]);
+
+  // Send leave message on unmount
   useEffect(() => {
     return () => {
-      if (status === 'connected') {
-        const leaveMsg = {
-          type: 'PRESENCE_LEAVE',
-          payload: { username, roomId },
-        } as any; // cast to any to avoid circular type import
-        // Direct WebSocket send without re‑using sendChange (which is for editor ops)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).websocket?.send(JSON.stringify(leaveMsg));
-      }
+      const leaveMsg: PresenceMessage = {
+        type: 'leave',
+        user: { id: username, name: username, color },
+        roomId,
+      };
+      sendMessage(leaveMsg);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, username, roomId]);
+  }, []);
 
-  return { users, connectionStatus: status, sendChange };
+  return { users, status } as const;
 }
