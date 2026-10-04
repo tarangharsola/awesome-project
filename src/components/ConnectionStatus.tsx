@@ -1,47 +1,35 @@
 import React from 'react';
 import './ConnectionStatus.css';
-import { ConnectionStatus } from '../hooks/useWebSocket';
 
-type Props = {
-  status: ConnectionStatus;
+interface ConnectionStatusProps {
+  status: 'connected' | 'disconnected' | 'reconnecting';
+  attempt?: number;
+  onRetry?: () => void;
+}
+
+const statusColors: Record<string, string> = {
+  connected: '#4caf50',
+  disconnected: '#f44336',
+  reconnecting: '#ff9800',
 };
 
-/**
- * Visual indicator of WebSocket connection status.
- * Green = connected, Orange = connecting, Red = disconnected (reconnecting).
- */
-const ConnectionStatusIndicator: React.FC<Props> = ({ status }) => {
-  const getColor = () => {
-    switch (status) {
-      case 'connected':
-        return 'var(--color-success)';
-      case 'connecting':
-        return 'var(--color-warning)';
-      case 'disconnected':
-        return 'var(--color-danger)';
-      default:
-        return 'inherit';
-    }
-  };
-
-  const getLabel = () => {
-    switch (status) {
-      case 'connected':
-        return 'Connected';
-      case 'connecting':
-        return 'Connecting...';
-      case 'disconnected':
-        return 'Disconnected – Reconnecting';
-      default:
-        return '';
-    }
-  };
+export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ status, attempt, onRetry }) => {
+  const color = statusColors[status] || '#777';
+  const label =
+    status === 'connected'
+      ? 'Connected'
+      : status === 'disconnected'
+      ? 'Disconnected'
+      : `Reconnecting${attempt ? ` (attempt ${attempt})` : ''}`;
 
   return (
-    <div className="connection-status" style={{ color: getColor() }}>
-      {getLabel()}
+    <div className="connection-status" style={{ backgroundColor: color }} title={label}>
+      <span className="status-label">{label}</span>
+      {status === 'disconnected' && onRetry && (
+        <button className="retry-button" onClick={onRetry}>
+          Retry
+        </button>
+      )}
     </div>
   );
 };
-
-export default ConnectionStatusIndicator;

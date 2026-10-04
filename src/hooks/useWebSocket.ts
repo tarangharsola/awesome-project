@@ -1,60 +1,89 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { WebSocketMessage } from '../types/websocketMessage';
 
-export type ConnectionStatus = 'connected' | 'disconnected' | 'connecting';
+interface UseWebSocketOptions {
+  url: string;
+  protocols?: string | string[];
+  maxBackoff?: number; // maximum backoff in ms
+}
 
-/**
- * useWebSocket hook with automatic reconnection using exponential backoff.
- * Returns a sendMessage function and the current connection status.
- */
-export const useWebSocket = (url: string) => {
-  const [status, setStatus] = useState<ConnectionStatus>('connecting');
+type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
+
+export const useWebSocket = ({ url, protocols, maxBackoff = 30000 }: UseWebSocketOptions) => {
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectAttempts = useRef(0);
-  const maxDelay = 30000; // 30 seconds max backoff
+  const [status, setStatus] = useState<ConnectionStatus>('disconnected');
+  const [attempt, setAttempt] = useState<number>(0);
+  const backoffRef = useRef<number>(1000); // start with 1s
+  const reconnectTimeout = useRef<number | null>(null);
+
+  const clearReconnect = () => {
+    if (reconnectTimeout.current) {
+      clearTimeout(reconnectTimeout.current);
+      reconnectTimeout.current = null;
+    }
+  };
 
   const connect = useCallback(() => {
-    setStatus('connecting');
-    const ws = new WebSocket(url);
+    clearReconnect();
+    const ws = new WebSocket(url, protocols);
     wsRef.current = ws;
+    setStatus('reconnecting');
+    setAttempt((prev) => prev + 1);
 
     ws.onopen = () => {
       setStatus('connected');
-      reconnectAttempts.current = 0;
+      setAttempt(0);
+      backoffRef.current = 1000; // reset backoff
+    };
+
+    ws.onmessage = (event: MessageEvent) => {
+      // Consumers can add their own listeners via returned wsRef
+      // No default handling here
+    };
+
+    ws.onerror = () => {
+      // Errors will trigger onclose which handles reconnection
     };
 
     ws.onclose = () => {
       setStatus('disconnected');
-      scheduleReconnect();
+      // schedule reconnection with exponential backoff
+      const delay = Math.min(backoffRef.current, maxBackoff);
+      reconnectTimeout.current = window.setTimeout(() => {
+        connect();
+      }, delay);
+      backoffRef.current = Math.min(backoffRef.current * 2, maxBackoff);
     };
-
-    ws.onerror = () => {
-      // Close will trigger onclose which handles reconnection
-      ws.close();
-    };
-  }, [url]);
-
-  const scheduleReconnect = () => {
-    const attempt = ++reconnectAttempts.current;
-    const delay = Math.min(1000 * 2 ** (attempt - 1), maxDelay);
-    setTimeout(() => {
-      connect();
-    }, delay);
-  };
+  }, [url, protocols, maxBackoff]);
 
   const sendMessage = useCallback((msg: WebSocketMessage) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(msg));
+    } else {
+      console.warn('WebSocket is not open. Message not sent:', msg);
     }
   }, []);
+
+  const manualRetry = useCallback(() => {
+    if (status !== 'connected') {
+      connect();
+    }
+  }, [status, connect]);
 
   useEffect(() => {
     connect();
     return () => {
+      clearReconnect();
       wsRef.current?.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { sendMessage, status } as const;
+  return {
+    socket: wsRef.current,
+    status,
+    attempt,
+    sendMessage,
+    retry: manualRetry,
+  } as const;
 };
