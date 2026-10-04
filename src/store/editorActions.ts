@@ -1,16 +1,16 @@
-// src/store/editorActions.ts
-import { EditorActionTypes } from './actionTypes';
+import { SET_LANGUAGE, UPDATE_DOCUMENT, APPLY_REMOTE_CHANGES } from './actionTypes';
 
-export const updateContent = (content: string) => ({
-  type: EditorActionTypes.UPDATE_CONTENT,
+export const updateDocument = (content: string) => ({
+  type: UPDATE_DOCUMENT,
+  payload: content,
+});
+
+export const applyRemoteChanges = (content: string) => ({
+  type: APPLY_REMOTE_CHANGES,
   payload: content,
 });
 
 export const setLanguage = (language: string) => ({
-  type: EditorActionTypes.SET_LANGUAGE,
+  type: SET_LANGUAGE,
   payload: language,
-});
-
-export const formatDocument = () => ({
-  type: EditorActionTypes.FORMAT_DOCUMENT,
 });

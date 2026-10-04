@@ -1,14 +1,12 @@
-import CodeMirror from 'codemirror';
-
-/**
- * Sets the CodeMirror mode based on the selected language.
- */
-export const setLanguageMode = (editor: CodeMirror.Editor, language: string): void => {
-  const modeMap: Record<string, string> = {
-    javascript: 'javascript',
-    python: 'python',
-    html: 'htmlmixed',
-  };
-  const mode = modeMap[language] || 'javascript';
-  editor.setOption('mode', mode);
+export const getDefaultFormattingOptions = (language: string) => {
+  switch (language) {
+    case 'javascript':
+      return { tabSize: 2, insertSpaces: true };
+    case 'python':
+      return { tabSize: 4, insertSpaces: true };
+    case 'html':
+      return { tabSize: 2, insertSpaces: true };
+    default:
+      return { tabSize: 2, insertSpaces: true };
+  }
 };

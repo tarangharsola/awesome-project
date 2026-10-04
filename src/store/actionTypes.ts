@@ -1,11 +1,7 @@
-// src/store/actionTypes.ts
-export enum EditorActionTypes {
-  UPDATE_CONTENT = 'UPDATE_CONTENT',
-  SET_LANGUAGE = 'SET_LANGUAGE',
-  FORMAT_DOCUMENT = 'FORMAT_DOCUMENT',
-  // ... other action types
-}
-
-export enum UserActionTypes {
-  // ... user action types
-}
+export const SET_LANGUAGE = 'SET_LANGUAGE';
+export const SET_USER = 'SET_USER';
+export const UPDATE_USERS = 'UPDATE_USERS';
+export const USER_JOINED = 'USER_JOINED';
+export const USER_LEFT = 'USER_LEFT';
+export const UPDATE_DOCUMENT = 'UPDATE_DOCUMENT';
+export const APPLY_REMOTE_CHANGES = 'APPLY_REMOTE_CHANGES';
