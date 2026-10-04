@@ -3,18 +3,18 @@
   pointer-events: none;
 }
 
+.remote-cursor .cursor-indicator {
+  width: 2px;
+  height: 1.2em;
+  background-color: currentColor;
+}
+
 .remote-cursor .cursor-label {
   background: rgba(0, 0, 0, 0.75);
-  color: #ffffff;
+  color: #f0f0f0;
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 0.75rem;
   white-space: nowrap;
   margin-top: -1.5em;
-}
-
-.remote-cursor .cursor-indicator {
-  width: 2px;
-  background-color: currentColor;
-  height: 1em;
 }
