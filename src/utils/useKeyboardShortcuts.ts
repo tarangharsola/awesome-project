@@ -1,37 +1,64 @@
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { formatCode } from './formatCode';
-import { RootState } from '../store';
-import { updateDocument } from '../store/editorActions';
+import { useEffect } from "react";
+import * as monaco from "monaco-editor";
 
-export const useKeyboardShortcuts = (editorContainerRef: React.RefObject<HTMLElement>) => {
-  const dispatch = useDispatch();
-  const content = useSelector((state: RootState) => state.editor.content);
-  const language = useSelector((state: RootState) => state.editor.language);
+export interface ShortcutOptions {
+  editor: monaco.editor.IStandaloneCodeEditor;
+  language: string;
+  formatCallback?: () => void;
+  saveCallback?: () => void;
+}
 
+export function useKeyboardShortcuts({
+  editor,
+  language,
+  formatCallback,
+  saveCallback,
+}: ShortcutOptions) {
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Save (Ctrl/Cmd + S)
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        // In a real app, trigger download or server save; here we just log
-        console.log('Document saved');
-      }
-      // Format (Ctrl/Cmd + Shift + F)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
-        e.preventDefault();
-        const formatted = formatCode(content, language);
-        dispatch(updateDocument(formatted));
-      }
-    };
-    const node = editorContainerRef.current;
-    if (node) {
-      node.addEventListener('keydown', handleKeyDown);
-    }
+    if (!editor) return;
+
+    const disposables: monaco.IDisposable[] = [];
+
+    // Save (Ctrl/Cmd + S)
+    disposables.push(
+      editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S,
+        () => {
+          saveCallback?.();
+        }
+      )
+    );
+
+    // Format (Shift+Alt+F)
+    disposables.push(
+      editor.addCommand(
+        monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KEY_F,
+        () => {
+          formatCallback?.();
+        }
+      )
+    );
+
+    // Tab handling – insert spaces according to editor settings
+    disposables.push(
+      editor.addCommand(monaco.KeyCode.Tab, () => {
+        const model = editor.getModel();
+        if (!model) return;
+        const selections = editor.getSelections() || [];
+        const spaces = " ".repeat(editor.getOption(monaco.editor.EditorOption.tabSize));
+        editor.executeEdits(
+          "tab",
+          selections.map((sel) => ({
+            range: sel,
+            text: spaces,
+            forceMoveMarkers: true,
+          }))
+        );
+      })
+    );
+
     return () => {
-      if (node) {
-        node.removeEventListener('keydown', handleKeyDown);
-      }
+      disposables.forEach((d) => d.dispose());
     };
-  }, [editorContainerRef, content, language, dispatch]);
-};
+  }, [editor, language, formatCallback, saveCallback]);
+}

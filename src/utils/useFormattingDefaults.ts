@@ -1,19 +1,21 @@
-export type FormattingOptions = {
-  tabWidth?: number;
-  useTabs?: boolean;
-  semi?: boolean;
-  singleQuote?: boolean;
-};
+import { Language } from "./useLanguage";
 
-export const getFormattingDefaults = (language: string): FormattingOptions => {
-  switch (language) {
-    case 'javascript':
-      return { tabWidth: 2, useTabs: false, semi: true, singleQuote: true };
-    case 'python':
-      return { tabWidth: 4, useTabs: false };
-    case 'html':
-      return { tabWidth: 2, useTabs: false };
+export interface FormattingOptions {
+  tabSize: number;
+  insertSpaces: boolean;
+  trimTrailingWhitespace?: boolean;
+  formatOnSave?: boolean;
+}
+
+export function getFormattingDefaults(lang: Language): FormattingOptions {
+  switch (lang) {
+    case "javascript":
+      return { tabSize: 2, insertSpaces: true, trimTrailingWhitespace: true, formatOnSave: true };
+    case "python":
+      return { tabSize: 4, insertSpaces: true, trimTrailingWhitespace: true, formatOnSave: true };
+    case "html":
+      return { tabSize: 2, insertSpaces: true, trimTrailingWhitespace: false, formatOnSave: false };
     default:
-      return {};
+      return { tabSize: 2, insertSpaces: true };
   }
-};
+}

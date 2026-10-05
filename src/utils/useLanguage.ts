@@ -1,26 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-export type Language = 'javascript' | 'python' | 'html';
+export type Language = "javascript" | "python" | "html";
 
-/**
- * Hook to manage the current programming language for the editor.
- * Persists the selection in localStorage so it survives page reloads.
- */
-export const useLanguage = (): [Language, (lang: Language) => void] => {
-  const [language, setLanguage] = useState<Language>('javascript');
+const STORAGE_KEY = "collab-editor-language";
 
-  // Load persisted language on mount
-  useEffect(() => {
-    const stored = localStorage.getItem('collab-editor-language') as Language | null;
-    if (stored) {
-      setLanguage(stored);
+export function useLanguage(initial: Language = "javascript"): [Language, (lang: Language) => void] {
+  const [language, setLanguage] = useState<Language>(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (
+      stored &&
+      (stored === "javascript" || stored === "python" || stored === "html")
+    ) {
+      return stored as Language;
     }
-  }, []);
+    return initial;
+  });
 
-  const updateLanguage = (lang: Language) => {
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, language);
+  }, [language]);
+
+  const changeLanguage = (lang: Language) => {
     setLanguage(lang);
-    localStorage.setItem('collab-editor-language', lang);
   };
 
-  return [language, updateLanguage];
-};
+  return [language, changeLanguage];
+}

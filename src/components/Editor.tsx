@@ -1,67 +1,100 @@
-import React, { useEffect, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store';
-import { updateDocument } from '../store/editorActions';
-import { useWebSocket } from '../hooks/useWebSocket';
-import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
-import { getDefaultFormattingOptions } from '../utils/editorHelpers';
+import React, { useRef, useEffect, useCallback } from "react";
+import Editor, { OnMount } from "@monaco-editor/react";
+import * as monaco from "monaco-editor";
+import { useLanguage } from "../utils/useLanguage";
+import { getFormattingDefaults } from "../utils/useFormattingDefaults";
+import { useKeyboardShortcuts } from "../utils/useKeyboardShortcuts";
+import { useCollaboration } from "../hooks/useCollaboration";
 
-const Editor: React.FC = () => {
-  const dispatch = useDispatch();
-  const { content, language } = useSelector((state: RootState) => state.editor);
-  const editorRef = useRef<HTMLDivElement>(null);
-  const ws = useWebSocket();
+export const CodeEditor: React.FC = () => {
+  const [language, setLanguage] = useLanguage();
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const { content, onChange, onRemoteChange } = useCollaboration();
 
-  // Initialize editor (using Monaco as example)
+  const handleEditorMount: OnMount = (editor, monacoInstance) => {
+    editorRef.current = editor;
+    const defaults = getFormattingDefaults(language);
+    editor.updateOptions({
+      tabSize: defaults.tabSize,
+      insertSpaces: defaults.insertSpaces,
+    });
+  };
+
+  // Apply language change to the monaco model and update formatting options
   useEffect(() => {
-    if (!editorRef.current) return;
-    const monaco = (window as any).monaco;
-    const editorInstance = monaco.editor.create(editorRef.current, {
-      value: content,
-      language,
-      theme: 'vs-dark',
-      automaticLayout: true,
-      formatOnPaste: true,
-      formatOnType: true,
-      ...getDefaultFormattingOptions(language),
-    });
-
-    const model = editorInstance.getModel();
-    const changeDisposable = model.onDidChangeContent(() => {
-      const newValue = model.getValue();
-      dispatch(updateDocument(newValue));
-      ws?.send(JSON.stringify({ type: 'content', payload: newValue }));
-    });
-
-    const languageDisposable = editorInstance.onDidChangeModelLanguage(() => {
-      const newLang = editorInstance.getModel()?.getModeId() || language;
-      // No extra action needed; Redux already holds language
-    });
-
-    return () => {
-      changeDisposable.dispose();
-      languageDisposable.dispose();
-      editorInstance.dispose();
-    };
-  }, [editorRef, language]);
-
-  // Apply remote updates
-  useEffect(() => {
-    if (!ws) return;
-    const handleMessage = (event: MessageEvent) => {
-      const msg = JSON.parse(event.data);
-      if (msg.type === 'content' && msg.payload !== content) {
-        dispatch(updateDocument(msg.payload));
+    const editor = editorRef.current;
+    if (editor) {
+      const model = editor.getModel();
+      if (model) {
+        monaco.editor.setModelLanguage(model, language);
       }
-    };
-    ws.addEventListener('message', handleMessage);
-    return () => ws.removeEventListener('message', handleMessage);
-  }, [ws, content]);
+      const defaults = getFormattingDefaults(language);
+      editor.updateOptions({
+        tabSize: defaults.tabSize,
+        insertSpaces: defaults.insertSpaces,
+      });
+    }
+  }, [language]);
 
-  // Keyboard shortcuts
-  useKeyboardShortcuts(editorRef);
+  // Keyboard shortcuts integration
+  useKeyboardShortcuts({
+    editor: editorRef.current!,
+    language,
+    formatCallback: () => {
+      const editor = editorRef.current;
+      if (editor) {
+        const action = editor.getAction("editor.action.formatDocument");
+        action?.run();
+      }
+    },
+    saveCallback: () => {
+      // Placeholder for save logic – can be extended to emit a save event
+      console.log("Save shortcut triggered");
+    },
+  });
 
-  return <div ref={editorRef} className="editor-container" />;
+  const handleChange = useCallback(
+    (value: string | undefined) => {
+      onChange(value ?? "");
+    },
+    [onChange]
+  );
+
+  // Apply remote changes coming from collaboration layer
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (editor && editor.getValue() !== content) {
+      const model = editor.getModel();
+      if (model) {
+        editor.pushUndoStop();
+        model.pushEditOperations(
+          [],
+          [
+            {
+              range: model.getFullModelRange(),
+              text: content,
+            },
+          ]
+        );
+        editor.pushUndoStop();
+      }
+    }
+  }, [content]);
+
+  return (
+    <div className="editor-container" style={{ height: "100%" }}>
+      <Editor
+        height="100%"
+        language={language}
+        value={content}
+        onChange={handleChange}
+        onMount={handleEditorMount}
+        theme="vs-dark"
+        options={{
+          automaticLayout: true,
+          minimap: { enabled: false },
+        }}
+      />
+    </div>
+  );
 };
-
-export default Editor;
