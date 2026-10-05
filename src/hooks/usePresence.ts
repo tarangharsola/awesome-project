@@ -1,61 +1,64 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useWebSocket } from './useWebSocket';
-import { PresenceMessage, UserPresence } from '../types/presence';
-import { generateRandomColor } from '../utils';
+import { useEffect, useState, useCallback } from 'react';
+import { useWebSocket, ConnectionStatus } from './useWebSocket';
+import { User } from '../types/presence';
 
-type UsePresenceProps = {
+interface UsePresenceOptions {
   roomId: string;
   username: string;
-};
+  color: string;
+  wsUrl: string;
+}
 
-export function usePresence({ roomId, username }: UsePresenceProps) {
-  const [users, setUsers] = useState<UserPresence[]>([]);
-  const color = useMemo(() => generateRandomColor(), []);
+/**
+ * Hook that tracks presence information (list of active users) for a collaborative room.
+ * It automatically re‑requests the user list after a reconnection to guarantee awareness consistency.
+ */
+export function usePresence({ roomId, username, color, wsUrl }: UsePresenceOptions) {
+  const [users, setUsers] = useState<User[]>([]);
 
-  const { sendMessage, status } = useWebSocket(
-    `${process.env.REACT_APP_WS_URL}/rooms/${roomId}`,
-    (msg: PresenceMessage) => {
+  const handleMessage = useCallback(
+    (msg: any) => {
       switch (msg.type) {
-        case 'presence':
-          setUsers(msg.users);
-          break;
-        case 'join':
+        case 'USER_JOIN':
           setUsers((prev) => [...prev, msg.user]);
           break;
-        case 'leave':
+        case 'USER_LEAVE':
           setUsers((prev) => prev.filter((u) => u.id !== msg.user.id));
           break;
+        case 'USER_LIST':
+          setUsers(msg.users);
+          break;
         default:
-          // ignore unknown messages
           break;
       }
-    }
+    },
+    []
   );
 
-  // Announce self when connection becomes active
-  useEffect(() => {
-    if (status === 'connected') {
-      const joinMsg: PresenceMessage = {
-        type: 'join',
-        user: { id: username, name: username, color },
-        roomId,
-      };
-      sendMessage(joinMsg);
-    }
-  }, [status, sendMessage, username, color, roomId]);
+  const { sendMessage, status } = useWebSocket({
+    url: wsUrl,
+    onMessage: handleMessage,
+    getSyncMessage: () => ({ type: 'REQUEST_USERS', roomId }),
+  });
 
-  // Send leave message on unmount
+  // Announce self on mount and clean up on unmount
   useEffect(() => {
+    const joinMsg = { type: 'JOIN', roomId, user: { id: username, name: username, color } };
+    sendMessage(joinMsg);
     return () => {
-      const leaveMsg: PresenceMessage = {
-        type: 'leave',
-        user: { id: username, name: username, color },
-        roomId,
-      };
+      const leaveMsg = { type: 'LEAVE', roomId, userId: username };
       sendMessage(leaveMsg);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { users, status } as const;
+  // When the connection status changes to connected after a reconnect, request the latest user list.
+  useEffect(() => {
+    if (status === 'connected') {
+      sendMessage({ type: 'REQUEST_USERS', roomId });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  return { users, status };
 }

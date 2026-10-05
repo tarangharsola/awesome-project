@@ -1,35 +1,27 @@
 import React from 'react';
-import { ConnectionStatus } from '../types/connectionStatus';
 import './ConnectionStatus.css';
 
 interface Props {
-  status: ConnectionStatus;
+  status: 'connected' | 'disconnected' | 'reconnecting';
+  attempts?: number;
 }
 
-export const ConnectionStatus: React.FC<Props> = ({ status }) => {
-  const getLabel = () => {
-    switch (status) {
-      case ConnectionStatus.Connected:
-        return 'Connected';
-      case ConnectionStatus.Reconnecting:
-        return 'Reconnecting...';
-      case ConnectionStatus.Disconnected:
-      default:
-        return 'Disconnected';
-    }
-  };
-
-  const getClassName = () => {
-    switch (status) {
-      case ConnectionStatus.Connected:
-        return 'status connected';
-      case ConnectionStatus.Reconnecting:
-        return 'status reconnecting';
-      case ConnectionStatus.Disconnected:
-      default:
-        return 'status disconnected';
-    }
-  };
-
-  return <div className={getClassName()}>{getLabel()}</div>;
+export const ConnectionStatus: React.FC<Props> = ({ status, attempts = 0 }) => {
+  let text = '';
+  let className = 'connection-status';
+  switch (status) {
+    case 'connected':
+      text = 'Connected';
+      className += ' connected';
+      break;
+    case 'reconnecting':
+      text = `Reconnecting (attempt ${attempts})`;
+      className += ' reconnecting';
+      break;
+    case 'disconnected':
+      text = 'Disconnected';
+      className += ' disconnected';
+      break;
+  }
+  return <div className={className}>{text}</div>;
 };

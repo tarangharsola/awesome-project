@@ -1,20 +1,13 @@
-import { useEffect, useRef } from 'react';
-import { getWebSocketClient } from './websocketClient';
+/**
+ * Utility helpers for exponential backoff reconnection strategies.
+ * Exported so that multiple hooks (e.g., useWebSocket, usePresence) can share the same logic.
+ */
 
 /**
- * Hook that ensures a WebSocket connection with exponential backoff reconnection.
- * It returns the client instance for the caller to attach listeners.
+ * Compute the delay (in milliseconds) for a given reconnection attempt.
+ * The delay grows exponentially but caps at a configurable maximum.
  */
-export const useReconnection = (url: string) => {
-  const clientRef = useRef<any>(null);
-
-  useEffect(() => {
-    clientRef.current = getWebSocketClient(url);
-    // No additional logic needed because the client itself handles reconnection.
-    return () => {
-      clientRef.current?.close();
-    };
-  }, [url]);
-
-  return clientRef.current;
-};
+export function backoffDelay(attempt: number, maxDelay = 30000): number {
+  const delay = 1000 * 2 ** attempt; // 1s, 2s, 4s, 8s, ...
+  return Math.min(delay, maxDelay);
+}

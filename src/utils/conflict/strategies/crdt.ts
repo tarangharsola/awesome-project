@@ -1,84 +1,59 @@
-/**
- * Simple sequence‑based CRDT implementation for collaborative text editing.
- * Each operation carries a globally unique identifier (UUID) and a version vector
- * that enables deterministic merging of concurrent edits.
- */
-import { Operation, CRDTState } from '../../types/conflict';
+import { CRDTOperation } from '../../types/conflict';
 
-/** Generate a cryptographically‑secure UUID for operation IDs */
-function generateId(): string {
-  // Fallback for environments without crypto.randomUUID
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
+/**
+ * Simple sequence‑based CRDT implementation.
+ * Each operation is uniquely identified by a clientId and a monotonically increasing sequence number.
+ * The set `appliedOps` guarantees idempotent application of operations that may arrive out of order or be duplicated.
+ */
+
+const appliedOps = new Set<string>();
+
+/**
+ * Apply a single CRDT operation to the document string.
+ * Returns the new document string.
+ */
+export function applyCRDTOperation(doc: string, op: CRDTOperation): string {
+  const opKey = `${op.clientId}:${op.seq}`;
+  if (appliedOps.has(opKey)) {
+    // Operation already applied – idempotent handling.
+    return doc;
   }
-  // Simple UUID v4 fallback
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
+  appliedOps.add(opKey);
+
+  switch (op.type) {
+    case 'insert': {
+      const before = doc.slice(0, op.index);
+      const after = doc.slice(op.index);
+      return before + (op.text ?? '') + after;
+    }
+    case 'delete': {
+      const before = doc.slice(0, op.index);
+      const after = doc.slice(op.index + (op.length ?? 0));
+      return before + after;
+    }
+    default:
+      // Unknown operation – ignore to keep document consistent.
+      return doc;
+  }
+}
+
+/**
+ * Apply a batch of operations in a deterministic order.
+ * Operations are sorted first by clientId (lexicographically) then by sequence number.
+ */
+export function applyCRDTOperations(initialDoc: string, ops: CRDTOperation[]): string {
+  const sorted = [...ops].sort((a, b) => {
+    if (a.clientId < b.clientId) return -1;
+    if (a.clientId > b.clientId) return 1;
+    return a.seq - b.seq;
   });
+  return sorted.reduce((doc, op) => applyCRDTOperation(doc, op), initialDoc);
 }
 
 /**
- * Apply a remote operation to the local CRDT state.
- * The function is pure – it returns a new state without mutating the input.
+ * Reset the internal applied‑operations set.
+ * Useful when a full document sync is performed (e.g., after reconnection).
  */
-export function applyRemote(state: CRDTState, op: Operation): CRDTState {
-  // If we already have this operation, ignore (idempotent)
-  if (state.appliedOps.has(op.id)) {
-    return state;
-  }
-
-  // Merge version vectors – keep the max for each site
-  const newVersion = { ...state.version };
-  for (const site in op.version) {
-    newVersion[site] = Math.max(newVersion[site] ?? 0, op.version[site]);
-  }
-
-  // Apply the textual change – for simplicity we assume op.type is 'insert' or 'delete'
-  let newContent = state.content;
-  if (op.type === 'insert') {
-    newContent =
-      newContent.slice(0, op.position) + op.value + newContent.slice(op.position);
-  } else if (op.type === 'delete') {
-    newContent =
-      newContent.slice(0, op.position) + newContent.slice(op.position + op.length);
-  }
-
-  const newApplied = new Set(state.appliedOps);
-  newApplied.add(op.id);
-
-  return {
-    content: newContent,
-    version: newVersion,
-    appliedOps: newApplied,
-  };
-}
-
-/**
- * Create a local operation ready to be broadcast.
- * It increments the local site version and attaches a fresh UUID.
- */
-export function createLocalOp(
-  state: CRDTState,
-  type: 'insert' | 'delete',
-  position: number,
-  valueOrLength: string | number,
-  siteId: string
-) {
-  const newVersion = { ...state.version };
-  newVersion[siteId] = (newVersion[siteId] ?? 0) + 1;
-
-  const op: Operation = {
-    id: generateId(),
-    type,
-    position,
-    siteId,
-    version: newVersion,
-    ...(type === 'insert'
-      ? { value: valueOrLength as string }
-      : { length: valueOrLength as number }),
-  };
-
-  return op;
+export function resetCRDTState(): void {
+  appliedOps.clear();
 }
