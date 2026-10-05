@@ -1,47 +1,35 @@
 import React from 'react';
+import { ConnectionStatus } from '../types/connectionStatus';
 import './ConnectionStatus.css';
 
-type ConnectionStatusProps = {
-  status: 'connected' | 'connecting' | 'disconnected';
-};
+interface Props {
+  status: ConnectionStatus;
+}
 
-/**
- * Visual indicator of the WebSocket connection status.
- * Green dot = connected, orange dot = connecting, red dot = disconnected.
- */
-export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ status }) => {
-  const getColor = () => {
-    switch (status) {
-      case 'connected':
-        return '#4caf50'; // green
-      case 'connecting':
-        return '#ff9800'; // orange
-      case 'disconnected':
-      default:
-        return '#f44336'; // red
-    }
-  };
-
+export const ConnectionStatus: React.FC<Props> = ({ status }) => {
   const getLabel = () => {
     switch (status) {
-      case 'connected':
+      case ConnectionStatus.Connected:
         return 'Connected';
-      case 'connecting':
-        return 'Connecting...';
-      case 'disconnected':
+      case ConnectionStatus.Reconnecting:
+        return 'Reconnecting...';
+      case ConnectionStatus.Disconnected:
       default:
         return 'Disconnected';
     }
   };
 
-  return (
-    <div className="connection-status">
-      <span
-        className="status-indicator"
-        style={{ backgroundColor: getColor() }}
-        aria-label={getLabel()}
-      />
-      <span className="status-label">{getLabel()}</span>
-    </div>
-  );
+  const getClassName = () => {
+    switch (status) {
+      case ConnectionStatus.Connected:
+        return 'status connected';
+      case ConnectionStatus.Reconnecting:
+        return 'status reconnecting';
+      case ConnectionStatus.Disconnected:
+      default:
+        return 'status disconnected';
+    }
+  };
+
+  return <div className={getClassName()}>{getLabel()}</div>;
 };
