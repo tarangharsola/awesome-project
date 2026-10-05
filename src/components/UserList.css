@@ -1,4 +1,4 @@
-.user-list {
+.userList {
   background-color: #1e1e1e;
   color: #e0e0e0;
   padding: 0.5rem;
@@ -6,21 +6,18 @@
   max-height: 300px;
   overflow-y: auto;
 }
-
-.user-item {
+.userListItem {
   display: flex;
   align-items: center;
   margin-bottom: 0.25rem;
 }
-
-.user-color {
-  width: 12px;
-  height: 12px;
+.userColorBadge {
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   margin-right: 0.5rem;
-  background-color: currentColor;
+  flex-shrink: 0;
 }
-
-.user-name {
+.userName {
   font-size: 0.9rem;
 }
