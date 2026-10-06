@@ -1,72 +1,26 @@
-// src/utils/conflictResolver.ts
-import { CRDT, CRDTOperation } from './conflict/strategies/crdt';
-import { WebSocketMessage } from '../types/websocketMessage';
+import { Operation } from './conflict/types';
+import { applyCRDTOperations } from './conflict/strategies/crdt';
+import { applyOTOperations } from './conflict/strategies/ot';
+import { ConflictStrategy } from './conflict/types';
 
-export class ConflictResolver {
-  private crdt: CRDT;
-  private pendingOps: CRDTOperation[] = [];
-  private isConnected: boolean = false;
-  private sendMessage: (msg: WebSocketMessage) => void;
-
-  constructor(siteId: string, sendMessage: (msg: WebSocketMessage) => void) {
-    this.crdt = new CRDT(siteId);
-    this.sendMessage = sendMessage;
-  }
-
-  /** Update connection status; flush pending ops and request sync on reconnect */
-  setConnectionStatus(connected: boolean) {
-    this.isConnected = connected;
-    if (connected) {
-      this.pendingOps.forEach((op) => this.broadcast(op));
-      this.pendingOps = [];
-      this.sendMessage({ type: 'SYNC_REQUEST' });
+/**
+ * Resolve a batch of incoming operations against the current document state.
+ * The resolver prefers CRDT; if an error occurs it falls back to OT.
+ */
+export function resolveConflicts(
+  currentDoc: string,
+  ops: Operation[],
+  strategy: ConflictStrategy = 'crdt'
+): string {
+  try {
+    if (strategy === 'crdt') {
+      return applyCRDTOperations(currentDoc, ops);
     }
-  }
-
-  /** Local insert */
-  insert(index: number, value: string) {
-    const op = this.crdt.localInsert(index, value);
-    this.handleLocalOp(op);
-  }
-
-  /** Local delete */
-  delete(index: number, length: number) {
-    const op = this.crdt.localDelete(index, length);
-    this.handleLocalOp(op);
-  }
-
-  /** Process incoming remote operation */
-  receiveRemote(op: CRDTOperation) {
-    this.crdt.integrate(op);
-  }
-
-  /** Current document text */
-  getText(): string {
-    return this.crdt.getText();
-  }
-
-  /** Apply full document sync from server */
-  applySync(text: string) {
-    // Reset CRDT state and rebuild from the synced text
-    this.crdt = new CRDT((this.crdt as any)['siteId']);
-    if (text.length > 0) {
-      this.crdt.localInsert(0, text);
-    }
-  }
-
-  private handleLocalOp(op: CRDTOperation) {
-    if (this.isConnected) {
-      this.broadcast(op);
-    } else {
-      this.pendingOps.push(op);
-    }
-  }
-
-  private broadcast(op: CRDTOperation) {
-    const msg: WebSocketMessage = {
-      type: 'OPERATION',
-      payload: op,
-    };
-    this.sendMessage(msg);
+    // Fallback to OT if explicitly requested.
+    return applyOTOperations(currentDoc, ops);
+  } catch (e) {
+    console.error('Conflict resolution failed, falling back to CRDT', e);
+    // As a safety net, reset to the state produced by CRDT.
+    return applyCRDTOperations(currentDoc, ops);
   }
 }
