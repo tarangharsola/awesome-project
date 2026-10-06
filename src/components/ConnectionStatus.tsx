@@ -1,27 +1,44 @@
 import React from 'react';
+import { useWebSocket } from '../hooks/useWebSocket';
 import './ConnectionStatus.css';
 
-interface Props {
-  status: 'connected' | 'disconnected' | 'reconnecting';
-  attempts?: number;
-}
+export const ConnectionStatus: React.FC = () => {
+  const { status, reconnect } = useWebSocket();
 
-export const ConnectionStatus: React.FC<Props> = ({ status, attempts = 0 }) => {
-  let text = '';
-  let className = 'connection-status';
-  switch (status) {
-    case 'connected':
-      text = 'Connected';
-      className += ' connected';
-      break;
-    case 'reconnecting':
-      text = `Reconnecting (attempt ${attempts})`;
-      className += ' reconnecting';
-      break;
-    case 'disconnected':
-      text = 'Disconnected';
-      className += ' disconnected';
-      break;
-  }
-  return <div className={className}>{text}</div>;
+  const getLabel = () => {
+    switch (status) {
+      case 'connected':
+        return 'Connected';
+      case 'connecting':
+        return 'Connecting...';
+      case 'disconnected':
+        return 'Disconnected';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const getClass = () => {
+    switch (status) {
+      case 'connected':
+        return 'status-connected';
+      case 'connecting':
+        return 'status-connecting';
+      case 'disconnected':
+        return 'status-disconnected';
+      default:
+        return '';
+    }
+  };
+
+  return (
+    <div className={`connection-status ${getClass()}`}>
+      <span>{getLabel()}</span>
+      {status === 'disconnected' && (
+        <button className="retry-button" onClick={reconnect}>
+          Retry
+        </button>
+      )}
+    </div>
+  );
 };
