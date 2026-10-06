@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# CI build script
 set -e
-# Install dependencies
-npm ci
-# Run the build script defined in package.json
+npm install
 npm run build
