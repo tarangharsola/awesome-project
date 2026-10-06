@@ -1,21 +1,38 @@
-import { Language } from "./useLanguage";
+import { Language } from '../types/editor';
 
-export interface FormattingOptions {
-  tabSize: number;
-  insertSpaces: boolean;
-  trimTrailingWhitespace?: boolean;
-  formatOnSave?: boolean;
-}
-
-export function getFormattingDefaults(lang: Language): FormattingOptions {
-  switch (lang) {
-    case "javascript":
-      return { tabSize: 2, insertSpaces: true, trimTrailingWhitespace: true, formatOnSave: true };
-    case "python":
-      return { tabSize: 4, insertSpaces: true, trimTrailingWhitespace: true, formatOnSave: true };
-    case "html":
-      return { tabSize: 2, insertSpaces: true, trimTrailingWhitespace: false, formatOnSave: false };
+/**
+ * Returns sensible default formatting options for the supported languages.
+ * These options are used when initializing the editor instance.
+ */
+export const useFormattingDefaults = (language: Language) => {
+  switch (language) {
+    case 'javascript':
+      return {
+        tabSize: 2,
+        insertSpaces: true,
+        autoCloseBrackets: true,
+        formatOnPaste: true,
+      } as const;
+    case 'python':
+      return {
+        tabSize: 4,
+        insertSpaces: true,
+        autoCloseBrackets: false,
+        formatOnPaste: false,
+      } as const;
+    case 'html':
+      return {
+        tabSize: 2,
+        insertSpaces: true,
+        autoCloseBrackets: true,
+        formatOnPaste: true,
+      } as const;
     default:
-      return { tabSize: 2, insertSpaces: true };
+      return {
+        tabSize: 2,
+        insertSpaces: true,
+        autoCloseBrackets: true,
+        formatOnPaste: true,
+      } as const;
   }
-}
+};

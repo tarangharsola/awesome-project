@@ -1,64 +1,52 @@
-import { useEffect } from "react";
-import * as monaco from "monaco-editor";
+import { useEffect } from 'react';
+import { formatCode } from './formatCode';
+import { Editor } from '@monaco-editor/react'; // Assuming Monaco is used
 
-export interface ShortcutOptions {
-  editor: monaco.editor.IStandaloneCodeEditor;
-  language: string;
-  formatCallback?: () => void;
-  saveCallback?: () => void;
+interface ShortcutOptions {
+  editorRef: React.MutableRefObject<Editor | null>;
+  onSave?: () => void;
 }
 
-export function useKeyboardShortcuts({
-  editor,
-  language,
-  formatCallback,
-  saveCallback,
-}: ShortcutOptions) {
+/**
+ * Registers common keyboard shortcuts for the editor.
+ * - Ctrl+S / Cmd+S: triggers optional onSave callback.
+ * - Ctrl+Shift+F / Cmd+Shift+F: formats the current document.
+ */
+export const useKeyboardShortcuts = ({ editorRef, onSave }: ShortcutOptions) => {
   useEffect(() => {
-    if (!editor) return;
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
 
-    const disposables: monaco.IDisposable[] = [];
+      // Save shortcut
+      if (ctrlKey && e.key === 's') {
+        e.preventDefault();
+        if (onSave) onSave();
+        return;
+      }
 
-    // Save (Ctrl/Cmd + S)
-    disposables.push(
-      editor.addCommand(
-        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S,
-        () => {
-          saveCallback?.();
-        }
-      )
-    );
-
-    // Format (Shift+Alt+F)
-    disposables.push(
-      editor.addCommand(
-        monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KEY_F,
-        () => {
-          formatCallback?.();
-        }
-      )
-    );
-
-    // Tab handling – insert spaces according to editor settings
-    disposables.push(
-      editor.addCommand(monaco.KeyCode.Tab, () => {
+      // Format shortcut
+      if (ctrlKey && e.shiftKey && (e.key === 'F' || e.key === 'f')) {
+        e.preventDefault();
+        const editor = editorRef.current?.getEditor?.();
+        if (!editor) return;
         const model = editor.getModel();
         if (!model) return;
-        const selections = editor.getSelections() || [];
-        const spaces = " ".repeat(editor.getOption(monaco.editor.EditorOption.tabSize));
-        editor.executeEdits(
-          "tab",
-          selections.map((sel) => ({
-            range: sel,
-            text: spaces,
-            forceMoveMarkers: true,
-          }))
-        );
-      })
-    );
-
-    return () => {
-      disposables.forEach((d) => d.dispose());
+        const original = model.getValue();
+        const language = model.getModeId();
+        try {
+          const formatted = await formatCode(original, language as any);
+          const fullRange = model.getFullModelRange();
+          editor.executeEdits('format', [{ range: fullRange, text: formatted }]);
+        } catch (err) {
+          console.error('Formatting failed', err);
+        }
+      }
     };
-  }, [editor, language, formatCallback, saveCallback]);
-}
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [editorRef, onSave]);
+};

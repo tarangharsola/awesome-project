@@ -1,100 +1,73 @@
-import React, { useRef, useEffect, useCallback } from "react";
-import Editor, { OnMount } from "@monaco-editor/react";
-import * as monaco from "monaco-editor";
-import { useLanguage } from "../utils/useLanguage";
-import { getFormattingDefaults } from "../utils/useFormattingDefaults";
-import { useKeyboardShortcuts } from "../utils/useKeyboardShortcuts";
-import { useCollaboration } from "../hooks/useCollaboration";
+import React, { useEffect, useRef } from 'react';
+import { Editor as MonacoEditor, OnMount } from '@monaco-editor/react';
+import { Language } from '../types/editor';
+import { useFormattingDefaults } from '../utils/useFormattingDefaults';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { useCollaboration } from '../hooks/useCollaboration';
 
-export const CodeEditor: React.FC = () => {
-  const [language, setLanguage] = useLanguage();
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const { content, onChange, onRemoteChange } = useCollaboration();
+interface EditorProps {
+  initialCode: string;
+  language: Language;
+  sessionId: string;
+  onSave?: () => void;
+}
 
-  const handleEditorMount: OnMount = (editor, monacoInstance) => {
-    editorRef.current = editor;
-    const defaults = getFormattingDefaults(language);
-    editor.updateOptions({
-      tabSize: defaults.tabSize,
-      insertSpaces: defaults.insertSpaces,
+export const Editor: React.FC<EditorProps> = ({ initialCode, language, sessionId, onSave }) => {
+  const editorRef = useRef<any>(null);
+  const formattingOptions = useFormattingDefaults(language);
+
+  // Collaboration hook handles remote changes and cursor sync
+  const { remoteChanges, sendLocalChange, remoteCursors } = useCollaboration({
+    editorRef,
+    sessionId,
+    language,
+  });
+
+  // Apply remote changes when they arrive
+  useEffect(() => {
+    if (!editorRef.current) return;
+    const monacoEditor = editorRef.current.getEditor?.();
+    if (!monacoEditor) return;
+    remoteChanges.forEach((change) => {
+      monacoEditor.executeEdits('remote', [change]);
+    });
+  }, [remoteChanges]);
+
+  // Keyboard shortcuts (save & format)
+  useKeyboardShortcuts({ editorRef, onSave });
+
+  const handleEditorDidMount: OnMount = (editor, monaco) => {
+    editorRef.current = { editor, monaco };
+    // Set initial content
+    editor.setValue(initialCode);
+    // Apply formatting defaults
+    editor.updateOptions(formattingOptions);
+    // Listen for local changes to broadcast
+    editor.onDidChangeModelContent((e) => {
+      sendLocalChange(e);
     });
   };
 
-  // Apply language change to the monaco model and update formatting options
+  // Update language mode when prop changes
   useEffect(() => {
-    const editor = editorRef.current;
-    if (editor) {
-      const model = editor.getModel();
-      if (model) {
-        monaco.editor.setModelLanguage(model, language);
-      }
-      const defaults = getFormattingDefaults(language);
-      editor.updateOptions({
-        tabSize: defaults.tabSize,
-        insertSpaces: defaults.insertSpaces,
-      });
-    }
+    if (!editorRef.current) return;
+    const monacoEditor = editorRef.current.getEditor?.();
+    if (!monacoEditor) return;
+    const model = monacoEditor.getModel();
+    if (!model) return;
+    const newLanguage = language === 'javascript' ? 'javascript' : language;
+    monacoEditor.getModel()?.setMode(newLanguage);
+    // Reapply formatting defaults for the new language
+    editorRef.current.editor.updateOptions(useFormattingDefaults(language));
   }, [language]);
 
-  // Keyboard shortcuts integration
-  useKeyboardShortcuts({
-    editor: editorRef.current!,
-    language,
-    formatCallback: () => {
-      const editor = editorRef.current;
-      if (editor) {
-        const action = editor.getAction("editor.action.formatDocument");
-        action?.run();
-      }
-    },
-    saveCallback: () => {
-      // Placeholder for save logic – can be extended to emit a save event
-      console.log("Save shortcut triggered");
-    },
-  });
-
-  const handleChange = useCallback(
-    (value: string | undefined) => {
-      onChange(value ?? "");
-    },
-    [onChange]
-  );
-
-  // Apply remote changes coming from collaboration layer
-  useEffect(() => {
-    const editor = editorRef.current;
-    if (editor && editor.getValue() !== content) {
-      const model = editor.getModel();
-      if (model) {
-        editor.pushUndoStop();
-        model.pushEditOperations(
-          [],
-          [
-            {
-              range: model.getFullModelRange(),
-              text: content,
-            },
-          ]
-        );
-        editor.pushUndoStop();
-      }
-    }
-  }, [content]);
-
   return (
-    <div className="editor-container" style={{ height: "100%" }}>
-      <Editor
-        height="100%"
-        language={language}
-        value={content}
-        onChange={handleChange}
-        onMount={handleEditorMount}
-        theme="vs-dark"
-        options={{
-          automaticLayout: true,
-          minimap: { enabled: false },
-        }}
-      />
-    </div>
+    <MonacoEditor
+      height="100%"
+      defaultLanguage={language}
+      defaultValue={initialCode}
+      onMount={handleEditorDidMount}
+      theme="vs-dark"
+    />
   );
 };
