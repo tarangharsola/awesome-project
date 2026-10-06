@@ -1,3 +1,9 @@
-export { default as crdtStrategy } from './strategies/crdt';
-export { default as otStrategy } from './strategies/ot';
-export type { ConflictResolver } from './types';
+import { crdtStrategy } from "./strategies/crdt";
+import { otStrategy } from "./strategies/ot";
+
+export const conflictResolvers = {
+  crdt: crdtStrategy,
+  ot: otStrategy,
+};
+
+export default conflictResolvers;

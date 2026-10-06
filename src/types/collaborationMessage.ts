@@ -1,6 +1,6 @@
-export type CollaborationMessage =
-  | { type: 'join'; userId: string; userName: string; color: string }
-  | { type: 'leave'; userId: string }
-  | { type: 'cursor'; userId: string; position: number }
-  | { type: 'content'; userId: string; delta: string }
-  | { type: 'presence'; users: Array<{ userId: string; userName: string; color: string }> };
+export interface CollaborationMessage<T = any> {
+  type: string;
+  payload: T;
+  senderId: string;
+  timestamp: number;
+}
