@@ -1,52 +1,27 @@
 import { useEffect } from 'react';
-import { formatCode } from './formatCode';
-import { Editor } from '@monaco-editor/react'; // Assuming Monaco is used
 
-interface ShortcutOptions {
-  editorRef: React.MutableRefObject<Editor | null>;
-  onSave?: () => void;
-}
-
-/**
- * Registers common keyboard shortcuts for the editor.
- * - Ctrl+S / Cmd+S: triggers optional onSave callback.
- * - Ctrl+Shift+F / Cmd+Shift+F: formats the current document.
- */
-export const useKeyboardShortcuts = ({ editorRef, onSave }: ShortcutOptions) => {
+export default function useKeyboardShortcuts(editorRef: React.RefObject<any>, language: string) {
   useEffect(() => {
-    const handleKeyDown = async (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
-
-      // Save shortcut
-      if (ctrlKey && e.key === 's') {
+    const handler = (e: KeyboardEvent) => {
+      // Save shortcut: Ctrl/Cmd+S
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        if (onSave) onSave();
-        return;
+        console.log('Save shortcut triggered'); // Placeholder for actual save logic
       }
 
-      // Format shortcut
-      if (ctrlKey && e.shiftKey && (e.key === 'F' || e.key === 'f')) {
+      // Format shortcut: Ctrl/Cmd+Shift+F
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
         e.preventDefault();
-        const editor = editorRef.current?.getEditor?.();
-        if (!editor) return;
-        const model = editor.getModel();
-        if (!model) return;
-        const original = model.getValue();
-        const language = model.getModeId();
-        try {
-          const formatted = await formatCode(original, language as any);
-          const fullRange = model.getFullModelRange();
-          editor.executeEdits('format', [{ range: fullRange, text: formatted }]);
-        } catch (err) {
-          console.error('Formatting failed', err);
+        if (editorRef.current && typeof editorRef.current.getAction === 'function') {
+          const formatAction = editorRef.current.getAction('editor.action.formatDocument');
+          if (formatAction) {
+            formatAction.run();
+          }
         }
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [editorRef, onSave]);
-};
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [editorRef, language]);
+}

@@ -1,38 +1,12 @@
-import { Language } from '../types/editor';
-
-/**
- * Returns sensible default formatting options for the supported languages.
- * These options are used when initializing the editor instance.
- */
-export const useFormattingDefaults = (language: Language) => {
+export default function useFormattingDefaults(language: string) {
   switch (language) {
     case 'javascript':
-      return {
-        tabSize: 2,
-        insertSpaces: true,
-        autoCloseBrackets: true,
-        formatOnPaste: true,
-      } as const;
+      return { tabSize: 2, insertSpaces: true };
     case 'python':
-      return {
-        tabSize: 4,
-        insertSpaces: true,
-        autoCloseBrackets: false,
-        formatOnPaste: false,
-      } as const;
+      return { tabSize: 4, insertSpaces: true };
     case 'html':
-      return {
-        tabSize: 2,
-        insertSpaces: true,
-        autoCloseBrackets: true,
-        formatOnPaste: true,
-      } as const;
+      return { tabSize: 2, insertSpaces: true };
     default:
-      return {
-        tabSize: 2,
-        insertSpaces: true,
-        autoCloseBrackets: true,
-        formatOnPaste: true,
-      } as const;
+      return { tabSize: 2, insertSpaces: true };
   }
-};
+}
