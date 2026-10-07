@@ -1,85 +1,70 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from 'react';
+import { WebSocketMessage } from '../types/websocketMessage';
+import { ConnectionStatus } from '../types/connectionStatus';
+import { WS_URL } from '../utils/websocketClient';
 
-export interface WebSocketOptions {
-  url: string;
-  reconnectInterval?: number;
-  maxRetries?: number;
+export interface UseWebSocketReturn {
+  status: ConnectionStatus;
+  sendMessage: (msg: WebSocketMessage) => void;
+  lastMessage: WebSocketMessage | null;
 }
 
 /**
- * Hook that manages a WebSocket connection with automatic reconnection.
- * Returns the socket instance, the latest message, and a send function.
+ * Hook to manage a WebSocket connection with automatic reconnection.
+ * Provides connection status, a send function, and the most recent message.
  */
-export function useWebSocket<T = any>(options: WebSocketOptions) {
-  const { url, reconnectInterval = 2000, maxRetries = Infinity } = options;
-  const socketRef = useRef<WebSocket | null>(null);
-  const [message, setMessage] = useState<T | null>(null);
-  const [connected, setConnected] = useState(false);
-  const retriesRef = useRef(0);
+export function useWebSocket(roomId: string, userId: string): UseWebSocketReturn {
+  const [status, setStatus] = useState<ConnectionStatus>('disconnected');
+  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeout = useRef<number | null>(null);
 
-  const clearSocket = () => {
-    if (socketRef.current) {
-      socketRef.current.onopen = null;
-      socketRef.current.onmessage = null;
-      socketRef.current.onclose = null;
-      socketRef.current.onerror = null;
-      socketRef.current.close();
-      socketRef.current = null;
-    }
-  };
+  const connect = () => {
+    const ws = new WebSocket(`${WS_URL}?room=${roomId}&user=${userId}`);
+    wsRef.current = ws;
+    setStatus('connecting');
 
-  const connect = useCallback(() => {
-    clearSocket();
-    const ws = new WebSocket(url);
-    socketRef.current = ws;
-
-    ws.onopen = () => {
-      setConnected(true);
-      retriesRef.current = 0;
+    ws.onopen = () => setStatus('connected');
+    ws.onclose = () => {
+      setStatus('disconnected');
+      scheduleReconnect();
     };
+    ws.onerror = () => ws.close();
 
     ws.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data) as T;
-        setMessage(data);
+        const data: WebSocketMessage = JSON.parse(event.data);
+        setLastMessage(data);
       } catch {
-        // If not JSON, forward raw string
-        setMessage((event.data as unknown) as T);
+        // Silently ignore malformed messages
       }
     };
+  };
 
-    ws.onclose = () => {
-      setConnected(false);
-      if (retriesRef.current < maxRetries) {
-        retriesRef.current += 1;
-        reconnectTimeout.current = window.setTimeout(connect, reconnectInterval);
-      }
-    };
+  const scheduleReconnect = () => {
+    if (reconnectTimeout.current !== null) return;
+    reconnectTimeout.current = window.setTimeout(() => {
+      reconnectTimeout.current = null;
+      connect();
+    }, 2000);
+  };
 
-    ws.onerror = () => {
-      ws.close();
-    };
-  }, [url, reconnectInterval, maxRetries]);
-
-  const send = useCallback(
-    (data: any) => {
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-        socketRef.current.send(JSON.stringify(data));
-      }
-    },
-    []
-  );
+  const sendMessage = (msg: WebSocketMessage) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(msg));
+    }
+  };
 
   useEffect(() => {
     connect();
     return () => {
-      if (reconnectTimeout.current) {
+      if (reconnectTimeout.current !== null) {
         clearTimeout(reconnectTimeout.current);
       }
-      clearSocket();
+      wsRef.current?.close();
     };
-  }, [connect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomId, userId]);
 
-  return { socket: socketRef.current, message, send, connected };
+  return { status, sendMessage, lastMessage };
 }
