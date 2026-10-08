@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
 set -e
-# Simple CI build script that runs the project's build command
+
+# Install dependencies
+npm ci
+
+# Run the production build
 npm run build
