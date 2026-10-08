@@ -1,1 +1,27 @@
-.user-list {\n  display: flex;\n  flex-direction: column;\n  padding: 0;\n  margin: 0;\n  list-style: none;\n}\n\n.user-item {\n  display: flex;\n  align-items: center;\n  padding: 0.4rem 0.8rem;\n  margin-bottom: 0.2rem;\n  border-radius: 4px;\n  background: rgba(255, 255, 255, 0.08);\n  color: #e0e0e0;\n  font-size: 0.9rem;\n}\n\n.user-color-indicator {\n  width: 10px;\n  height: 10px;\n  border-radius: 50%;\n  margin-right: 0.6rem;\n  flex-shrink: 0;\n}\n\n.user-name {\n  flex-grow: 1;\n}\n\n/* Ensure readability on dark mode */\n.user-item:hover {\n  background: rgba(255, 255, 255, 0.12);\n}\n
+.user-list {
+  background: #1e1e1e;
+  color: #e0e0e0;
+  padding: 0.5rem;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.user-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.user-name {
+  color: inherit;
+}
