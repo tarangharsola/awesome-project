@@ -1,80 +1,81 @@
-import { useEffect, useRef, useState } from 'react';
-
-type MessageHandler = (msg: any) => void;
+import { useEffect, useRef, useState, useCallback } from "react";
+import { WebSocketMessage } from "../types/websocketMessage";
+import { ConnectionStatus } from "../types/connectionStatus";
 
 /**
- * Hook that manages a WebSocket connection with automatic reconnection,
- * exponential back‑off, and a send queue for messages generated while offline.
+ * Hook to manage a WebSocket connection with exponential backoff reconnection.
+ * Returns the current connection status, a sendMessage function, and a manual reconnect trigger.
  */
-export function useWebSocket(url: string, onMessage: MessageHandler) {
+export const useWebSocket = (url: string) => {
   const wsRef = useRef<WebSocket | null>(null);
-  const [connected, setConnected] = useState(false);
-  const messageQueue = useRef<any[]>([]);
-  const reconnectAttempts = useRef(0);
-  const maxAttempts = 10;
+  const [status, setStatus] = useState<ConnectionStatus>("disconnected");
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetryDelay = 30000; // 30 seconds max delay
 
-  const connect = () => {
-    wsRef.current = new WebSocket(url);
+  const connect = useCallback(() => {
+    setStatus("connecting");
+    const ws = new WebSocket(url);
+    wsRef.current = ws;
 
-    wsRef.current.onopen = () => {
-      setConnected(true);
-      reconnectAttempts.current = 0;
-      // Flush any queued messages
-      while (messageQueue.current.length) {
-        const msg = messageQueue.current.shift();
-        wsRef.current?.send(JSON.stringify(msg));
-      }
+    ws.onopen = () => {
+      setStatus("connected");
+      setRetryCount(0);
     };
 
-    wsRef.current.onmessage = (event: MessageEvent) => {
+    ws.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data);
-        onMessage(data);
+        const message: WebSocketMessage = JSON.parse(event.data);
+        const customEvent = new CustomEvent("ws-message", { detail: message });
+        window.dispatchEvent(customEvent);
       } catch (e) {
-        console.error('Failed to parse WebSocket message', e);
+        console.error("Failed to parse WebSocket message", e);
       }
     };
 
-    wsRef.current.onclose = () => {
-      setConnected(false);
-      attemptReconnect();
+    ws.onclose = () => {
+      setStatus("disconnected");
+      scheduleReconnect();
     };
 
-    wsRef.current.onerror = () => {
-      // Force close to trigger reconnection logic
-      wsRef.current?.close();
+    ws.onerror = () => {
+      ws.close();
     };
-  };
+  }, [url, scheduleReconnect]);
 
-  const attemptReconnect = () => {
-    if (reconnectAttempts.current >= maxAttempts) {
-      console.warn('Maximum reconnection attempts reached');
-      return;
-    }
-    const timeout = Math.min(1000 * 2 ** reconnectAttempts.current, 30000);
-    reconnectAttempts.current += 1;
+  const scheduleReconnect = useCallback(() => {
+    const delay = Math.min(1000 * 2 ** retryCount, maxRetryDelay);
     setTimeout(() => {
+      setRetryCount((c) => c + 1);
       connect();
-    }, timeout);
-  };
+    }, delay);
+  }, [retryCount, connect]);
 
-  const send = (msg: any) => {
-    const payload = JSON.stringify(msg);
-    if (connected && wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(payload);
+  const sendMessage = useCallback((msg: WebSocketMessage) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(msg));
     } else {
-      // Queue the message until the socket is ready again
-      messageQueue.current.push(msg);
+      console.warn("WebSocket not open – message dropped", msg);
     }
-  };
+  }, []);
+
+  const reconnect = useCallback(() => {
+    setRetryCount(0);
+    wsRef.current?.close();
+    // connect will be called by onclose -> scheduleReconnect, but we want immediate retry
+    connect();
+  }, [connect]);
+
+  const close = useCallback(() => {
+    wsRef.current?.close();
+  }, []);
 
   useEffect(() => {
     connect();
     return () => {
-      wsRef.current?.close();
+      close();
     };
-    // Re‑connect only when the URL changes
-  }, [url]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  return { send, connected } as const;
-}
+  return { status, sendMessage, reconnect, close };
+};

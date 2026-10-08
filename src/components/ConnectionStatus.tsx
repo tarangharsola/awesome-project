@@ -1,27 +1,47 @@
-import React from 'react';
-import './ConnectionStatus.css';
+import React from "react";
+import "./ConnectionStatus.css";
+import { ConnectionStatus as Status } from "../types/connectionStatus";
 
-type ConnectionStatusProps = {
-  status: 'connected' | 'disconnected' | 'connecting';
+type Props = {
+  status: Status;
+  onRetry?: () => void;
 };
 
-export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ status }) => {
-  let text = '';
-  let className = '';
+export const ConnectionStatus: React.FC<Props> = ({ status, onRetry }) => {
+  const getMessage = () => {
+    switch (status) {
+      case "connected":
+        return "Connected";
+      case "connecting":
+        return "Connecting...";
+      case "disconnected":
+        return "Disconnected";
+      default:
+        return "Unknown";
+    }
+  };
 
-  switch (status) {
-    case 'connected':
-      text = 'Connected';
-      className = 'connected';
-      break;
-    case 'connecting':
-      text = 'Connecting...';
-      className = 'connecting';
-      break;
-    default:
-      text = 'Disconnected';
-      className = 'disconnected';
-  }
+  const getClass = () => {
+    switch (status) {
+      case "connected":
+        return "status-connected";
+      case "connecting":
+        return "status-connecting";
+      case "disconnected":
+        return "status-disconnected";
+      default:
+        return "";
+    }
+  };
 
-  return <div className={`connection-status ${className}`}>{text}</div>;
+  return (
+    <div className={`connection-status ${getClass()}`}>
+      <span>{getMessage()}</span>
+      {status === "disconnected" && onRetry && (
+        <button className="retry-button" onClick={onRetry}>
+          Retry
+        </button>
+      )}
+    </div>
+  );
 };
