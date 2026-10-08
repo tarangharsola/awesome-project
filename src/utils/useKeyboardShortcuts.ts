@@ -1,27 +1,42 @@
 import { useEffect } from 'react';
 
-export default function useKeyboardShortcuts(editorRef: React.RefObject<any>, language: string) {
+type Options = {
+  onSave?: () => void;
+  onFormat?: () => void;
+};
+
+/**
+ * Hook that attaches common editor keyboard shortcuts to a DOM element.
+ * - Ctrl/Cmd + S → save (prevent default browser Save dialog)
+ * - Ctrl/Cmd + Shift + F → format document
+ */
+export const useKeyboardShortcuts = (
+  element: HTMLElement | null,
+  options: Options = {}
+) => {
   useEffect(() => {
+    if (!element) return;
     const handler = (e: KeyboardEvent) => {
-      // Save shortcut: Ctrl/Cmd+S
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      const isMac = navigator.platform.toUpperCase().includes('MAC');
+      const ctrl = isMac ? e.metaKey : e.ctrlKey;
+
+      // Save shortcut
+      if (ctrl && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        console.log('Save shortcut triggered'); // Placeholder for actual save logic
+        options.onSave?.();
+        return;
       }
 
-      // Format shortcut: Ctrl/Cmd+Shift+F
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+      // Format shortcut (Ctrl+Shift+F)
+      if (ctrl && e.shiftKey && e.key.toLowerCase() === 'f') {
         e.preventDefault();
-        if (editorRef.current && typeof editorRef.current.getAction === 'function') {
-          const formatAction = editorRef.current.getAction('editor.action.formatDocument');
-          if (formatAction) {
-            formatAction.run();
-          }
-        }
+        options.onFormat?.();
+        return;
       }
     };
+    element.addEventListener('keydown', handler);
+    return () => element.removeEventListener('keydown', handler);
+  }, [element, options.onSave, options.onFormat]);
+};
 
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [editorRef, language]);
-}
+export default useKeyboardShortcuts;

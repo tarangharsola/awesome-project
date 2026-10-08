@@ -1,12 +1,12 @@
-export default function useFormattingDefaults(language: string) {
-  switch (language) {
-    case 'javascript':
-      return { tabSize: 2, insertSpaces: true };
-    case 'python':
-      return { tabSize: 4, insertSpaces: true };
-    case 'html':
-      return { tabSize: 2, insertSpaces: true };
-    default:
-      return { tabSize: 2, insertSpaces: true };
-  }
-}
+/**
+ * Default formatting options applied to the CodeMirror editor.
+ * These values provide a clean, consistent editing experience across
+ * all supported languages.
+ */
+export const formattingDefaults = {
+  tabSize: 2,
+  indentWithTabs: false,
+  lineWrapping: true,
+};
+
+export default formattingDefaults;
