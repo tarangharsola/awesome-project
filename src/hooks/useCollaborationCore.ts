@@ -1,41 +1,63 @@
-import { useEffect, useState } from "react";
-import { useWebSocket } from "./useWebSocket";
-import { usePresence } from "./usePresence";
-import { applyRemoteChanges, localChangeToMessage } from "../utils/conflictResolver";
-import { CollaborationMessage } from "../types/collaboration";
+import { useEffect, useState, useCallback } from 'react';
+import { useWebSocket } from './useWebSocket';
+import { usePresence } from './usePresence';
+import { useConflictResolver } from './useConflictResolver';
+import { User } from '../types/presence';
+import { CollaborationMessage } from '../types/collaborationMessage';
 
-export function useCollaborationCore(roomId: string, username: string) {
-  const [doc, setDoc] = useState<string>("");
-  const ws = useWebSocket(roomId);
-  const { users, broadcastPresence, updateUserPresence } = usePresence(username, ws);
+/**
+ * Core collaboration hook that wires together WebSocket communication,
+ * conflict resolution (CRDT), and presence awareness. It guarantees that
+ * after a reconnection the document state and user list are re‑synchronised.
+ */
+export function useCollaborationCore(roomId: string, localUser: User) {
+  const [doc, setDoc] = useState<string>('');
+  const resolver = useConflictResolver();
 
-  // Send local edits to the server
-  const sendEdit = (delta: string) => {
-    const msg: CollaborationMessage = localChangeToMessage(username, delta);
-    ws?.send(JSON.stringify(msg));
-  };
+  const { send, connected } = useWebSocket(`${process.env.REACT_APP_WS_URL}/${roomId}`, handleMessage);
+  const { users, broadcastPresence } = usePresence(localUser, send);
 
-  // Handle incoming WebSocket messages
+  // Send join and request a full sync whenever the socket becomes healthy
   useEffect(() => {
-    if (!ws) return;
-    const handleMessage = (event: MessageEvent) => {
-      const msg: CollaborationMessage = JSON.parse(event.data);
-      if (msg.type === "edit" && msg.author !== username) {
-        setDoc((prev) => applyRemoteChanges(prev, msg));
-      } else if (msg.type === "presence") {
-        updateUserPresence(msg);
+    if (!connected) return;
+    // Announce ourselves to the room
+    send({ type: 'join', user: localUser } as CollaborationMessage);
+    // Re‑broadcast presence (useful after reconnect)
+    broadcastPresence();
+    // Ask the server for the latest document snapshot
+    send({ type: 'request_sync' } as CollaborationMessage);
+  }, [connected, localUser, send, broadcastPresence]);
+
+  // Centralised message dispatcher
+  function handleMessage(msg: CollaborationMessage) {
+    switch (msg.type) {
+      case 'full_sync': {
+        const newContent = resolver.applyFullSync(doc, msg.content);
+        setDoc(newContent);
+        break;
       }
-    };
-    ws.addEventListener("message", handleMessage);
-    return () => ws.removeEventListener("message", handleMessage);
-  }, [ws, username, updateUserPresence]);
-
-  // Broadcast presence when the connection is ready
-  useEffect(() => {
-    if (ws) {
-      broadcastPresence();
+      case 'remote_edit': {
+        const newContent = resolver.applyRemoteEdit(doc, msg.operation);
+        setDoc(newContent);
+        break;
+      }
+      case 'presence':
+        // Presence updates are handled inside usePresence via the same socket
+        break;
+      default:
+        console.warn('Unhandled collaboration message type', (msg as any).type);
     }
-  }, [ws, broadcastPresence]);
+  }
 
-  return { doc, setDoc, sendEdit, users };
+  // Called by the editor component when the local user makes a change
+  const applyLocalEdit = useCallback(
+    (newContent: string) => {
+      const operation = resolver.createOperation(doc, newContent, localUser.id);
+      setDoc(newContent);
+      send({ type: 'remote_edit', operation, userId: localUser.id } as CollaborationMessage);
+    },
+    [doc, localUser.id, resolver, send]
+  );
+
+  return { doc, applyLocalEdit, users, connected } as const;
 }
