@@ -1,26 +1,22 @@
-import { Operation } from './conflict/types';
-import { applyCRDTOperations } from './conflict/strategies/crdt';
-import { applyOTOperations } from './conflict/strategies/ot';
-import { ConflictStrategy } from './conflict/types';
+import { crdtApply, crdtTransform } from "./conflict/strategies/crdt";
+import { CollaborationMessage } from "../types/collaboration";
 
 /**
- * Resolve a batch of incoming operations against the current document state.
- * The resolver prefers CRDT; if an error occurs it falls back to OT.
+ * Apply a remote edit message to the current document state using CRDT logic.
  */
-export function resolveConflicts(
-  currentDoc: string,
-  ops: Operation[],
-  strategy: ConflictStrategy = 'crdt'
-): string {
-  try {
-    if (strategy === 'crdt') {
-      return applyCRDTOperations(currentDoc, ops);
-    }
-    // Fallback to OT if explicitly requested.
-    return applyOTOperations(currentDoc, ops);
-  } catch (e) {
-    console.error('Conflict resolution failed, falling back to CRDT', e);
-    // As a safety net, reset to the state produced by CRDT.
-    return applyCRDTOperations(currentDoc, ops);
-  }
+export function applyRemoteChanges(doc: string, msg: CollaborationMessage): string {
+  if (msg.type !== "edit") return doc;
+  return crdtApply(doc, msg.payload);
+}
+
+/**
+ * Convert a local change (delta) into a CollaborationMessage ready for transmission.
+ */
+export function localChangeToMessage(author: string, delta: string): CollaborationMessage {
+  return {
+    type: "edit",
+    author,
+    payload: crdtTransform(delta),
+    timestamp: Date.now()
+  } as CollaborationMessage;
 }
