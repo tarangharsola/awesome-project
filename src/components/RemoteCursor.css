@@ -1,24 +1,20 @@
 .remote-cursor {
   position: absolute;
   pointer-events: none;
-  z-index: 10;
-}
-
-.remote-cursor .cursor-bar {
-  width: 2px;
-  background: currentColor;
-  opacity: 0.8;
 }
 
 .remote-cursor .cursor-label {
-  position: absolute;
-  top: -1.5em;
-  left: 2px;
-  background: rgba(0, 0, 0, 0.75);
-  color: #ffffff;
+  background-color: rgba(30, 30, 30, 0.85);
+  color: #e0e0e0;
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 0.75rem;
   white-space: nowrap;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+  margin-top: -1.5em;
+}
+
+.remote-cursor .cursor-indicator {
+  width: 2px;
+  background-color: currentColor;
+  height: 1.2em;
 }

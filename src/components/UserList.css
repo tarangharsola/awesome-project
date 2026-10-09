@@ -1,20 +1,19 @@
 .user-list {
-  background: #1e1e1e;
+  background-color: #1e1e1e;
   color: #e0e0e0;
   padding: 0.5rem;
   border-radius: 4px;
-  max-height: 300px;
+  max-height: 80vh;
   overflow-y: auto;
 }
 
-.user-item {
+.user-list-item {
   display: flex;
   align-items: center;
   margin-bottom: 0.25rem;
-  font-size: 0.9rem;
 }
 
-.user-color {
+.user-color-indicator {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -23,5 +22,6 @@
 }
 
 .user-name {
-  color: inherit;
+  font-size: 0.9rem;
+  word-break: keep-all;
 }
