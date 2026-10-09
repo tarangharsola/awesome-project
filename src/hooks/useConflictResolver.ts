@@ -1,42 +1,38 @@
 import { useRef } from 'react';
-import { applyCRDTOperation, mergeCRDTState } from '../utils/conflict/strategies/crdt';
-import { EditorOperation, EditorState } from '../types/editor';
+import type { CRDTOperation } from '../utils/conflict/strategies/crdt';
+import { applyRemoteOperation, generateInsertOperation, generateDeleteOperation } from '../utils/conflict/strategies/crdt';
 
 /**
- * Hook that provides CRDT‑based conflict resolution for collaborative editing.
- * It keeps a local copy of the document state, applies local operations
- * immediately, queues them for remote broadcast, and merges incoming remote
- * operations safely.
+ * Hook that encapsulates conflict‑resolution logic using a simple sequence CRDT.
+ * It provides helpers to transform local edits into CRDT operations and to apply
+ * remote operations to the local document state.
  */
-export function useConflictResolver(initialState: EditorState) {
-  const stateRef = useRef<EditorState>(initialState);
-  const pendingOps = useRef<EditorOperation[]>([]);
+export function useConflictResolver(clientId: string) {
+  const pendingOpsRef = useRef<CRDTOperation[]>([]);
 
-  /** Apply a local edit and queue it for transmission */
-  const localEdit = (op: EditorOperation) => {
-    // Apply operation locally using CRDT logic
-    stateRef.current = applyCRDTOperation(stateRef.current, op);
-    pendingOps.current.push(op);
-    return stateRef.current;
+  const localInsert = (pos: number, char: string) => {
+    const op = generateInsertOperation(clientId, pos, char);
+    pendingOpsRef.current.push(op);
+    return op;
   };
 
-  /** Integrate a remote edit, de‑duplicate if it matches a pending local op */
-  const remoteEdit = (op: EditorOperation) => {
-    stateRef.current = applyCRDTOperation(stateRef.current, op);
-    // Remove from pending if we already have this operation
-    pendingOps.current = pendingOps.current.filter(
-      (p) => !(p.id === op.id && p.userId === op.userId)
+  const localDelete = (pos: number) => {
+    const op = generateDeleteOperation(clientId, pos);
+    pendingOpsRef.current.push(op);
+    return op;
+  };
+
+  const applyRemote = (op: CRDTOperation) => {
+    // Remove from pending if we already generated the same operation (echo)
+    const idx = pendingOpsRef.current.findIndex(
+      (p) => p.id === op.id && p.type === op.type
     );
-    return stateRef.current;
+    if (idx !== -1) {
+      pendingOpsRef.current.splice(idx, 1);
+      return null; // No UI update needed – already applied locally
+    }
+    return applyRemoteOperation(op);
   };
 
-  /** Merge a full remote state (e.g., after reconnection) */
-  const mergeState = (remoteState: EditorState) => {
-    stateRef.current = mergeCRDTState(stateRef.current, remoteState);
-    pendingOps.current = [];
-  };
-
-  const getState = () => stateRef.current;
-
-  return { localEdit, remoteEdit, mergeState, getState } as const;
+  return { localInsert, localDelete, applyRemote } as const;
 }

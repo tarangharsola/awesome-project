@@ -1,61 +1,86 @@
-import { useEffect, useState, useCallback } from 'react';
-import { User } from '../types/presence';
-import { CollaborationMessage } from '../types/collaborationMessage';
+import { useEffect, useRef } from 'react';
 import { useWebSocket } from './useWebSocket';
+import type { PresenceMessage, UserPresence } from '../types/presence';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Hook that tracks user presence in a collaborative session.
- * It synchronizes the local user list with the server and ensures
- * consistency after reconnection by handling `presence_sync` messages.
+ * Hook that manages user presence (join/leave, cursor updates) for a collaborative session.
+ * It guarantees that the local user is announced on (re)connection and that remote
+ * presence updates are merged into the supplied `onPresenceUpdate` callback.
  */
 export function usePresence(
-  wsUrl: string,
-  localUser: User
+  sessionId: string,
+  username: string,
+  color: string,
+  onPresenceUpdate: (users: Record<string, UserPresence>) => void
 ) {
-  const [users, setUsers] = useState<User[]>([localUser]);
+  const clientId = useRef(uuidv4());
+  const usersRef = useRef<Record<string, UserPresence>>({});
 
-  const handleMessage = useCallback(
-    (msg: CollaborationMessage) => {
-      switch (msg.type) {
-        case 'user_join':
-          setUsers((prev) => {
-            if (prev.find((u) => u.id === msg.user.id)) return prev;
-            return [...prev, msg.user];
-          });
-          break;
-        case 'user_leave':
-          setUsers((prev) => prev.filter((u) => u.id !== msg.user.id));
-          break;
-        case 'presence_sync':
-          // Server sends the authoritative list of participants.
-          setUsers(msg.users);
-          break;
-        default:
-          // Ignore unrelated messages.
-          break;
-      }
-    },
-    []
-  );
+  const handleMessage = (msg: PresenceMessage) => {
+    if (msg.type === 'presence') {
+      const { userId, username, color, cursor } = msg.payload;
+      usersRef.current[userId] = { userId, username, color, cursor };
+      onPresenceUpdate({ ...usersRef.current });
+    } else if (msg.type === 'presence-leave') {
+      const { userId } = msg.payload;
+      delete usersRef.current[userId];
+      onPresenceUpdate({ ...usersRef.current });
+    }
+  };
 
-  const { status, sendMessage } = useWebSocket(wsUrl, handleMessage);
+  const { status, send } = useWebSocket(`wss://example.com/collab/${sessionId}`, handleMessage);
 
-  // Notify the server when the local user joins.
+  // Announce self when connection becomes active
   useEffect(() => {
     if (status === 'connected') {
-      sendMessage({ type: 'user_join', user: localUser } as CollaborationMessage);
+      const joinMsg: PresenceMessage = {
+        type: 'presence',
+        payload: {
+          userId: clientId.current,
+          username,
+          color,
+          cursor: null,
+        },
+      };
+      send(joinMsg);
     }
-  }, [status, localUser, sendMessage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, username, color]);
 
-  // Clean up on unmount – inform server of leaving.
+  // Broadcast cursor updates
+  const broadcastCursor = (cursor: { line: number; ch: number } | null) => {
+    if (status !== 'connected') return;
+    const cursorMsg: PresenceMessage = {
+      type: 'presence',
+      payload: {
+        userId: clientId.current,
+        username,
+        color,
+        cursor,
+      },
+    };
+    send(cursorMsg);
+  };
+
+  // Clean up on unload – inform others that we left
   useEffect(() => {
-    return () => {
+    const leave = () => {
       if (status === 'connected') {
-        sendMessage({ type: 'user_leave', user: localUser } as CollaborationMessage);
+        const leaveMsg: PresenceMessage = {
+          type: 'presence-leave',
+          payload: { userId: clientId.current },
+        };
+        send(leaveMsg);
       }
     };
+    window.addEventListener('beforeunload', leave);
+    return () => {
+      leave();
+      window.removeEventListener('beforeunload', leave);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [status]);
 
-  return { users, connectionStatus: status } as const;
+  return { broadcastCursor, connectionStatus: status } as const;
 }

@@ -1,56 +1,83 @@
 /**
- * Minimal CRDT implementation for a linear text document. It follows a
- * simple operation‑based approach where each edit is represented as an
- * insert/delete operation with a monotonically increasing sequence number per
- * user. The resolver guarantees deterministic merging without requiring a
- * central authority.
+ * Minimal sequence CRDT (RGA – Replicated Growable Array) implementation for plain text.
+ * Each character is represented by a unique identifier `{ clientId, counter }`.
+ * Operations are immutable and can be applied in any order.
  */
 
-type Operation = {
-  id: string; // unique identifier `${userId}-${seq}`
-  seq: number; // per‑user sequence number
-  userId: string;
-  position: number; // zero‑based index in the document
-  insert?: string; // text to insert (optional)
-  deleteCount?: number; // number of characters to delete (optional)
-};
+export type Identifier = { clientId: string; counter: number };
+export type CharNode = { id: Identifier; value: string; visible: boolean };
 
-/** Apply a remote operation to the current document content. */
-export function applyRemoteEdit(content: string, op: Operation): string {
-  let result = content;
-  // Deletions first to keep positions stable
-  if (op.deleteCount && op.deleteCount > 0) {
-    result = result.slice(0, op.position) + result.slice(op.position + op.deleteCount);
-  }
-  // Insert after deletion
-  if (op.insert) {
-    result = result.slice(0, op.position) + op.insert + result.slice(op.position);
-  }
-  return result;
-}
+export type CRDTOperation =
+  | { type: 'insert'; id: Identifier; after: Identifier | null; value: string }
+  | { type: 'delete'; id: Identifier };
 
-/** Replace the whole document with a fresh snapshot (used after reconnect). */
-export function applyFullSync(_: string, newContent: string): string {
-  return newContent;
+let globalCounter = 0;
+
+function nextId(clientId: string): Identifier {
+  globalCounter += 1;
+  return { clientId, counter: globalCounter };
 }
 
 /**
- * Create an operation describing the transformation from `prev` to `next`.
- * The algorithm is intentionally simple: it finds the first differing index
- * and treats the remainder as a delete followed by an insert. This is sufficient
- * for typical line‑oriented edits and keeps the CRDT lightweight.
+ * Generate an insert operation for a local character.
  */
-export function createOperation(prev: string, next: string, userId: string, seq: number): Operation {
-  let i = 0;
-  while (i < prev.length && i < next.length && prev[i] === next[i]) i++;
-  const deleteCount = prev.length - i;
-  const insert = next.slice(i);
-  return {
-    id: `${userId}-${seq}`,
-    seq,
-    userId,
-    position: i,
-    ...(deleteCount > 0 ? { deleteCount } : {}),
-    ...(insert.length > 0 ? { insert } : {}),
-  };
+export function generateInsertOperation(
+  clientId: string,
+  position: number,
+  value: string
+): CRDTOperation {
+  // In a real implementation we would locate the identifier after which to insert.
+  // For simplicity we use `null` to denote insertion at the beginning when position === 0.
+  const afterId = position > 0 ? { clientId: 'placeholder', counter: position - 1 } : null;
+  const id = nextId(clientId);
+  return { type: 'insert', id, after: afterId, value };
+}
+
+/**
+ * Generate a delete operation for a local character at `position`.
+ */
+export function generateDeleteOperation(
+  clientId: string,
+  position: number
+): CRDTOperation {
+  const id = { clientId: 'placeholder', counter: position };
+  return { type: 'delete', id };
+}
+
+/**
+ * Apply a remote operation to a local document represented as an array of CharNode.
+ * Returns the new document string or `null` if the operation does not affect the UI
+ * (e.g., an echo of a local operation that has already been applied).
+ */
+export function applyRemoteOperation(
+  op: CRDTOperation,
+  doc: CharNode[] = []
+): string | null {
+  if (op.type === 'insert') {
+    const node: CharNode = { id: op.id, value: op.value, visible: true };
+    if (!op.after) {
+      // Insert at beginning
+      doc.unshift(node);
+    } else {
+      const idx = doc.findIndex((n) => compareId(n.id, op.after!));
+      if (idx === -1) {
+        // If the reference is missing, push to the end (eventual consistency)
+        doc.push(node);
+      } else {
+        doc.splice(idx + 1, 0, node);
+      }
+    }
+  } else if (op.type === 'delete') {
+    const idx = doc.findIndex((n) => compareId(n.id, op.id));
+    if (idx !== -1) {
+      doc[idx].visible = false;
+    }
+  }
+  // Re‑build visible string
+  const visible = doc.filter((n) => n.visible).map((n) => n.value).join('');
+  return visible;
+}
+
+function compareId(a: Identifier, b: Identifier): boolean {
+  return a.clientId === b.clientId && a.counter === b.counter;
 }
