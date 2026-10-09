@@ -1,14 +1,13 @@
 import React from "react";
 import "./ConnectionStatus.css";
-import { ConnectionStatus as Status } from "../types/connectionStatus";
 
 type Props = {
-  status: Status;
+  status: "connecting" | "connected" | "disconnected" | "error";
   onRetry?: () => void;
 };
 
 export const ConnectionStatus: React.FC<Props> = ({ status, onRetry }) => {
-  const getMessage = () => {
+  const getLabel = () => {
     switch (status) {
       case "connected":
         return "Connected";
@@ -16,28 +15,33 @@ export const ConnectionStatus: React.FC<Props> = ({ status, onRetry }) => {
         return "Connecting...";
       case "disconnected":
         return "Disconnected";
+      case "error":
+        return "Error";
       default:
-        return "Unknown";
+        return "";
     }
   };
 
   const getClass = () => {
     switch (status) {
       case "connected":
-        return "status-connected";
+        return "status-indicator connected";
       case "connecting":
-        return "status-connecting";
+        return "status-indicator connecting";
       case "disconnected":
-        return "status-disconnected";
+        return "status-indicator disconnected";
+      case "error":
+        return "status-indicator error";
       default:
-        return "";
+        return "status-indicator";
     }
   };
 
   return (
-    <div className={`connection-status ${getClass()}`}>
-      <span>{getMessage()}</span>
-      {status === "disconnected" && onRetry && (
+    <div className="connection-status">
+      <span className={getClass()} />
+      <span className="status-text">{getLabel()}</span>
+      {(status === "disconnected" || status === "error") && onRetry && (
         <button className="retry-button" onClick={onRetry}>
           Retry
         </button>
