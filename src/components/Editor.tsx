@@ -1,80 +1,83 @@
-import React, { useRef, useEffect } from 'react';
-import CodeMirror from '@uiw/react-codemirror';
-import { EditorView, lineNumbers, highlightActiveLine } from '@codemirror/view';
-import { defaultHighlightStyle } from '@codemirror/highlight';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
+import { EditorView } from '@codemirror/view';
+import { basicSetup } from '@codemirror/basic-setup';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { html } from '@codemirror/lang-html';
-import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
 import { useCollaboration } from '../hooks/useCollaboration';
-import { Language } from '../types/editor';
+import { LanguageSelector } from './LanguageSelector';
+import { getFormattingDefaults } from '../utils/useFormattingDefaults';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { formatCode } from '../utils/formatCode';
+import './Editor.css';
 
-type Props = {
-  language: Language;
-  roomId: string;
-  userId: string;
-};
+type Language = 'javascript' | 'python' | 'html';
 
-export const Editor: React.FC<Props> = ({ language, roomId, userId }) => {
-  const editorContainerRef = useRef<HTMLDivElement>(null);
-  const { doc, sendLocalChange } = useCollaboration(roomId, userId);
+export const Editor: React.FC = () => {
+  const { content, setContent } = useCollaboration();
+  const [language, setLanguage] = useState<Language>('javascript');
+  const editorRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<EditorView | null>(null);
 
-  const languageExtension = () => {
-    switch (language) {
-      case 'javascript':
-        return javascript();
-      case 'python':
-        return python();
-      case 'html':
-        return html();
-      default:
-        return javascript();
+  const applyFormatting = useCallback(() => {
+    const current = viewRef.current?.state.doc.toString() ?? '';
+    const formatted = formatCode(current, language);
+    if (viewRef.current) {
+      viewRef.current.dispatch({
+        changes: { from: 0, to: current.length, insert: formatted },
+      });
     }
-  };
+  }, [language]);
 
-  const extensions = [
-    lineNumbers(),
-    highlightActiveLine(),
-    defaultHighlightStyle,
-    languageExtension(),
-    EditorView.updateListener.of((v) => {
-      if (v.docChanged) {
-        const newValue = v.state.doc.toString();
-        sendLocalChange(newValue);
-      }
-    })
-  ];
+  useKeyboardShortcuts(editorRef.current, applyFormatting);
 
-  const handleSave = () => {
-    console.log('Save shortcut triggered');
-    // Placeholder for actual save logic (e.g., persisting to server)
-  };
-
-  const handleFormat = () => {
-    // Simple formatting: trim trailing whitespace on each line
-    const formatted = doc.replace(/[ \t]+$/gm, '');
-    if (formatted !== doc) {
-      sendLocalChange(formatted);
+  const initEditor = useCallback(() => {
+    if (editorRef.current && !viewRef.current) {
+      const extensions = [
+        basicSetup,
+        language === 'javascript'
+          ? javascript()
+          : language === 'python'
+          ? python()
+          : html(),
+        EditorView.updateListener.of((v) => {
+          if (v.docChanged) {
+            const newContent = v.state.doc.toString();
+            setContent(newContent);
+          }
+        }),
+      ];
+      viewRef.current = new EditorView({
+        doc: content,
+        extensions,
+        parent: editorRef.current,
+      });
     }
-  };
+  }, [content, language, setContent]);
 
-  useKeyboardShortcuts(editorContainerRef.current, { onSave: handleSave, onFormat: handleFormat });
-
+  // Re‑initialize editor when language changes
   useEffect(() => {
-    // Any side‑effects when the document changes can be handled here.
-  }, [doc]);
+    if (viewRef.current) {
+      viewRef.current.destroy();
+      viewRef.current = null;
+    }
+    initEditor();
+  }, [language, initEditor]);
+
+  // Apply formatting defaults for the selected language
+  useEffect(() => {
+    const defaults = getFormattingDefaults(language);
+    if (viewRef.current) {
+      viewRef.current.dispatch({
+        effects: EditorView.tabSize.of(defaults.tabSize),
+      });
+    }
+  }, [language]);
 
   return (
-    <div className="editor-wrapper" ref={editorContainerRef} style={{ height: '100%' }}>
-      <CodeMirror
-        value={doc}
-        extensions={extensions}
-        onChange={(value) => sendLocalChange(value)}
-        height="100%"
-        theme="dark"
-      />
+    <div className="editor-container">
+      <LanguageSelector language={language} onChange={setLanguage} />
+      <div ref={editorRef} className="editor" />
     </div>
   );
 };
-
-export default Editor;
