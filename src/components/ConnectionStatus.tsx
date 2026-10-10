@@ -1,51 +1,35 @@
-import React from "react";
-import "./ConnectionStatus.css";
+import React from 'react';
+import './ConnectionStatus.css';
 
 type Props = {
-  status: "connecting" | "connected" | "disconnected" | "error";
-  onRetry?: () => void;
+  status: 'connected' | 'disconnected' | 'reconnecting';
 };
 
-export const ConnectionStatus: React.FC<Props> = ({ status, onRetry }) => {
-  const getLabel = () => {
-    switch (status) {
-      case "connected":
-        return "Connected";
-      case "connecting":
-        return "Connecting...";
-      case "disconnected":
-        return "Disconnected";
-      case "error":
-        return "Error";
-      default:
-        return "";
-    }
-  };
+/**
+ * Visual indicator of the WebSocket connection status.
+ * Shows different text and CSS classes based on the current state.
+ */
+export const ConnectionStatus: React.FC<Props> = ({ status }) => {
+  let text = '';
+  let className = 'connection-status';
 
-  const getClass = () => {
-    switch (status) {
-      case "connected":
-        return "status-indicator connected";
-      case "connecting":
-        return "status-indicator connecting";
-      case "disconnected":
-        return "status-indicator disconnected";
-      case "error":
-        return "status-indicator error";
-      default:
-        return "status-indicator";
-    }
-  };
+  switch (status) {
+    case 'connected':
+      text = 'Connected';
+      className += ' connected';
+      break;
+    case 'reconnecting':
+      text = 'Reconnecting...';
+      className += ' reconnecting';
+      break;
+    case 'disconnected':
+    default:
+      text = 'Disconnected';
+      className += ' disconnected';
+      break;
+  }
 
-  return (
-    <div className="connection-status">
-      <span className={getClass()} />
-      <span className="status-text">{getLabel()}</span>
-      {(status === "disconnected" || status === "error") && onRetry && (
-        <button className="retry-button" onClick={onRetry}>
-          Retry
-        </button>
-      )}
-    </div>
-  );
+  return <div className={className}>{text}</div>;
 };
+
+export default ConnectionStatus;

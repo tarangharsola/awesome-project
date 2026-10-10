@@ -1,81 +1,74 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from 'react';
+import type { WebSocketMessage } from '../types/websocketMessage';
 
-export type ConnectionStatus = "connecting" | "connected" | "disconnected" | "error";
-
-interface UseWebSocketOptions {
-  url: string;
-  onMessage: (event: MessageEvent) => void;
-}
-
-export const useWebSocket = ({ url, onMessage }: UseWebSocketOptions) => {
+/**
+ * Hook for managing a WebSocket connection with exponential backoff reconnection.
+ * Returns a sendMessage function and the current connection status.
+ */
+export function useWebSocket(url: string, onMessage: (msg: WebSocketMessage) => void) {
+  const [status, setStatus] = useState<'connected' | 'disconnected' | 'reconnecting'>('disconnected');
   const wsRef = useRef<WebSocket | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("connecting");
-  const reconnectAttemptsRef = useRef(0);
-  const reconnectTimeoutRef = useRef<number | null>(null);
-
-  const clearReconnectTimeout = () => {
-    if (reconnectTimeoutRef.current !== null) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-  };
+  const retryCountRef = useRef(0);
+  const maxRetries = 10;
 
   const connect = useCallback(() => {
-    setConnectionStatus("connecting");
+    // Determine if this is an initial connection or a reconnection attempt
+    setStatus(retryCountRef.current === 0 ? 'connected' : 'reconnecting');
     const ws = new WebSocket(url);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      setConnectionStatus("connected");
-      reconnectAttemptsRef.current = 0;
-      clearReconnectTimeout();
+      setStatus('connected');
+      retryCountRef.current = 0; // reset on successful connection
     };
 
-    ws.onmessage = onMessage;
+    ws.onmessage = (event: MessageEvent) => {
+      try {
+        const data: WebSocketMessage = JSON.parse(event.data);
+        onMessage(data);
+      } catch (e) {
+        console.error('Failed to parse WebSocket message', e);
+      }
+    };
 
     ws.onclose = () => {
-      setConnectionStatus("disconnected");
-      scheduleReconnect();
+      setStatus('disconnected');
+      attemptReconnect();
     };
 
     ws.onerror = () => {
-      setConnectionStatus("error");
+      // Close will trigger onclose which starts reconnection
       ws.close();
     };
   }, [url, onMessage]);
 
-  const scheduleReconnect = () => {
-    clearReconnectTimeout();
-    const attempt = reconnectAttemptsRef.current + 1;
-    reconnectAttemptsRef.current = attempt;
-    const delay = Math.min(1000 * 2 ** (attempt - 1), 30000); // exponential backoff up to 30s
-    reconnectTimeoutRef.current = window.setTimeout(() => {
+  const attemptReconnect = () => {
+    if (retryCountRef.current >= maxRetries) {
+      console.warn('Maximum reconnection attempts reached');
+      return;
+    }
+    const backoff = Math.min(1000 * 2 ** retryCountRef.current, 30000); // cap at 30s
+    retryCountRef.current += 1;
+    setTimeout(() => {
       connect();
-    }, delay);
+    }, backoff);
   };
-
-  const sendMessage = useCallback((msg: string) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(msg);
-    }
-  }, []);
-
-  const reconnect = useCallback(() => {
-    clearReconnectTimeout();
-    if (wsRef.current) {
-      wsRef.current.close();
-    }
-    reconnectAttemptsRef.current = 0;
-    connect();
-  }, [connect]);
 
   useEffect(() => {
     connect();
     return () => {
-      clearReconnectTimeout();
       wsRef.current?.close();
     };
-  }, [connect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  return { sendMessage, connectionStatus, reconnect };
-};
+  const sendMessage = useCallback((msg: any) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(msg));
+    } else {
+      console.warn('WebSocket is not open. Message not sent:', msg);
+    }
+  }, []);
+
+  return { sendMessage, status } as const;
+}
