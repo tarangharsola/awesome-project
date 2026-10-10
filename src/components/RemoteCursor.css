@@ -1,20 +1,36 @@
 .remote-cursor {
   position: absolute;
   pointer-events: none;
+  z-index: 10;
 }
 
 .remote-cursor .cursor-label {
-  background-color: rgba(30, 30, 30, 0.85);
-  color: #e0e0e0;
-  padding: 2px 4px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  padding: 2px 6px;
   border-radius: 3px;
   font-size: 0.75rem;
   white-space: nowrap;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
   margin-top: -1.5em;
 }
 
 .remote-cursor .cursor-indicator {
   width: 2px;
-  background-color: currentColor;
+  background-color: var(--cursor-color, #ffcc00);
   height: 1.2em;
+  margin-left: -1px;
+}
+
+/* Ensure cursor color is readable; avoid neon/purple defaults */
+.remote-cursor[data-color="purple"] .cursor-indicator {
+  background-color: #ffcc00; /* fallback to warm amber */
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .remote-cursor .cursor-label {
+    background: rgba(30, 30, 30, 0.85);
+    color: #e0e0e0;
+  }
 }
