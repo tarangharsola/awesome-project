@@ -1,14 +1,12 @@
-type Language = 'javascript' | 'python' | 'html';
-
-export function getFormattingDefaults(language: Language) {
+export const useFormattingDefaults = (language: string) => {
   switch (language) {
     case 'javascript':
-      return { tabSize: 2, insertSpaces: true };
+      return { semi: true, singleQuote: true, trailingComma: 'es5' };
     case 'python':
-      return { tabSize: 4, insertSpaces: true };
+      return { indentSize: 4, maxLineLength: 88 };
     case 'html':
-      return { tabSize: 2, insertSpaces: true };
+      return { wrapAttributes: 'auto', wrapLineLength: 120 };
     default:
-      return { tabSize: 2, insertSpaces: true };
+      return {};
   }
-}
+};

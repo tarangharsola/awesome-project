@@ -1,9 +1,5 @@
-import { UPDATE_DOCUMENT, APPLY_REMOTE_CHANGES, SET_LANGUAGE } from './actionTypes';
-
-export interface EditorState {
-  content: string;
-  language: string;
-}
+import { EditorState } from '../types/editor';
+import { UPDATE_CONTENT, SET_LANGUAGE } from './editorActions';
 
 const initialState: EditorState = {
   content: '',
@@ -12,9 +8,7 @@ const initialState: EditorState = {
 
 export const editorReducer = (state = initialState, action: any): EditorState => {
   switch (action.type) {
-    case UPDATE_DOCUMENT:
-      return { ...state, content: action.payload };
-    case APPLY_REMOTE_CHANGES:
+    case UPDATE_CONTENT:
       return { ...state, content: action.payload };
     case SET_LANGUAGE:
       return { ...state, language: action.payload };
