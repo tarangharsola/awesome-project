@@ -1,30 +1,46 @@
 .connection-status {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  font-family: var(--font-family, sans-serif);
+  color: var(--text-primary, #fff);
+  margin: 8px;
 }
 
-.status-connected {
-  color: #4caf50;
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
 }
 
-.status-connecting {
-  color: #ff9800;
+.status-indicator.connected {
+  background-color: #4caf50; /* green */
 }
 
-.status-disconnected {
-  color: #f44336;
+.status-indicator.connecting {
+  background-color: #ff9800; /* orange */
+}
+
+.status-indicator.disconnected {
+  background-color: #f44336; /* red */
+}
+
+.status-text {
+  text-transform: capitalize;
+  margin-right: 12px;
 }
 
 .retry-button {
   background: transparent;
-  border: 1px solid currentColor;
-  border-radius: 3px;
-  color: inherit;
-  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--accent, #61dafb);
+  color: var(--accent, #61dafb);
+  padding: 4px 8px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+}
+
+.retry-button:hover {
+  background: var(--accent, #61dafb);
+  color: #000;
 }
