@@ -1,97 +1,68 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { WebSocketMessage } from '../types/websocketMessage';
+import { useEffect, useRef, useState } from 'react';
 
-export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'error';
+type MessageHandler = (event: MessageEvent) => void;
 
-interface UseWebSocketReturn {
-  socket: WebSocket | null;
-  status: ConnectionStatus;
-  sendMessage: (msg: WebSocketMessage) => void;
-  reconnect: () => void;
-}
-
-const RECONNECT_BASE_MS = 1000; // 1 second
-const RECONNECT_MAX_DELAY_MS = 30000; // 30 seconds
-
-export function useWebSocket(url: string): UseWebSocketReturn {
-  const [status, setStatus] = useState<ConnectionStatus>('connecting');
+/**
+ * useWebSocket hook provides a resilient WebSocket connection with automatic
+ * reconnection using exponential backoff. It exposes a send function, connection
+ * status, and the current reconnection attempt count.
+ */
+export function useWebSocket(url: string, onMessage: MessageHandler) {
+  const [connected, setConnected] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const socketRef = useRef<WebSocket | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-  const reconnectTimeoutRef = useRef<number | null>(null);
+  const reconnectTimeout = useRef<number | null>(null);
 
-  const clearReconnectTimeout = () => {
-    if (reconnectTimeoutRef.current !== null) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-  };
+  const maxDelay = 30000; // 30 seconds maximum backoff
 
-  const connect = useCallback(() => {
-    clearReconnectTimeout();
-    setStatus('connecting');
+  const connect = () => {
     const ws = new WebSocket(url);
     socketRef.current = ws;
 
     ws.onopen = () => {
-      setStatus('connected');
-      reconnectAttemptsRef.current = 0;
+      setConnected(true);
+      setAttempt(0);
     };
 
-    ws.onmessage = (event: MessageEvent) => {
-      // Consumers can add their own listeners via the returned socket reference.
-      // No default handling here.
+    ws.onmessage = onMessage;
+
+    ws.onclose = () => {
+      setConnected(false);
+      scheduleReconnect();
     };
 
     ws.onerror = () => {
-      setStatus('error');
+      // Close the socket to trigger onclose and reconnection logic
+      ws.close();
     };
+  };
 
-    ws.onclose = () => {
-      setStatus('disconnected');
-      // Schedule reconnection with exponential backoff
-      const attempts = reconnectAttemptsRef.current + 1;
-      reconnectAttemptsRef.current = attempts;
-      const delay = Math.min(
-        RECONNECT_BASE_MS * Math.pow(2, attempts - 1),
-        RECONNECT_MAX_DELAY_MS
-      );
-      reconnectTimeoutRef.current = window.setTimeout(() => {
-        connect();
-      }, delay);
-    };
-  }, [url]);
+  const scheduleReconnect = () => {
+    const delay = Math.min(1000 * 2 ** attempt, maxDelay);
+    reconnectTimeout.current = window.setTimeout(() => {
+      setAttempt(prev => prev + 1);
+      connect();
+    }, delay);
+  };
 
-  const reconnect = useCallback(() => {
+  const send = (data: any) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.close();
+      socketRef.current.send(JSON.stringify(data));
     }
-    reconnectAttemptsRef.current = 0;
-    connect();
-  }, [connect]);
-
-  const sendMessage = useCallback((msg: WebSocketMessage) => {
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify(msg));
-    } else {
-      console.warn('WebSocket is not open. Message not sent:', msg);
-    }
-  }, []);
+  };
 
   useEffect(() => {
     connect();
     return () => {
-      clearReconnectTimeout();
       if (socketRef.current) {
         socketRef.current.close();
       }
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [url]);
 
-  return {
-    socket: socketRef.current,
-    status,
-    sendMessage,
-    reconnect,
-  };
+  return { send, connected, attempt };
 }
