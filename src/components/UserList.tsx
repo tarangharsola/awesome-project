@@ -1,21 +1,27 @@
 import React from 'react';
-import { useUsers } from '../hooks/useUsers';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
 import './UserList.css';
+import './UserListOverrides.css'; // Added overrides for dark‑mode readability
 
-export const UserList: React.FC = () => {
-  const users = useUsers();
+const UserList: React.FC = () => {
+  const users = useSelector((state: RootState) => state.users.list);
 
   return (
     <div className="user-list">
       {users.map((user) => (
-        <div key={user.id} className="user-list-item">
+        <div key={user.id} className="user-item">
           <span
             className="user-color-indicator"
             style={{ backgroundColor: user.color }}
           />
-          <span className="user-name">{user.name}</span>
+          <span className="user-name" title={user.name}>
+            {user.name}
+          </span>
         </div>
       ))}
     </div>
   );
 };
+
+export default UserList;

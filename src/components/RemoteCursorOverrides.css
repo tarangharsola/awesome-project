@@ -1,0 +1,27 @@
+/* RemoteCursorOverrides.css */
+/* Override default remote cursor styles for better dark-mode readability */
+
+.remote-cursor {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.remote-cursor .cursor-label {
+  background-color: rgba(0, 0, 0, 0.75); /* dark translucent background */
+  color: #ffffff; /* white text */
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+  margin-top: -1.5em; /* position above the cursor */
+}
+
+.remote-cursor .cursor-indicator {
+  width: 2px;
+  height: 1.2em;
+  background-color: currentColor; /* use user-assigned color */
+  border-left: 2px solid currentColor;
+  box-shadow: 0 0 2px currentColor;
+}
