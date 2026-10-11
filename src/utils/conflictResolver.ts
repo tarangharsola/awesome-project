@@ -1,22 +1,19 @@
-import { crdtApply, crdtTransform } from "./conflict/strategies/crdt";
-import { CollaborationMessage } from "../types/collaboration";
+import { CRDT } from './strategies/crdtCore';
+import { CollaborationMessage } from '../types/collaborationMessage';
 
-/**
- * Apply a remote edit message to the current document state using CRDT logic.
- */
-export function applyRemoteChanges(doc: string, msg: CollaborationMessage): string {
-  if (msg.type !== "edit") return doc;
-  return crdtApply(doc, msg.payload);
-}
+const crdt = new CRDT();
 
-/**
- * Convert a local change (delta) into a CollaborationMessage ready for transmission.
- */
-export function localChangeToMessage(author: string, delta: string): CollaborationMessage {
-  return {
-    type: "edit",
-    author,
-    payload: crdtTransform(delta),
-    timestamp: Date.now()
-  } as CollaborationMessage;
+export function resolveConflict(message: CollaborationMessage): string {
+  switch (message.type) {
+    case 'insert':
+      crdt.insert(message);
+      break;
+    case 'delete':
+      crdt.delete(message);
+      break;
+    default:
+      // No operation for other message types
+      break;
+  }
+  return crdt.toString();
 }
