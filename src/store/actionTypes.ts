@@ -1,7 +1,6 @@
 export const SET_LANGUAGE = 'SET_LANGUAGE';
-export const SET_USER = 'SET_USER';
-export const UPDATE_USERS = 'UPDATE_USERS';
-export const USER_JOINED = 'USER_JOINED';
-export const USER_LEFT = 'USER_LEFT';
-export const UPDATE_DOCUMENT = 'UPDATE_DOCUMENT';
-export const APPLY_REMOTE_CHANGES = 'APPLY_REMOTE_CHANGES';
+export const ADD_USER = 'ADD_USER';
+export const REMOVE_USER = 'REMOVE_USER';
+export const UPDATE_CURSOR = 'UPDATE_CURSOR';
+export const UPDATE_CONTENT = 'UPDATE_CONTENT';
+export const SET_CONNECTION_STATUS = 'SET_CONNECTION_STATUS';
