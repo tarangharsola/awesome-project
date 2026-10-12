@@ -1,19 +1,46 @@
 import React from 'react';
+import { useConnectionStatus } from '../hooks/useConnectionStatus';
 import './ConnectionStatus.css';
 
-interface Props {
-  connected: boolean;
-  attempt: number;
-}
+const WS_URL = process.env.REACT_APP_WS_URL || '';
 
-/**
- * Visual indicator of WebSocket connection status. Shows a reconnection
- * attempt counter when offline.
- */
-export const ConnectionStatus: React.FC<Props> = ({ connected, attempt }) => {
+export const ConnectionStatus: React.FC = () => {
+  const { status, retry } = useConnectionStatus(WS_URL);
+
+  const getLabel = () => {
+    switch (status) {
+      case 'connected':
+        return 'Connected';
+      case 'connecting':
+        return 'Connecting...';
+      case 'disconnected':
+        return 'Disconnected';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const getClass = () => {
+    switch (status) {
+      case 'connected':
+        return 'status-connected';
+      case 'connecting':
+        return 'status-connecting';
+      case 'disconnected':
+        return 'status-disconnected';
+      default:
+        return '';
+    }
+  };
+
   return (
-    <div className={`connection-status ${connected ? 'online' : 'offline'}`}>
-      {connected ? 'Connected' : `Reconnecting... (${attempt})`}
+    <div className={`connection-status ${getClass()}`}>
+      <span>{getLabel()}</span>
+      {status === 'disconnected' && (
+        <button className="retry-button" onClick={retry}>
+          Retry
+        </button>
+      )}
     </div>
   );
 };
