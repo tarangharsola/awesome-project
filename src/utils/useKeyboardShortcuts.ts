@@ -1,26 +1,27 @@
-import { useEffect } from 'react';
-import { formatCode } from './formatCode';
+import { Extension } from '@codemirror/state';
+import { keymap } from '@codemirror/view';
 
-export const useKeyboardShortcuts = (getEditorModel: () => any, language: string) => {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      // Format shortcut: Ctrl+Shift+F
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') {
-        e.preventDefault();
-        const model = getEditorModel();
-        if (model) {
-          const formatted = formatCode(model.getValue(), language);
-          model.setValue(formatted);
-        }
-      }
-      // Focus language selector: Ctrl+L
-      if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
-        e.preventDefault();
-        const selector = document.querySelector('.language-selector') as HTMLElement;
-        selector?.focus();
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [getEditorModel, language]);
+/**
+ * Hook that returns a CodeMirror extension handling common keyboard shortcuts.
+ * @param formatCallback Function to invoke when the format shortcut is pressed.
+ */
+export const useKeyboardShortcuts = (formatCallback: () => void): Extension => {
+  const bindings = [
+    {
+      key: 'Mod-Shift-f',
+      run: () => {
+        formatCallback();
+        return true;
+      },
+    },
+    {
+      key: 'Mod-s',
+      run: () => {
+        // Placeholder for a save action; can be wired to actual persistence later.
+        console.log('Document saved (placeholder)');
+        return true;
+      },
+    },
+  ];
+  return keymap.of(bindings);
 };
