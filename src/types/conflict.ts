@@ -1,8 +1,13 @@
-export type ConflictStrategy = "crdt" | "ot";
+export interface CRDTOperation {
+  type: 'insert' | 'delete';
+  position: number;
+  text?: string;
+  length?: number;
+  id: string;
+  userId: string;
+}
 
-export interface ConflictResolver {
-  /**
-   * Resolve a conflict between a local and a remote string using the chosen strategy.
-   */
-  resolve(local: string, remote: string, strategy: ConflictStrategy): string;
+export interface CRDTDocument {
+  content: string;
+  operations: CRDTOperation[];
 }

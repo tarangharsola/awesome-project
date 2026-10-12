@@ -1,43 +1,69 @@
-import { CRDTDocument, CRDTOperation } from './crdtTypes';
-import { compareVersions, mergeVersions } from './crdtUtils';
+import { CRDTDocument, CRDTOperation } from '../../../types/conflict';
+import { generateId } from './crdtCoreHelpers';
 
 /**
- * Apply a remote CRDT operation to the local document state.
- * The function guards against duplicate application by comparing version
- * vectors and merges the incoming version vector with the local one.
+ * Create a fresh CRDT document.
  */
-export function applyRemoteOperation(
-  doc: CRDTDocument,
-  op: CRDTOperation,
-  remoteVersion: Record<string, number>
-): CRDTDocument {
-  // If the local version already includes the remote version, skip
-  if (compareVersions(doc.version, remoteVersion) >= 0) {
-    return doc;
-  }
+export function createDocument(): CRDTDocument {
+  return { content: '', operations: [] };
+}
 
-  // Merge version vectors to produce the new document version
-  const newVersion = mergeVersions(doc.version, remoteVersion);
-
-  // Apply the operation based on its type
+/**
+ * Apply a CRDT operation to a document, returning a new document instance.
+ */
+export function applyOperation(doc: CRDTDocument, op: CRDTOperation): CRDTDocument {
+  const { type, position, text, length } = op;
   let newContent = doc.content;
-  switch (op.type) {
-    case 'insert':
-      newContent =
-        newContent.slice(0, op.position) + op.value + newContent.slice(op.position);
-      break;
-    case 'delete':
-      newContent =
-        newContent.slice(0, op.position) + newContent.slice(op.position + op.length);
-      break;
-    default:
-      // Unknown operation – ignore but still update version vector
-      return { ...doc, version: newVersion };
+
+  if (type === 'insert' && typeof text === 'string') {
+    newContent = newContent.slice(0, position) + text + newContent.slice(position);
+  } else if (type === 'delete' && typeof length === 'number') {
+    newContent = newContent.slice(0, position) + newContent.slice(position + length);
   }
 
   return {
+    ...doc,
     content: newContent,
-    version: newVersion,
-    siteId: doc.siteId,
+    operations: [...doc.operations, op],
   };
+}
+
+/**
+ * Generate a local insert operation and apply it.
+ */
+export function localInsert(
+  doc: CRDTDocument,
+  position: number,
+  text: string,
+  userId: string,
+): [CRDTDocument, CRDTOperation] {
+  const op: CRDTOperation = {
+    type: 'insert',
+    position,
+    text,
+    id: generateId(),
+    userId,
+  };
+  const newDoc = applyOperation(doc, op);
+  return [newDoc, op];
+}
+
+/**
+ * Generate a local delete operation and apply it.
+ */
+export function localDelete(
+  doc: CRDTDocument,
+  position: number,
+  length: number,
+  userId: string,
+): [CRDTDocument, CRDTOperation] {
+  const op: CRDTOperation = {
+    type: 'delete',
+    position,
+    length,
+    id: generateId(),
+    userId,
+  };
+  const newDoc = applyOperation(doc, op);
+  return [newDoc, op];
 }
