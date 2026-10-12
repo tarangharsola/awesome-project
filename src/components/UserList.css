@@ -1,27 +1,30 @@
 .user-list {
-  background-color: #2b2b2b;
+  background-color: #1e1e1e;
   color: #e0e0e0;
   padding: 0.5rem;
   border-radius: 4px;
-  max-height: 300px;
+  max-height: 80vh;
   overflow-y: auto;
-  font-family: var(--font-family, sans-serif);
 }
 
 .user-item {
   display: flex;
   align-items: center;
-  margin-bottom: 0.4rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #333;
   font-size: 0.9rem;
 }
 
-.user-color {
-  width: 12px;
-  height: 12px;
+.user-item:last-child {
+  border-bottom: none;
+}
+
+.user-color-indicator {
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   margin-right: 0.5rem;
   flex-shrink: 0;
-  border: 1px solid #555;
 }
 
 .user-name {
@@ -29,12 +32,4 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  .user-list {
-    background-color: #1e1e1e;
-    color: #d4d4d4;
-  }
 }
