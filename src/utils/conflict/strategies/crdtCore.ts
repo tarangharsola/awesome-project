@@ -1,69 +1,44 @@
-import { CRDTDocument, CRDTOperation } from '../../../types/conflict';
-import { generateId } from './crdtCoreHelpers';
+import type { CRDTOperation } from "./crdtTypes";
 
 /**
- * Create a fresh CRDT document.
+ * Simple CRDT core for plain text collaboration.
+ * It tracks applied operation IDs to guarantee idempotent application,
+ * which is essential when reconnecting or receiving duplicate messages.
  */
-export function createDocument(): CRDTDocument {
-  return { content: '', operations: [] };
-}
+export class CRDTCore {
+  private text: string = "";
+  private appliedOps: Set<string> = new Set();
 
-/**
- * Apply a CRDT operation to a document, returning a new document instance.
- */
-export function applyOperation(doc: CRDTDocument, op: CRDTOperation): CRDTDocument {
-  const { type, position, text, length } = op;
-  let newContent = doc.content;
-
-  if (type === 'insert' && typeof text === 'string') {
-    newContent = newContent.slice(0, position) + text + newContent.slice(position);
-  } else if (type === 'delete' && typeof length === 'number') {
-    newContent = newContent.slice(0, position) + newContent.slice(position + length);
+  constructor(initial = "") {
+    this.text = initial;
   }
 
-  return {
-    ...doc,
-    content: newContent,
-    operations: [...doc.operations, op],
-  };
-}
+  /**
+   * Apply an operation if it hasn't been applied before.
+   * Returns the updated document text.
+   */
+  apply(op: CRDTOperation): string {
+    if (this.appliedOps.has(op.id)) {
+      // Operation already applied – ignore to keep state consistent
+      return this.text;
+    }
 
-/**
- * Generate a local insert operation and apply it.
- */
-export function localInsert(
-  doc: CRDTDocument,
-  position: number,
-  text: string,
-  userId: string,
-): [CRDTDocument, CRDTOperation] {
-  const op: CRDTOperation = {
-    type: 'insert',
-    position,
-    text,
-    id: generateId(),
-    userId,
-  };
-  const newDoc = applyOperation(doc, op);
-  return [newDoc, op];
-}
+    if (op.type === "insert") {
+      this.text =
+        this.text.slice(0, op.position) + op.value + this.text.slice(op.position);
+    } else if (op.type === "delete") {
+      this.text =
+        this.text.slice(0, op.position) + this.text.slice(op.position + op.length);
+    }
 
-/**
- * Generate a local delete operation and apply it.
- */
-export function localDelete(
-  doc: CRDTDocument,
-  position: number,
-  length: number,
-  userId: string,
-): [CRDTDocument, CRDTOperation] {
-  const op: CRDTOperation = {
-    type: 'delete',
-    position,
-    length,
-    id: generateId(),
-    userId,
-  };
-  const newDoc = applyOperation(doc, op);
-  return [newDoc, op];
+    this.appliedOps.add(op.id);
+    return this.text;
+  }
+
+  /**
+   * Retrieve the current document state.
+   */
+  getState(): string {
+    return this.text;
+  }
 }
