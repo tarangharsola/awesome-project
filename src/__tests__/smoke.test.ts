@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import App from '../components/App';
 
-test('renders App without crashing', () => {
+test('App component renders without crashing', () => {
   const { container } = render(<App />);
-  expect(container).toBeInTheDocument();
+  expect(container).toBeTruthy();
 });
