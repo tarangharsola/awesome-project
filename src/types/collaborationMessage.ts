@@ -1,33 +1,36 @@
-export enum CollaborationMessageType {
-  PRESENCE = "presence",
-  OPERATION = "operation",
-  CURSOR = "cursor"
+export enum MessageType {
+  Init = 'init',
+  Change = 'change',
+  Cursor = 'cursor',
+  Presence = 'presence'
 }
 
-export interface PresencePayload {
-  user: {
-    id: string;
-    name: string;
-    color: string;
-  };
-  users?: Array<{
-    id: string;
-    name: string;
-    color: string;
-  }>;
+export interface BaseMessage {
+  type: MessageType;
+  senderId: string;
+  timestamp: number;
 }
 
-export interface OperationPayload {
-  userId: string;
-  operation: any; // CRDT operation shape
+export interface InitMessage extends BaseMessage {
+  type: MessageType.Init;
+  document: string;
 }
 
-export interface CursorPayload {
-  userId: string;
+export interface ChangeMessage extends BaseMessage {
+  type: MessageType.Change;
+  change: any;
+}
+
+export interface CursorMessage extends BaseMessage {
+  type: MessageType.Cursor;
   position: { line: number; ch: number };
 }
 
-export type CollaborationMessage =
-  | { type: CollaborationMessageType.PRESENCE; payload: PresencePayload }
-  | { type: CollaborationMessageType.OPERATION; payload: OperationPayload }
-  | { type: CollaborationMessageType.CURSOR; payload: CursorPayload };
+export interface PresenceMessage extends BaseMessage {
+  type: MessageType.Presence;
+  action: 'join' | 'leave';
+  userName: string;
+  color: string;
+}
+
+export type CollaborationMessage = InitMessage | ChangeMessage | CursorMessage | PresenceMessage;

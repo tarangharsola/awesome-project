@@ -1,70 +1,36 @@
-import { useEffect, useRef, useState } from "react";
-import { useWebSocket, WebSocketStatus } from "./useWebSocket";
-import type { CollaborationMessage } from "../types/collaborationMessage";
-import type { EditorChange } from "../types/editor";
-import { applyRemoteChange, generateLocalChange } from "../utils/conflictResolver";
+import { useEffect, useRef } from 'react';
+import { WebSocketClient } from '../utils/websocketClient';
+import { CollaborationMessage, MessageType } from '../types/collaborationMessage';
+import { DocumentState } from '../types/editor';
+import { applyRemoteChange, localChangeToMessage } from './useCollaborationHelpers';
 
-let localIdCounter = 0;
-const generateId = () => `${Date.now()}-${localIdCounter++}`;
+export function useCollaborationCore(
+  wsClient: WebSocketClient,
+  docState: DocumentState,
+  setDocState: (state: DocumentState) => void,
+  userId: string,
+  userName: string,
+  userColor: string
+) {
+  const pendingChanges = useRef<CollaborationMessage[]>([]);
 
-export const useCollaborationCore = (roomId: string, username: string, color: string) => {
-  const [doc, setDoc] = useState<string>("");
-  const pendingOps = useRef<CollaborationMessage[]>([]);
-  const { status, send } = useWebSocket(
-    `${process.env.REACT_APP_WS_URL}/rooms/${roomId}`,
-    handleMessage
-  );
-
-  function handleMessage(msg: CollaborationMessage) {
-    switch (msg.type) {
-      case "full-sync":
-        setDoc(msg.payload.content);
-        pendingOps.current = [];
-        break;
-      case "change":
-        setDoc((prev) => applyRemoteChange(prev, msg.payload));
-        break;
-      case "presence":
-        // Presence updates are handled by the presence hook/component
-        break;
-      default:
-        break;
-    }
-  }
-
-  const applyLocalChange = (change: EditorChange) => {
-    const opId = generateId();
-    const msg: CollaborationMessage = {
-      type: "change",
-      id: opId,
-      user: { name: username, color },
-      payload: generateLocalChange(change, opId),
-    };
-    // Optimistic UI update
-    setDoc((prev) => applyRemoteChange(prev, msg.payload));
-    pendingOps.current.push(msg);
-    send(msg);
+  // Send local changes to the server
+  const sendChange = (change: any) => {
+    const msg = localChangeToMessage(change, userId, userName, userColor);
+    wsClient.send(msg);
+    pendingChanges.current.push(msg);
   };
 
-  // Request a full document sync when the connection (re)establishes
+  // Receive remote changes from the server
   useEffect(() => {
-    if (status === "connected") {
-      const syncMsg: CollaborationMessage = {
-        type: "request-sync",
-        id: generateId(),
-        user: { name: username, color },
-        payload: null,
-      };
-      send(syncMsg);
-    }
-  }, [status, send, username, color]);
+    const handler = (msg: CollaborationMessage) => {
+      if (msg.senderId === userId) return; // ignore own echo
+      const newState = applyRemoteChange(docState, msg);
+      setDocState(newState);
+    };
+    wsClient.onMessage(handler);
+    return () => wsClient.offMessage(handler);
+  }, [wsClient, docState, setDocState, userId]);
 
-  // Resend any pending operations after reconnection
-  useEffect(() => {
-    if (status === "connected" && pendingOps.current.length > 0) {
-      pendingOps.current.forEach((op) => send(op));
-    }
-  }, [status, send]);
-
-  return { doc, applyLocalChange, connectionStatus: status as WebSocketStatus };
-};
+  return { sendChange };
+}
