@@ -1,11 +1,12 @@
-{"import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './components/App';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./components/App";
+import { ConnectionStatusProvider } from "./context/ConnectionStatusContext";
+import "./styles/base.css";
 
-ReactDOM.render(
-  <React.StrictMode>
+const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
+root.render(
+  <ConnectionStatusProvider>
     <App />
-  </React.StrictMode>,
-  document.getElementById('root')
+  </ConnectionStatusProvider>
 );
-}
