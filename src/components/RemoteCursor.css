@@ -4,31 +4,23 @@
   z-index: 10;
 }
 
-.remote-cursor .cursor-bar {
+.remote-cursor .cursor {
   width: 2px;
-  background-color: currentColor;
   height: 100%;
+  background-color: currentColor;
+  opacity: 0.9;
 }
 
-.remote-cursor-label {
+.remote-cursor .cursor-label {
   position: absolute;
   top: -1.5em;
-  left: 0;
-  background: rgba(30, 30, 30, 0.85);
+  left: 2px;
+  background: rgba(0, 0, 0, 0.75);
   color: #ffffff;
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 0.75rem;
+  line-height: 1;
   white-space: nowrap;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-}
-
-.remote-cursor-label::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 5px;
-  border-width: 4px 4px 0 4px;
-  border-style: solid;
-  border-color: rgba(30, 30, 30, 0.85) transparent transparent transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
