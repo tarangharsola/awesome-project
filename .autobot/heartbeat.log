@@ -1323,3 +1323,4 @@
 2026-10-13T14:33:13.322524+00:00 | Improve active users panel and cursor labels (no neon/purple; readable on dark mode).
 2026-10-14T12:15:07.528045+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
 2026-10-14T12:15:43.218749+00:00 | Refactor for maintainability: split modules, improve types, and reduce complexity hotspots.
+2026-10-14T12:15:51.566759+00:00 | Harden realtime collaboration: conflict handling, reconnection, and awareness consistency.

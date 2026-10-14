@@ -1,54 +1,88 @@
-import { useEffect, useRef } from 'react';
-import { WebSocketMessage } from '../types/websocketMessage';
-import { applyInsert, applyDelete } from '../utils/conflict/strategies/crdtOperations';
+import { useEffect, useRef, useState } from 'react';
 import { useWebSocket } from './useWebSocket';
-import { DocumentState, CollaborationAction } from '../types/collaboration';
+import { applyCRDTOperation } from '../utils/conflict/strategies/crdtCore';
+import { EditorChange } from '../types/editor';
+import { PresenceMessage } from '../types/presence';
 
-export function useCollaborationCore(
-  docId: string,
-  initialState: DocumentState,
-  dispatch: React.Dispatch<CollaborationAction>
-) {
-  const { sendMessage, connectionStatus } = useWebSocket(docId);
-  const pendingOps = useRef<Array<WebSocketMessage>>([]);
+/**
+ * Core collaboration hook handling document state, presence, and reliable
+ * operation delivery. It works with the enhanced WebSocket hook to survive
+ * temporary network interruptions.
+ */
+export const useCollaborationCore = (
+  sessionId: string,
+  username: string,
+  color: string
+) => {
+  const { status, sendMessage } = useWebSocket(`${process.env.REACT_APP_WS_URL}/${sessionId}`);
+  const pendingOps = useRef<EditorChange[]>([]);
+  const [document, setDocument] = useState<string>('');
+  const [users, setUsers] = useState<Record<string, { name: string; color: string }>>({});
 
+  // Announce presence when the socket becomes ready.
   useEffect(() => {
-    if (connectionStatus === 'connected') {
-      pendingOps.current.forEach(sendMessage);
-      pendingOps.current = [];
+    if (status === 'connected') {
+      const joinMsg = JSON.stringify({ type: 'join', sessionId, username, color });
+      sendMessage(joinMsg);
     }
-  }, [connectionStatus, sendMessage]);
+  }, [status, sessionId, username, color, sendMessage]);
 
-  const handleRemoteMessage = (msg: WebSocketMessage) => {
-    switch (msg.type) {
-      case 'insert':
-        dispatch({ type: 'APPLY_INSERT', payload: applyInsert(msg as any) });
-        break;
-      case 'delete':
-        dispatch({ type: 'APPLY_DELETE', payload: applyDelete(msg as any) });
-        break;
-      default:
-        break;
-    }
-  };
+  // Global message listener for collaboration events.
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      const msg = JSON.parse(e.data);
+      switch (msg.type) {
+        case 'sync':
+          // Full document and presence snapshot from the server.
+          setDocument(msg.content);
+          setUsers(msg.users);
+          // Resend any ops that were generated while offline.
+          pendingOps.current.forEach((op) => {
+            sendMessage(JSON.stringify({ type: 'op', ...op }));
+          });
+          pendingOps.current = [];
+          break;
+        case 'op':
+          setDocument((prev) => applyCRDTOperation(prev, msg));
+          break;
+        case 'presence':
+          setUsers((prev) => ({
+            ...prev,
+            [msg.userId]: { name: msg.name, color: msg.color },
+          })));
+          break;
+        case 'presenceLeave':
+          setUsers((prev) => {
+            const copy = { ...prev };
+            delete copy[msg.userId];
+            return copy;
+          });
+          break;
+        default:
+          // Unknown message types are ignored deliberately.
+          break;
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [sendMessage]);
 
-  const sendLocalInsert = (op: any) => {
-    const msg = { type: 'insert', ...op } as WebSocketMessage;
-    if (connectionStatus === 'connected') {
-      sendMessage(msg);
+  // Called by the editor component when the local user makes a change.
+  const localChange = (change: EditorChange) => {
+    // Optimistically apply the change locally.
+    setDocument((prev) => applyCRDTOperation(prev, change));
+    const payload = { type: 'op', ...change };
+    if (status === 'connected') {
+      sendMessage(JSON.stringify(payload));
     } else {
-      pendingOps.current.push(msg);
+      pendingOps.current.push(change);
     }
   };
 
-  const sendLocalDelete = (op: any) => {
-    const msg = { type: 'delete', ...op } as WebSocketMessage;
-    if (connectionStatus === 'connected') {
-      sendMessage(msg);
-    } else {
-      pendingOps.current.push(msg);
-    }
-  };
-
-  return { sendLocalInsert, sendLocalDelete, handleRemoteMessage };
-}
+  return {
+    document,
+    users,
+    localChange,
+    connectionStatus: status,
+  } as const;
+};
