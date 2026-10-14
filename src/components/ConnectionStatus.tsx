@@ -1,33 +1,36 @@
 import React from "react";
-import { useConnectionStatusContext } from "../context/ConnectionStatusContext";
 import "./ConnectionStatus.css";
+import { useConnectionStatus } from "../hooks/useConnectionStatus";
 
-export const ConnectionStatus = () => {
-  const { status } = useConnectionStatusContext();
+// WebSocket endpoint – can be overridden via environment variable
+const WS_URL = process.env.REACT_APP_WS_URL || "ws://localhost:4000";
 
-  const getLabel = () => {
+export const ConnectionStatus: React.FC = () => {
+  const { status, reconnect } = useConnectionStatus(WS_URL);
+
+  const label = (() => {
     switch (status) {
       case "connected":
         return "Connected";
-      case "reconnecting":
-        return "Reconnecting...";
+      case "connecting":
+        return "Connecting...";
       case "disconnected":
-      default:
         return "Disconnected";
-    }
-  };
-
-  const getClass = () => {
-    switch (status) {
-      case "connected":
-        return "status-connected";
-      case "reconnecting":
-        return "status-reconnecting";
-      case "disconnected":
       default:
-        return "status-disconnected";
+        return "";
     }
-  };
+  })();
 
-  return <div className={`connection-status ${getClass()}`}>{getLabel()}</div>;
+  const className = `connection-status status-${status}`;
+
+  return (
+    <div className={className}>
+      <span>{label}</span>
+      {status === "disconnected" && (
+        <button className="retry-button" onClick={reconnect}>
+          Retry
+        </button>
+      )}
+    </div>
+  );
 };
