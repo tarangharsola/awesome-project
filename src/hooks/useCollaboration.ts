@@ -1,15 +1,23 @@
+import { useReducer } from 'react';
+import { collaborationReducer, initialCollaborationState } from '../store/editorReducer';
 import { useCollaborationCore } from './useCollaborationCore';
 import { useCollaborationUI } from './useCollaborationUI';
+import { CollaborationAction } from '../types/collaboration';
 
-/**
- * Combined collaboration hook that merges core networking/CRDT logic with UI state handling.
- * Returns a unified API for components.
- */
-export const useCollaboration = (docId: string, username: string) => {
-  const core = useCollaborationCore(docId, username);
-  const ui = useCollaborationUI(docId, username);
+export function useCollaboration(docId: string) {
+  const [state, dispatch] = useReducer(collaborationReducer, initialCollaborationState);
+  const { sendLocalInsert, sendLocalDelete, handleRemoteMessage } = useCollaborationCore(
+    docId,
+    state.document,
+    dispatch
+  );
 
-  // Core provides low‑level functions (sendMessage, connectionStatus, etc.)
-  // UI provides higher‑level state (users list). Merge them for consumer convenience.
-  return { ...core, ...ui };
-};
+  useCollaborationUI(dispatch, state.presence);
+
+  return {
+    state,
+    sendLocalInsert,
+    sendLocalDelete,
+    handleRemoteMessage,
+  };
+}

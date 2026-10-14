@@ -1,36 +1,28 @@
-export enum CollaborationMessageType {
-  Init = 'init',
-  Change = 'change',
-  Cursor = 'cursor',
-  Presence = 'presence',
-  Disconnect = 'disconnect'
+export type MessageType = 'insert' | 'delete' | 'presence' | 'join' | 'leave';
+
+export interface BaseMessage {
+  type: MessageType;
+  clientId: string;
+  timestamp: number;
 }
 
-export interface InitMessage {
-  type: CollaborationMessageType.Init;
-  documentId: string;
-  content: string;
+export interface InsertMessage extends BaseMessage {
+  type: 'insert';
+  index: number;
+  text: string;
 }
 
-export interface ChangeMessage {
-  type: CollaborationMessageType.Change;
-  // Define the shape of the change operation (e.g., OT or CRDT delta)
-  delta: unknown;
+export interface DeleteMessage extends BaseMessage {
+  type: 'delete';
+  index: number;
+  length: number;
 }
 
-export interface CursorMessage {
-  type: CollaborationMessageType.Cursor;
-  userId: string;
-  position: { line: number; ch: number };
+export interface PresenceMessage extends BaseMessage {
+  type: 'presence';
+  username: string;
+  color: string;
+  cursor: { line: number; ch: number };
 }
 
-export interface PresenceMessage {
-  type: CollaborationMessageType.Presence;
-  users: Array<{ userId: string; username: string; color: string }>;
-}
-
-export type CollaborationMessage =
-  | InitMessage
-  | ChangeMessage
-  | CursorMessage
-  | PresenceMessage;
+export type CollaborationMessage = InsertMessage | DeleteMessage | PresenceMessage;
