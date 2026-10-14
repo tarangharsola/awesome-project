@@ -1,36 +1,36 @@
-export enum MessageType {
+export enum CollaborationMessageType {
   Init = 'init',
   Change = 'change',
   Cursor = 'cursor',
-  Presence = 'presence'
+  Presence = 'presence',
+  Disconnect = 'disconnect'
 }
 
-export interface BaseMessage {
-  type: MessageType;
-  senderId: string;
-  timestamp: number;
+export interface InitMessage {
+  type: CollaborationMessageType.Init;
+  documentId: string;
+  content: string;
 }
 
-export interface InitMessage extends BaseMessage {
-  type: MessageType.Init;
-  document: string;
+export interface ChangeMessage {
+  type: CollaborationMessageType.Change;
+  // Define the shape of the change operation (e.g., OT or CRDT delta)
+  delta: unknown;
 }
 
-export interface ChangeMessage extends BaseMessage {
-  type: MessageType.Change;
-  change: any;
-}
-
-export interface CursorMessage extends BaseMessage {
-  type: MessageType.Cursor;
+export interface CursorMessage {
+  type: CollaborationMessageType.Cursor;
+  userId: string;
   position: { line: number; ch: number };
 }
 
-export interface PresenceMessage extends BaseMessage {
-  type: MessageType.Presence;
-  action: 'join' | 'leave';
-  userName: string;
-  color: string;
+export interface PresenceMessage {
+  type: CollaborationMessageType.Presence;
+  users: Array<{ userId: string; username: string; color: string }>;
 }
 
-export type CollaborationMessage = InitMessage | ChangeMessage | CursorMessage | PresenceMessage;
+export type CollaborationMessage =
+  | InitMessage
+  | ChangeMessage
+  | CursorMessage
+  | PresenceMessage;
