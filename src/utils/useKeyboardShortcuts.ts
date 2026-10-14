@@ -1,18 +1,33 @@
-import { keymap } from "@codemirror/view";
-import { indentWithTab, indentMore, indentLess } from "@codemirror/commands";
-import { indentAll } from "@codemirror/commands";
+import { keymap } from '@codemirror/view';
+import type { Extension } from '@codemirror/state';
 
 /**
- * Returns a CodeMirror keymap extension that provides:
- *   • Tab → indent (or insert tab when selection is empty)
- *   • Shift+Tab → outdent
- *   • Ctrl/Cmd+Shift+F → format the whole document (re‑indent)
- *   • Ctrl/Cmd+S → no‑op placeholder for future save handling
+ * Generates a CodeMirror keymap extension.
+ * Accepts an optional callbacks object for custom actions.
  */
-export const keyboardShortcuts = (formatCallback: () => void) =>
-  keymap.of([
-    { key: "Tab", run: indentWithTab },
-    { key: "Shift-Tab", run: indentLess },
-    { key: "Mod-Shift-f", run: () => { formatCallback(); return true; } },
-    { key: "Mod-s", run: () => true }, // placeholder for save
-  ]);
+export function useKeyboardShortcuts(callbacks?: { formatDocument?: () => void }): Extension {
+  const baseShortcuts = [
+    // Save shortcut (Ctrl/Cmd + S)
+    {
+      key: 'Mod-s',
+      run: () => {
+        // Placeholder: actual save logic is handled elsewhere.
+        console.log('Save shortcut triggered');
+        return true;
+      },
+    },
+    // Undo / Redo are already provided by default extensions.
+  ];
+
+  if (callbacks?.formatDocument) {
+    baseShortcuts.push({
+      key: 'Mod-Shift-f',
+      run: () => {
+        callbacks.formatDocument!();
+        return true;
+      },
+    });
+  }
+
+  return keymap.of(baseShortcuts);
+}

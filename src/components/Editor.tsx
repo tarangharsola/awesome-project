@@ -1,44 +1,36 @@
-import React, { useEffect, useRef, useState } from "react";
-import { EditorView, basicSetup } from "@codemirror/basic-setup";
-import { EditorState } from "@codemirror/state";
-import { useLanguage } from "../utils/useLanguage";
-import { useFormattingDefaults } from "../utils/useFormattingDefaults";
-import { keyboardShortcuts } from "../utils/useKeyboardShortcuts";
-import { LanguageSelector } from "./LanguageSelector";
-import { indentUnit } from "@codemirror/language";
-import { lineWrapping } from "@codemirror/view";
+import React, { useEffect, useRef, useCallback } from 'react';
+import { EditorView, keymap } from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
+import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { html } from '@codemirror/lang-html';
+import { useLanguage } from '../utils/useLanguage';
+import { useFormattingDefaults } from '../utils/useFormattingDefaults';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { formatCode } from '../utils/formatCode';
+import './Editor.css';
 
-export const Editor: React.FC = () => {
+/**
+ * Core editor component using CodeMirror 6.
+ * Supports language switching, default formatting, and custom keyboard shortcuts.
+ */
+const Editor: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const { language } = useLanguage();
+  const formattingDefaults = useFormattingDefaults(language);
+  const shortcuts = useKeyboardShortcuts({ formatDocument });
 
-  const [language, setLanguage] = useState<"javascript" | "python" | "html">("javascript");
-
-  // Resolve language extension and formatting defaults whenever language changes
-  const languageExtension = useLanguage(language);
-  const formatting = useFormattingDefaults(language);
-
-  // Formatting callback – currently re‑indents the whole document
-  const formatDocument = () => {
-    if (viewRef.current) {
-      // Re‑indent all lines using the built‑in command
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { indentAll } = require("@codemirror/commands");
-      indentAll(viewRef.current);
-    }
-  };
-
-  // Initialise CodeMirror once
+  // Initialize the editor once
   useEffect(() => {
     if (containerRef.current && !viewRef.current) {
       const startState = EditorState.create({
-        doc: "",
+        doc: '',
         extensions: [
-          basicSetup,
-          languageExtension,
-          indentUnit.of(formatting.indentUnit),
-          lineWrapping,
-          keyboardShortcuts(formatDocument),
+          keymap.of(shortcuts),
+          EditorView.lineWrapping,
+          formattingDefaults,
+          languageExtension(language),
         ],
       });
       viewRef.current = new EditorView({ state: startState, parent: containerRef.current });
@@ -51,27 +43,45 @@ export const Editor: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update extensions when language or formatting changes
+  // Update language extension when language changes
   useEffect(() => {
     if (viewRef.current) {
-      const newExtensions = [
-        languageExtension,
-        indentUnit.of(formatting.indentUnit),
-        lineWrapping,
-        keyboardShortcuts(formatDocument),
-      ];
       viewRef.current.dispatch({
-        effects: EditorState.reconfigure.of(newExtensions),
+        effects: EditorView.reconfigure.of([languageExtension(language), formattingDefaults]),
       });
     }
-  }, [languageExtension, formatting]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language, formattingDefaults]);
 
-  return (
-    <div className="editor-wrapper" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ padding: "0.5rem", background: "var(--panel-bg)" }}>
-        <LanguageSelector current={language} onChange={setLanguage} />
-      </div>
-      <div ref={containerRef} style={{ flexGrow: 1 }} />
-    </div>
-  );
+  // Format the current document using the selected language's formatter
+  const formatDocument = useCallback(() => {
+    if (!viewRef.current) return;
+    const currentCode = viewRef.current.state.doc.toString();
+    const formatted = formatCode(currentCode, language);
+    if (formatted !== currentCode) {
+      viewRef.current.dispatch({
+        changes: { from: 0, to: viewRef.current.state.doc.length, insert: formatted },
+      });
+    }
+  }, [language]);
+
+  return <div ref={containerRef} className="editor-container" />;
 };
+
+/**
+ * Returns the appropriate language extension for CodeMirror based on the selected language.
+ */
+function languageExtension(lang: string) {
+  switch (lang) {
+    case 'javascript':
+      return javascript();
+    case 'python':
+      return python();
+    case 'html':
+      return html();
+    default:
+      return []; // fallback to plain text
+  }
+}
+
+export default Editor;

@@ -1,22 +1,22 @@
+import { Extension } from '@codemirror/state';
+import { indentUnit } from '@codemirror/language';
+
 /**
- * Simple per‑language formatting defaults used by the editor.
- * Currently controls indentation width and line‑wrapping.
+ * Provides default formatting extensions based on the selected language.
+ * Currently sets the indent unit (tab size) appropriate for each language.
  */
-export interface FormattingOptions {
-  indentUnit: number;
-  lineWrapping: boolean;
+export function useFormattingDefaults(language: string): Extension {
+  let unit = 2; // default indent size
+  switch (language) {
+    case 'javascript':
+    case 'html':
+      unit = 2;
+      break;
+    case 'python':
+      unit = 4;
+      break;
+    default:
+      unit = 2;
+  }
+  return indentUnit.of(unit);
 }
-
-export const formattingDefaults: Record<string, FormattingOptions> = {
-  javascript: { indentUnit: 2, lineWrapping: true },
-  python: { indentUnit: 4, lineWrapping: true },
-  html: { indentUnit: 2, lineWrapping: true },
-};
-
-/**
- * Hook‑like helper that returns formatting options for a given language.
- * Falls back to JavaScript defaults when the language is unknown.
- */
-export const useFormattingDefaults = (language: string): FormattingOptions => {
-  return formattingDefaults[language] ?? formattingDefaults.javascript;
-};
