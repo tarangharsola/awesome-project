@@ -1,8 +1,4 @@
-.remote-cursor-label {
-  background: rgba(30, 30, 30, 0.9) !important;
-  color: #fff !important;
-}
-
-.remote-cursor .cursor-bar {
-  background-color: currentColor !important;
+.remote-cursor .label {
+  background: rgba(50, 50, 50, 0.9);
+  color: #fff;
 }

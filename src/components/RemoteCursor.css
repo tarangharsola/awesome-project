@@ -1,26 +1,22 @@
 .remote-cursor {
   position: absolute;
   pointer-events: none;
-  z-index: 10;
 }
 
-.remote-cursor .cursor {
-  width: 2px;
-  height: 100%;
-  background-color: currentColor;
-  opacity: 0.9;
+.remote-cursor .caret {
+  border-left: 2px solid currentColor;
+  height: 1.2em;
+  margin-left: -1px;
 }
 
-.remote-cursor .cursor-label {
+.remote-cursor .label {
   position: absolute;
-  top: -1.5em;
-  left: 2px;
-  background: rgba(0, 0, 0, 0.75);
-  color: #ffffff;
+  top: -1.4em;
+  left: 0;
+  background: rgba(50, 50, 50, 0.9);
+  color: #fff;
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 0.75rem;
-  line-height: 1;
   white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
