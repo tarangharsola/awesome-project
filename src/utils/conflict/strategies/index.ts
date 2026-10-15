@@ -1,2 +1,4 @@
-export { default as crdtStrategy } from "./crdt";
-export { default as otStrategy } from "./ot";
+export * from './crdtCore';
+export * from './crdtApply';
+export * from './crdtTransform';
+export * from './crdtTypes';

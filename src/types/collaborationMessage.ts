@@ -1,28 +1,20 @@
-export type MessageType = 'insert' | 'delete' | 'presence' | 'join' | 'leave';
+export type CollaborationMessage =
+  | { type: 'init'; doc: string; users: UserPresence[] }
+  | { type: 'operation'; ops: CRDTOperation[] }
+  | { type: 'cursor'; userId: string; position: number }
+  | { type: 'presence'; user: UserPresence }
+  | { type: 'leave'; userId: string };
 
-export interface BaseMessage {
-  type: MessageType;
-  clientId: string;
-  timestamp: number;
-}
-
-export interface InsertMessage extends BaseMessage {
-  type: 'insert';
-  index: number;
-  text: string;
-}
-
-export interface DeleteMessage extends BaseMessage {
-  type: 'delete';
-  index: number;
-  length: number;
-}
-
-export interface PresenceMessage extends BaseMessage {
-  type: 'presence';
-  username: string;
+export interface UserPresence {
+  id: string;
+  name: string;
   color: string;
-  cursor: { line: number; ch: number };
 }
 
-export type CollaborationMessage = InsertMessage | DeleteMessage | PresenceMessage;
+export interface CRDTOperation {
+  id: string;
+  userId: string;
+  seq: number;
+  insert?: { index: number; text: string };
+  delete?: { index: number; length: number };
+}
