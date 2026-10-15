@@ -1,6 +1,5 @@
-export const SET_LANGUAGE = 'SET_LANGUAGE';
-export const ADD_USER = 'ADD_USER';
-export const REMOVE_USER = 'REMOVE_USER';
-export const UPDATE_CURSOR = 'UPDATE_CURSOR';
+// Existing action types
 export const UPDATE_CONTENT = 'UPDATE_CONTENT';
-export const SET_CONNECTION_STATUS = 'SET_CONNECTION_STATUS';
+export const SET_USERS = 'SET_USERS';
+// New action type for language switching
+export const SET_LANGUAGE = 'SET_LANGUAGE';

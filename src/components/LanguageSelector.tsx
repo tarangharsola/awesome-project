@@ -1,22 +1,29 @@
 import React from 'react';
-import { useLanguage } from '../utils/useLanguage';
+import { useDispatch, useSelector } from 'react-redux';
+import { setLanguage } from '../store/editorActions';
+import { RootState } from '../store';
 
-/**
- * Dropdown component for selecting the editor language.
- * Updates the global language state via the useLanguage hook.
- */
-const LanguageSelector: React.FC = () => {
-  const { language, setLanguage } = useLanguage();
+const languages = [
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'python', label: 'Python' },
+  { value: 'html', label: 'HTML' },
+];
+
+export const LanguageSelector: React.FC = () => {
+  const dispatch = useDispatch();
+  const current = useSelector((state: RootState) => state.editor.language);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setLanguage(e.target.value as 'javascript' | 'python' | 'html');
+    dispatch(setLanguage(e.target.value));
   };
 
   return (
-    <select value={language} onChange={handleChange} className="language-selector">
-      <option value="javascript">JavaScript</option>
-      <option value="python">Python</option>
-      <option value="html">HTML</option>
+    <select value={current} onChange={handleChange} aria-label="Language selector">
+      {languages.map((lang) => (
+        <option key={lang.value} value={lang.value}>
+          {lang.label}
+        </option>
+      ))}
     </select>
   );
 };

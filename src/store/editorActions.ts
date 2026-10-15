@@ -1,14 +1,17 @@
-import { EditorAction } from './actionTypes';
+import { UPDATE_CONTENT, SET_USERS, SET_LANGUAGE } from './actionTypes';
 
-export const UPDATE_CONTENT = 'UPDATE_CONTENT';
-export const SET_LANGUAGE = 'SET_LANGUAGE';
-
-export const updateContent = (content: string): EditorAction => ({
+export const updateContent = (content: string) => ({
   type: UPDATE_CONTENT,
   payload: content,
 });
 
-export const setLanguage = (language: string): EditorAction => ({
+export const setUsers = (users: any) => ({
+  type: SET_USERS,
+  payload: users,
+});
+
+// New action creator for language changes
+export const setLanguage = (language: string) => ({
   type: SET_LANGUAGE,
   payload: language,
 });
