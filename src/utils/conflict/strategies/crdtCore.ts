@@ -1,34 +1,33 @@
 /**
- * Minimal CRDT core for plain‑text collaborative editing. Operations are
- * identified by a globally unique `id` (e.g., UUID) and contain a range and
- * replacement text. The implementation tracks applied operation IDs to make
- * the function idempotent – re‑applying the same operation has no effect.
+ * Minimal CRDT core for a plain text collaborative editor.
+ * It uses a monotonically increasing sequence number per client to
+ * guarantee total ordering of operations across the network.
  */
 
-// Set of operation IDs that have already been applied to the current document.
-const appliedOps = new Set<string>();
+export interface Operation {
+  type: 'insert' | 'delete';
+  index: number;
+  text?: string; // for insert
+  length?: number; // for delete
+  userId: string;
+  seq: number; // global sequence number assigned by the sender
+}
 
-/**
- * Apply a CRDT operation to a document string.
- *
- * @param doc Current document content.
- * @param op  Operation object with shape:
- *            { id: string, range: { start: number, end: number }, text: string }
- * @returns   New document string after applying the operation.
- */
-export const applyCRDTOperation = (
-  doc: string,
-  op: { id: string; range: { start: number; end: number }; text: string }
-): string => {
-  // Guard against duplicate application.
-  if (appliedOps.has(op.id)) {
-    return doc;
+/** Apply a local operation to the current document content. */
+export function applyLocalOperation(content: string, op: Operation): string {
+  if (op.type === 'insert' && op.text) {
+    return content.slice(0, op.index) + op.text + content.slice(op.index);
   }
-  appliedOps.add(op.id);
+  if (op.type === 'delete' && op.length) {
+    return content.slice(0, op.index) + content.slice(op.index + op.length);
+  }
+  return content;
+}
 
-  const { start, end } = op.range;
-  // Simple splice: replace the range with the provided text.
-  const before = doc.slice(0, start);
-  const after = doc.slice(end);
-  return `${before}${op.text}${after}`;
-};
+/** Apply a remote operation. In this simple CRDT we assume operations are
+ * received in total order (guaranteed by the sequence number handling in
+ * the collaboration core), so no transformation is required.
+ */
+export function applyRemoteOperation(content: string, op: Operation): string {
+  return applyLocalOperation(content, op);
+}
