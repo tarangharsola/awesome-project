@@ -1,36 +1,37 @@
 .user-list {
-  position: fixed;
-  right: 0;
-  top: 0;
-  width: 200px;
-  max-height: 100vh;
-  overflow-y: auto;
-  background: rgba(30, 30, 30, 0.95);
+  background-color: #1e1e1e;
   color: #e0e0e0;
-  padding: 12px;
-  box-sizing: border-box;
-  font-family: var(--font-family, sans-serif);
-  z-index: 1000;
+  padding: 0.5rem;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
-.user-list h3 {
-  margin: 0 0 8px;
-  font-size: 1rem;
-  color: #ffffff;
-}
-
-.user-item {
+.user-list-item {
   display: flex;
   align-items: center;
-  margin-bottom: 6px;
-  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.user-list-item:hover {
+  background-color: #2a2a2a;
 }
 
 .user-color-indicator {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  margin-right: 8px;
+  margin-right: 0.6rem;
   flex-shrink: 0;
-  background: #777777; /* fallback color */
+}
+
+.user-name {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
