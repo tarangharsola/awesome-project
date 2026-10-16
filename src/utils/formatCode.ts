@@ -1,24 +1,20 @@
 import prettier from 'prettier/standalone';
 import parserBabel from 'prettier/parser-babel';
-import parserHtml from 'prettier/parser-html';
+import parserHTML from 'prettier/parser-html';
+import parserPython from 'prettier/parser-python';
 
-/**
- * Formats code based on the selected language.
- * Supports JavaScript (via Babel parser) and HTML.
- * For unsupported languages (e.g., Python), returns the original code.
- */
 export const formatCode = (code: string, language: string): string => {
   try {
-    if (language === 'javascript') {
-      return prettier.format(code, { parser: 'babel', plugins: [parserBabel] });
-    }
-    if (language === 'html') {
-      return prettier.format(code, { parser: 'html', plugins: [parserHtml] });
-    }
-    // Fallback for Python or other languages
-    return code;
-  } catch (error) {
-    console.error('Formatting error:', error);
+    let parser: any = 'babel';
+    if (language === 'python') parser = 'python';
+    else if (language === 'html') parser = 'html';
+    const plugins: any[] = [];
+    if (parser === 'babel') plugins.push(parserBabel);
+    if (parser === 'html') plugins.push(parserHTML);
+    if (parser === 'python') plugins.push(parserPython);
+    return prettier.format(code, { parser, plugins, singleQuote: true, trailingComma: 'es5' });
+  } catch (e) {
+    console.error('Formatting error:', e);
     return code;
   }
 };

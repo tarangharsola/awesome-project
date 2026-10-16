@@ -1,36 +1,29 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { formatCode } from '../utils/formatCode';
-import { updateContent } from '../store/editorActions';
 import { RootState } from '../store';
+import { setContent } from '../store/editorActions';
+import { formatCode } from './formatCode';
 
-/**
- * Hook to attach common editor keyboard shortcuts.
- * - Ctrl/Cmd + S: format current document using the selected language.
- * - Additional shortcuts can be added here.
- */
-export const useKeyboardShortcuts = (editorRef: React.RefObject<any>) => {
+export const useKeyboardShortcuts = () => {
   const dispatch = useDispatch();
-  const language = useSelector((state: RootState) => state.editor.language);
-  const content = useSelector((state: RootState) => state.editor.content);
+  const { content, language } = useSelector((state: RootState) => state.editor);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Format on Ctrl/Cmd + S
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+    const handler = (e: KeyboardEvent) => {
+      // Ctrl+S or Cmd+S for formatting
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         const formatted = formatCode(content, language);
-        dispatch(updateContent(formatted));
-        if (editorRef.current && typeof editorRef.current.setValue === 'function') {
-          editorRef.current.setValue(formatted);
-        }
+        dispatch(setContent(formatted));
       }
-      // Placeholder for future shortcuts (e.g., Ctrl+Space for autocomplete)
+      // Ctrl+L or Cmd+L to focus language selector
+      if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+        e.preventDefault();
+        const selector = document.querySelector('select[aria-label="Select language"]') as HTMLElement;
+        selector?.focus();
+      }
     };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [content, language, dispatch, editorRef]);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [content, language, dispatch]);
 };
