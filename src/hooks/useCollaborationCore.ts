@@ -1,99 +1,122 @@
-import { useEffect, useRef, useState } from 'react';
-import { useWebSocket } from './useWebSocket';
-import { Operation } from '../types/collaboration';
-import { applyLocalOperation, applyRemoteOperation } from '../utils/conflict/strategies/crdtCore';
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useWebSocketCore } from "./useWebSocketCore";
+import {
+  CollaborationMessage,
+  CollaborationMessageType,
+} from "../types/collaborationMessage";
+import { applyCRDT } from "../utils/conflictResolver";
+import { UserPresence } from "../types/presence";
+
+export interface CollaborationOptions {
+  sessionId: string;
+  username: string;
+  color: string;
+  wsUrl: string;
+}
 
 /**
- * Core collaboration hook handling document state, user presence, and
- * reliable operation ordering using a simple sequence number based CRDT.
+ * Core collaboration hook.
+ * - Queues local edits when offline and flushes on reconnect.
+ * - Sends presence updates on join/leave and on reconnection.
+ * - Applies incoming CRDT operations with deterministic conflict resolution.
  */
-export function useCollaborationCore(
-  roomId: string,
-  userId: string,
-  username: string,
-  color: string
-) {
-  const [doc, setDoc] = useState<string>('');
-  const [users, setUsers] = useState<
-    Record<string, { name: string; color: string; cursor?: number }>
-  >({});
+export const useCollaborationCore = ({
+  sessionId,
+  username,
+  color,
+  wsUrl,
+}: CollaborationOptions) => {
+  const { connected, sendMessage, setOnMessage } = useWebSocketCore({
+    url: `${wsUrl}?session=${sessionId}`,
+  });
 
-  const pendingOps = useRef<Operation[]>([]);
-  const lastSeq = useRef<number>(0);
+  const [document, setDocument] = useState<string>("");
+  const pendingOpsRef = useRef<CollaborationMessage[]>([]);
+  const presenceRef = useRef<UserPresence>({
+    id: "",
+    name: username,
+    color,
+  });
 
-  const { send, connected } = useWebSocket(
-    `wss://example.com/collab/${roomId}`,
-    handleMessage
+  // Send join message once when component mounts
+  useEffect(() => {
+    const joinMsg: CollaborationMessage = {
+      type: CollaborationMessageType.JOIN,
+      sessionId,
+      user: { name: username, color },
+    };
+    sendMessage(joinMsg);
+  }, [sessionId, username, color, sendMessage]);
+
+  // Flush pending ops when connection is (re)established
+  useEffect(() => {
+    if (connected && pendingOpsRef.current.length > 0) {
+      pendingOpsRef.current.forEach((msg) => sendMessage(msg));
+      pendingOpsRef.current = [];
+    }
+  }, [connected, sendMessage]);
+
+  const handleIncoming = useCallback(
+    (msg: CollaborationMessage) => {
+      switch (msg.type) {
+        case CollaborationMessageType.DOCUMENT:
+          // Full document sync from server
+          setDocument(msg.payload);
+          break;
+        case CollaborationMessageType.OPERATION:
+          // Apply remote CRDT operation
+          setDocument((prev) => applyCRDT(prev, msg.payload));
+          break;
+        case CollaborationMessageType.PRESENCE:
+          // Presence updates are handled by UI layer
+          break;
+        default:
+          break;
+      }
+    },
+    []
   );
 
-  function handleMessage(msg: any) {
-    switch (msg.type) {
-      case 'init':
-        setDoc(msg.content);
-        setUsers(msg.users);
-        lastSeq.current = msg.seq ?? 0;
-        // resend any ops that were queued while disconnected
-        pendingOps.current.forEach((op) => send(op));
-        break;
-      case 'operation':
-        if (msg.seq <= lastSeq.current) return; // ignore duplicates/out‑of‑order
-        const newDoc = applyRemoteOperation(doc, msg as Operation);
-        setDoc(newDoc);
-        lastSeq.current = msg.seq;
-        break;
-      case 'presence':
-        setUsers((prev) => ({
-          ...prev,
-          [msg.userId]: {
-            name: msg.name,
-            color: msg.color,
-            cursor: msg.cursor,
-          },
-        }));
-        break;
-      case 'presenceLeave':
-        setUsers((prev) => {
-          const copy = { ...prev };
-          delete copy[msg.userId];
-          return copy;
-        });
-        break;
-      case 'syncRequest':
-        send({ type: 'syncResponse', content: doc, seq: lastSeq.current });
-        break;
-      case 'syncResponse':
-        setDoc(msg.content);
-        lastSeq.current = msg.seq;
-        break;
-      default:
-        break;
-    }
-  }
-
-  // announce ourselves when the socket becomes ready
+  // Register incoming handler
   useEffect(() => {
+    setOnMessage(handleIncoming);
+  }, [setOnMessage, handleIncoming]);
+
+  // Public API to submit local edits
+  const submitOperation = (op: any) => {
+    const msg: CollaborationMessage = {
+      type: CollaborationMessageType.OPERATION,
+      sessionId,
+      user: { name: username, color },
+      payload: op,
+    };
     if (connected) {
-      send({ type: 'join', userId, name: username, color });
+      sendMessage(msg);
+    } else {
+      pendingOpsRef.current.push(msg);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connected, userId, username, color]);
-
-  const applyOperation = (op: Operation) => {
-    const newDoc = applyLocalOperation(doc, op);
-    setDoc(newDoc);
-    const opMessage = {
-      ...op,
-      type: 'operation',
-      userId,
-      seq: ++lastSeq.current,
-    } as Operation & { type: string; userId: string; seq: number };
-    pendingOps.current.push(opMessage);
-    send(opMessage);
+    // Optimistically apply locally
+    setDocument((prev) => applyCRDT(prev, op));
   };
 
-  const updateCursor = (pos: number) => {
-    send({ type: 'presence', userId, name: username, color, cursor: pos });
+  // Presence heartbeat – send cursor/selection updates
+  const sendPresence = (presence: Partial<UserPresence>) => {
+    const msg: CollaborationMessage = {
+      type: CollaborationMessageType.PRESENCE,
+      sessionId,
+      user: { name: username, color },
+      payload: presence,
+    };
+    if (connected) {
+      sendMessage(msg);
+    }
   };
 
-  return { doc, users, applyOperation, updateCursor, connected };
-}
+  return {
+    document,
+    setDocument,
+    submitOperation,
+    sendPresence,
+    connected,
+  };
+};
