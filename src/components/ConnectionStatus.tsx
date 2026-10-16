@@ -1,50 +1,41 @@
 import React from 'react';
-import { useWebSocket, ConnectionStatus as WSStatus } from '../hooks/useWebSocket';
+import { useConnectionStatus } from '../hooks/useConnectionStatus';
 import './ConnectionStatus.css';
 
-interface Props {
-  /** URL of the WebSocket server used for the collaborative session */
-  url: string;
-}
-
 /**
- * Visual indicator of the WebSocket connection state. Shows the current status,
- * the number of reconnection attempts (when applicable), and provides a manual
- * reconnect button when the connection is permanently disconnected.
+ * Visual indicator of the WebSocket connection status.
+ * Shows a colored dot and text. When disconnected, a retry button is displayed.
  */
-export const ConnectionStatus: React.FC<Props> = ({ url }) => {
-  const { status, retryAttempts, close } = useWebSocket({ url });
+export const ConnectionStatus: React.FC = () => {
+  const { status, manualReconnect } = useConnectionStatus();
 
-  const getColor = (s: WSStatus) => {
-    switch (s) {
+  const getStatusColor = () => {
+    switch (status) {
       case 'connected':
-        return '#4caf50'; // green
+        return 'green';
       case 'connecting':
-      case 'retrying':
-        return '#ff9800'; // orange
+        return 'orange';
+      case 'error':
+        return 'red';
       case 'disconnected':
+        return 'gray';
       default:
-        return '#f44336'; // red
+        return 'gray';
     }
   };
 
-  const handleManualReconnect = () => {
-    close();
-    // Trigger a fresh connection by resetting the hook – easiest way is to reload.
-    window.location.reload();
-  };
-
   return (
-    <div className="connection-status" style={{ color: getColor(status) }}>
-      <span className="status-label">{status.toUpperCase()}</span>
-      {status !== 'connected' && (
-        <span className="retry-info"> (attempt {retryAttempts})</span>
-      )}
-      {status === 'disconnected' && (
-        <button className="reconnect-btn" onClick={handleManualReconnect}>
-          Reconnect
+    <div className="connection-status" title={`WebSocket status: ${status}`}> 
+      <span
+        className="status-indicator"
+        style={{ backgroundColor: getStatusColor() }}
+      />
+      <span className="status-text">{status}</span>
+      {status === 'disconnected' || status === 'error' ? (
+        <button className="retry-button" onClick={manualReconnect}>
+          Retry
         </button>
-      )}
+      ) : null}
     </div>
   );
 };
