@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
 set -e
-
-# Install exact dependencies as defined in package-lock.json
-npm ci
-
-# Run the production build
+# Run the project's build step. Adjust the command if your project uses a different build tool.
 npm run build
