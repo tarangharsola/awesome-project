@@ -1,22 +1,13 @@
+// src/utils/useFormattingDefaults.ts
 import { Extension } from '@codemirror/state';
 import { indentUnit } from '@codemirror/language';
 
 /**
- * Provides default formatting extensions based on the selected language.
- * Currently sets the indent unit (tab size) appropriate for each language.
+ * Returns formatting extensions based on the selected language.
+ * Currently adjusts tab/indent size.
  */
-export function useFormattingDefaults(language: string): Extension {
-  let unit = 2; // default indent size
-  switch (language) {
-    case 'javascript':
-    case 'html':
-      unit = 2;
-      break;
-    case 'python':
-      unit = 4;
-      break;
-    default:
-      unit = 2;
-  }
-  return indentUnit.of(unit);
-}
+export const useFormattingDefaults = (language: string): { extensions: Extension[] } => {
+  const tabSize = language === 'python' ? 4 : 2;
+  const extensions: Extension[] = [indentUnit.of(' '.repeat(tabSize))];
+  return { extensions };
+};

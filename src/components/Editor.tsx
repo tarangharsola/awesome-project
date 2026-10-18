@@ -1,55 +1,39 @@
+// src/components/Editor.tsx
 import React, { useEffect, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { EditorView, basicSetup } from '@codemirror/basic-setup';
-import { EditorState } from '@codemirror/state';
-import { setContent } from '../store/editorActions';
-import { getLanguageExtension } from '../utils/editorExtensions';
+import { useSelector } from 'react-redux';
 import { RootState } from '../store';
+import { useEditor } from '../utils/useEditor';
+import { useFormattingDefaults } from '../utils/useFormattingDefaults';
+import { useKeyboardShortcuts } from '../utils/useKeyboardShortcuts';
+import { useLanguage } from '../utils/useLanguage';
 
 export const Editor: React.FC = () => {
-  const dispatch = useDispatch();
-  const { content, language } = useSelector((state: RootState) => state.editor);
-  const editorRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const content = useSelector((state: RootState) => state.editor.content);
+  const language = useSelector((state: RootState) => state.editor.language);
 
-  useEffect(() => {
-    if (!editorRef.current) return;
-    const startState = EditorState.create({
-      doc: content,
-      extensions: [
-        basicSetup,
-        getLanguageExtension(language),
-        EditorView.updateListener.of((v) => {
-          if (v.docChanged) {
-            const newContent = v.state.doc.toString();
-            dispatch(setContent(newContent));
-          }
-        }),
-      ],
-    });
-    viewRef.current = new EditorView({ state: startState, parent: editorRef.current });
-    return () => {
-      viewRef.current?.destroy();
-    };
-  }, []);
+  const formatting = useFormattingDefaults(language);
+  const languageExtension = useLanguage(language);
 
-  // Reconfigure language when it changes
+  const { view, setContent } = useEditor({
+    container: editorContainerRef.current,
+    initialDoc: content,
+    extensions: [languageExtension, ...formatting.extensions],
+  });
+
+  // Apply keyboard shortcuts once the view is ready
   useEffect(() => {
-    if (viewRef.current) {
-      viewRef.current.dispatch({
-        effects: EditorView.reconfigure.of([getLanguageExtension(language)]),
-      });
+    if (view) {
+      useKeyboardShortcuts(view);
     }
-  }, [language]);
+  }, [view]);
 
-  // Keep content in sync if external changes occur
+  // Keep editor content in sync with Redux state
   useEffect(() => {
-    if (viewRef.current && viewRef.current.state.doc.toString() !== content) {
-      viewRef.current.dispatch({
-        changes: { from: 0, to: viewRef.current.state.doc.length, insert: content },
-      });
+    if (view && view.state.doc.toString() !== content) {
+      setContent(content);
     }
-  }, [content]);
+  }, [content, view, setContent]);
 
-  return <div ref={editorRef} className="editor" />;
+  return <div ref={editorContainerRef} className="editor" />;
 };

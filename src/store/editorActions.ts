@@ -1,9 +1,16 @@
-export const SET_CONTENT = 'SET_CONTENT';
+// src/store/editorActions.ts
+export const UPDATE_CONTENT = 'UPDATE_CONTENT';
+export const SET_CURSOR = 'SET_CURSOR';
 export const SET_LANGUAGE = 'SET_LANGUAGE';
 
-export const setContent = (content: string) => ({
-  type: SET_CONTENT,
+export const updateContent = (content: string) => ({
+  type: UPDATE_CONTENT,
   payload: content,
+});
+
+export const setCursor = (position: { line: number; ch: number }) => ({
+  type: SET_CURSOR,
+  payload: position,
 });
 
 export const setLanguage = (language: string) => ({
