@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import App from '../components/App';
 
-test('renders the collaborative editor without crashing', () => {
+test('renders App component without crashing', () => {
   render(<App />);
-  // The editor component should have a textbox role for the code area
-  const editor = screen.getByRole('textbox');
-  expect(editor).toBeInTheDocument();
+  const editorElement = screen.getByTestId('code-editor');
+  expect(editorElement).toBeInTheDocument();
 });
