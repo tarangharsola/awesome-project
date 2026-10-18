@@ -1,41 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useConnectionStatus } from '../hooks/useConnectionStatus';
 import './ConnectionStatus.css';
 
-/**
- * Visual indicator of the WebSocket connection status.
- * Shows a colored dot and text. When disconnected, a retry button is displayed.
- */
-export const ConnectionStatus: React.FC = () => {
-  const { status, manualReconnect } = useConnectionStatus();
+export const ConnectionStatusIndicator: React.FC = () => {
+  const { status, retryDelay } = useConnectionStatus();
+  const [countdown, setCountdown] = useState<number | null>(null);
 
-  const getStatusColor = () => {
-    switch (status) {
-      case 'connected':
-        return 'green';
-      case 'connecting':
-        return 'orange';
-      case 'error':
-        return 'red';
-      case 'disconnected':
-        return 'gray';
-      default:
-        return 'gray';
+  useEffect(() => {
+    if (retryDelay !== undefined) {
+      const initial = Math.ceil(retryDelay / 1000);
+      setCountdown(initial);
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev && prev > 1) return prev - 1;
+          clearInterval(interval);
+          return null;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setCountdown(null);
     }
-  };
+  }, [retryDelay]);
 
-  return (
-    <div className="connection-status" title={`WebSocket status: ${status}`}> 
-      <span
-        className="status-indicator"
-        style={{ backgroundColor: getStatusColor() }}
-      />
-      <span className="status-text">{status}</span>
-      {status === 'disconnected' || status === 'error' ? (
-        <button className="retry-button" onClick={manualReconnect}>
-          Retry
-        </button>
-      ) : null}
-    </div>
-  );
+  let displayText = '';
+  if (status === 'connected') {
+    displayText = 'Connected';
+  } else if (status === 'connecting') {
+    displayText = 'Connecting...';
+  } else {
+    displayText = countdown ? `Reconnecting in ${countdown}s...` : 'Disconnected';
+  }
+
+  return <div className={`connection-status ${status}`}>{displayText}</div>;
 };
