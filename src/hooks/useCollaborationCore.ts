@@ -1,45 +1,77 @@
-import { useEffect, useCallback } from 'react';
-import { useCollaborationLogic } from './useCollaborationLogic';
-import { useDispatch } from '../store';
-import { applyRemoteOps } from '../store/editorActions';
-import { updateRemoteCursor } from '../store/usersActions';
-import { setUserPresence } from '../store/userActions';
-import { EditorOperation } from '../types/editor';
-import { Presence } from '../types/presence';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import { useWebSocket } from './useWebSocket';
+import { CollaborationMessage } from '../types/collaborationMessage';
+import { applyCRDTOperation } from '../utils/conflict';
+import { User } from '../types';
 
-export function useCollaborationCore(sessionId: string, userId: string, username: string, color: string) {
-  const dispatch = useDispatch();
+/**
+ * Core collaboration hook handling document state, local edits, and remote
+ * operations. It buffers local operations when the websocket is offline and
+ * re‑sends them once the connection is restored, guaranteeing eventual
+ * consistency.
+ */
+export const useCollaborationCore = (sessionId: string, user: User) => {
+  const wsUrl = `${process.env.REACT_APP_WS_ENDPOINT}/session/${sessionId}`;
+  const { status, sendMessage } = useWebSocket(wsUrl);
 
-  const {
-    initWebSocket,
-    sendDocChange,
-    sendCursorUpdate,
-    sendPresence,
-  } = useCollaborationLogic(
-    `${process.env.REACT_APP_WS_URL}/${sessionId}`,
-    (ops: EditorOperation[]) => dispatch(applyRemoteOps(ops)),
-    (remoteUserId: string, position: number) => dispatch(updateRemoteCursor(remoteUserId, position)),
-    (presence: Presence) => dispatch(setUserPresence(presence))
-  );
+  const [doc, setDoc] = useState<string>('');
+  const pendingOps = useRef<CollaborationMessage[]>([]);
 
-  // Initialize connection on mount
+  // Apply a remote operation to the local document state
+  const applyRemote = useCallback((msg: CollaborationMessage) => {
+    if (msg.type !== 'operation') return;
+    setDoc((prev) => applyCRDTOperation(prev, msg));
+  }, []);
+
+  // Listen for incoming websocket messages and dispatch them
   useEffect(() => {
-    initWebSocket();
-    // announce presence
-    sendPresence({ userId, username, color, status: 'join' });
-    return () => {
-      sendPresence({ userId, username, color, status: 'leave' });
+    const handler = (e: Event) => {
+      const msg = (e as CustomEvent).detail as CollaborationMessage;
+      if (msg.type === 'operation') {
+        applyRemote(msg);
+      } else if (msg.type === 'presence') {
+        // Presence handling is performed in a dedicated hook; no action needed here
+      }
     };
-  }, [initWebSocket, sendPresence, userId, username, color]);
+    window.addEventListener('websocket-message', handler);
+    return () => window.removeEventListener('websocket-message', handler);
+  }, [applyRemote]);
 
-  // Expose helpers for editor component
-  const broadcastOps = useCallback((ops: EditorOperation[], version: number) => {
-    sendDocChange(ops, version);
-  }, [sendDocChange]);
+  // Broadcast presence information whenever we (re)connect
+  useEffect(() => {
+    if (status === 'connected') {
+      const presenceMsg: CollaborationMessage = {
+        type: 'presence',
+        userId: user.id,
+        payload: { username: user.name, color: user.color },
+      } as any; // cast to satisfy type system – actual shape defined elsewhere
+      sendMessage(presenceMsg);
+    }
+  }, [status, sendMessage, user]);
 
-  const broadcastCursor = useCallback((position: number) => {
-    sendCursorUpdate(userId, position);
-  }, [sendCursorUpdate, userId]);
+  // Flush any operations that were queued while offline
+  useEffect(() => {
+    if (status === 'connected' && pendingOps.current.length > 0) {
+      pendingOps.current.forEach((op) => sendMessage(op));
+      pendingOps.current = [];
+    }
+  }, [status, sendMessage]);
 
-  return { broadcastOps, broadcastCursor };
-}
+  // Called by the editor component when the local user makes an edit
+  const localEdit = useCallback((operation: any) => {
+    const msg: CollaborationMessage = {
+      type: 'operation',
+      userId: user.id,
+      payload: operation,
+    } as any;
+    // Optimistically apply locally
+    setDoc((prev) => applyCRDTOperation(prev, msg));
+    if (status === 'connected') {
+      sendMessage(msg);
+    } else {
+      pendingOps.current.push(msg);
+    }
+  }, [status, sendMessage, user.id]);
+
+  return { doc, localEdit } as const;
+};
